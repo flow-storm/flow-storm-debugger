@@ -1,0 +1,41 @@
+html body {
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+html body #app {
+  height: 100%;
+}
+
+html body #app .screen {
+  height: 90%;
+}
+
+html body #app .screen .panel {
+  padding: 10px;
+  border: 1px solid #aaa;
+}
+
+html body #app .screen .code-result-cont {
+  height: 75%;
+  display: flex;
+}
+
+html body #app .screen .code-result-cont .code {
+  width: 50%;
+  display: inline-block;
+  min-width: 450px;
+  height: 90%;
+}
+
+html body #app .screen .code-result-cont .code .hl {
+  background-color: pink;
+}
+
+html body #app .screen .code-result-cont .result {
+  width: 50%;
+  display: inline-block;
+  min-width: 450px;
+  height: 90%;
+}

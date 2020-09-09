@@ -56,4 +56,5 @@
                                                          :access-control-allow-methods [:get :put :post :delete])
                                               wrap-keyword-params
                                               wrap-params)
-                                          {:port port}))))
+                                           {:port port}))
+    (println "HTTP server running on 8080")))

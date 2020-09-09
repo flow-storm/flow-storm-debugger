@@ -26,18 +26,21 @@
                     (:result (get trace trace-idx))))
         hl-expr (highlight-expr form-str coor "<b class=\"hl\">" "</b>")]
     [:div.screen
-
      [:div.controls.panel
-      [:button {:on-click #(swap! state update :trace-idx dec)}"<"]
-      [:button {:on-click #(swap! state update :trace-idx inc)}">"]]
+      [:button {:on-click #(swap! state update :trace-idx dec)
+                :disabled (zero? trace-idx)}"<"]
+      [:button {:on-click #(swap! state update :trace-idx inc)
+                :disabled (>= trace-idx (count trace))}">"]
+      [:span (str trace-idx "/" (count trace))]]
 
-     [:div.code.panel
-      [:pre {:dangerouslySetInnerHTML {:__html hl-expr}}]]
+     [:div.code-result-cont
+      [:div.code.panel
+       [:pre {:dangerouslySetInnerHTML {:__html hl-expr}}]]
 
-     [:div.result.panel
-      [:div result]]
+      [:div.result.panel
+       [:div result]]]
 
-     #_[:div.debug.panel
+     [:div.debug.panel
       [:div (str "Current coor: " coor)]
       [:div (str "Trace: " trace)]]]))
 
