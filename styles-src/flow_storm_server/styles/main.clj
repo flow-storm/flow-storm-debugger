@@ -12,6 +12,7 @@
 
        [:.panel {;;:margin "5px"
                  :padding "10px"
+                 :overflow :scroll
                  :border "1px solid #aaa"}]
        [:.code-result-cont {:height "75%"
                             :display :flex}

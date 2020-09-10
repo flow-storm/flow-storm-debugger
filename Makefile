@@ -29,6 +29,9 @@ install: flow-storm-server.jar pom.xml
 deploy:
 	mvn deploy:deploy-file -Dfile=flow-storm-server.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
 
+run:
+	clj -m flow-storm-server.server
+
 tag-release:
 	git add CHANGELOG.md && \
 	git commit -m "Updating CHANGELOG after $(version) release" && \

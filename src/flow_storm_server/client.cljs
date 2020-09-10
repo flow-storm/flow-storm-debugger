@@ -38,9 +38,9 @@
        [:pre {:dangerouslySetInnerHTML {:__html hl-expr}}]]
 
       [:div.result.panel
-       [:div result]]]
+       [:pre {:dangerouslySetInnerHTML {:__html result}}]]]
 
-     [:div.debug.panel
+     #_[:div.debug.panel
       [:div (str "Current coor: " coor)]
       [:div (str "Trace: " trace)]]]))
 
