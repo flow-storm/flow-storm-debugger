@@ -3,5 +3,5 @@
 (defn initial-db []
   {:form-id nil
    :form nil
-   :trace []
+   :traces []
    :trace-idx 0})
