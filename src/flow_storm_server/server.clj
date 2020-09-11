@@ -58,3 +58,15 @@
                                               wrap-params)
                                            {:port port}))
     (println "HTTP server running on 8080")))
+
+(comment
+  (require '[flow-storm.tracer :as t])
+  (require '[flow-storm.instrument :as i])
+
+  (t/connect)
+  (i/trace (let [a 10]
+             (->> (range a)
+                  (map inc)
+                  (filter odd?)
+                  (reduce +))))
+  )
