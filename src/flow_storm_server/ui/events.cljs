@@ -5,21 +5,34 @@
 
 (reg-event-db ::init (fn [_ _] (db/initial-db)))
 
-(reg-event-db ::prev (fn [db _] (update db :trace-idx dec)))
-(reg-event-db ::next (fn [db _] (update db :trace-idx inc)))
+(reg-event-db ::selected-flow-prev
+              (fn [{:keys [selected-flow-id] :as db} _]
+                (update-in db [:flows selected-flow-id :trace-idx] dec)))
 
-(reg-event-db ::add-trace (fn [db [_ trace]]
-                            (update db :traces (fn [traces]
-                                                 (let [trace (update trace :result #(try
-                                                                                      (tools-reader/read-string %)
-                                                                                      (catch js/Error e
-                                                                                        %)))]
-                                                   (conj traces (select-keys trace [:coor :result])))))))
+(reg-event-db ::selected-flow-next
+              (fn [{:keys [selected-flow-id] :as db} _]
+                (update-in db [:flows selected-flow-id :trace-idx] inc)))
 
-(reg-event-db ::init-trace (fn [db [_ data]]
-                             (assoc db
-                                    :form-id (:traced-form-id data)
-                                    :form (-> (:form data)
-                                              (tools-reader/read-string))
-                                    :traces []
-                                    :trace-idx 0)))
+(reg-event-db ::add-trace (fn [db [_ {:keys [flow-id form-id coor result] :as trace}]]
+                            (let [result (try
+                                           (tools-reader/read-string result)
+                                           (catch js/Error e
+                                             result))]
+                              (-> db
+                                  (update-in [:flows flow-id :traces] conj {:flow-id flow-id
+                                                                            :form-id form-id
+                                                                            :coor coor
+                                                                            :result result})))))
+
+(reg-event-db ::init-trace (fn [db [_ {:keys [flow-id form-id form]}]]
+                             (-> db
+                                 (update :selected-flow-id #(or % flow-id))
+                                 (assoc-in [:flows flow-id :forms form-id] (tools-reader/read-string form))
+                                 (update-in [:flows flow-id :traces] #(or % []))
+                                 (assoc-in [:flows flow-id :trace-idx] 0))))
+
+(reg-event-db
+ ::select-flow
+ (fn [{:keys [selected-flow-id] :as db} [_ flow-id]]
+   (-> db
+       (assoc :selected-flow-id flow-id))))

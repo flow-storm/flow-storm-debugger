@@ -8,33 +8,51 @@ html body #app {
   height: 100%;
 }
 
-html body #app .screen {
+html body #app .main-screen {
   height: 90%;
 }
 
-html body #app .screen .panel {
+html body #app .main-screen .panel {
   padding: 10px;
   overflow: scroll;
   border: 1px solid #aaa;
 }
 
-html body #app .screen .code-result-cont {
+html body #app .main-screen .tab {
+  padding: 5px;
+  border: 1px solid #aaa;
+  display: inline-block;
+}
+
+html body #app .main-screen .tab.active {
+  background-color: #bbb;
+}
+
+html body #app .main-screen .flows {
+  height: 100%;
+}
+
+html body #app .main-screen .flows .selected-flow {
+  height: 100%;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result {
   height: 75%;
   display: flex;
 }
 
-html body #app .screen .code-result-cont .code {
+html body #app .main-screen .flows .selected-flow .flow-code-result .code {
   width: 50%;
   display: inline-block;
   min-width: 450px;
   height: 90%;
 }
 
-html body #app .screen .code-result-cont .code .hl {
+html body #app .main-screen .flows .selected-flow .flow-code-result .code .hl {
   background-color: pink;
 }
 
-html body #app .screen .code-result-cont .result {
+html body #app .main-screen .flows .selected-flow .flow-code-result .result {
   width: 50%;
   display: inline-block;
   min-width: 450px;

@@ -64,8 +64,12 @@
   (require '[flow-storm.instrument :as i])
 
   (t/connect)
+
+  (i/trace (defn foo [a b]
+           (+ a b)))
+
   (i/trace (let [a 10]
-             (->> (range a)
+             (->> (range (foo a a))
                   (map inc)
                   (filter odd?)
                   (reduce +))))

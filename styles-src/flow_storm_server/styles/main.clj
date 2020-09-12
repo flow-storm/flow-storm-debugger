@@ -8,23 +8,29 @@
             :padding 0
             :margin 0}
      [:#app {:height "100%"}
-      [:.screen {:height "90%"}
+      [:.main-screen {:height "90%"}
 
-       [:.panel {;;:margin "5px"
-                 :padding "10px"
+       [:.panel {:padding "10px"
                  :overflow :scroll
                  :border "1px solid #aaa"}]
-       [:.code-result-cont {:height "75%"
-                            :display :flex}
 
-        [:.code {:width "50%"
-                 :display :inline-block
-                 :min-width "450px"
-                 :height "90%"}
-         [:.hl {:background-color :pink}]]
+       [:.tab {:padding "5px"
+               :border "1px solid #aaa"
+               :display :inline-block}
+        [:&.active {:background-color "#bbb"}]]
 
-        [:.result {:width "50%"
+       [:.flows {:height "100%"}
+        [:.selected-flow {:height "100%"}
+         [:.flow-code-result {:height "75%"
+                              :display :flex}
+
+          [:.code {:width "50%"
                    :display :inline-block
                    :min-width "450px"
-                   :height "90%"}]]
-       ]]]]))
+                   :height "90%"}
+           [:.hl {:background-color :pink}]]
+
+          [:.result {:width "50%"
+                     :display :inline-block
+                     :min-width "450px"
+                     :height "90%"}]]]]]]]]))
