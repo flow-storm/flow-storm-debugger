@@ -36,3 +36,10 @@
  (fn [{:keys [selected-flow-id] :as db} [_ flow-id]]
    (-> db
        (assoc :selected-flow-id flow-id))))
+
+(reg-event-db
+ ::remove-flow
+ (fn [{:keys [selected-flow-id flows] :as db} [_ flow-id]]
+   (cond-> db
+     true (update :flows dissoc flow-id)
+     (= selected-flow-id flow-id) (assoc :selected-flow-id (first (keys flows))))))

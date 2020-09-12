@@ -28,6 +28,15 @@ html body #app .main-screen .tab.active {
   background-color: #bbb;
 }
 
+html body #app .main-screen .tab .close {
+  font-size: 10px;
+  margin-left: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+}
+
 html body #app .main-screen .flows {
   height: 100%;
 }

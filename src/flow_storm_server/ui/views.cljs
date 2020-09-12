@@ -40,10 +40,13 @@
      [:div.flows
 
       [:div.flows-tabs
-       (for [fid flows-ids]
-         ^{:key fid}
-         [:div.tab {:on-click #(dispatch [::events/select-flow fid])
-                    :class (when (= fid (:id selected-flow)) "active")}
-          fid])]
+       (for [flow-id flows-ids]
+         ^{:key flow-id}
+         [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
+                    :class (when (= flow-id (:id selected-flow)) "active")}
+          [:span flow-id]
+          [:span.close {:on-click (fn [evt]
+                                    (.stopPropagation evt)
+                                    (dispatch [::events/remove-flow flow-id]))}"X"]])]
 
       [flow selected-flow]]]))

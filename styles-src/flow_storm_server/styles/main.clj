@@ -17,7 +17,14 @@
        [:.tab {:padding "5px"
                :border "1px solid #aaa"
                :display :inline-block}
-        [:&.active {:background-color "#bbb"}]]
+        [:&.active {:background-color "#bbb"}]
+        [:.close {:font-size "10px"
+                  :margin-left "4px"
+                  :padding-left "4px"
+                  :padding-right "4px"
+                  ;;:padding "1px"
+                  :border "1px solid #aaa"
+                  :border-radius "5px"}]]
 
        [:.flows {:height "100%"}
         [:.selected-flow {:height "100%"}
