@@ -42,7 +42,7 @@
 
 (defn -main [& args]
   (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)
-        port 8080]
+        port 7722]
 
     (go-loop []
       (try
@@ -57,18 +57,17 @@
                                               wrap-keyword-params
                                               wrap-params)
                                            {:port port}))
-    (println "HTTP server running on 8080")))
+    (println "HTTP server running on 7722")))
 
 (comment
-  (require '[flow-storm.tracer :as t])
-  (require '[flow-storm.instrument :as i])
+  (require '[flow-storm.api :as fsa])
+  (-main)
+  (fsa/connect)
 
-  (t/connect)
-
-  (i/trace (defn foo [a b]
+  (fsa/trace (defn foo [a b]
            (+ a b)))
 
-  (i/trace (let [a 10]
+  (fsa/trace (let [a 10]
              (->> (range (foo a a))
                   (map inc)
                   (filter odd?)

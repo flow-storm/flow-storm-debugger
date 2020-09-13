@@ -28,7 +28,7 @@
          {:type :auto
           :client-id "browser"
           :host "localhost"
-          :port 8080})]
+          :port 7722})]
     (go-loop []
       (try
         (handle-ws-message (async/<! ch-recv))
