@@ -2,7 +2,7 @@
 
 clean:
 	-rm flow-storm-debugger.jar
-	-rm pom.xml
+	# -rm pom.xml
 	-rm target -rf
 
 flow-storm-debugger.jar:
