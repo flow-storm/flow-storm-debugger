@@ -1,4 +1,4 @@
-(ns flow-storm-server.styles.main)
+(ns flow-storm-debugger.styles.main)
 
 (def ^{:garden {:output-to "resources/public/css/main.css"}}
   main

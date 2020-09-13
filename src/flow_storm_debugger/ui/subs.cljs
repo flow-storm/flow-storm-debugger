@@ -1,7 +1,7 @@
-(ns flow-storm-server.ui.subs
+(ns flow-storm-debugger.ui.subs
   (:require [re-frame.core :refer [reg-sub]]
             [zprint.core :as zp]
-            [flow-storm-server.highlighter :refer [highlight-expr]]))
+            [flow-storm-debugger.highlighter :refer [highlight-expr]]))
 
 
 (reg-sub

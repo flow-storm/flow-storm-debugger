@@ -1,4 +1,4 @@
-(ns flow-storm-server.server
+(ns flow-storm-debugger.server
   (:require [org.httpkit.server :as http-server]
             [compojure.core :as compojure :refer [GET POST]]
             [compojure.route :refer [resources]]

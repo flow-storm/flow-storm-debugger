@@ -1,4 +1,4 @@
-(ns flow-storm-server.highlighter)
+(ns flow-storm-debugger.highlighter)
 
 (defn inc-last [v]
   (update v (dec (count v)) inc))

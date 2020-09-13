@@ -1,8 +1,8 @@
-(ns flow-storm-server.ui.views
+(ns flow-storm-debugger.ui.views
   (:require [reagent.core :as r]
             [re-frame.core :refer [dispatch subscribe]]
-            [flow-storm-server.ui.events :as events]
-            [flow-storm-server.ui.subs :as subs]))
+            [flow-storm-debugger.ui.events :as events]
+            [flow-storm-debugger.ui.subs :as subs]))
 
 (defn flow [{:keys [traces trace-idx]}]
   (let [hl-forms @(subscribe [::subs/selected-flow-forms-highlighted])

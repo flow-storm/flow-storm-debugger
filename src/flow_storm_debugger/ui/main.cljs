@@ -1,10 +1,10 @@
-(ns flow-storm-server.ui.main
+(ns flow-storm-debugger.ui.main
   (:require [reagent.core :as r]
             [re-frame.core :refer [dispatch]]
             [taoensso.sente  :as sente]
             [clojure.core.async :refer [go-loop] :as async]
-            [flow-storm-server.ui.views :as views]
-            [flow-storm-server.ui.events :as events]))
+            [flow-storm-debugger.ui.views :as views]
+            [flow-storm-debugger.ui.events :as events]))
 
 (defn ^:dev/after-load mount-component []
   (r/render [views/main-screen] (.getElementById js/document "app")))

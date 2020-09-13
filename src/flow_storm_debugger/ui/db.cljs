@@ -1,4 +1,4 @@
-(ns flow-storm-server.ui.db)
+(ns flow-storm-debugger.ui.db)
 
 (defn initial-db []
   #_{:flows {1 {:forms {
@@ -8,5 +8,5 @@
               :traces [{}]
               :trace-idx 0}}}
 
-  #_{:flows {}
+  {:flows {}
    :selected-flow-id nil})

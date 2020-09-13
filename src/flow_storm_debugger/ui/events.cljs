@@ -1,6 +1,6 @@
-(ns flow-storm-server.ui.events
+(ns flow-storm-debugger.ui.events
   (:require [re-frame.core :refer [reg-event-db]]
-            [flow-storm-server.ui.db :as db]
+            [flow-storm-debugger.ui.db :as db]
             [cljs.tools.reader :as tools-reader]))
 
 (reg-event-db ::init (fn [_ _] (db/initial-db)))
