@@ -2,6 +2,8 @@
 
 A experimental Clojure and ClojureScript debugger
 
+**WIP!**
+
 ## Running
 ```bash
 clj -Sdeps '{:deps {flow-storm-debugger {:mvn/version "0.1.0"}}}' -m flow-storm-debugger.server
