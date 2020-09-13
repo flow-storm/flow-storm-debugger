@@ -15,7 +15,7 @@
                :disabled (zero? trace-idx)} "<"]
      [:button {:on-click #(dispatch [::events/selected-flow-next])
                :disabled (>= trace-idx last-trace)}">"]
-     [:span (str trace-idx "/" last-trace)]]
+     [:span.trace-count (str trace-idx "/" last-trace)]]
 
     [:div.flow-code-result
      [:div.code.panel
@@ -37,16 +37,23 @@
 
     [:div.main-screen
 
-     [:div.flows
+     (if (zero? (count flows-ids))
 
-      [:div.flows-tabs
-       (for [flow-id flows-ids]
-         ^{:key flow-id}
-         [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
-                    :class (when (= flow-id (:id selected-flow)) "active")}
-          [:span flow-id]
-          [:span.close {:on-click (fn [evt]
-                                    (.stopPropagation evt)
-                                    (dispatch [::events/remove-flow flow-id]))}"X"]])]
+       [:div.no-flows
+        "No flows traced yet. Trace some forms using "
+        [:a {:href "http://github.com/jpmonettas/flow-storm"} "flow-storm.api/trace"]
+        " and you will see them displayed here."]
 
-      [flow selected-flow]]]))
+       [:div.flows
+
+        [:div.flows-tabs
+         (for [flow-id flows-ids]
+           ^{:key flow-id}
+           [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
+                      :class (when (= flow-id (:id selected-flow)) "active")}
+
+            [:span.close {:on-click (fn [evt]
+                                      (.stopPropagation evt)
+                                      (dispatch [::events/remove-flow flow-id]))}"X"]])]
+
+        [flow selected-flow]])]))

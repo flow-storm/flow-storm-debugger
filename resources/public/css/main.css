@@ -12,16 +12,28 @@ html body #app .main-screen {
   height: 90%;
 }
 
+html body #app .main-screen .no-flows {
+  text-align: center;
+  margin: 100px;
+}
+
 html body #app .main-screen .panel {
   padding: 10px;
   overflow: scroll;
   border: 1px solid #aaa;
 }
 
+html body #app .main-screen .panel.controls {
+  overflow: hidden;
+}
+
 html body #app .main-screen .tab {
   padding: 5px;
   border: 1px solid #aaa;
   display: inline-block;
+  text-align: right;
+  min-width: 50px;
+  border-radius: 0px 5px 0px 0px;
 }
 
 html body #app .main-screen .tab.active {
@@ -43,6 +55,11 @@ html body #app .main-screen .flows {
 
 html body #app .main-screen .flows .selected-flow {
   height: 100%;
+  padding: 5px;
+}
+
+html body #app .main-screen .flows .selected-flow .trace-count {
+  margin-left: 10px;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result {
