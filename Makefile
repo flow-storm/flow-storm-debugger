@@ -2,11 +2,7 @@
 
 clean:
 	-rm flow-storm-debugger.jar
-	# -rm pom.xml
 	-rm target -rf
-
-flow-storm-debugger.jar:
-	clj -A:jar flow-storm-debugger.jar
 
 pom.xml:
 	clj -Spom
@@ -20,6 +16,9 @@ watch-css:
 
 release-ui: clean
 	npx shadow-cljs release client
+
+flow-storm-debugger.jar: release-ui
+	clj -A:jar flow-storm-debugger.jar
 
 release: flow-storm-debugger.jar pom.xml
 
@@ -39,5 +38,7 @@ tag-release:
 	git push origin master
 
 help:
-	@echo "For releasing to clojars run"
+	@echo "For creating a uberjar run"
 	@echo "make version=x.y.z release"
+	@echo "For releasing to clojars run"
+	@echo "make deploy"
