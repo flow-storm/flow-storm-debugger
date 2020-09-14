@@ -4,7 +4,16 @@
                 [com.taoensso/sente "1.16.0-alpha2"]
                 [org.clojure/core.async "1.3.610"]
                 [zprint "1.0.0"]
-                [re-frame "1.1.1"]]
+                [re-frame "1.1.1"]
+
+                ;; for dev
+                [cider/cider-nrepl "0.25.3"]
+                [cider/piggieback "0.5.1"]
+                [refactor-nrepl "2.5.0"]]
+
+  :nrepl {:middleware [cider.piggieback/wrap-cljs-repl
+                      refactor-nrepl.middleware/wrap-refactor]}
+
  :builds {:client {:target :browser
                    :output-dir "resources/public/js"
                    :modules {:main {:init-fn flow-storm-debugger.ui.main/init}}}}}

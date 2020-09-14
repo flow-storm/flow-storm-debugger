@@ -15,7 +15,8 @@
                :disabled (zero? trace-idx)} "<"]
      [:button {:on-click #(dispatch [::events/selected-flow-next])
                :disabled (>= trace-idx last-trace)}">"]
-     [:span.trace-count (str trace-idx "/" last-trace)]]
+     (when (pos? last-trace)
+       [:span.trace-count (str trace-idx "/" last-trace)])]
 
     [:div.flow-code-result
      [:div.code.panel
@@ -26,10 +27,11 @@
      [:div.result.panel
       [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]]
 
-     #_(let [{:keys [coor form-id]} (get traces trace-idx)]
-      [:div.debug.panel
-       [:div (str "Current coor: " coor)]
-       [:div (str "Form id " form-id)]])]))
+     (let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
+       [:div.debug.panel
+        [:div (str "Current coor: " coor)]
+        [:div (str "Form id " form-id)]
+        [:div (str "Trace " (str trace))]])]))
 
 (defn main-screen []
   (let [selected-flow @(subscribe [::subs/selected-flow])
