@@ -25,6 +25,8 @@
                :min-width "50px"
                :border-radius "0px 5px 0px 0px"}
         [:&.active {:background-color "#bbb"}]
+        [:.name {:font-size "12px"
+                 :color "#444"}]
         [:.close {:font-size "10px"
                   :margin-left "4px"
                   :padding-left "4px"

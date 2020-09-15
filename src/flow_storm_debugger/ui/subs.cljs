@@ -20,10 +20,22 @@
      (js/console.error "String" s)
      s)))
 
+(defn flow-name [forms traces]
+  (let [form-id (-> traces
+                    first
+                    :form-id)
+        form (get forms form-id)
+        str-len (count form)]
+    (cond-> form
+      true (subs 0 (min 20 str-len))
+      (> str-len 20) (str "..."))))
+
 (reg-sub
- ::flows-ids
+ ::flows-tabs
  (fn [db _]
-   (keys (:flows db))))
+   (->> (:flows db)
+        (map (fn [[flow-id {:keys [forms traces]}]]
+               [flow-id (flow-name forms traces)])))))
 
 (reg-sub
  ::selected-flow

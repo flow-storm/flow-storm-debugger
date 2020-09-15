@@ -40,6 +40,11 @@ html body #app .main-screen .tab.active {
   background-color: #bbb;
 }
 
+html body #app .main-screen .tab .name {
+  font-size: 12px;
+  color: #444;
+}
+
 html body #app .main-screen .tab .close {
   font-size: 10px;
   margin-left: 4px;

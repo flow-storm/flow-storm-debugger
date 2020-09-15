@@ -27,7 +27,7 @@
      [:div.result.panel
       [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]]
 
-     (let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
+     #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
        [:div.debug.panel
         [:div (str "Current coor: " coor)]
         [:div (str "Form id " form-id)]
@@ -35,11 +35,11 @@
 
 (defn main-screen []
   (let [selected-flow @(subscribe [::subs/selected-flow])
-        flows-ids @(subscribe [::subs/flows-ids])]
+        flows-tabs @(subscribe [::subs/flows-tabs])]
 
     [:div.main-screen
 
-     (if (zero? (count flows-ids))
+     (if (zero? (count flows-tabs))
 
        [:div.no-flows
         "No flows traced yet. Trace some forms using "
@@ -49,11 +49,11 @@
        [:div.flows
 
         [:div.flows-tabs
-         (for [flow-id flows-ids]
+         (for [[flow-id flow-name] flows-tabs]
            ^{:key flow-id}
            [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
                       :class (when (= flow-id (:id selected-flow)) "active")}
-
+            [:span.name flow-name]
             [:span.close {:on-click (fn [evt]
                                       (.stopPropagation evt)
                                       (dispatch [::events/remove-flow flow-id]))}"X"]])]
