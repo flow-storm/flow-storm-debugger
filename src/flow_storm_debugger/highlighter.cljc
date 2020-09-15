@@ -3,9 +3,14 @@
 (defn inc-last [v]
   (update v (dec (count v)) inc))
 
+;; Leaving quotes out for now
+;; There is a bug when we try to highlight functions that
+;; have documentation, and specialy parenthesis inside the docstring
+;; TODO: fix the bug
 (def separator #{\space \tab \newline \,})
-(def open-par #{\[ \( \{})
-(def closing-par #{\] \) \}})
+(def open-par    #{ \[ \( \{  }) ;; \"
+(def closing-par #{ \] \) \}  }) ;; \"
+(def close-par { \[ \], \( \), \{ \} }) ;; \" \"
 
 (defn skip-separator [s idx]
   (loop [[c & rs] s
@@ -50,9 +55,9 @@
 
 (defn next-expr [expr-str]
   (let [open (first expr-str)
-        close ({\[ \], \( \), \{ \}} open)]
+        close (close-par open)]
     (loop [[c & rs] (rest expr-str)
-          expr (str open)
+           expr (str open)
            lvl 1]
       (cond
         (zero? lvl) expr
@@ -77,7 +82,11 @@
          end-str
          (subs expr-str end-idx))))
 
+
 (comment
+  (require '[flow-storm.api :as a])
+  (a/connect)
+
   (find-coor-idx "(1 2 3)" [1])
   (find-coor-idx "(token 2 3)" [1])
   (find-coor-idx "(token otro 3)" [1])
@@ -93,6 +102,9 @@
                                (map inc)
                                (filter odd?)
                                (reduce +))" [4 1] "|" "|")
+
+  (highlight-expr "(defn walk-indexed \"Some string (pars) \" [a b] (+ a b))" [4] "|" "|")
+  (highlight-expr "(defn walk-indexed \"Some string \" [a b] (+ a b))" [4] "|" "|")
 
 
   )
