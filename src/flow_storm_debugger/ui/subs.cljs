@@ -1,24 +1,8 @@
 (ns flow-storm-debugger.ui.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [zprint.core :as zp]
             [flow-storm-debugger.highlighter :refer [highlight-expr]]
-            [clojure.string :as str]
-            [cljs.tools.reader :as tools-reader]))
+            [flow-storm-debugger.ui.utils :as utils]))
 
-
-(defn escape-html [s]
-  (str/escape s {\< "&lt;" \> "&gt;"}))
-
-(defn pprint-form-for-html [s]
-  (try
-   (-> s
-       tools-reader/read-string
-       zp/zprint-str
-       escape-html)
-   (catch :default e
-     (js/console.error "Couldn't pprint for html :" e)
-     (js/console.error "String" s)
-     s)))
 
 (defn flow-name [forms traces]
   (let [form-id (-> traces
@@ -49,29 +33,13 @@
  (fn [{:keys [selected-flow-id] :as db} _]
    (let [{:keys [traces trace-idx]} (get-in db [:flows selected-flow-id])
          {:keys [result]} (get traces trace-idx)]
-     (pprint-form-for-html result))))
-
-(reg-sub
- ::selected-flow-forms
- :<- [::selected-flow]
- (fn [{:keys [forms] :as flow} _]
-   (->> forms
-        (map (fn [[form-id form-str]]
-               [form-id (pprint-form-for-html form-str)])))))
+     result)))
 
 (reg-sub
  ::selected-flow-forms
  :<- [::selected-flow]
  (fn [{:keys [forms]} _]
    forms))
-
-(reg-sub
- ::selected-flow-forms-pprinted
- :<- [::selected-flow-forms]
- (fn [forms _]
-   (->> forms
-        (map (fn [[form-id form-str]]
-               [form-id (pprint-form-for-html form-str)])))))
 
 (reg-sub
  ::selected-flow-current-trace
@@ -82,7 +50,7 @@
 
 (reg-sub
  ::selected-flow-forms-highlighted
- :<- [::selected-flow-forms-pprinted]
+ :<- [::selected-flow-forms]
  :<- [::selected-flow-current-trace]
  (fn [[forms current-trace] _]
    (->> forms

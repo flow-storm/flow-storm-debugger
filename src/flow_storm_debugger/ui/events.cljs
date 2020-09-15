@@ -1,7 +1,8 @@
 (ns flow-storm-debugger.ui.events
   (:require [re-frame.core :refer [reg-event-db]]
             [flow-storm-debugger.ui.db :as db]
-            [cljs.tools.reader :as tools-reader]))
+            [cljs.tools.reader :as tools-reader]
+            [flow-storm-debugger.ui.utils :as utils]))
 
 (reg-event-db ::init (fn [_ _] (db/initial-db)))
 
@@ -18,12 +19,12 @@
                                 (update-in [:flows flow-id :traces] conj {:flow-id flow-id
                                                                           :form-id form-id
                                                                           :coor coor
-                                                                          :result result}))))
+                                                                          :result (utils/pprint-form-for-html result)}))))
 
 (reg-event-db ::init-trace (fn [db [_ {:keys [flow-id form-id form]}]]
                              (-> db
                                  (update :selected-flow-id #(or % flow-id))
-                                 (assoc-in [:flows flow-id :forms form-id] form)
+                                 (assoc-in [:flows flow-id :forms form-id] (utils/pprint-form-for-html form))
                                  (update-in [:flows flow-id :traces] #(or % []))
                                  (assoc-in [:flows flow-id :trace-idx] 0))))
 
