@@ -1,7 +1,17 @@
+html a {
+  color: pink;
+}
+
+html button {
+  cursor: pointer;
+}
+
 html body {
   height: 100vh;
   padding: 0;
   margin: 0;
+  background-color: #292c34;
+  color: #fcfcfc;
 }
 
 html body #app {
@@ -19,6 +29,7 @@ html body #app .main-screen .no-flows {
 
 html body #app .main-screen .panel {
   padding: 10px;
+  margin: 5px;
   overflow: scroll;
   border: 1px solid #aaa;
 }
@@ -33,16 +44,15 @@ html body #app .main-screen .tab {
   display: inline-block;
   text-align: right;
   min-width: 50px;
-  border-radius: 0px 5px 0px 0px;
+  cursor: pointer;
 }
 
 html body #app .main-screen .tab.active {
-  background-color: #bbb;
+  background-color: #394e68;
 }
 
 html body #app .main-screen .tab .name {
   font-size: 12px;
-  color: #444;
 }
 
 html body #app .main-screen .tab .close {
@@ -68,7 +78,7 @@ html body #app .main-screen .flows .selected-flow .trace-count {
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result {
-  height: 75%;
+  height: 95%;
   display: flex;
 }
 
@@ -80,7 +90,8 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .code {
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .code .hl {
-  background-color: pink;
+  background-color: #902638;
+  border-radius: 5px;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .result {
