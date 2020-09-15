@@ -39,17 +39,43 @@
          {:keys [result]} (get traces trace-idx)]
      (pprint-form-for-html result))))
 
+(reg-sub
+ ::selected-flow-forms
+ :<- [::selected-flow]
+ (fn [{:keys [forms] :as flow} _]
+   (->> forms
+        (map (fn [[form-id form-str]]
+               [form-id (pprint-form-for-html form-str)])))))
+
+(reg-sub
+ ::selected-flow-forms
+ :<- [::selected-flow]
+ (fn [{:keys [forms]} _]
+   forms))
+
+(reg-sub
+ ::selected-flow-forms-pprinted
+ :<- [::selected-flow-forms]
+ (fn [forms _]
+   (->> forms
+        (map (fn [[form-id form-str]]
+               [form-id (pprint-form-for-html form-str)])))))
+
+(reg-sub
+ ::selected-flow-current-trace
+ :<- [::selected-flow]
+ (fn [{:keys [traces trace-idx]} _]
+   (get traces trace-idx)))
 
 
 (reg-sub
  ::selected-flow-forms-highlighted
- (fn [{:keys [selected-flow-id] :as db} _]
-   (let [{:keys [forms traces trace-idx]} (get-in db [:flows selected-flow-id])
-         current-trace (get traces trace-idx)]
-     (->> forms
-          (map (fn [[form-id form-str]]
-                 (let [form-str (pprint-form-for-html form-str)]
-                   [form-id
-                    (if (= form-id (:form-id current-trace))
-                      (highlight-expr form-str (:coor current-trace) "<b class=\"hl\">" "</b>")
-                      form-str)])))))))
+ :<- [::selected-flow-forms-pprinted]
+ :<- [::selected-flow-current-trace]
+ (fn [[forms current-trace] _]
+   (->> forms
+        (map (fn [[form-id form-str]]
+               [form-id
+                (if (= form-id (:form-id current-trace))
+                  (highlight-expr form-str (:coor current-trace) "<b class=\"hl\">" "</b>")
+                  form-str)])))))
