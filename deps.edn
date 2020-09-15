@@ -6,6 +6,9 @@
         ring-cors/ring-cors         {:mvn/version "0.1.13"}
         ring/ring                   {:mvn/version "1.7.1"}
         org.clojure/core.async      {:mvn/version "1.3.610"}
-        flow-storm                  {:local/root "/home/jmonetta/my-projects/flow-storm"}}
+        flow-storm                  {
+                                     ;; :mvn/version "0.1.1"
+                                     :local/root "/home/jmonetta/my-projects/flow-storm"
+                                     }}
  :aliases {:garden {:extra-deps {lambdaisland/garden-watcher {:mvn/version "0.3.5"}}
                     :extra-paths ["styles-src"]}}}
