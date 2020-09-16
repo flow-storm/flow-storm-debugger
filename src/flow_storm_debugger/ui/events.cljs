@@ -40,3 +40,13 @@
    (let [db' (update db :flows dissoc flow-id)]
      (cond-> db'
        (= selected-flow-id flow-id) (assoc :selected-flow-id (-> db' :flows keys first))))))
+
+(reg-event-db
+ ::set-current-flow-trace-idx
+ (fn [{:keys [selected-flow-id] :as db} [_ trace-idx]]
+   (assoc-in db [:flows selected-flow-id :trace-idx] trace-idx)))
+
+(reg-event-db
+ ::select-result-panel
+ (fn [db [_ result-panel]]
+   (assoc db :selected-result-panel result-panel)))

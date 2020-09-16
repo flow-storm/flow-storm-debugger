@@ -1,6 +1,6 @@
 (ns flow-storm-debugger.ui.main
   (:require [reagent.core :as r]
-            [re-frame.core :refer [dispatch]]
+            [re-frame.core :refer [dispatch dispatch-sync]]
             [taoensso.sente  :as sente]
             [clojure.core.async :refer [go-loop] :as async]
             [flow-storm-debugger.ui.views :as views]
@@ -19,6 +19,7 @@
 
 (defn init []
   (mount-component)
+  (dispatch-sync [::events/init])
   (let [?csrf-token (when-let [el (.getElementById js/document "sente-csrf-token")]
                       (.getAttribute el "data-csrf-token"))
         {:keys [chsk ch-recv send-fn state]}

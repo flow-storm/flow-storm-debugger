@@ -42,6 +42,32 @@
    forms))
 
 (reg-sub
+ ::selected-flow-traces
+ :<- [::selected-flow]
+ (fn [{:keys [traces]} _]
+   traces))
+
+(reg-sub
+ ::selected-flow-trace-idx
+ :<- [::selected-flow]
+ (fn [{:keys [trace-idx]} _]
+   trace-idx))
+
+(reg-sub
+ ::selected-flow-similar-traces
+ :<- [::selected-flow-traces]
+ :<- [::selected-flow-trace-idx]
+ (fn [[traces trace-idx] _]
+   (let [traces (mapv (fn [idx t] (assoc t :trace-idx idx)) (range) traces)
+         {:keys [form-id coor]} (get traces trace-idx)
+         current-coor (get-in traces [trace-idx :coor])
+         similar-traces (->> traces
+                             (filter (fn similar [t]
+                                       (and (= (:form-id t) form-id)
+                                            (= (:coor t)    coor)))))]
+     similar-traces)))
+
+(reg-sub
  ::selected-flow-current-trace
  :<- [::selected-flow]
  (fn [{:keys [traces trace-idx]} _]
@@ -59,3 +85,8 @@
                 (if (= form-id (:form-id current-trace))
                   (highlight-expr form-str (:coor current-trace) "<b class=\"hl\">" "</b>")
                   form-str)])))))
+
+(reg-sub
+ ::selected-result-panel
+ (fn [{:keys [selected-result-panel] :as db} _]
+   selected-result-panel))

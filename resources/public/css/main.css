@@ -27,10 +27,13 @@ html body #app .main-screen .no-flows {
   margin: 100px;
 }
 
+html body #app .main-screen .scrollable {
+  overflow: scroll;
+}
+
 html body #app .main-screen .panel {
   padding: 10px;
   margin: 5px;
-  overflow: scroll;
   border: 1px solid #aaa;
 }
 
@@ -39,11 +42,8 @@ html body #app .main-screen .panel.controls {
 }
 
 html body #app .main-screen .tab {
-  padding: 5px;
   border: 1px solid #aaa;
   display: inline-block;
-  text-align: right;
-  min-width: 50px;
   cursor: pointer;
 }
 
@@ -68,6 +68,11 @@ html body #app .main-screen .flows {
   height: 100%;
 }
 
+html body #app .main-screen .flows .flows-tabs .tab {
+  min-width: 50px;
+  padding: 5px;
+}
+
 html body #app .main-screen .flows .selected-flow {
   height: 100%;
   padding: 5px;
@@ -77,26 +82,47 @@ html body #app .main-screen .flows .selected-flow .trace-count {
   margin-left: 10px;
 }
 
+html body #app .main-screen .flows .selected-flow .hl {
+  background-color: #902638;
+  border-radius: 5px;
+}
+
 html body #app .main-screen .flows .selected-flow .flow-code-result {
   height: 95%;
   display: flex;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .code {
+html body #app .main-screen .flows .selected-flow .flow-code-result .code-panel {
   width: 50%;
   display: inline-block;
   min-width: 450px;
-  height: 90%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .code .hl {
-  background-color: #902638;
-  border-radius: 5px;
+html body #app .main-screen .flows .selected-flow .flow-code-result .code-panel .code {
+  height: 100%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result {
+html body #app .main-screen .flows .selected-flow .flow-code-result .traces {
+  width: 1000px;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .traces .trace {
+  cursor: pointer;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel {
   width: 50%;
   display: inline-block;
   min-width: 450px;
-  height: 90%;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .result-tabs .tab {
+  font-size: 12px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .result {
+  height: 97%;
+  padding-top: 10px;
 }

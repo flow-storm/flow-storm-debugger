@@ -4,34 +4,73 @@
             [flow-storm-debugger.ui.events :as events]
             [flow-storm-debugger.ui.subs :as subs]))
 
-(defn flow [{:keys [traces trace-idx]}]
-  (let [hl-forms @(subscribe [::subs/selected-flow-forms-highlighted])
-        selected-flow-result @(subscribe [::subs/selected-flow-result])
-        last-trace (dec (count traces))]
-    [:div.selected-flow
+(defn controls-panel [traces trace-idx]
+  (let [last-trace (dec (count traces))]
+    [:div.panel
+     [:div.controls
+      [:button {:on-click #(dispatch [::events/selected-flow-prev])
+                :disabled (zero? trace-idx)} "<"]
+      [:button {:on-click #(dispatch [::events/selected-flow-next])
+                :disabled (>= trace-idx last-trace)}">"]
+      (when (pos? last-trace)
+        [:span.trace-count (str trace-idx "/" last-trace)])]]))
 
-    [:div.controls.panel
-     [:button {:on-click #(dispatch [::events/selected-flow-prev])
-               :disabled (zero? trace-idx)} "<"]
-     [:button {:on-click #(dispatch [::events/selected-flow-next])
-               :disabled (>= trace-idx last-trace)}">"]
-     (when (pos? last-trace)
-       [:span.trace-count (str trace-idx "/" last-trace)])]
-
-    [:div.flow-code-result
-     [:div.code.panel
+(defn code-panel [traces trace-idx]
+  (let [hl-forms @(subscribe [::subs/selected-flow-forms-highlighted])]
+    [:div.panel.code-panel
+     [:div.code.scrollable
       (for [[form-id hl-form-str] hl-forms]
         ^{:key form-id}
-        [:pre.form {:dangerouslySetInnerHTML {:__html hl-form-str}}])]
+        [:pre.form {:dangerouslySetInnerHTML {:__html hl-form-str}}])]]))
 
-     [:div.result.panel
-      [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]]
+(defn time-result-panel []
+  (let [similar-traces @(subscribe [::subs/selected-flow-similar-traces])
+        trace-idx @(subscribe [::subs/selected-flow-trace-idx])]
+    [:div.result.traces.scrollable
+     (for [t similar-traces]
+       ^{:key (str (:trace-idx t))}
+       [:div.trace {:class (when (= trace-idx (:trace-idx t)) "hl")
+                    :on-click #(dispatch [::events/set-current-flow-trace-idx (:trace-idx t)])}
+        (:result t)])]))
 
-     #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
+(defn pprint-result-panel []
+  (let [selected-flow-result @(subscribe [::subs/selected-flow-result])]
+    [:div.result.pprint-result.scrollable
+     [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]))
+
+(defn explore-result-panel []
+  [:div.result.explore "Coming soon..."])
+
+(defn result-panel []
+  (let [selected-result-panel @(subscribe [::subs/selected-result-panel])
+        tabs [:pprint :explorer :time]]
+    [:div.panel.result-panel
+     [:div.result-tabs
+      (for [t tabs]
+        [:div.tab  {:on-click #(dispatch [::events/select-result-panel t])
+                    :class (when (= selected-result-panel t) "active")}
+         (name t)])]
+     (case selected-result-panel
+       :pprint   [pprint-result-panel]
+       :explorer [explore-result-panel]
+       :time     [time-result-panel])]))
+
+(defn flow [{:keys [traces trace-idx]}]
+  [:div.selected-flow
+
+   [controls-panel traces trace-idx]
+
+   [:div.flow-code-result
+
+    [code-panel traces trace-idx]
+
+    [result-panel]]
+
+   #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
        [:div.debug.panel
         [:div (str "Current coor: " coor)]
         [:div (str "Form id " form-id)]
-        [:div (str "Trace " (str trace))]])]))
+        [:div (str "Trace " (str trace))]])])
 
 (defn main-screen []
   (let [selected-flow @(subscribe [::subs/selected-flow])

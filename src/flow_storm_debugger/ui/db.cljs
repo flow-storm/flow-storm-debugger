@@ -9,4 +9,6 @@
               :trace-idx 0}}}
 
   {:flows {}
-   :selected-flow-id nil})
+   :selected-flow-id nil
+   :selected-result-panel :pprint ;; :explorer :time
+   })
