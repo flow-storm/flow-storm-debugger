@@ -37,7 +37,7 @@
 
     ;; if we get a message from tracer, just forward it to the browser
     "tracer"  (let [[evk] event]
-                (when (#{:flow-storm/init-trace :flow-storm/add-trace} evk)
+                (when (#{:flow-storm/init-trace :flow-storm/add-trace :flow-storm/add-bind-trace} evk)
                  (send-fn "browser" event)))))
 
 (defn -main [& args]

@@ -3,6 +3,8 @@
 (def theme
   {:code-font "#eaeaea"
    :background "#292c34"
+   :background-contrast "#6f6e7d"
+   :background-contrast-2 "#7e8f89"
    :current-expr "#902638"
    :tab-background "#394e68"
    :link-color :pink})
@@ -59,8 +61,11 @@
                          :min-width "450px"}
            [:.code {:height "100%"}]]
 
-          [:.traces {:width "1000px"}
-           [:.trace {:cursor :pointer}]]
+          [:.traces {:list-style-type :none
+                     :padding 0
+                     :margin 0}
+           [:.trace {:cursor :pointer
+                     :width "1000000px"}]]
 
           [:.result-panel {:width "50%"
                            :display :inline-block
@@ -69,5 +74,45 @@
             [:.tab {:font-size "12px"
                     :padding-left "4px"
                     :padding-right "4px"}]]
-           [:.result {:height "97%"
-                      :padding-top "10px"}]]]]]]]]]))
+           [:.result {:height "60%"
+                      :padding-top "10px"}]
+
+           [:.locals {:padding 0
+                      :list-style-type :none
+                      :overflow-x :hidden
+                      :overflow-y :scroll
+                      :height "33%"}
+            [:li {:cursor :pointer
+                  :width "1000000px"
+                  :padding "3px"
+                  :font-size "13px"}
+             [:.symbol {:background-color (:background-contrast-2 theme)
+                        :margin-right "10px"
+                        :padding "0px 3px 0px 3px"
+                        :border-radius "3px"}]]
+            ["li:nth-child(odd)" {:background-color "#25282f"}]
+
+            ]]]
+
+         [:.local-panel-overlay {:position :absolute
+                                 :z-index 1
+                                 :top 0
+                                 :left 0
+                                 :width "100%"
+                                 :height "100%"
+                                 :opacity 0.7
+                                 :background-color (:background theme)}]
+         [:.local-panel {:position :absolute
+                         :width "50%"
+                         :height "50%"
+                         :top "25%"
+                         :left "25%"
+                         :background-color (:background theme)
+                         :z-index 10
+                         }
+          [:.symbol {:text-align :center
+                     :font-weight :bold
+                     :background-color (:background-contrast-2 theme)}]
+          [:.value {:height "92%"
+                    :padding "10px"
+                    :overflow :scroll}]]]]]]]]))

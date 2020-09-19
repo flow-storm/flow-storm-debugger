@@ -87,6 +87,43 @@
                   form-str)])))))
 
 (reg-sub
+ ::selected-flow-bind-traces
+ :<- [::selected-flow]
+ (fn [{:keys [bind-traces]} _]
+   bind-traces))
+
+(defn coor-in-scope? [scope-coor current-coor]
+  (if (empty? scope-coor)
+    true
+    (every? true? (map = scope-coor current-coor))))
+
+(reg-sub
+ ::selected-flow-current-locals
+ :<- [::selected-flow-current-trace]
+ :<- [::selected-flow-bind-traces]
+ (fn [[{:keys [coor form-id timestamp] :as curr-trace} bind-traces]]
+   (let [in-scope? (fn [bt]
+                     (and (= form-id (:form-id bt))
+                          (coor-in-scope? (:coor bt) coor)
+                          (<= (:timestamp bt) timestamp)))]
+     (println "BIND TRACES" bind-traces)
+     (when-not (empty? coor)
+       (->> bind-traces          ;;(filter in-scope? bind-traces)
+            (reduce (fn [r {:keys [symbol value] :as bt}]
+                      (if (in-scope? bt)
+                        (assoc r symbol value)
+                        r))
+                    {})
+            (into [])
+            (sort-by first))))))
+
+(reg-sub
  ::selected-result-panel
  (fn [{:keys [selected-result-panel] :as db} _]
    selected-result-panel))
+
+(reg-sub
+ ::current-flow-local-panel
+ :<- [::selected-flow]
+ (fn [flow _]
+   (:local-panel flow)))

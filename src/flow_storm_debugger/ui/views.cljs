@@ -26,10 +26,10 @@
 (defn time-result-panel []
   (let [similar-traces @(subscribe [::subs/selected-flow-similar-traces])
         trace-idx @(subscribe [::subs/selected-flow-trace-idx])]
-    [:div.result.traces.scrollable
+    [:ul.result.traces.scrollable
      (for [t similar-traces]
        ^{:key (str (:trace-idx t))}
-       [:div.trace {:class (when (= trace-idx (:trace-idx t)) "hl")
+       [:li.trace {:class (when (= trace-idx (:trace-idx t)) "hl")
                     :on-click #(dispatch [::events/set-current-flow-trace-idx (:trace-idx t)])}
         (:result t)])]))
 
@@ -43,6 +43,7 @@
 
 (defn result-panel []
   (let [selected-result-panel @(subscribe [::subs/selected-result-panel])
+        locals @(subscribe [::subs/selected-flow-current-locals])
         tabs [:pprint :explorer :time]]
     [:div.panel.result-panel
      [:div.result-tabs
@@ -53,24 +54,41 @@
      (case selected-result-panel
        :pprint   [pprint-result-panel]
        :explorer [explore-result-panel]
-       :time     [time-result-panel])]))
+       :time     [time-result-panel])
+
+     [:ul.locals
+      (for [[symbol value] locals]
+        ^{:key symbol}
+        [:li {:on-click #(dispatch [::events/show-local symbol value])}
+         [:span.symbol symbol] [:span.value value]])]]))
+
+(defn local-panel [symbol value]
+  [:div
+   [:div.local-panel-overlay {:on-click #(dispatch [::events/hide-local-panel])}]
+   [:div.local-panel.panel
+    [:div.symbol symbol]
+    [:div.value value]]])
 
 (defn flow [{:keys [traces trace-idx]}]
-  [:div.selected-flow
+  (let [[local-symb local-value] @(subscribe [::subs/current-flow-local-panel])]
+   [:div.selected-flow
 
-   [controls-panel traces trace-idx]
+    [controls-panel traces trace-idx]
 
-   [:div.flow-code-result
+    [:div.flow-code-result
 
-    [code-panel traces trace-idx]
+     [code-panel traces trace-idx]
 
-    [result-panel]]
+     [result-panel]
 
-   #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
-       [:div.debug.panel
-        [:div (str "Current coor: " coor)]
-        [:div (str "Form id " form-id)]
-        [:div (str "Trace " (str trace))]])])
+     (when local-symb
+       [local-panel local-symb local-value])]
+
+    #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
+        [:div.debug.panel
+         [:div (str "Current coor: " coor)]
+         [:div (str "Form id " form-id)]
+         [:div (str "Trace " (str trace))]])]))
 
 (defn main-screen []
   (let [selected-flow @(subscribe [::subs/selected-flow])
