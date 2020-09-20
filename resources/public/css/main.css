@@ -2,6 +2,12 @@ html a {
   color: pink;
 }
 
+html ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
 html button {
   cursor: pointer;
 }
@@ -39,6 +45,10 @@ html body #app .main-screen .panel {
 
 html body #app .main-screen .panel.controls {
   overflow: hidden;
+}
+
+html body #app .main-screen .controls {
+  display: flex;
 }
 
 html body #app .main-screen .tab {
@@ -102,15 +112,18 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .code-panel 
   height: 100%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .traces {
-  list-style-type: none;
+html body #app .main-screen .flows .selected-flow .flow-code-result .layers {
   padding: 0;
   margin: 0;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .traces .trace {
+html body #app .main-screen .flows .selected-flow .flow-code-result .layers .layer {
   cursor: pointer;
   width: 1000000px;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .fn-calls li .fn-name {
+  margin-right: 4px;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel {
@@ -125,14 +138,13 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .result-pane
   padding-right: 4px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .result {
+html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .tool {
   height: 60%;
   padding-top: 10px;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals {
   padding: 0;
-  list-style-type: none;
   overflow-x: hidden;
   overflow-y: scroll;
   height: 33%;

@@ -13,6 +13,9 @@
   (list
    [:html
     [:a {:color (:link-color theme)}]
+    [:ul {:list-style-type :none
+          :padding 0
+          :margin 0}]
     [:button {:cursor :pointer}]
     [:body {:height "100vh"
             :padding 0
@@ -29,6 +32,8 @@
                  :margin "5px"
                  :border "1px solid #aaa"}
         [:&.controls {:overflow :hidden}]]
+
+       [:.controls {:display :flex}]
 
        [:.tab {:border "1px solid #aaa"
                :display :inline-block
@@ -61,11 +66,15 @@
                          :min-width "450px"}
            [:.code {:height "100%"}]]
 
-          [:.traces {:list-style-type :none
-                     :padding 0
+          [:.layers {:padding 0
                      :margin 0}
-           [:.trace {:cursor :pointer
+           [:.layer {:cursor :pointer
                      :width "1000000px"}]]
+
+          [:.fn-calls
+           [:li
+            [:.fn-name {:margin-right "4px"}]
+            [:.fn-result]]]
 
           [:.result-panel {:width "50%"
                            :display :inline-block
@@ -74,11 +83,10 @@
             [:.tab {:font-size "12px"
                     :padding-left "4px"
                     :padding-right "4px"}]]
-           [:.result {:height "60%"
-                      :padding-top "10px"}]
+           [:.tool {:height "60%"
+                    :padding-top "10px"}]
 
            [:.locals {:padding 0
-                      :list-style-type :none
                       :overflow-x :hidden
                       :overflow-y :scroll
                       :height "33%"}

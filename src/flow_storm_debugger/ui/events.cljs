@@ -14,10 +14,11 @@
               (fn [{:keys [selected-flow-id] :as db} _]
                 (update-in db [:flows selected-flow-id :trace-idx] inc)))
 
-(reg-event-db ::add-trace (fn [db [_ {:keys [flow-id form-id coor result] :as trace}]]
+(reg-event-db ::add-trace (fn [db [_ {:keys [flow-id form-id coor result outer-form?] :as trace}]]
                             (-> db
                                 (update-in [:flows flow-id :traces] conj {:flow-id flow-id
                                                                           :form-id form-id
+                                                                          :outer-form? outer-form?
                                                                           :coor coor
                                                                           :result (utils/pprint-form-for-html result)
                                                                           :timestamp (.getTime (js/Date.))}))))
@@ -34,7 +35,14 @@
                              (-> db
                                  (update :selected-flow-id #(or % flow-id))
                                  (assoc-in [:flows flow-id :forms form-id] (utils/pprint-form-for-html form))
-                                 (update-in [:flows flow-id :traces] #(or % []))
+                                 (update-in [:flows flow-id :traces] (fn [traces]
+                                                                       (if-not traces
+                                                                         []
+                                                                         (conj traces {:flow-id flow-id
+                                                                                       :form-id form-id
+                                                                                       :coor []
+                                                                                       :fn-call? true
+                                                                                       :timestamp (.getTime (js/Date.))}))))
                                  (assoc-in [:flows flow-id :trace-idx] 0)
                                  (update-in [:flows flow-id :bind-traces] #(or % []))
                                  (assoc-in [:flows flow-id :local-panel-symbol] nil))))

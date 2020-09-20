@@ -97,25 +97,28 @@
     true
     (every? true? (map = scope-coor current-coor))))
 
+(defn trace-locals [{:keys [coor form-id timestamp]} bind-traces]
+  (let [in-scope? (fn [bt]
+                    (and (= form-id (:form-id bt))
+                         (coor-in-scope? (:coor bt) coor)
+                         (<= (:timestamp bt) timestamp)))]
+    (when-not (empty? coor)
+      (->> bind-traces          ;;(filter in-scope? bind-traces)
+           (reduce (fn [r {:keys [symbol value] :as bt}]
+                     (if (in-scope? bt)
+                       (assoc r symbol value)
+                       r))
+                   {})))))
+
 (reg-sub
  ::selected-flow-current-locals
  :<- [::selected-flow-current-trace]
  :<- [::selected-flow-bind-traces]
- (fn [[{:keys [coor form-id timestamp] :as curr-trace} bind-traces]]
-   (let [in-scope? (fn [bt]
-                     (and (= form-id (:form-id bt))
-                          (coor-in-scope? (:coor bt) coor)
-                          (<= (:timestamp bt) timestamp)))]
-     (println "BIND TRACES" bind-traces)
-     (when-not (empty? coor)
-       (->> bind-traces          ;;(filter in-scope? bind-traces)
-            (reduce (fn [r {:keys [symbol value] :as bt}]
-                      (if (in-scope? bt)
-                        (assoc r symbol value)
-                        r))
-                    {})
-            (into [])
-            (sort-by first))))))
+ (fn [[curr-trace bind-traces]]
+   (let [locals-map (trace-locals curr-trace bind-traces)]
+     (->> locals-map
+          (into [])
+          (sort-by first)))))
 
 (reg-sub
  ::selected-result-panel
@@ -127,3 +130,22 @@
  :<- [::selected-flow]
  (fn [flow _]
    (:local-panel flow)))
+
+(defn form-name [form-str]
+  (let [[_ form-name] (when form-str
+                        (re-find #"\([\S]+\s([\S]+)\s.+" form-str))]
+    form-name))
+
+(reg-sub
+ ::fn-call-traces
+ :<- [::selected-flow-traces]
+ :<- [::selected-flow-forms]
+ (fn [[traces forms] _]
+   (->> traces
+        (map (fn [idx t] (assoc t :trace-idx idx)) (range))
+        (filter (fn [t] (or (:fn-call? t)
+                            (:outer-form? t))))
+        (map (fn [{:keys [form-id fn-call?] :as trace}]
+               (cond-> trace
+                 true     (assoc :fn-name (form-name (get forms form-id)) )
+                 fn-call? (assoc :call-params "[... coming soon ...]")))))))
