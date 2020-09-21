@@ -2,7 +2,8 @@
   (:require [reagent.core :as r]
             [re-frame.core :refer [dispatch subscribe]]
             [flow-storm-debugger.ui.events :as events]
-            [flow-storm-debugger.ui.subs :as subs]))
+            [flow-storm-debugger.ui.subs :as subs]
+            [cljs.tools.reader :as tools-reader]))
 
 (defn controls-panel [traces trace-idx]
   (let [last-trace (dec (count traces))]
@@ -16,7 +17,22 @@
        [:button {:on-click #(dispatch [::events/selected-flow-next])
                  :disabled (>= trace-idx last-trace)}">"]
        (when (pos? last-trace)
-         [:span.trace-count (str trace-idx "/" last-trace)])]]]))
+         [:span.trace-count (str trace-idx "/" last-trace)])]
+
+      [:div.tools-controls
+       [:button {:on-click #(dispatch [::events/open-save-panel])}
+        "Save"]]]]))
+
+(defn save-flow-panel []
+  (let [file-name (r/atom nil)]
+    (fn []
+      [:div.save-flow-panel.panel
+       [:label "Save flow to:"]
+       [:input {:type :text
+                :on-change (fn [e] (reset! file-name (-> e .-target .-value)))
+                :on-key-press (fn [e] (when (= (-> e .-key) "Enter")
+                                        (dispatch [::events/save-selected-flow @file-name])))
+                :value @file-name}]])))
 
 (defn code-panel [traces trace-idx]
   (let [hl-forms @(subscribe [::subs/selected-flow-forms-highlighted])]
@@ -77,15 +93,25 @@
          [:span.symbol symbol] [:span.value value]])]]))
 
 (defn local-panel [symbol value]
-  [:div
-   [:div.local-panel-overlay {:on-click #(dispatch [::events/hide-local-panel])}]
-   [:div.local-panel.panel
-    [:div.symbol symbol]
-    [:div.value value]]])
+  [:div.local-panel.panel
+   [:div.symbol symbol]
+   [:div.value value]])
 
 (defn flow [{:keys [traces trace-idx]}]
-  (let [[local-symb local-value] @(subscribe [::subs/current-flow-local-panel])]
+  (let [[local-symb local-value] @(subscribe [::subs/current-flow-local-panel])
+        save-flow-panel-open? @(subscribe [::subs/save-flow-panel-open?])]
    [:div.selected-flow
+
+    ;; Modals
+
+    (when (or save-flow-panel-open?
+              local-symb)
+      [:div.modal-overlay {:on-click #(dispatch [::events/hide-modals])}])
+
+    (when local-symb
+      [local-panel local-symb local-value])
+
+    (when save-flow-panel-open? [save-flow-panel])
 
     [controls-panel traces trace-idx]
 
@@ -95,8 +121,7 @@
 
      [result-panel]
 
-     (when local-symb
-       [local-panel local-symb local-value])]
+     ]
 
     #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
         [:div.debug.panel
@@ -110,23 +135,32 @@
 
     [:div.main-screen
 
-     (if (zero? (count flows-tabs))
+     [:div.flows
 
-       [:div.no-flows
-        "No flows traced yet. Trace some forms using "
-        [:a {:href "http://github.com/jpmonettas/flow-storm"} "flow-storm.api/trace"]
-        " and you will see them displayed here."]
+      [:div.top-bar
 
-       [:div.flows
+       [:div.flows-tabs
+        (for [[flow-id flow-name] flows-tabs]
+          ^{:key flow-id}
+          [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
+                     :class (when (= flow-id (:id selected-flow)) "active")}
+           [:span.name flow-name]
+           [:span.close {:on-click (fn [evt]
+                                     (.stopPropagation evt)
+                                     (dispatch [::events/remove-flow flow-id]))}"X"]])]
+       [:div.load-flow
+        [:input {:type :file
+                 :id "file-loader"
+                 :style {:display :none}
+                 :on-change (fn [e] (let [file (-> e .-target .-files (aget 0))]
+                                      (.then (.text file) (fn [file-text]
+                                                            (dispatch [::events/load-flow (tools-reader/read-string file-text)])))))}]
+        [:button {:on-click #(.click (js/document.getElementById "file-loader"))} "Load"]]]
 
-        [:div.flows-tabs
-         (for [[flow-id flow-name] flows-tabs]
-           ^{:key flow-id}
-           [:div.tab {:on-click #(dispatch [::events/select-flow flow-id])
-                      :class (when (= flow-id (:id selected-flow)) "active")}
-            [:span.name flow-name]
-            [:span.close {:on-click (fn [evt]
-                                      (.stopPropagation evt)
-                                      (dispatch [::events/remove-flow flow-id]))}"X"]])]
+      (if (zero? (count flows-tabs))
+        [:div.no-flows
+         "No flows traced yet. Trace some forms using "
+         [:a {:href "http://github.com/jpmonettas/flow-storm"} "flow-storm.api/trace"]
+         " and you will see them displayed here."]
 
-        [flow selected-flow]])]))
+        [flow selected-flow])]]))

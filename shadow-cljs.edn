@@ -5,6 +5,7 @@
                 [org.clojure/core.async "1.3.610"]
                 [zprint "1.0.0"]
                 [re-frame "1.1.1"]
+                [day8.re-frame/http-fx "0.2.1"]
 
                 ;; for dev
                 [cider/cider-nrepl "0.25.3"]

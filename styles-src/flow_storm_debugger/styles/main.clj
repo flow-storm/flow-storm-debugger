@@ -17,6 +17,8 @@
           :padding 0
           :margin 0}]
     [:button {:cursor :pointer}]
+    [:input {:background-color (:background-contrast theme)
+             :color (:code-font theme)}]
     [:body {:height "100vh"
             :padding 0
             :margin 0
@@ -33,7 +35,8 @@
                  :border "1px solid #aaa"}
         [:&.controls {:overflow :hidden}]]
 
-       [:.controls {:display :flex}]
+       [:.controls {:display :flex
+                    :justify-content :space-between}]
 
        [:.tab {:border "1px solid #aaa"
                :display :inline-block
@@ -48,10 +51,13 @@
                   :border-radius "5px"}]]
 
        [:.flows {:height "100%"}
+        [:.top-bar {:display :flex
+                    :justify-content :space-between}
+         [:.load-flow {:display :inline-block}]
 
-        [:.flows-tabs
-         [:.tab {:min-width "50px"
-                 :padding "5px"}]]
+         [:.flows-tabs {:display :inline-block}
+          [:.tab {:min-width "50px"
+                  :padding "5px"}]]]
 
         [:.selected-flow {:height "100%"
                           :padding "5px"}
@@ -102,14 +108,26 @@
 
             ]]]
 
-         [:.local-panel-overlay {:position :absolute
+         [:.modal-overlay {:position :absolute
                                  :z-index 1
                                  :top 0
                                  :left 0
                                  :width "100%"
                                  :height "100%"
                                  :opacity 0.7
-                                 :background-color (:background theme)}]
+                           :background-color (:background theme)}]
+
+         [:.save-flow-panel
+          {:position :absolute
+           :width "30%"
+           :height "5%"
+           :top "35%"
+           :left "35%"
+           :display :flex
+           :justify-content :space-around
+           :align-items :center
+           :background-color (:background theme)
+           :z-index 10}]
          [:.local-panel {:position :absolute
                          :width "50%"
                          :height "50%"

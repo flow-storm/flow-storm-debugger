@@ -1,8 +1,10 @@
 (ns flow-storm-debugger.ui.events
-  (:require [re-frame.core :refer [reg-event-db]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [flow-storm-debugger.ui.db :as db]
             [cljs.tools.reader :as tools-reader]
-            [flow-storm-debugger.ui.utils :as utils]))
+            [flow-storm-debugger.ui.utils :as utils]
+            [ajax.core :as ajax]
+            [day8.re-frame.http-fx]))
 
 (reg-event-db ::init (fn [_ _] (db/initial-db)))
 
@@ -76,6 +78,40 @@
    (assoc-in db [:flows selected-flow-id :local-panel] [symbol value])))
 
 (reg-event-db
- ::hide-local-panel
+ ::hide-modals
  (fn [{:keys [selected-flow-id] :as db} _]
-   (assoc-in db [:flows selected-flow-id :local-panel] nil)))
+   (-> db
+       (assoc-in [:flows selected-flow-id :local-panel] nil)
+       (assoc-in [:flows selected-flow-id :save-flow-panel-open?] false))))
+
+(reg-event-db
+ ::open-save-panel
+ (fn [{:keys [selected-flow-id] :as db} _]
+   (assoc-in db [:flows selected-flow-id :save-flow-panel-open?] true)))
+
+(reg-event-fx
+ ::save-selected-flow
+ (fn [cofx [_ file-name]]
+   (let [selected-flow-id (get-in cofx [:db :selected-flow-id])
+         selected-flow (get-in cofx [:db :flows selected-flow-id])]
+     (println "Saving to " file-name (pr-str selected-flow))
+     {:http-xhrio {:method          :post
+                   :uri             "http://localhost:7722/save-flow"
+                   :timeout         8000
+                   :params (-> selected-flow
+                               (select-keys [:forms :traces :trace-idx :bind-traces])
+                               (assoc :flow-id selected-flow-id)
+                               pr-str)
+                   :url-params {:file-name file-name}
+                   :format (ajax/text-request-format)
+                   :response-format (ajax/raw-response-format)
+                   :on-success      [:flow-storm-debugger.ui.events/hide-modals]
+                   :on-failure      []}})))
+
+(reg-event-db
+ ::load-flow
+ (fn [db [_ flow]]
+   (let [flow-id (:flow-id flow)]
+     (-> db
+         (assoc-in [:flows flow-id] flow)
+         (update :selected-flow-id #(or % flow-id))))))

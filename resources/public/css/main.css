@@ -12,6 +12,11 @@ html button {
   cursor: pointer;
 }
 
+html input {
+  background-color: #6f6e7d;
+  color: #eaeaea;
+}
+
 html body {
   height: 100vh;
   padding: 0;
@@ -49,6 +54,7 @@ html body #app .main-screen .panel.controls {
 
 html body #app .main-screen .controls {
   display: flex;
+  justify-content: space-between;
 }
 
 html body #app .main-screen .tab {
@@ -78,7 +84,20 @@ html body #app .main-screen .flows {
   height: 100%;
 }
 
-html body #app .main-screen .flows .flows-tabs .tab {
+html body #app .main-screen .flows .top-bar {
+  display: flex;
+  justify-content: space-between;
+}
+
+html body #app .main-screen .flows .top-bar .load-flow {
+  display: inline-block;
+}
+
+html body #app .main-screen .flows .top-bar .flows-tabs {
+  display: inline-block;
+}
+
+html body #app .main-screen .flows .top-bar .flows-tabs .tab {
   min-width: 50px;
   padding: 5px;
 }
@@ -168,7 +187,7 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .result-pane
   background-color: #25282f;
 }
 
-html body #app .main-screen .flows .selected-flow .local-panel-overlay {
+html body #app .main-screen .flows .selected-flow .modal-overlay {
   position: absolute;
   z-index: 1;
   top: 0;
@@ -177,6 +196,19 @@ html body #app .main-screen .flows .selected-flow .local-panel-overlay {
   height: 100%;
   opacity: 0.7;
   background-color: #292c34;
+}
+
+html body #app .main-screen .flows .selected-flow .save-flow-panel {
+  width: 30%;
+  top: 35%;
+  justify-content: space-around;
+  height: 5%;
+  align-items: center;
+  position: absolute;
+  z-index: 10;
+  background-color: #292c34;
+  display: flex;
+  left: 35%;
 }
 
 html body #app .main-screen .flows .selected-flow .local-panel {

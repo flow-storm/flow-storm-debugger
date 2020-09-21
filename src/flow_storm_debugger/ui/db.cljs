@@ -8,9 +8,11 @@
                 :traces [{}]
                 :bind-traces [{}]
                 :trace-idx 0
-                :local-panel nil}}}
+                :local-panel nil
+                :save-flow-panel-open? false}}}
 
   {:flows {}
    :selected-flow-id nil
    :selected-result-panel :pprint ;; :explorer :time
+
    })

@@ -8,7 +8,8 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.util.response :refer [resource-response]]
-            [clojure.core.async :refer [go-loop] :as async]))
+            [clojure.core.async :refer [go-loop] :as async]
+            [ring.util.request :refer [body-string]]))
 
 (def server (atom nil))
 
@@ -26,14 +27,18 @@
      :ch-recv ch-recv
      :connected-uids-atom connected-uids}))
 
+(defn save-flow [{:keys [params] :as req}]
+  (spit (str "./" (:file-name params)) (body-string req)))
+
 (defn build-routes [opts]
   (compojure/routes
    (GET "/" [] (resource-response "index.html" {:root "public"}))
+   (POST "/save-flow" req (do (save-flow req) {:status 200}) )
    (resources "/")))
 
 (defn handle-ws-message [send-fn {:keys [event client-id user-id] :as msg}]
   (case client-id
-    "browser" (println "Got event from browser" event)
+    "browser" (println "browser -> tracer" event)
 
     ;; if we get a message from tracer, just forward it to the browser
     "tracer"  (let [[evk] event]

@@ -149,3 +149,14 @@
                (cond-> trace
                  true     (assoc :fn-name (form-name (get forms form-id)) )
                  fn-call? (assoc :call-params "[... coming soon ...]")))))))
+
+(reg-sub
+ ::save-flow-panel-open?
+ (fn [{:keys [save-flow-panel-open?]} _]
+   save-flow-panel-open?))
+
+(reg-sub
+ ::save-flow-panel-open?
+ :<- [::selected-flow]
+ (fn [flow _]
+   (:save-flow-panel-open? flow)))
