@@ -10,9 +10,10 @@
                     :form-id)
         form (get forms form-id)
         str-len (count form)]
-    (cond-> form
-      true (subs 0 (min 20 str-len))
-      (> str-len 20) (str "..."))))
+    (when form
+     (cond-> form
+       true (subs 0 (min 20 str-len))
+       (> str-len 20) (str "...")))))
 
 (reg-sub
  ::flows-tabs

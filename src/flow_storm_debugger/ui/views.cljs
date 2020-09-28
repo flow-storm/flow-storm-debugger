@@ -95,7 +95,7 @@
 (defn local-panel [symbol value]
   [:div.local-panel.panel
    [:div.symbol symbol]
-   [:div.value value]])
+   [:pre.value value]])
 
 (defn flow [{:keys [traces trace-idx]}]
   (let [[local-symb local-value] @(subscribe [::subs/current-flow-local-panel])

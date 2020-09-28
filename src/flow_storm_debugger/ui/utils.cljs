@@ -13,6 +13,5 @@
        zp/zprint-str
        escape-html)
    (catch :default e
-     (js/console.error "Couldn't pprint for html :" e)
-     (js/console.error "String" s)
+     (js/console.warn "Couldn't pprint: " s)
      s)))

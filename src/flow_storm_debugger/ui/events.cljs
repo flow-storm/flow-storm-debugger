@@ -16,32 +16,38 @@
               (fn [{:keys [selected-flow-id] :as db} _]
                 (update-in db [:flows selected-flow-id :trace-idx] inc)))
 
-(reg-event-db ::add-trace (fn [db [_ {:keys [flow-id form-id coor result outer-form?] :as trace}]]
-                            (-> db
-                                (update-in [:flows flow-id :traces] conj {:flow-id flow-id
-                                                                          :form-id form-id
-                                                                          :outer-form? outer-form?
-                                                                          :coor coor
-                                                                          :result (utils/pprint-form-for-html result)
-                                                                          :timestamp (.getTime (js/Date.))}))))
+(reg-event-db ::add-trace (fn [db [_ {:keys [flow-id form-id form-flow-id coor result outer-form?] :as trace}]]
+                            (let [flow-id (or flow-id
+                                             (get-in db [:form-flow-id->flow-id form-flow-id]))]
+                             (-> db
+                                 (update-in [:flows flow-id :traces] conj {:flow-id flow-id
+                                                                           :form-id form-id
+                                                                           :outer-form? outer-form?
+                                                                           :coor coor
+                                                                           :result (utils/pprint-form-for-html result)
+                                                                           :timestamp (.getTime (js/Date.))})))))
 
-(reg-event-db ::add-bind-trace (fn [db [_ {:keys [flow-id form-id coor symbol value] :as trace}]]
-                            (-> db
-                                (update-in [:flows flow-id :bind-traces] conj {:flow-id flow-id
-                                                                               :form-id form-id
-                                                                               :coor coor
-                                                                               :symbol symbol
-                                                                               :value (utils/pprint-form-for-html value)
-                                                                               :timestamp (.getTime (js/Date.))}))))
-(reg-event-db ::init-trace (fn [db [_ {:keys [flow-id form-id form]}]]
+(reg-event-db ::add-bind-trace (fn [db [_ {:keys [flow-id form-id form-flow-id coor symbol value] :as trace}]]
+                                 (let [flow-id (or flow-id
+                                                   (get-in db [:form-flow-id->flow-id form-flow-id]))]
+                                  (-> db
+                                      (update-in [:flows flow-id :bind-traces] conj {:flow-id flow-id
+                                                                                     :form-id form-id
+                                                                                     :coor coor
+                                                                                     :symbol symbol
+                                                                                     :value (utils/pprint-form-for-html value)
+                                                                                     :timestamp (.getTime (js/Date.))})))))
+(reg-event-db ::init-trace (fn [db [_ {:keys [flow-id form-id form-flow-id form] :as trace}]]
                              (-> db
                                  (update :selected-flow-id #(or % flow-id))
                                  (assoc-in [:flows flow-id :forms form-id] (utils/pprint-form-for-html form))
+                                 (update :form-flow-id->flow-id assoc form-flow-id flow-id)
                                  (update-in [:flows flow-id :traces] (fn [traces]
                                                                        (if-not traces
                                                                          []
                                                                          (conj traces {:flow-id flow-id
                                                                                        :form-id form-id
+                                                                                       :form-flow-id form-flow-id
                                                                                        :coor []
                                                                                        :fn-call? true
                                                                                        :timestamp (.getTime (js/Date.))}))))
