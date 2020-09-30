@@ -3,7 +3,8 @@
             [re-frame.core :refer [dispatch subscribe]]
             [flow-storm-debugger.ui.events :as events]
             [flow-storm-debugger.ui.subs :as subs]
-            [cljs.tools.reader :as tools-reader]))
+            [cljs.tools.reader :as tools-reader]
+            [goog.string :as gstring]))
 
 (defn controls-panel [traces trace-idx]
   (let [last-trace (dec (count traces))]
@@ -60,14 +61,20 @@
 (defn explore-result-panel []
   [:div.tool.explore.scrollable "Coming soon..."])
 
+(defn calls-tree [{:keys [fn-name args-vec result childs call-trace-idx ret-trace-idx] :as fn-call-tree}]
+  (when-not (empty? fn-call-tree)
+    [:div.indent
+     [:div.call {:on-click #(dispatch [::events/set-current-flow-trace-idx call-trace-idx])}
+      (str (gstring/format "(%s %s)" fn-name args-vec))]
+     (for [c childs]
+       (calls-tree c))
+     [:div.return {:on-click #(dispatch [::events/set-current-flow-trace-idx ret-trace-idx])}
+      [:span.fn-result result] [:span.fn-name (str "<" fn-name ">")]]]))
+
 (defn calls-panel []
-  (let [traces @(subscribe [::subs/fn-call-traces])]
+  (let [fn-call-tree @(subscribe [::subs/fn-call-traces])]
     [:div.tool.calls.scrollable
-     [:ul.fn-calls
-      (for [{:keys [trace-idx fn-name result fn-call? call-params]} traces]
-        (if fn-call?
-          ^{:key (str trace-idx)} [:li.call   [:span.fn-name fn-name] [:span.fn-params call-params]]
-          ^{:key (str trace-idx)} [:li.return [:span.fn-name fn-name] [:span.fn-result result]]))]]))
+     [calls-tree fn-call-tree]]))
 
 (defn result-panel []
   (let [selected-result-panel @(subscribe [::subs/selected-result-panel])

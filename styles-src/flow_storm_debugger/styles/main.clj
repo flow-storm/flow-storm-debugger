@@ -77,10 +77,14 @@
            [:.layer {:cursor :pointer
                      :width "1000000px"}]]
 
-          [:.fn-calls
-           [:li
-            [:.fn-name {:margin-right "4px"}]
-            [:.fn-result]]]
+          [:.calls
+           [:.indent {:padding-left "10px"
+                      :border-left "1px solid grey"}
+            [:div {:margin-bottom "3px"}
+             [:.return
+              [:.fn-name {:opacity 0.4
+                          :margin-left "5px"
+                          :font-size "13px"}]]]]]
 
           [:.result-panel {:width "50%"
                            :display :inline-block

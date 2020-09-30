@@ -141,8 +141,19 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .layers .lay
   width: 1000000px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .fn-calls li .fn-name {
-  margin-right: 4px;
+html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent {
+  padding-left: 10px;
+  border-left: 1px solid grey;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div {
+  margin-bottom: 3px;
+}
+
+html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div .return .fn-name {
+  opacity: 0.4;
+  margin-left: 5px;
+  font-size: 13px;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel {

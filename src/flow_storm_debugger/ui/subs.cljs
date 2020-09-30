@@ -137,19 +137,42 @@
                         (re-find #"\([\S]+\s([\S]+)\s.+" form-str))]
     form-name))
 
+(defn fn-call-trace? [trace]
+  (:args-vec trace))
+
+(defn ret-trace? [trace]
+  (:result trace))
+
+(defn build-tree-from-traces [traces]
+  (loop [[t & r] (rest traces)
+         tree (-> (first traces)
+                  (assoc :childs []))
+         path [:childs]]
+    (let [last-child-path (into path [(count (get-in tree path))])]
+      (cond
+        (nil? t) tree
+        (fn-call-trace? t) (recur r
+                                  (update-in tree last-child-path #(merge % (assoc t :childs [])))
+                                  (into last-child-path [:childs]))
+        (ret-trace? t) (let [ret-pointer (vec (butlast path))]
+                         (recur r
+                                (if (empty? ret-pointer)
+                                  (merge tree t)
+                                  (update-in tree ret-pointer merge t ))
+                                (vec (butlast (butlast path)))))))))
 (reg-sub
  ::fn-call-traces
  :<- [::selected-flow-traces]
  :<- [::selected-flow-forms]
  (fn [[traces forms] _]
    (->> traces
-        (map (fn [idx t] (assoc t :trace-idx idx)) (range))
-        (filter (fn [t] (or (:fn-call? t)
+        (map-indexed (fn [idx t]
+                       (if (fn-call-trace? t)
+                         (assoc t :call-trace-idx idx)
+                         (assoc t :ret-trace-idx idx))))
+        (filter (fn [t] (or (:fn-name t)
                             (:outer-form? t))))
-        (map (fn [{:keys [form-id fn-call?] :as trace}]
-               (cond-> trace
-                 true     (assoc :fn-name (form-name (get forms form-id)) )
-                 fn-call? (assoc :call-params "[... coming soon ...]")))))))
+        build-tree-from-traces)))
 
 (reg-sub
  ::save-flow-panel-open?
