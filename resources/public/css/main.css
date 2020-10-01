@@ -2,6 +2,10 @@ html a {
   color: pink;
 }
 
+html pre {
+  margin: 0;
+}
+
 html ul {
   list-style-type: none;
   padding: 0;
@@ -10,6 +14,10 @@ html ul {
 
 html button {
   cursor: pointer;
+  background-color: #4b79b9;
+  color: #eaeaea;
+  border: none;
+  margin: 2px;
 }
 
 html input {
@@ -19,9 +27,9 @@ html input {
 
 html body {
   height: 100vh;
-  padding: 0;
+  padding: 2px;
   margin: 0;
-  background-color: #292c34;
+  background-color: #1e1e1e;
   color: #fcfcfc;
 }
 
@@ -38,6 +46,10 @@ html body #app .main-screen .no-flows {
   margin: 100px;
 }
 
+html body #app .main-screen .no-flows .load {
+  margin-top: 20px;
+}
+
 html body #app .main-screen .scrollable {
   overflow: scroll;
 }
@@ -46,25 +58,16 @@ html body #app .main-screen .panel {
   padding: 10px;
   margin: 5px;
   border: 1px solid #aaa;
-}
-
-html body #app .main-screen .panel.controls {
-  overflow: hidden;
-}
-
-html body #app .main-screen .controls {
-  display: flex;
-  justify-content: space-between;
+  background-color: #343434;
 }
 
 html body #app .main-screen .tab {
-  border: 1px solid #aaa;
   display: inline-block;
   cursor: pointer;
 }
 
 html body #app .main-screen .tab.active {
-  background-color: #394e68;
+  background-color: #424242;
 }
 
 html body #app .main-screen .tab .name {
@@ -105,6 +108,18 @@ html body #app .main-screen .flows .top-bar .flows-tabs .tab {
 html body #app .main-screen .flows .selected-flow {
   height: 100%;
   padding: 5px;
+  display: grid;
+  grid-template-rows: 6% 46% 46%;
+  grid-template-columns: 50% 50%;
+  background-color: #424242;
+}
+
+html body #app .main-screen .flows .selected-flow .controls-panel {
+  display: flex;
+  align-items: center;
+  grid-column-start: 1;
+  grid-column-end: 3;
+  justify-content: space-between;
 }
 
 html body #app .main-screen .flows .selected-flow .trace-count {
@@ -116,89 +131,99 @@ html body #app .main-screen .flows .selected-flow .hl {
   border-radius: 5px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result {
-  height: 95%;
-  display: flex;
+html body #app .main-screen .flows .selected-flow .code-panel {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 2;
+  grid-row-end: 4;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .code-panel {
-  width: 50%;
-  display: inline-block;
-  min-width: 450px;
-}
-
-html body #app .main-screen .flows .selected-flow .flow-code-result .code-panel .code {
+html body #app .main-screen .flows .selected-flow .code-panel .code {
   height: 100%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .layers {
+html body #app .main-screen .flows .selected-flow .result-panel {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
+}
+
+html body #app .main-screen .flows .selected-flow .result-panel .result-tabs .tab {
+  font-size: 12px;
+  padding: 7px;
+}
+
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content {
+  height: 89%;
+  background-color: #424242;
+  padding-top: 10px;
+}
+
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .layers {
   padding: 0;
   margin: 0;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .layers .layer {
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .layers .layer {
   cursor: pointer;
   whitespace: no;
   white-space: nowrap;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent {
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .calls .indent {
   padding-left: 10px;
   border-left: 1px solid grey;
   width: 100%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div {
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .calls .indent div {
   margin-bottom: 3px;
   white-space: nowrap;
   cursor: pointer;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div .return .fn-name {
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .calls .indent div .return .fn-name {
   opacity: 0.4;
   margin-left: 5px;
   font-size: 13px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel {
-  width: 50%;
-  display: inline-block;
-  min-width: 450px;
+html body #app .main-screen .flows .selected-flow .result-panel .result-tab-content .tool {
+  height: 92%;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #343434;
+  overflow: scroll;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .result-tabs .tab {
-  font-size: 12px;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .tool {
-  height: 60%;
-  padding-top: 10px;
-}
-
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals {
-  padding: 0;
+html body #app .main-screen .flows .selected-flow .locals {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 3;
+  grid-row-end: 4;
+  padding: 10px;
   overflow-x: hidden;
   overflow-y: scroll;
-  height: 33%;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals li {
+html body #app .main-screen .flows .selected-flow .locals li {
   cursor: pointer;
   white-space: nowrap;
   padding: 3px;
   font-size: 13px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals li .symbol {
+html body #app .main-screen .flows .selected-flow .locals li .symbol {
   background-color: #7e8f89;
   margin-right: 10px;
   padding: 0px 3px 0px 3px;
   border-radius: 3px;
 }
 
-html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals li:nth-child(odd) {
+html body #app .main-screen .flows .selected-flow .locals li:nth-child(odd) {
   background-color: #25282f;
 }
 
@@ -210,7 +235,7 @@ html body #app .main-screen .flows .selected-flow .modal-overlay {
   width: 100%;
   height: 100%;
   opacity: 0.7;
-  background-color: #292c34;
+  background-color: #1e1e1e;
 }
 
 html body #app .main-screen .flows .selected-flow .save-flow-panel {
@@ -221,7 +246,7 @@ html body #app .main-screen .flows .selected-flow .save-flow-panel {
   align-items: center;
   position: absolute;
   z-index: 10;
-  background-color: #292c34;
+  background-color: #1e1e1e;
   display: flex;
   left: 35%;
 }
@@ -232,7 +257,7 @@ html body #app .main-screen .flows .selected-flow .local-panel {
   height: 50%;
   top: 25%;
   left: 25%;
-  background-color: #292c34;
+  background-color: #1e1e1e;
   z-index: 10;
 }
 

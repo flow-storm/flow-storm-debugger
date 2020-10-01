@@ -6,29 +6,31 @@
             [cljs.tools.reader :as tools-reader]
             [goog.string :as gstring]))
 
+(defn show-file-loader [] (.click (js/document.getElementById "file-loader")))
+
 (defn controls-panel [traces trace-idx]
   (let [last-trace (dec (count traces))]
-    [:div.panel
-     [:div.controls
-      [:div.time-controls
-       [:button {:on-click #(dispatch [::events/selected-flow-reset])}
-        "Reset"]
-       [:button {:on-click #(dispatch [::events/selected-flow-prev])
-                 :disabled (zero? trace-idx)} "<"]
-       [:button {:on-click #(dispatch [::events/selected-flow-next])
-                 :disabled (>= trace-idx last-trace)}">"]
-       (when (pos? last-trace)
-         [:span.trace-count (str trace-idx "/" last-trace)])]
+    [:div.panel.controls-panel
+     [:div.time-controls
+      [:button {:on-click #(dispatch [::events/selected-flow-reset])}
+       "Reset"]
+      [:button {:on-click #(dispatch [::events/selected-flow-prev])
+                :disabled (zero? trace-idx)} "<"]
+      [:button {:on-click #(dispatch [::events/selected-flow-next])
+                :disabled (>= trace-idx last-trace)}">"]
+      (when (pos? last-trace)
+        [:span.trace-count (str trace-idx "/" last-trace)])]
 
-      [:div.tools-controls
-       [:button {:on-click #(dispatch [::events/open-save-panel])}
-        "Save"]]]]))
+     [:div.tools-controls
+      [:button {:on-click #(dispatch [::events/open-save-panel])}
+       "Save"]
+      [:button {:on-click show-file-loader} "Load"]]]))
 
 (defn save-flow-panel []
   (let [file-name (r/atom nil)]
     (fn []
       [:div.save-flow-panel.panel
-       [:label "Save flow to:"]
+       [:label "Save flow as:"]
        [:input {:type :text
                 :on-change (fn [e] (reset! file-name (-> e .-target .-value)))
                 :on-key-press (fn [e] (when (= (-> e .-key) "Enter")
@@ -46,7 +48,7 @@
 (defn layers-panel []
   (let [similar-traces @(subscribe [::subs/selected-flow-similar-traces])
         trace-idx @(subscribe [::subs/selected-flow-trace-idx])]
-    [:ul.tool.layers.scrollable
+    [:ul.tool.layers
      (for [t similar-traces]
        ^{:key (str (:trace-idx t))}
        [:li.layer {:class (when (= trace-idx (:trace-idx t)) "hl")
@@ -55,11 +57,8 @@
 
 (defn pprint-result-panel []
   (let [selected-flow-result @(subscribe [::subs/selected-flow-result])]
-    [:div.tool.pprint-result.scrollable
+    [:div.tool.pprint-result
      [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]))
-
-(defn explore-result-panel []
-  [:div.tool.explore.scrollable "Coming soon..."])
 
 (defn calls-tree [{:keys [fn-name args-vec result childs call-trace-idx ret-trace-idx] :as fn-call-tree}]
   (when-not (empty? fn-call-tree)
@@ -73,13 +72,12 @@
 
 (defn calls-panel []
   (let [fn-call-tree @(subscribe [::subs/fn-call-traces])]
-    [:div.tool.calls.scrollable
+    [:div.tool.calls
      [calls-tree fn-call-tree]]))
 
 (defn result-panel []
   (let [selected-result-panel @(subscribe [::subs/selected-result-panel])
-        locals @(subscribe [::subs/selected-flow-current-locals])
-        tabs [:pprint :explorer :layers :calls]]
+        tabs [:pprint :layers :calls]]
     [:div.panel.result-panel
      [:div.result-tabs
       (for [t tabs]
@@ -87,17 +85,19 @@
         [:div.tab  {:on-click #(dispatch [::events/select-result-panel t])
                     :class (when (= selected-result-panel t) "active")}
          (name t)])]
-     (case selected-result-panel
-       :pprint   [pprint-result-panel]
-       :explorer [explore-result-panel]
-       :layers [layers-panel]
-       :calls    [calls-panel])
+     [:div.result-tab-content
+      (case selected-result-panel
+        :pprint [pprint-result-panel]
+        :layers [layers-panel]
+        :calls  [calls-panel])]]))
 
-     [:ul.locals
-      (for [[symbol value] locals]
-        ^{:key symbol}
-        [:li {:on-click #(dispatch [::events/show-local symbol value])}
-         [:span.symbol symbol] [:span.value value]])]]))
+(defn locals-panel []
+  (let [locals @(subscribe [::subs/selected-flow-current-locals])]
+   [:ul.locals.panel
+    (for [[symbol value] locals]
+      ^{:key symbol}
+      [:li {:on-click #(dispatch [::events/show-local symbol value])}
+       [:span.symbol symbol] [:span.value value]])]))
 
 (defn local-panel [symbol value]
   [:div.local-panel.panel
@@ -122,13 +122,13 @@
 
     [controls-panel traces trace-idx]
 
-    [:div.flow-code-result
+    [code-panel traces trace-idx]
 
-     [code-panel traces trace-idx]
+    [result-panel]
 
-     [result-panel]
+    [locals-panel]
 
-     ]
+
 
     #_(let [{:keys [coor form-id] :as trace} (get traces trace-idx)]
         [:div.debug.panel
@@ -161,13 +161,13 @@
                  :style {:display :none}
                  :on-change (fn [e] (let [file (-> e .-target .-files (aget 0))]
                                       (.then (.text file) (fn [file-text]
-                                                            (dispatch [::events/load-flow (tools-reader/read-string file-text)])))))}]
-        [:button {:on-click #(.click (js/document.getElementById "file-loader"))} "Load"]]]
+                                                            (dispatch [::events/load-flow (tools-reader/read-string file-text)])))))}]]]
 
       (if (zero? (count flows-tabs))
         [:div.no-flows
-         "No flows traced yet. Trace some forms using "
-         [:a {:href "http://github.com/jpmonettas/flow-storm"} "flow-storm.api/trace"]
-         " and you will see them displayed here."]
+         [:div "No flows traced yet. Trace some forms using "
+          [:a {:href "http://github.com/jpmonettas/flow-storm"} "flow-storm.api/trace"]
+          " and you will see them displayed here."]
+         [:div.load "Or " [:a {:href "#" :on-click show-file-loader} "click here"] " to load some traces from your disk."]]
 
         [flow selected-flow])]]))
