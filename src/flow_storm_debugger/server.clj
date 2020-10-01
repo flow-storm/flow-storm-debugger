@@ -69,15 +69,4 @@
   (-main)
   (fsa/connect)
 
-  (fsa/trace
-   (defn foo [a b]
-     (+ a b)))
-
-  (fsa/trace
-   (defn bar []
-     (let [a 10]
-       (->> (range (foo a a))
-            (map inc)
-            (filter odd?)
-            (reduce +)))))
   )

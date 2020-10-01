@@ -26,8 +26,9 @@
               :margin "2px"}]
     [:input {:background-color (:background-contrast theme)
              :color (:code-font theme)}]
-    [:body {:height "100vh"
-            :padding "2px"
+    [:body {:height "98vh"
+            :font-family "Consolas, \"Liberation Mono\", Courier, monospace"
+            :padding "5px"
             :margin 0
             :background-color (:background theme)
             :color "#fcfcfc"}
@@ -47,7 +48,7 @@
                :cursor :pointer}
         [:&.active {:background-color (:background-contrast-1 theme)
                     }]
-        [:.name {:font-size "12px"}]
+        [:.name {:font-size "11px"}]
         [:.close {:font-size "10px"
                   :margin-left "4px"
                   :padding-left "4px"
@@ -84,7 +85,8 @@
                         :grid-column-end 2
                         :grid-row-start 2
                         :grid-row-end 4}
-          [:.code {:height "100%"}]]
+          [:.code {:height "100%"}
+           [:.form {:margin-bottom "20px"}]]]
 
          [:.result-panel {:grid-column-start 2
                           :grid-column-end 3
@@ -120,7 +122,8 @@
                     :margin-bottom "10px"
                     :padding "10px"
                     :background-color "#343434"
-                    :overflow :scroll}]]]
+                    :overflow :scroll
+                    :font-family "monospace"}]]]
 
          [:.locals {:grid-column-start 2
                     :grid-column-end 3
@@ -131,9 +134,9 @@
                     :overflow-y :scroll}
           [:li {:cursor :pointer
                 :white-space :nowrap
-                ;; :width "1000000px"
                 :padding "3px"
-                :font-size "13px"}
+                :font-size "12px"
+                }
            [:.symbol {:background-color (:background-contrast-2 theme)
                       :margin-right "10px"
                       :padding "0px 3px 0px 3px"
@@ -168,6 +171,7 @@
                          :left "25%"
                          :background-color (:background theme)
                          :z-index 10
+                         :font-family "monospace"
                          }
           [:.symbol {:text-align :center
                      :font-weight :bold

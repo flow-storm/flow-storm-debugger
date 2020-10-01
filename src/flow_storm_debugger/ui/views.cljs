@@ -17,9 +17,10 @@
       [:button {:on-click #(dispatch [::events/selected-flow-prev])
                 :disabled (zero? trace-idx)} "<"]
       [:button {:on-click #(dispatch [::events/selected-flow-next])
-                :disabled (>= trace-idx last-trace)}">"]
-      (when (pos? last-trace)
-        [:span.trace-count (str trace-idx "/" last-trace)])]
+                :disabled (>= trace-idx last-trace)}">"]]
+
+     (when (pos? last-trace)
+        [:span.trace-count (str trace-idx "/" last-trace)])
 
      [:div.tools-controls
       [:button {:on-click #(dispatch [::events/open-save-panel])}

@@ -26,8 +26,9 @@ html input {
 }
 
 html body {
-  height: 100vh;
-  padding: 2px;
+  height: 98vh;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+  padding: 5px;
   margin: 0;
   background-color: #1e1e1e;
   color: #fcfcfc;
@@ -71,7 +72,7 @@ html body #app .main-screen .tab.active {
 }
 
 html body #app .main-screen .tab .name {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 html body #app .main-screen .tab .close {
@@ -142,6 +143,10 @@ html body #app .main-screen .flows .selected-flow .code-panel .code {
   height: 100%;
 }
 
+html body #app .main-screen .flows .selected-flow .code-panel .code .form {
+  margin-bottom: 20px;
+}
+
 html body #app .main-screen .flows .selected-flow .result-panel {
   grid-column-start: 2;
   grid-column-end: 3;
@@ -197,6 +202,7 @@ html body #app .main-screen .flows .selected-flow .result-panel .result-tab-cont
   padding: 10px;
   background-color: #343434;
   overflow: scroll;
+  font-family: monospace;
 }
 
 html body #app .main-screen .flows .selected-flow .locals {
@@ -213,7 +219,7 @@ html body #app .main-screen .flows .selected-flow .locals li {
   cursor: pointer;
   white-space: nowrap;
   padding: 3px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 html body #app .main-screen .flows .selected-flow .locals li .symbol {
@@ -259,6 +265,7 @@ html body #app .main-screen .flows .selected-flow .local-panel {
   left: 25%;
   background-color: #1e1e1e;
   z-index: 10;
+  font-family: monospace;
 }
 
 html body #app .main-screen .flows .selected-flow .local-panel .symbol {

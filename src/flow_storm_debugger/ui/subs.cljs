@@ -165,14 +165,15 @@
  :<- [::selected-flow-traces]
  :<- [::selected-flow-forms]
  (fn [[traces forms] _]
-   (->> traces
-        (map-indexed (fn [idx t]
-                       (if (fn-call-trace? t)
-                         (assoc t :call-trace-idx idx)
-                         (assoc t :ret-trace-idx idx))))
-        (filter (fn [t] (or (:fn-name t)
-                            (:outer-form? t))))
-        build-tree-from-traces)))
+   (let [call-traces (->> traces
+                          (map-indexed (fn [idx t]
+                                         (if (fn-call-trace? t)
+                                           (assoc t :call-trace-idx idx)
+                                           (assoc t :ret-trace-idx idx))))
+                          (filter (fn [t] (or (:fn-name t)
+                                              (:outer-form? t)))))]
+     (when (some #(:fn-name %) call-traces)
+             (build-tree-from-traces call-traces)))))
 
 (reg-sub
  ::save-flow-panel-open?
