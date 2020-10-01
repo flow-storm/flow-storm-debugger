@@ -138,16 +138,20 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .layers {
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .layers .layer {
   cursor: pointer;
-  width: 1000000px;
+  whitespace: no;
+  white-space: nowrap;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent {
   padding-left: 10px;
   border-left: 1px solid grey;
+  width: 100%;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div {
   margin-bottom: 3px;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .calls .indent div .return .fn-name {
@@ -182,7 +186,7 @@ html body #app .main-screen .flows .selected-flow .flow-code-result .result-pane
 
 html body #app .main-screen .flows .selected-flow .flow-code-result .result-panel .locals li {
   cursor: pointer;
-  width: 1000000px;
+  white-space: nowrap;
   padding: 3px;
   font-size: 13px;
 }

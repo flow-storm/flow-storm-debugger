@@ -75,12 +75,16 @@
           [:.layers {:padding 0
                      :margin 0}
            [:.layer {:cursor :pointer
-                     :width "1000000px"}]]
+                     :whitespace :no
+                     :white-space :nowrap}]]
 
           [:.calls
            [:.indent {:padding-left "10px"
-                      :border-left "1px solid grey"}
-            [:div {:margin-bottom "3px"}
+                      :border-left "1px solid grey"
+                      :width "100%"}
+            [:div {:margin-bottom "3px"
+                   :white-space :nowrap
+                   :cursor :pointer}
              [:.return
               [:.fn-name {:opacity 0.4
                           :margin-left "5px"
@@ -101,7 +105,8 @@
                       :overflow-y :scroll
                       :height "33%"}
             [:li {:cursor :pointer
-                  :width "1000000px"
+                  :white-space :nowrap
+                  ;; :width "1000000px"
                   :padding "3px"
                   :font-size "13px"}
              [:.symbol {:background-color (:background-contrast-2 theme)
