@@ -23,25 +23,32 @@
 (defn find-coor-idx [form-str target-coor]
   (loop [[c & rs] form-str
          sidx 0
-         coor []]
+         coor []
+         in-str? false]
     (cond
 
       (not c) nil
 
       (= target-coor coor) sidx
 
+      (and in-str? (not= c \")) ;; if we are in a string skip everything until we find a quot
+      (recur rs (inc sidx) coor true)
+
+      (= c \")
+      (recur rs (inc sidx) coor (not in-str?)) ;; toggle in-str? when we see a quot
+
       (open-par c)
-      (recur rs (inc sidx) (conj coor 0))
+      (recur rs (inc sidx) (conj coor 0) in-str?)
 
       (closing-par c)
-      (recur rs (inc sidx) (vec (butlast coor)))
+      (recur rs (inc sidx) (vec (butlast coor)) in-str?)
 
       (separator c)
       (when-let [[s i] (skip-separator rs sidx)]
-        (recur s (inc i) (inc-last coor)))
+        (recur s (inc i) (inc-last coor) in-str?))
 
       :else
-      (recur rs (inc sidx) coor))))
+      (recur rs (inc sidx) coor in-str?))))
 
 (defn next-token
   "assumes expr-str start with the beginning of a token"
