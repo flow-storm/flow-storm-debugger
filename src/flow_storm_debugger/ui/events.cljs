@@ -123,3 +123,8 @@
      (-> db
          (assoc-in [:flows flow-id] flow)
          (update :selected-flow-id #(or % flow-id))))))
+
+(reg-event-db
+ ::connected-clients-update
+ (fn [db [_ data-map]]
+   (assoc db :connected-clients (:count data-map))))

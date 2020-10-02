@@ -34,7 +34,7 @@
             :color "#fcfcfc"}
      [:#app {:height "100%"}
       [:.main-screen {:height "90%"}
-
+       [:.head-bar {:text-align :right}]
        [:.no-flows {:text-align :center
                     :margin "100px"}
         [:.load {:margin-top "20px"}]]

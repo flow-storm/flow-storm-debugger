@@ -13,9 +13,11 @@
   (let [[_ evt] event]
     (let [[e-key e-data-map] evt]
       (case e-key
-        :flow-storm/add-trace      (dispatch [::events/add-trace e-data-map])
-        :flow-storm/init-trace     (dispatch [::events/init-trace e-data-map])
-        :flow-storm/add-bind-trace (dispatch [::events/add-bind-trace e-data-map]))
+        :flow-storm/add-trace                (dispatch [::events/add-trace e-data-map])
+        :flow-storm/init-trace               (dispatch [::events/init-trace e-data-map])
+        :flow-storm/add-bind-trace           (dispatch [::events/add-bind-trace e-data-map])
+        :flow-storm/connected-clients-update (dispatch [::events/connected-clients-update e-data-map])
+        (println "Donw know how to handle" evt))
       (println "Got event " evt))))
 
 (defn init []

@@ -42,6 +42,10 @@ html body #app .main-screen {
   height: 90%;
 }
 
+html body #app .main-screen .head-bar {
+  text-align: right;
+}
+
 html body #app .main-screen .no-flows {
   text-align: center;
   margin: 100px;

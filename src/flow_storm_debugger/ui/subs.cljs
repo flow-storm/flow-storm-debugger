@@ -186,3 +186,8 @@
  :<- [::selected-flow]
  (fn [flow _]
    (:save-flow-panel-open? flow)))
+
+(reg-sub
+ ::connected-clients
+ (fn [db _]
+   (:connected-clients db)))

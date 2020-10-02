@@ -37,13 +37,19 @@
    (resources "/")))
 
 (defn handle-ws-message [send-fn {:keys [event client-id user-id] :as msg}]
-  (case client-id
-    "browser" (println "browser -> tracer" event)
+  (if (= client-id "browser")
+    ;; message comming from the browser
+    nil #_(println "browser -> tracer" event)
 
-    ;; if we get a message from tracer, just forward it to the browser
-    "tracer"  (let [[evk] event]
-                (when (#{:flow-storm/init-trace :flow-storm/add-trace :flow-storm/add-bind-trace} evk)
-                 (send-fn "browser" event)))))
+    ;; if client-id is not "browser" then it is one of the tracers
+    ;; if we get a message from a tracer, just forward it to the browser
+    (let [[evk] event]
+      (if (#{:chsk/uidport-open :chsk/uidport-close} evk )
+        ;; dec by one the count so we don't count the browser as another tracer
+        (send-fn "browser" [:flow-storm/connected-clients-update {:count (dec (count (:any @(:connected-uids msg))))}])
+
+        (when (#{:flow-storm/init-trace :flow-storm/add-trace :flow-storm/add-bind-trace} evk)
+          (send-fn "browser" event))))))
 
 (defn -main [& args]
   (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)

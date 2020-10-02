@@ -143,10 +143,11 @@
 
 (defn main-screen []
   (let [selected-flow @(subscribe [::subs/selected-flow])
-        flows-tabs @(subscribe [::subs/flows-tabs])]
+        flows-tabs @(subscribe [::subs/flows-tabs])
+        connected-clients @(subscribe [::subs/connected-clients])]
 
     [:div.main-screen
-
+     [:div.head-bar (str "Connected clients: " connected-clients)]
      [:div.flows
 
       [:div.top-bar
