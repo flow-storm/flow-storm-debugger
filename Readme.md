@@ -8,7 +8,7 @@ A Clojure and ClojureScript debugger with some unique features.
 
 ## Running
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.2.4"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.2.5"}}}' -m flow-storm-debugger.server
 ```
 
 And point your browser to http://localhost:7722
