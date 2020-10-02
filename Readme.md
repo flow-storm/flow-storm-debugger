@@ -1,8 +1,8 @@
-# flow-storm-debugger
+# Flow-storm debugger
 
-A experimental Clojure and ClojureScript debugger
+A Clojure and ClojureScript debugger with some unique features.
 
-**WIP!**
+![demo](./docs/flow-storm-demo.gif)
 
 [![Clojars Project](https://img.shields.io/clojars/v/jpmonettas/flow-storm-debugger.svg)](https://clojars.org/jpmonettas/flow-storm-debugger)
 
