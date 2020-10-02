@@ -141,7 +141,8 @@
   (:args-vec trace))
 
 (defn ret-trace? [trace]
-  (:result trace))
+  (and (:result trace)
+       (:outer-form? trace)))
 
 (defn build-tree-from-traces [traces]
   (loop [[t & r] (rest traces)
@@ -170,8 +171,8 @@
                                          (if (fn-call-trace? t)
                                            (assoc t :call-trace-idx idx)
                                            (assoc t :ret-trace-idx idx))))
-                          (filter (fn [t] (or (:fn-name t)
-                                              (:outer-form? t)))))]
+                          (filter (fn [t] (or (fn-call-trace? t)
+                                              (ret-trace? t)))))]
      (when (some #(:fn-name %) call-traces)
              (build-tree-from-traces call-traces)))))
 

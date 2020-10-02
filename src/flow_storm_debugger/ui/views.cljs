@@ -12,7 +12,7 @@
   (let [last-trace (dec (count traces))]
     [:div.panel.controls-panel
      [:div.time-controls
-      [:button {:on-click #(dispatch [::events/selected-flow-reset])}
+      [:button {:on-click #(dispatch [::events/set-current-flow-trace-idx 0])}
        "Reset"]
       [:button {:on-click #(dispatch [::events/selected-flow-prev])
                 :disabled (zero? trace-idx)} "<"]
@@ -61,20 +61,24 @@
     [:div.tool.pprint-result
      [:pre {:dangerouslySetInnerHTML {:__html selected-flow-result}}]]))
 
-(defn calls-tree [{:keys [fn-name args-vec result childs call-trace-idx ret-trace-idx] :as fn-call-tree}]
+(defn calls-tree [{:keys [fn-name args-vec result childs call-trace-idx ret-trace-idx] :as fn-call-tree} current-trace-idx]
   (when-not (empty? fn-call-tree)
     [:div.indent
-     [:div.call {:on-click #(dispatch [::events/set-current-flow-trace-idx call-trace-idx])}
-      (str (gstring/format "(%s %s)" fn-name args-vec))]
+     [:div.call {:on-click #(dispatch [::events/set-current-flow-trace-idx call-trace-idx])
+                 :class (when (= call-trace-idx current-trace-idx) "active")}
+      [:span "("] [:span.fn-name fn-name] [:span.args-vec (str args-vec)] [:span ")"]]
      (for [c childs]
-       (calls-tree c))
-     [:div.return {:on-click #(dispatch [::events/set-current-flow-trace-idx ret-trace-idx])}
+       ^{:key (or (:call-trace-idx c) (:ret-trace-idx c))}
+       [calls-tree c current-trace-idx])
+     [:div.return {:on-click #(dispatch [::events/set-current-flow-trace-idx ret-trace-idx])
+                   :class (when (= ret-trace-idx current-trace-idx) "active")}
       [:span.fn-result result] [:span.fn-name (str "<" fn-name ">")]]]))
 
 (defn calls-panel []
-  (let [fn-call-tree @(subscribe [::subs/fn-call-traces])]
+  (let [fn-call-tree @(subscribe [::subs/fn-call-traces])
+        current-trace-idx @(subscribe [::subs/selected-flow-trace-idx])]
     [:div.tool.calls
-     [calls-tree fn-call-tree]]))
+     [calls-tree fn-call-tree current-trace-idx]]))
 
 (defn result-panel []
   (let [selected-result-panel @(subscribe [::subs/selected-result-panel])

@@ -108,11 +108,20 @@
            [:.calls
             [:.indent {:padding-left "10px"
                        :border-left "1px solid grey"
-                       :width "100%"}
-             [:div {:margin-bottom "3px"
-                    :white-space :nowrap
+                       :width "100%"
+                       :margin-top "10px"
+                       :margin-bottom "10px"
+                       }
+             [:.call
+              [:&.active {:background-color (:current-expr theme)}]
+               [:.fn-name {:font-weight :bold
+                           :margin-right "10px"}]]
+             [:div {:white-space :nowrap
                     :cursor :pointer}
+
               [:.return
+               [:&.active {:background-color (:current-expr theme)}]
+               [:.fn-result {:color :pink}]
                [:.fn-name {:opacity 0.4
                            :margin-left "5px"
                            :font-size "13px"}]]]]]
