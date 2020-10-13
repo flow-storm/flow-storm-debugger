@@ -16,3 +16,7 @@ And point your browser to http://localhost:7722
 ## Instrumenting your code
 
 Add [flow-storm](https://github.com/jpmonettas/flow-storm) dependency to your app and start tracing your functions.
+
+## Developers section
+
+If you are interested in developing flow-storm-debugger take a look at [here](./docs/devs.md).
