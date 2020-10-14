@@ -21,7 +21,7 @@
       (update-in [:flows flow-id :bind-traces] #(or % []))
       (assoc-in [:flows flow-id :local-panel-symbol] nil)))
 
-(defn add-bind-trace [db {:keys [flow-id form-id form-flow-id coor symbol value] :as trace}]
+(defn add-bind-trace [db [{:keys [flow-id form-id form-flow-id coor symbol value] :as trace}]]
   (let [flow-id (or flow-id
                     (get-in db [:form-flow-id->flow-id form-flow-id]))]
     (-> db
@@ -32,7 +32,7 @@
                                                        :value (utils/pprint-form-for-html value)
                                                        :timestamp (.getTime (js/Date.))}))))
 
-(defn add-trace [db {:keys [flow-id form-id form-flow-id coor result outer-form?] :as trace}]
+(defn add-trace [db [{:keys [flow-id form-id form-flow-id coor result outer-form?] :as trace}]]
   (let [flow-id (or flow-id
                     (get-in db [:form-flow-id->flow-id form-flow-id]))]
     (-> db
