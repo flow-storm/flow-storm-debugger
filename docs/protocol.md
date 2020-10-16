@@ -1,4 +1,4 @@
-# Debugger socket message protocol
+# Debugger socket message protocol (WIP)
 
 ## Packet format
 
@@ -15,11 +15,11 @@
 
 ```clojure
 [:flow-storm/init-trace {:flow-id 1
-                         :form-id 1267089144
-                         :form-flow-id 321
-                         :form "(defn bar [] (let [a 10] (->> (range (foo a a)) (map inc) (filter odd?) (reduce +))))"
-                         :args-vec []
-                         :fn-name "bar"}]
+						 :form-id 1267089144
+						 :form-flow-id 321
+						 :form "(defn bar [] (let [a 10] (->> (range (foo a a)) (map inc) (filter odd?) (reduce +))))"
+						 :args-vec []
+						 :fn-name "bar"}]
 ```
 
 ### :flow-storm/add-trace
@@ -34,10 +34,10 @@
 
 ```clojure
 [:flow-storm/add-trace {:flow-id 1
-                        :form-id 1267089144
-                        :form-flow-id 321
-                        :coor [3 2 1 1 1]
-                        :result "10"}]
+						:form-id 1267089144
+						:form-flow-id 321
+						:coor [3 2 1 1 1]
+						:result "10"}]
 ```
 
 ### :flow-storm/add-bind-trace
@@ -53,9 +53,9 @@
 
 ```clojure
 [:flow-storm/add-bind-trace {:flow-id 1
-                             :form-id 1267089144
-                             :form-flow-id 321
-                             :coor [3]
-                             :symbol "a"
-                             :value "10"}]
+							 :form-id 1267089144
+							 :form-flow-id 321
+							 :coor [3]
+							 :symbol "a"
+							 :value "10"}]
 ```
