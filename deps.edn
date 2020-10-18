@@ -1,13 +1,14 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure         {:mvn/version "RELEASE"}
-        com.taoensso/sente          {:mvn/version "1.16.0-alpha2"}
+        com.taoensso/sente          {:mvn/version "1.16.0"}
         http-kit/http-kit           {:mvn/version "2.4.0"}
         compojure/compojure         {:mvn/version "1.6.2"}
         ring-cors/ring-cors         {:mvn/version "0.1.13"}
         ring/ring                   {:mvn/version "1.7.1"}
         org.clojure/core.async      {:mvn/version "1.3.610"}
+
         ;; jpmonettas/flow-storm       {
-        ;;                              :mvn/version "0.2.3-SNAPSHOT"
+        ;;                              :mvn/version "0.2.6-SNAPSHOT"
         ;;                              ;;:local/root "/home/jmonetta/my-projects/flow-storm"
         ;;                              }
 
