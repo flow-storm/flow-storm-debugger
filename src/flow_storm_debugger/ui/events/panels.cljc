@@ -3,7 +3,7 @@
 (defn select-result-panel [db [result-panel]]
   (assoc db :selected-result-panel result-panel))
 
-(defn show-local [{:keys [selected-flow-id] :as db} [symbol value]]
+(defn show-local [{:keys [selected-flow-id] :as db} {:keys [symbol value]}]
   (assoc-in db [:flows selected-flow-id :local-panel] [symbol value]))
 
 (defn hide-modals [{:keys [selected-flow-id] :as db} _]

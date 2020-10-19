@@ -29,6 +29,7 @@
 - :form-flow-id [REQ]
 - :coor [REQ]
 - :result [REQ]
+- :err [OPT]  A map like {:error/message "..."} in case a exception ocurred evaluating this form. The :result is not present when this key is.
 
 #### Example
 

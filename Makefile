@@ -8,16 +8,7 @@ pom.xml:
 	clj -Spom
 	mvn versions:set -DnewVersion=$(version)
 
-watch-ui:
-	npx shadow-cljs watch client
-
-watch-css:
-	clj -A:garden -e "(require '[garden-watcher.core :as gw]) (require '[com.stuartsierra.component :as component]) (component/start (gw/new-garden-watcher '[flow-storm-debugger.styles.main]))"
-
-release-ui: clean
-	npx shadow-cljs release client
-
-flow-storm-debugger.jar: release-ui
+flow-storm-debugger.jar:
 	clj -A:jar flow-storm-debugger.jar
 
 release: flow-storm-debugger.jar pom.xml
@@ -27,6 +18,9 @@ install: flow-storm-debugger.jar pom.xml
 
 deploy:
 	mvn deploy:deploy-file -Dfile=flow-storm-debugger.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
+
+cider-repl:
+	clj -Sdeps '{:deps {nrepl {:mvn/version "0.8.0"} refactor-nrepl {:mvn/version "2.5.0"} cider/cider-nrepl {:mvn/version "0.25.3"}}}' -m nrepl.cmdline --middleware '["refactor-nrepl.middleware/wrap-refactor", "cider.nrepl/cider-middleware"]'
 
 run:
 	clj -m flow-storm-debugger.server
