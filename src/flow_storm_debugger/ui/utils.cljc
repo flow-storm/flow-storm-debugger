@@ -22,3 +22,13 @@
        escape-html)
    #?(:cljs (catch :default e (js/console.warn "Couldn't pprint: " s) s)
       :clj (catch Exception e (println "Couldn't pprint" s) s))))
+
+(defn remove-vals
+  "Removes all key entries from map where the value is v"
+  [m v]
+  (reduce-kv (fn [r mk mv]
+               (if (not= mv v)
+                 (assoc r mk mv)
+                 r))
+             {}
+             m))

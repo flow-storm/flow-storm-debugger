@@ -1,5 +1,5 @@
 (ns flow-storm-debugger.ui.events.flows
-  #?(:cljs (:require [ajax.core :as ajax])))
+  (:require [flow-storm-debugger.ui.utils :as utils]))
 
 (defn set-pprint-panel [{:keys [selected-flow-id] :as db} content]
   (assoc-in db [:flows selected-flow-id :pprint-panel-content] content))
@@ -25,7 +25,9 @@
       (assoc :selected-flow-id flow-id)))
 
 (defn remove-flow [{:keys [selected-flow-id flows] :as db} flow-id]
-  (let [db' (update db :flows dissoc flow-id)]
+  (let [db' (-> db
+                (update  :flows dissoc flow-id)
+                (update :form-flow-id->flow-id #(utils/remove-vals % flow-id)))]
     (cond-> db'
       (= selected-flow-id flow-id) (assoc :selected-flow-id (-> db' :flows keys first)))))
 

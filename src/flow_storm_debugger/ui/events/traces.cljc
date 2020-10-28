@@ -1,8 +1,11 @@
 (ns flow-storm-debugger.ui.events.traces
-  (:require [flow-storm-debugger.ui.utils :as utils]))
+  (:require [flow-storm-debugger.ui.utils :as utils]
+            [flow-storm-debugger.ui.events.flows :as events.flows]))
 
-(defn init-trace [db {:keys [flow-id form-id form-flow-id args-vec fn-name form] :as trace}]
-  (let [now (utils/get-timestamp)]
+(defn init-trace [db {:keys [flow-id form-id form-flow-id args-vec fn-name form fixed-flow-id-starter?] :as trace}]
+  (let [now (utils/get-timestamp)
+        ;; if it is the starter init-trace of a fixed flow-id, remove the flow and start clean
+        db (if fixed-flow-id-starter? (events.flows/remove-flow db flow-id) db)]
    (-> db
        (update :selected-flow-id #(or % flow-id))
        (assoc-in [:flows flow-id :forms form-id] (utils/pprint-form-for-html form))

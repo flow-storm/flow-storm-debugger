@@ -3,24 +3,6 @@
             [flow-storm-debugger.highlighter :refer [highlight-expr]]
             [flow-storm-debugger.ui.utils :as utils]))
 
-;; (defn counter-sub [context]
-;;   (println "Firing counter-sub")
-;;   (fx/sub-val context :counter))
-
-;; (defn list-sub [context]
-;;   (println "Firing list-sub")
-;;   (fx/sub-val context :tasks))
-
-;; (defn sorter-list-sub [context]
-;;   (println "Firing sorter-list-sub")
-;;   (sort-by :name (fx/sub-ctx context list-sub)))
-
-;; (defn all-sub [context]
-;;   (println "Firing all-sub")
-;;   (str 
-;;    (fx/sub-ctx context counter-sub)
-;;    (fx/sub-ctx context sorter-list-sub)))
-
 (defn flows [context]
   (fx/sub-val context :flows))
 

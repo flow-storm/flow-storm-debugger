@@ -8,6 +8,7 @@
 - :form-id [REQ]
 - :form-flow-id [REQ]
 - :form [REQ]
+- :fixed-flow-id-starter? [OPT] Signals that this is the starting trace of a fixed flow-id trace.
 - :args-vec [OPT]
 - :fn-name [OPT]
 
