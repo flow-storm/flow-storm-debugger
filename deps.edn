@@ -15,9 +15,11 @@
         ;; org.kordamp.ikonli/ikonli-javafx {:mvn/version "2.6.0"}
         ;; org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "2.6.0"}
 
-        jpmonettas/flow-storm       {
-                                     :mvn/version "0.2.7-SNAPSHOT"
-                                     ;;:local/root "/home/jmonetta/my-projects/flow-storm"
-                                     }
+        
 
-        }}
+        }
+ :aliases {:dev {:extra-paths ["dev-src"]
+                 :extra-deps {jpmonettas/flow-storm {
+                                                     :mvn/version "0.2.8-SNAPSHOT"
+                                                     ;;:local/root "/home/jmonetta/my-projects/flow-storm"
+                                                     }}}}}

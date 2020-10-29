@@ -1,6 +1,7 @@
 (ns flow-storm-debugger.ui.events.traces
   (:require [flow-storm-debugger.ui.utils :as utils]
-            [flow-storm-debugger.ui.events.flows :as events.flows]))
+            [flow-storm-debugger.ui.events.flows :as events.flows]
+            [flow-storm-debugger.highlighter :as highlighter]))
 
 (defn init-trace [db {:keys [flow-id form-id form-flow-id args-vec fn-name form fixed-flow-id-starter?] :as trace}]
   (let [now (utils/get-timestamp)
@@ -36,13 +37,33 @@
                                                        :value (utils/pprint-form-for-html value)
                                                        :timestamp (utils/get-timestamp)}))))
 
-(defn add-trace [db {:keys [flow-id form-id form-flow-id coor result outer-form?] :as trace}]
+(defn flow-traces [db flow-id]
+  (get-in db [:flows flow-id :traces]))
+
+(defn flow-current-trace [{:keys [selected-flow-id] :as db} flow-id]
+  (let [trace-idx (get-in db [:flows flow-id :trace-idx])
+        traces (flow-traces db flow-id)]
+    (get traces trace-idx)))
+
+(defn add-trace [db {:keys [flow-id form-id form-flow-id coor result outer-form? err] :as trace}]
   (let [flow-id (or flow-id
-                    (get-in db [:form-flow-id->flow-id form-flow-id]))]
-    (-> db
-        (update-in [:flows flow-id :traces] conj {:flow-id flow-id
-                                                  :form-id form-id
-                                                  :outer-form? outer-form?
-                                                  :coor coor
-                                                  :result (utils/pprint-form-for-html result)
-                                                  :timestamp (utils/get-timestamp)}))))
+                    (get-in db [:form-flow-id->flow-id form-flow-id]))
+
+        traces (flow-traces db flow-id)
+        trace-idx (count traces)
+        new-trace (cond-> {:flow-id flow-id
+                           :form-id form-id
+                           :outer-form? outer-form?
+                           :trace-idx trace-idx
+                           :coor coor                                                  
+                           :timestamp (utils/get-timestamp)}
+                    (not err) (assoc :result (utils/pprint-form-for-html result))
+                    err       (assoc :err err))
+        flow-trace-idx (get-in db [:flows flow-id :trace-idx])]
+
+    (cond-> (update-in db [:flows flow-id :traces] conj new-trace)
+
+      ;; if this trace we are adding contains a error and the debugger isn't already
+      ;; pointing to a error, set the debugger pointing to this trace
+      (and err (not (:err (flow-current-trace db flow-id))))
+      (assoc-in [:flows flow-id :trace-idx] trace-idx))))

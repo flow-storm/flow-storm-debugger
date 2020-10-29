@@ -25,10 +25,13 @@
         current-trace (fx/sub-ctx context selected-flow-current-trace)]
    (->> forms
         (mapv (fn [[form-id form-str]]
-               [form-id
-                (if (= form-id (:form-id current-trace))
-                  (highlight-expr form-str (:coor current-trace) "<b class=\"hl\">" "</b>")
-                  form-str)])))))
+                (let [h-form-str (cond-> form-str
+
+                                   ;; if it is the current-one, highlight it
+                                   (= form-id (:form-id current-trace))
+                                   (highlight-expr (:coor current-trace) "<b class=\"hl\">" "</b>"))]
+                  
+                 [form-id h-form-str]))))))
 
 (defn flow-name [forms traces]
   (let [form-id (-> traces
@@ -127,6 +130,19 @@
 
 (defn selected-flow-traces [context]
   (:traces (fx/sub-ctx context selected-flow)))
+
+(defn selected-flow-errors [context]
+  (let [{:keys [traces trace-idx]} (fx/sub-ctx context selected-flow)]
+    (->> (filter :err traces)
+         (reduce (fn [r {:keys [coor form-id] :as t}]
+                   ;; if it is a exception that is bubling up, discard it
+                   ;; only keep exception origin traces
+                   (if (some #(and (= form-id (:form-id t))
+                                   (utils/parent-coor? coor (:coor %))) r)
+                     r
+                     (conj r (cond-> t
+                               (= (:trace-idx t) trace-idx) (assoc :selected? true)))))
+                 []))))
 
 (defn selected-flow-trace-idx [context]
   (:trace-idx (fx/sub-ctx context selected-flow)))

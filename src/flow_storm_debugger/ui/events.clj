@@ -43,7 +43,7 @@
   (let [selected-flow-id (fx/sub-val context :selected-flow-id)
         flow (-> (fx/sub-val context :flows)
                  (get selected-flow-id)
-                 (select-keys [:forms :traces :trace-idx :bind-traces])
+                 (select-keys [:forms :traces :trace-idx :bind-traces :errors])
                  (assoc :flow-id selected-flow-id)
                  pr-str)]
     (cond-> {:context (fx/swap-context context assoc :open-dialog nil)}

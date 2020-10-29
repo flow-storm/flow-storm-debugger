@@ -32,3 +32,12 @@
                  r))
              {}
              m))
+
+(defn parent-coor? 
+  "If parent-coor and child-coor are code coordinate vectors
+  returns true if parent-coor is parent of child-coor." 
+  [parent-coor child-coor]
+  (and (not= parent-coor child-coor)
+       (< (count parent-coor)
+          (count child-coor))
+       (every? true? (map = parent-coor child-coor))))

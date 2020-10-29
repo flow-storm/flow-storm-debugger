@@ -32,30 +32,6 @@
      :ch-recv ch-recv
      :connected-uids-atom connected-uids}))
 
-(defn save-flow [{:keys [params] :as req}]
-  (spit (str "./" (:file-name params)) (body-string req)))
-
-(defn build-routes [opts]
-  (compojure/routes
-   (GET "/" [] (resource-response "index.html" {:root "public"}))
-   (POST "/save-flow" req (do (save-flow req) {:status 200}) )
-   (resources "/")))
-
-#_(defn handle-ws-message [send-fn {:keys [event client-id user-id] :as msg}]
-  (if (= client-id "browser")
-    ;; message comming from the browser
-    nil #_(println "browser -> tracer" event)
-
-    ;; if client-id is not "browser" then it is one of the tracers
-    ;; if we get a message from a tracer, just forward it to the browser
-    (let [[evk] event]
-      (if (#{:chsk/uidport-open :chsk/uidport-close} evk )
-        ;; dec by one the count so we don't count the browser as another tracer
-        (send-fn "browser" [:flow-storm/connected-clients-update {:count (dec (count (:any @(:connected-uids msg))))}])
-
-        (when (#{:flow-storm/init-trace :flow-storm/add-trace :flow-storm/add-bind-trace} evk)
-          (send-fn "browser" event))))))
-
 (defn dispatch-ws-event [event]
   (let [[e-key e-data-map] event]
     
@@ -86,11 +62,11 @@
             (dispatch-ws-event event)))
         
         (catch Exception e
-          (println "ERROR handling ws message")))
+          (println "ERROR handling ws message" e)))
       (recur))
 
     (fx/mount-renderer ui.db/*state ui.main-screen/renderer)
-    (reset! server (http-server/run-server (-> (compojure/routes ws-routes (build-routes {:port port}))
+    (reset! server (http-server/run-server (-> (compojure/routes ws-routes)
                                               (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
                                                          :access-control-allow-methods [:get :put :post :delete])
                                               wrap-keyword-params

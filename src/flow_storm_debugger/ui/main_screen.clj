@@ -122,8 +122,6 @@
                                         :style (if selected?
                                                  {:-fx-background-color "#902638"}
                                                  {})
-                                        ;; :style-class (cond-> []
-                                        ;;                selected? (into ["selected"]))
                                         :graphic {:fx/type :label
                                                   :style-class ["label" "clickable"]
                                                   
@@ -169,8 +167,9 @@
   (let [locals (fx/sub-ctx context ui.subs/selected-flow-current-locals)]
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
-             :on-selected-item-changed (fn [[_ lvalue]] (event-handler {:event/type ::ui.events/set-pprint-panel
-                                                                        :content lvalue}))}
+             :on-selected-item-changed (fn [[_ lvalue]]
+                                         (event-handler {:event/type ::ui.events/set-pprint-panel
+                                                         :content lvalue}))}
      :desc {:fx/type :list-view
             :style-class ["list-view" "locals-view"]
             :cell-factory {:fx/cell-type :list-cell
@@ -197,38 +196,67 @@
      :style-class ["pane-text-area"]
      :text result}))
 
-(defn selected-flow [{:keys [fx/context]}]
+(defn errors-pane [{:keys [fx/context error-traces]}]
   {:fx/type :border-pane
-   :style {:-fx-padding 10}
-   :top {:fx/type controls-pane}
-   :center {:fx/type :split-pane
-            :style-class ["split-pane" "horizontal-split-pane"]
-            :border-pane/margin (Insets. 10 0 0 0)
-            :items [{:fx/type :tab-pane
-                     :tabs [{:fx/type :tab
-                             :style-class ["tab" "panel-tab"]
-                             :graphic {:fx/type :label :text "Code"}
-                             :content {:fx/type code-browser}
-                             :id "code"
-                             :closable false}
-                            {:fx/type :tab
-                             :style-class ["tab" "panel-tab"]
-                             :graphic {:fx/type :label :text "Layers"}
-                             :content {:fx/type layers-pane}
-                             :id "layers"
-                             :closable false}
-                            {:fx/type :tab
-                             :style-class ["tab" "panel-tab"]
-                             :graphic {:fx/type :label :text "Tree"}
-                             :content {:fx/type calls-tree-pane}
-                             :id "tree"
-                             :closable false}]}
+   :top {:fx/type :label :text "Errors:"}
+   :center {:fx/type fx.ext.list-view/with-selection-props
+            :props {:selection-mode :single}
+            :desc {:fx/type :list-view
+                   :style-class ["list-view" "errors-view"]
+                   :cell-factory {:fx/cell-type :list-cell
+                                  :describe (fn [{:keys [err trace-idx selected?]}]                                
+                                              {:text ""
+                                               :style (if selected? {:-fx-background-color "#902638"} {})
+                                               :graphic {:fx/type :label
+                                                         :style-class ["label" "clickable"]
+                                                         :on-mouse-clicked (fn [_]
+                                                                             (event-handler {:event/type ::ui.events/set-current-flow-trace-idx
+                                                                                             :trace-idx trace-idx}))
+                                                         :text (:error/message err)}})}
+                   :items error-traces}}})
+
+(defn selected-flow [{:keys [fx/context]}]
+  (let [error-traces (fx/sub-ctx context ui.subs/selected-flow-errors)
+        left-pane-tabs {:fx/type :tab-pane
+                        :tabs [{:fx/type :tab
+                                :style-class ["tab" "panel-tab"]
+                                :graphic {:fx/type :label :text "Code"}
+                                :content {:fx/type code-browser}
+                                :id "code"
+                                :closable false}
+                               {:fx/type :tab
+                                :style-class ["tab" "panel-tab"]
+                                :graphic {:fx/type :label :text "Layers"}
+                                :content {:fx/type layers-pane}
+                                :id "layers"
+                                :closable false}
+                               {:fx/type :tab
+                                :style-class ["tab" "panel-tab"]
+                                :graphic {:fx/type :label :text "Tree"}
+                                :content {:fx/type calls-tree-pane}
+                                :id "tree"
+                                :closable false}]}]
+   {:fx/type :border-pane
+    :style {:-fx-padding 10}
+    :top {:fx/type controls-pane}
+    :center {:fx/type :split-pane
+             :style-class ["split-pane" "horizontal-split-pane"]
+             :border-pane/margin (Insets. 10 0 0 0)
+             :items [(if (seq error-traces)
+                       {:fx/type :split-pane
+                        :style-class ["split-pane" "vertical-split-pane"]
+                        :orientation :vertical
+                        :items [left-pane-tabs
+                                {:fx/type errors-pane
+                                 :error-traces error-traces}]}
+                       
+                       left-pane-tabs)
                     
-                    {:fx/type :split-pane
-                     :style-class ["split-pane" "vertical-split-pane"]
-                     :orientation :vertical
-                     :items [{:fx/type pprint-pane}
-                             {:fx/type locals-pane}]}]}})
+                     {:fx/type :split-pane
+                      :style-class ["split-pane" "vertical-split-pane"]
+                      :orientation :vertical
+                      :items [{:fx/type pprint-pane}
+                              {:fx/type locals-pane}]}]}}))
 
 (defn flow-tabs [{:keys [fx/context]}]
   (let [flows-tabs (fx/sub-ctx context ui.subs/flows-tabs)]
@@ -323,8 +351,8 @@
                                         (fx/fn->lifecycle-with-context %))
            :fx.opt/map-event-handler event-handler}))
 
-(renderer)
 (comment
+  (renderer)
   (import '[javafx.scene.text Font])
   (Font/loadFont (io/input-stream (io/resource "fonts/Roboto-Medium.ttf")) (double 16))
   (Font/loadFont (str (io/resource "fonts/Roboto-Bold.ttf")) 16.)
