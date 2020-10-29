@@ -8,18 +8,16 @@
         org.clojure/core.async      {:mvn/version "1.3.610"}
         cljfx/cljfx                 {:mvn/version "1.7.10"}
         cljfx/css                   {:mvn/version "1.1.0"}
-        zprint/zprint               {:mvn/version "1.0.0"}
-        
-        org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
-        org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
-        ;; org.kordamp.ikonli/ikonli-javafx {:mvn/version "2.6.0"}
-        ;; org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "2.6.0"}
-
-        
-
-        }
+        zprint/zprint               {:mvn/version "1.0.0"}}
  :aliases {:dev {:extra-paths ["dev-src"]
                  :extra-deps {jpmonettas/flow-storm {
                                                      :mvn/version "0.2.8-SNAPSHOT"
                                                      ;;:local/root "/home/jmonetta/my-projects/flow-storm"
-                                                     }}}}}
+                                                     }}}
+           :build {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}
+                   :main-opts ["-m" "hf.depstar.jar"]
+                   :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
+           :jdk8 {:extra-deps {org.kordamp.ikonli/ikonli-javafx {:mvn/version "2.6.0"}
+                               org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "2.6.0"}}}
+           :jdk11 {:extra-deps {org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
+                                org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}}}}}

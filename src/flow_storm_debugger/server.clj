@@ -14,7 +14,8 @@
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [flow-storm-debugger.ui.db :as ui.db]
             [flow-storm-debugger.ui.main-screen :as ui.main-screen]
-            [cljfx.api :as fx]))
+            [cljfx.api :as fx])
+  (:gen-class))
 
 (def server (atom nil))
 

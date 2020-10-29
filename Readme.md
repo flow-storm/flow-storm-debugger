@@ -20,7 +20,7 @@ A Clojure and ClojureScript debugger with some unique features.
 
 ## Running the debugger
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.2.6"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.0"}}}' -m flow-storm-debugger.server
 ```
 
 And point your browser to http://localhost:7722
@@ -121,7 +121,7 @@ have the flow loaded in the debugger ready for you to start analyzing.
 
 Calls tree is the tool located in the top right panel, under the `calls` tab.
 
-![demo](./docs/calls.png)
+![demo](./docs/calls_tree.png)
 
 It shows how functions are being called, their arguments and their return values.
 
@@ -134,7 +134,9 @@ Clicking on function calls or returns will move the debugger to that position in
 
 Layers is the tool located in the top right panel, under the `layers` tab.
 
-![demo](./docs/layers.png)
+![demo](./docs/layers1.png)
+
+![demo](./docs/layers2.png)
 
 It is useful for analyzing iterations, doesn't matter if they are loops or recursive functions.
 

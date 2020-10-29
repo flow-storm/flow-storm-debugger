@@ -9,7 +9,7 @@ pom.xml:
 	mvn versions:set -DnewVersion=$(version)
 
 flow-storm-debugger.jar:
-	clj -A:jar flow-storm-debugger.jar
+	clj -A:build flow-storm-debugger.jar;    
 
 release: flow-storm-debugger.jar pom.xml
 
