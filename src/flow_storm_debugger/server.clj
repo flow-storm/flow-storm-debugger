@@ -100,4 +100,8 @@
   (fsa/connect)
  
 
+  #ztrace
+  (->> (range 2 -2 -1)
+       (map (fn [n] (/ 5 n)))
+       (reduce +))
   )
