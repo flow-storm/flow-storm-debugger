@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Remove newlines from call-tree results
+
 ## 0.3.1 (2020-10-30)
 
 - New javafx UI replaces browser ui.

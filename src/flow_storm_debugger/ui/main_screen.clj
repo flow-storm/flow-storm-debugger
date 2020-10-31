@@ -20,6 +20,9 @@
 (defn save-file-fx [{:keys [file-name file-content]} dispatch!]
   (spit file-name file-content))
 
+(defn remove-new-lines [s]
+  (if s (str/replace s #"\n" " ") ""))
+
 (def event-handler
   (-> ui.events/dispatch-event
       (fx/wrap-co-effects
@@ -125,7 +128,7 @@
                                         :graphic {:fx/type :label
                                                   :style-class ["label" "clickable"]
                                                   
-                                                  :text (when result (str/replace result #"\n" " "))}})}
+                                                  :text (remove-new-lines result)}})}
             :items layers}}))
 
 (defn calls-tree [{:keys [fx/context fn-call-tree current-trace-idx]}]
@@ -150,7 +153,7 @@
                              :style-class ["h-box" "clickable"]
                              :on-mouse-clicked {:event/type ::ui.events/set-current-flow-trace-idx
                                               :trace-idx ret-trace-idx}
-                             :children [{:fx/type :label :text (str result)}
+                             :children [{:fx/type :label :text (remove-new-lines result)}
                                         {:fx/type :label :text (str "<" fn-name ">")}]}]))})))
 
 (defn calls-tree-pane [{:keys [fx/context]}]
@@ -186,7 +189,7 @@
                                                                 :text lname})
                                                              {:fx/type :label
                                                               :style-class ["label" "local-val"]
-                                                              :text (if lvalue (str/replace lvalue #"\n" " ") "")}]}})}
+                                                              :text (remove-new-lines lvalue)}]}})}
             :items locals}}))
 
 (defn pprint-pane [{:keys [fx/context]}]
