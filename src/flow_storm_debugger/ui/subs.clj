@@ -33,17 +33,6 @@
                   
                  [form-id h-form-str]))))))
 
-(defn flow-name [forms traces]
-  (let [form-id (-> traces
-                    first
-                    :form-id)
-        form (get forms form-id)
-        str-len (count form)]
-    (when form
-     (cond-> form
-       true (subs 0 (min 20 str-len))
-       (> str-len 20) (str "...")))))
-
 (defn flow-comparator [f1 f2]
   (compare (:timestamp f1) (:timestamp f2)))
 
@@ -51,8 +40,8 @@
   (let [flows (fx/sub-ctx context flows)]
     (->> flows
          (sort-by second flow-comparator)
-         (map (fn [[flow-id {:keys [forms traces]}]]
-                [flow-id (flow-name forms traces)])))))
+         (map (fn [[flow-id flow]]
+                [flow-id (:flow-name flow)])))))
 
 (defn selected-flow-pprint-panel-content [context]
   (:pprint-panel-content (fx/sub-ctx context selected-flow)))
