@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. This change
 
 - Remove newlines from call-tree results
 - Improve flow name format
+- Exiting the app when the main window gets closed
 
 ## 0.3.1 (2020-10-30)
 

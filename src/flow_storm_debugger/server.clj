@@ -15,6 +15,7 @@
             [flow-storm-debugger.ui.db :as ui.db]
             [flow-storm-debugger.ui.main-screen :as ui.main-screen]
             [cljfx.api :as fx])
+  (:import [javafx.application Platform])
   (:gen-class))
 
 (def server (atom nil))
@@ -50,6 +51,9 @@
 (defn -main [& args]
   (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)
         port 7722]
+
+    (Platform/setImplicitExit true)
+
 
     (go-loop []
       (try

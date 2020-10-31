@@ -11,7 +11,8 @@
             [cljfx.ext.list-view :as fx.ext.list-view]
             [cljfx.composite :as composite]
             [flow-storm-debugger.ui.styles :as styles]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [cljfx.platform :as platform])
   (:import [javafx.scene.web WebView]
            [javafx.scene.control DialogEvent Dialog]
            [javafx.geometry Insets]
@@ -326,6 +327,7 @@
         styles (:cljfx.css/url (fx/sub-val context :style))
         main-screen {:fx/type :stage
                      :showing true
+                     :on-close-request (fn [& _] (System/exit 0))
                      :width 1600
                      :height 900
                      :scene {:fx/type :scene
