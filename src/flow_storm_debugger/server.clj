@@ -41,7 +41,7 @@
       :flow-storm/add-trace                (swap! ui.db/*state fx/swap-context events.traces/add-trace e-data-map) 
       :flow-storm/init-trace               (swap! ui.db/*state fx/swap-context events.traces/init-trace e-data-map)        
       :flow-storm/add-bind-trace           (swap! ui.db/*state fx/swap-context events.traces/add-bind-trace e-data-map) 
-      (println "Donw know how to handle" event))
+      (println "Don't know how to handle" event))
         
     (when (#{:flow-storm/add-trace :flow-storm/init-trace :flow-storm/add-bind-trace} e-key)
       (swap! ui.db/*state fx/swap-context update-in [:stats :received-traces-count] inc))
