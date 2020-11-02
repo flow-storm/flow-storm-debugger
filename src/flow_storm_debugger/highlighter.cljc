@@ -31,6 +31,9 @@
 
       (= target-coor coor) sidx
 
+      (= c \\)  ;; if we see a back slash skip the next character, can be a char or a scape inside a string
+      (recur (rest rs) (+ 2 sidx) coor in-str?)
+
       (and in-str? (not= c \")) ;; if we are in a string skip everything until we find a quot
       (recur rs (inc sidx) coor true)
 
@@ -112,5 +115,9 @@
   (highlight-expr "(defn walk-indexed \"Some string (pars) \" [a b] (+ a b))" [4] "|" "|")
   (highlight-expr "(defn walk-indexed \"Some string \" [a b] (+ a b))" [4] "|" "|")
 
+  (highlight-expr "(defn walk-indexed \"Some string \" [a b] (+ a b))")
 
+  (highlight-expr (pr-str ["Hello \" " 1 2 3])
+                  [2]
+                  "|" "|")
   )

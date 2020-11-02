@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Fix the highlighter for code that contains \" as char or scaped quotes in strings
+
 ## 0.3.3 (2020-11-02)
 
 - Fix #10, Missing code highlight when tracing map literal
