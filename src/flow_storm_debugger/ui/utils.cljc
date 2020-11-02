@@ -18,7 +18,7 @@
   (try
    (-> s
        read-str
-       zp/zprint-str
+       (zp/zprint-str {:map {:sort? false}}) ;; don't sort keys since it breaks coordinates
        escape-html)
    #?(:cljs (catch :default e (js/console.warn "Couldn't pprint: " s) s)
       :clj (catch Exception e (println "Couldn't pprint" s) s))))
