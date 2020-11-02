@@ -125,7 +125,7 @@ have the flow loaded in the debugger ready for you to start analyzing.
 
 Calls tree is the tool located under the `Tree` tab. 
 
-![demo](./docs/call_tree.png)
+![demo](./docs/call_tree.png**
 
 It shows how functions are being called, their arguments and their return values.
 
@@ -133,6 +133,14 @@ It is useful as a overview of a complicated flow, I use it also as the starting 
 chasing a bug that involves multiple functions calls.
 
 Clicking on function calls or returns will moves the debugger to that position in time.
+
+*Note:* The calls tree call is showing parametes as they were mapped by the function and not as they were called.
+
+So if we are tracing a fn like : `#trace (defn foo [f & r] (count r))`
+
+When called like `(foo 1 2 3 4)`
+
+it will show : `(foo [1 (2 3 4)])` instead.
 
 ### <a name="layers"></a> Layers
 
