@@ -125,7 +125,7 @@ have the flow loaded in the debugger ready for you to start analyzing.
 
 Calls tree is the tool located under the `Tree` tab. 
 
-![demo](./docs/call_tree.png**
+![demo](./docs/call_tree.png)
 
 It shows how functions are being called, their arguments and their return values.
 
