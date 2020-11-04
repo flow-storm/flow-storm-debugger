@@ -44,9 +44,7 @@
       (println "Don't know how to handle" event))
         
     (when (#{:flow-storm/add-trace :flow-storm/init-trace :flow-storm/add-bind-trace} e-key)
-      (swap! ui.db/*state fx/swap-context update-in [:stats :received-traces-count] inc))
-    
-    (println "Got event " event)))
+      (swap! ui.db/*state fx/swap-context update-in [:stats :received-traces-count] inc))))
 
 (defn -main [& args]
   (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)
@@ -72,12 +70,11 @@
 
     (fx/mount-renderer ui.db/*state ui.main-screen/renderer)
     (reset! server (http-server/run-server (-> (compojure/routes ws-routes)
-                                              (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
-                                                         :access-control-allow-methods [:get :put :post :delete])
-                                              wrap-keyword-params
-                                              wrap-params)
-                                           {:port port}))
-    #_(println "HTTP server running on 7722")))
+                                               (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
+                                                          :access-control-allow-methods [:get :put :post :delete])
+                                               wrap-keyword-params
+                                               wrap-params)
+                                           {:port port}))))
 
 (comment
   (def some-events [[:flow-storm/connected-clients-update {:count 1}]
