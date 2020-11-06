@@ -327,6 +327,7 @@
         open-dialog (fx/sub-val context :open-dialog)
         styles (:cljfx.css/url (fx/sub-val context :style))
         main-screen {:fx/type :stage
+                     :title "Flow Storm debugger"
                      :showing true
                      :on-close-request (fn [& _] (System/exit 0))
                      :width 1600
