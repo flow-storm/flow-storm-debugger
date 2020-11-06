@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Follow highlighted expression when it goes out of view
 - Fix the highlighter for code that contains \" as char or scaped quotes in strings
 
 ## 0.3.3 (2020-11-02)

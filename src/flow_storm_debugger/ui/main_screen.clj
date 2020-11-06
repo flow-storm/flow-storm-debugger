@@ -57,7 +57,8 @@
    {:fx/type ext-with-html
     :props {:html (str "<div class=\"forms\">"
                        forms-html
-                       "</div>")}
+                       "</div>"
+                       "<script>document.getElementById('expr').scrollIntoView()</script>")}
     :desc {:fx/type :web-view}}))
 
 (defn bottom-bar [{:keys [fx/context]}]

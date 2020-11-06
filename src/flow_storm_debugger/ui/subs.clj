@@ -29,7 +29,7 @@
 
                                    ;; if it is the current-one, highlight it
                                    (= form-id (:form-id current-trace))
-                                   (highlight-expr (:coor current-trace) "<b class=\"hl\">" "</b>"))]
+                                   (highlight-expr (:coor current-trace) "<b id=\"expr\" class=\"hl\">" "</b>"))]
                   
                  [form-id h-form-str]))))))
 
