@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.3.4 (2020-11-09)
+
 - Add --spit-style-files arguments and made it possible to load custom styles
 - Adding a window title
 - Follow highlighted expression when it goes out of view
