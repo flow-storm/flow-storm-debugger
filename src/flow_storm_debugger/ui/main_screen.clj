@@ -41,15 +41,15 @@
 (def ext-with-html
   (fx/make-ext-with-props
     {:html (fx.prop/make
-            (fx.mutator/setter #(.loadContent (let [engine (.getEngine ^WebView %1)]
-                                                (.setUserStyleSheetLocation engine (-> (clojure.java.io/resource "web-view-styles.css")
-                                                                                       (.toURI)
-                                                                                       (.toString)))
-                                                engine) %2))
-             fx.lifecycle/scalar)}))
+            (fx.mutator/setter (fn [web-view html] (.loadContent (.getEngine ^WebView web-view) html)))
+            fx.lifecycle/scalar)
+     :css-uri (fx.prop/make
+               (fx.mutator/setter (fn [web-view css-uri] (.setUserStyleSheetLocation (.getEngine ^WebView web-view) css-uri)))
+               fx.lifecycle/scalar)}))
 
 (defn code-browser [{:keys [fx/context]}]
   (let [hl-forms (fx/sub-ctx context ui.subs/selected-flow-forms-highlighted)
+        {:keys [code-panel-styles]} (fx/sub-val context :styles)
         forms-html (->> hl-forms
                         (map (fn [[_ form-str]]
                                (str "<pre class=\"form\">" form-str "</pre>")))
@@ -58,7 +58,8 @@
     :props {:html (str "<div class=\"forms\">"
                        forms-html
                        "</div>"
-                       "<script>document.getElementById('expr').scrollIntoView()</script>")}
+                       "<script>document.getElementById('expr').scrollIntoView()</script>")
+            :css-uri code-panel-styles}
     :desc {:fx/type :web-view}}))
 
 (defn bottom-bar [{:keys [fx/context]}]
@@ -325,7 +326,7 @@
 (defn main-screen [{:keys [fx/context]}]
   (let [no-flows? (fx/sub-ctx context ui.subs/empty-flows?)        
         open-dialog (fx/sub-val context :open-dialog)
-        styles (:cljfx.css/url (fx/sub-val context :style))
+        {:keys [app-styles font-styles]} (fx/sub-val context :styles)
         main-screen {:fx/type :stage
                      :title "Flow Storm debugger"
                      :showing true
@@ -333,9 +334,7 @@
                      :width 1600
                      :height 900
                      :scene {:fx/type :scene
-                             :stylesheets (cond-> [(str (io/resource "fonts.css"))]
-                                            styles (into [styles])
-                                            )
+                             :stylesheets [font-styles app-styles]
                              :root {:fx/type :border-pane                  
                                     :center (if no-flows?
                                               {:fx/type no-flows}

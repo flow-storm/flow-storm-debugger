@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Add --spit-style-files arguments and made it possible to load custom styles
 - Adding a window title
 - Follow highlighted expression when it goes out of view
 - Fix the highlighter for code that contains \" as char or scaped quotes in strings

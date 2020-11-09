@@ -14,7 +14,10 @@
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [flow-storm-debugger.ui.db :as ui.db]
             [flow-storm-debugger.ui.main-screen :as ui.main-screen]
-            [cljfx.api :as fx])
+            [cljfx.api :as fx]
+            [clojure.pprint :as pp]
+            [clojure.java.io :as io]
+            [flow-storm-debugger.ui.styles :as styles])
   (:import [javafx.application Platform])
   (:gen-class))
 
@@ -47,34 +50,60 @@
       (swap! ui.db/*state fx/swap-context update-in [:stats :received-traces-count] inc))))
 
 (defn -main [& args]
-  (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)
-        port 7722]
+  (let [code-panel-styles (io/resource "code-panel-styles.css")
+        app-styles (:cljfx.css/url styles/style)]
+   (if (= (first args) "--spit-style-files")
 
-    (Platform/setImplicitExit true)
+     (do
+       (spit "./flow-storm-code-panel-styles.css" (slurp code-panel-styles) )
+       (spit "./flow-storm-app-styles.css" (slurp app-styles))
+       (println "You can customize application styles by editing ./flow-storm-app-styles.css")
+       (println "You can customize code browser styles by editing ./flow-storm-code-panel-styles.css")
+       (System/exit 0))
+     
+     (let [{:keys [ws-routes ws-send-fn ch-recv connected-uids-atom]} (build-websocket)
+           port 7722
+           custom-app-styles (io/file "./flow-storm-app-styles.css")
+           custom-code-panel-styles (io/file "./flow-storm-code-panel-styles.css")
+           styles {:app-styles        (or (when (.exists custom-app-styles) (str (.toURI custom-app-styles)))
+                                          app-styles)
+                   :font-styles       (str (io/resource "fonts.css"))
+                   :code-panel-styles (str (or (when (.exists custom-code-panel-styles) (.toURI custom-code-panel-styles))
+                                               code-panel-styles))}]
 
+       (when (or (.exists custom-app-styles)
+                 (.exists custom-code-panel-styles))
+         
+         (println "Styles : ")
+         (pp/pprint styles))
+      
+       (Platform/setImplicitExit true)
 
-    (go-loop []
-      (try
-        (let [msg (async/<! ch-recv)
-              [e-key e-data-map :as event]  (:event msg)]
-          
-          (if (#{:chsk/uidport-open :chsk/uidport-close} e-key)
-            (let [clients-count (-> msg :connected-uids deref :any count)]
-              (swap! ui.db/*state fx/swap-context assoc-in [:stats :connected-clients] clients-count))
+       ;; set styles uris
+       (swap! ui.db/*state fx/swap-context assoc :styles styles)
+      
+       (go-loop []
+         (try
+           (let [msg (async/<! ch-recv)
+                 [e-key e-data-map :as event]  (:event msg)]
             
-            (dispatch-ws-event event)))
-        
-        (catch Exception e
-          (println "ERROR handling ws message" e)))
-      (recur))
+             (if (#{:chsk/uidport-open :chsk/uidport-close} e-key)
+               (let [clients-count (-> msg :connected-uids deref :any count)]
+                 (swap! ui.db/*state fx/swap-context assoc-in [:stats :connected-clients] clients-count))
+              
+               (dispatch-ws-event event)))
+          
+           (catch Exception e
+             (println "ERROR handling ws message" e)))
+         (recur))
 
-    (fx/mount-renderer ui.db/*state ui.main-screen/renderer)
-    (reset! server (http-server/run-server (-> (compojure/routes ws-routes)
-                                               (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
-                                                          :access-control-allow-methods [:get :put :post :delete])
-                                               wrap-keyword-params
-                                               wrap-params)
-                                           {:port port}))))
+       (fx/mount-renderer ui.db/*state ui.main-screen/renderer)
+       (reset! server (http-server/run-server (-> (compojure/routes ws-routes)
+                                                  (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
+                                                             :access-control-allow-methods [:get :put :post :delete])
+                                                  wrap-keyword-params
+                                                  wrap-params)
+                                              {:port port}))))))
 
 (comment
   (def some-events [[:flow-storm/connected-clients-update {:count 1}]

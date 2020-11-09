@@ -22,7 +22,7 @@ A Clojure and ClojureScript debugger with some unique features.
 ## Running the debugger
 
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.3"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.4"}}}' -m flow-storm-debugger.server
 ```
 
 And that's it !! One instance of the debugger is enough for all your Clojure and ClojureScript projects.
@@ -192,6 +192,19 @@ same flow tab instead of creating multiple tabs.
 
 Only the form that "fires the flow" needs to be traced with `#ztrace`, the rest of the form can be just
 traced with a normal `#trace`.
+
+### Customizing styles
+
+You can customize UI styles by providing custom `flow-storm-app-styles.css` and `flow-storm-code-panel-styles.css` style files in the same directory
+where you are running the debugger.
+
+If you want to tweak the current ui, you can run the debugger once with `--spit-style-files` command line option which will create
+style files in your current directory, then you can edit them to tweak whatever you want, like font sizes, colors etc.
+
+They are javafx stylesheets so this resources are handy :
+
+- Official JavaFX [CSS reference](https://openjfx.io/javadoc/12/javafx.graphics/javafx/scene/doc-files/cssref.html) - to see what you can style with CSS
+- [modena.css](https://gist.github.com/maxd/63691840fc372f22f470) - default CSS used by JavaFX, helpful when documentation is not enough
 
 ## Developers section
 
