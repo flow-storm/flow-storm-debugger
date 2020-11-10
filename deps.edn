@@ -11,7 +11,7 @@
         zprint/zprint               {:mvn/version "1.0.0"}}
  :aliases {:dev {:extra-paths ["dev-src"]
                  :extra-deps {jpmonettas/flow-storm {
-                                                     :mvn/version "0.3.1"
+                                                     :mvn/version "0.3.2"
                                                      ;;:local/root "/home/jmonetta/my-projects/flow-storm"
                                                      }}}
            :build {:extra-deps {seancorfield/depstar {:mvn/version "RELEASE"}}

@@ -4,7 +4,9 @@
             [zprint.core :as zp]))
 
 (defn escape-html [s]
-  (str/escape s {\< "&lt;" \> "&gt;"}))
+  (str/escape s {\< "&lt;"
+                 \> "&gt;"
+                 \& "&amp;"}))
 
 (defn read-str [s]
   #?(:cljs (tools-reader/read-string s)
@@ -14,14 +16,16 @@
   #?(:cljs (.getTime (js/Date.))
      :clj (inst-ms (java.util.Date.))))
 
-(defn pprint-form-for-html [s]
+(defn pprint-form [s]
   (try
-   (-> s
-       read-str
-       (zp/zprint-str {:map {:sort? false}}) ;; don't sort keys since it breaks coordinates
-       escape-html)
-   #?(:cljs (catch :default e (js/console.warn "Couldn't pprint: " s) s)
-      :clj (catch Exception e (println "Couldn't pprint" s) s))))
+    (-> s
+        read-str
+        (zp/zprint-str {:map {:sort? false}})) ;; don't sort keys since it breaks coordinates
+    #?(:cljs (catch :default e (js/console.warn "Couldn't pprint: " s) s)
+       :clj (catch Exception e (println "Couldn't pprint" s) s))))
+
+(defn pprint-form-for-html [s]
+  (escape-html (pprint-form s)))
 
 (defn remove-vals
   "Removes all key entries from map where the value is v"
