@@ -16,7 +16,7 @@ A Clojure and ClojureScript debugger with some unique features.
 - **Save, load and share** your debugging sessions (see [saving and loading](#saving-and-loading)).
 - **Call tree** execution analyzer (see [call tree](#call-tree)).
 - **Layers** execution analyzer (see [layers](#layers)).
-- **Inspect and explore** large expression **results**.
+- **Inspect and explore** large expression **results** by pprinting and a collapsible tree.
 - Multiple ways of **jumping in time**.
 
 ## Running the debugger
@@ -193,13 +193,17 @@ same flow tab instead of creating multiple tabs.
 Only the form that "fires the flow" needs to be traced with `#ztrace`, the rest of the form can be just
 traced with a normal `#trace`.
 
-### Customizing styles
+### Customizing styles (Experimental)
 
 You can customize UI styles by providing custom `flow-storm-app-styles.css` and `flow-storm-code-panel-styles.css` style files in the same directory
 where you are running the debugger.
 
 If you want to tweak the current ui, you can run the debugger once with `--spit-style-files` command line option which will create
-style files in your current directory, then you can edit them to tweak whatever you want, like font sizes, colors etc.
+style files in your current directory and exit. Then you can edit them, tweak whatever you want (like font sizes, colors, etc) and re-run the debugger with no options.
+
+**Important** new versions of the debugger will contain new stylesheets and if you have customizations you will have to delete them,
+regenerate the stylesheets and make the changes again. This method of customizing the UI is powerful but also super anoying since you need to tweak your stylesheets
+after every upgrade. For this reason I'll probably change this feature for something less powerful but more practical.
 
 They are javafx stylesheets so this resources are handy :
 
