@@ -75,6 +75,11 @@ Press the reset button to move the debugger to the first trace of the flow.
 
 There are other ways of moving through time, see [layers](#layers) and [call tree](#call-tree).
 
+### Exploring expressions results
+
+You can explore your expressions results using the top right panel. By default results are displayed pretty printed but you can toggle this 
+panel to also display values using a collapsible tree, just buy clicking the button that contains a tree icon.
+
 ### <a name="flows"></a> Flows
 
 A flow is a set of traces created by forms executions and all
