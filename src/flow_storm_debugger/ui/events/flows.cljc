@@ -1,8 +1,11 @@
 (ns flow-storm-debugger.ui.events.flows
   (:require [flow-storm-debugger.ui.utils :as utils]))
 
-(defn set-pprint-panel [{:keys [selected-flow-id] :as db} content]
-  (assoc-in db [:flows selected-flow-id :pprint-panel-content] content))
+(defn set-result-panel [{:keys [selected-flow-id] :as db} content]
+  (assoc-in db [:flows selected-flow-id :result-panel-content] content))
+
+(defn set-result-panel-type [{:keys [selected-flow-id] :as db} t]
+  (assoc-in db [:flows selected-flow-id :result-panel-type] t))
 
 (defn- get-selected-flow-current-trace [{:keys [selected-flow-id] :as db}]
   (let [curr-trace-idx (get-in db [:flows selected-flow-id :trace-idx])]
@@ -12,13 +15,13 @@
   (let [db' (update-in db [:flows selected-flow-id :trace-idx] dec)
         {:keys [result]} (get-selected-flow-current-trace db')]
    (-> db'       
-       (set-pprint-panel result))))
+       (set-result-panel result))))
 
 (defn selected-flow-next [{:keys [selected-flow-id] :as db}]
   (let [db' (update-in db [:flows selected-flow-id :trace-idx] inc)
         {:keys [result]} (get-selected-flow-current-trace db')]
     (-> db'
-        (set-pprint-panel result))))
+        (set-result-panel result))))
 
 (defn select-flow [{:keys [selected-flow-id] :as db} flow-id]
   (-> db
@@ -35,7 +38,7 @@
   (let [db' (assoc-in db [:flows selected-flow-id :trace-idx] trace-idx)
         {:keys [result]} (get-selected-flow-current-trace db')]
     (-> db'
-        (set-pprint-panel result))))
+        (set-result-panel result))))
 
 (defn open-dialog [db dialog]
   (assoc db :open-dialog dialog))

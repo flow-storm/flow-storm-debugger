@@ -43,8 +43,15 @@
          (map (fn [[flow-id flow]]
                 [flow-id (:flow-name flow)])))))
 
-(defn selected-flow-pprint-panel-content [context]
-  (:pprint-panel-content (fx/sub-ctx context selected-flow)))
+(defn selected-flow-result-panel-content [context pprint?]
+  (let [content (:result-panel-content (fx/sub-ctx context selected-flow))]
+    (if pprint?
+      (utils/pprint-form content)
+      content)))
+
+(defn selected-flow-result-panel-type [context]
+  (or (:result-panel-type (fx/sub-ctx context selected-flow))
+      :pprint))
 
 (defn coor-in-scope? [scope-coor current-coor]
   (if (empty? scope-coor)

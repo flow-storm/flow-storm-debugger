@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Implement tree view explorer
 - Fix result pprinting for <,>,& etc
 
 ## 0.3.4 (2020-11-09)

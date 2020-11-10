@@ -4,6 +4,9 @@
 
 ;; javafx styling reference
 ;; https://openjfx.io/javadoc/12/javafx.graphics/javafx/scene/doc-files/cssref.html
+
+;; javafx CSS
+;; https://gist.github.com/maxd/63691840fc372f22f470
 (def style 
   (css/register
    ::style
@@ -24,12 +27,16 @@
                           :-fx-font-size 13}
                " .button" {:-fx-background-color button-back
                            :-fx-text-fill basic-font-color}
+               " .tree-view" {:-fx-background-color :transparent
+                              " .tree-cell" {:-fx-background-color :transparent
+                                             :-fx-text-fill basic-font-color}
+                              " .arrow" {:-fx-background-color basic-font-color}}
                ;; styling scrollbars
                ;; https://guigarage.com/2015/11/styling-a-javafx-scrollbar/
                " .scroll-bar" {" .track-background" {:-fx-background-color background-color-2}
                                " .thumb" {:-fx-background-color background-color}}
-               " .bottom-bar" {:-fx-background-color background-color-2
-                               :-fx-padding 5}
+               " .bar" {:-fx-background-color background-color-2
+                        :-fx-padding 5}
                " .list-view" {:-fx-background-color :transparent
                               " .list-cell" {:-fx-text-fill basic-font-color}
                               " .list-cell:even" {:-fx-background-color background-color}
@@ -60,6 +67,11 @@
                " .web-view" {:-fx-background-color :blue}
                " .load-button" {" .ikonli-font-icon" (icon "mdi-folder-plus")}
                " .save-button" {" .ikonli-font-icon" (icon "mdi-content-save")}
+               " .tree-button" {:-fx-padding 3
+                                " .ikonli-font-icon" (-> (icon "mdi-file-tree")
+                                                         (assoc :-fx-icon-size 15))}
+               " .pprint-button" {:-fx-padding 3
+                                  " .ikonli-font-icon" (icon "mdi-file-powerpoint-box")}
                " .reset-button" {" .ikonli-font-icon" (icon "mdi-reload")}
                " .prev-button" {" .ikonli-font-icon" (icon "mdi-chevron-left")}
                " .next-button" {" .ikonli-font-icon" (icon "mdi-chevron-right")}

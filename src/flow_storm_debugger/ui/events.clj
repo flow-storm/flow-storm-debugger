@@ -33,8 +33,11 @@
     (when-let [file (.showOpenDialog chooser window)]
       {:context (fx/swap-context context events.flows/load-flow (read-string (slurp file)))})))
 
-(defmethod dispatch-event ::set-pprint-panel [{:keys [fx/context content]}]
-  {:context (fx/swap-context context events.flows/set-pprint-panel content)})
+(defmethod dispatch-event ::set-result-panel [{:keys [fx/context content]}]
+  {:context (fx/swap-context context events.flows/set-result-panel content)})
+
+(defmethod dispatch-event ::set-result-panel-type [{:keys [fx/context panel-type]}]
+  {:context (fx/swap-context context events.flows/set-result-panel-type panel-type)})
 
 (defmethod dispatch-event ::open-dialog [{:keys [fx/context dialog]}]
   {:context (fx/swap-context context events.flows/open-dialog dialog)})

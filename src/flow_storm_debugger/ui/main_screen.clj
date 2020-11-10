@@ -68,8 +68,7 @@
      ;;:pref-height 50
      :right {:fx/type :label
              :text (format "Connected clients: %d Received traces: %d" connected-clients received-traces-count)}
-     :style-class ["bottom-bar"]     
-     }))
+     :style-class ["bar"]}))
 
 (defn load-button [{:keys [icon?]}]
   (cond-> {:fx/type :button
@@ -174,7 +173,7 @@
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
              :on-selected-item-changed (fn [[_ lvalue]]
-                                         (event-handler {:event/type ::ui.events/set-pprint-panel
+                                         (event-handler {:event/type ::ui.events/set-result-panel
                                                          :content lvalue}))}
      :desc {:fx/type :list-view
             :style-class ["list-view" "locals-view"]
@@ -195,12 +194,49 @@
                                                               :text (remove-new-lines lvalue)}]}})}
             :items locals}}))
 
-(defn pprint-pane [{:keys [fx/context]}]
-  (let [result (fx/sub-ctx context ui.subs/selected-flow-pprint-panel-content)]
-    {:fx/type :text-area
-     :editable false
-     :style-class ["pane-text-area"]
-     :text result}))
+(defn result-pprint-pane [{:keys [fx/context result]}]
+  {:fx/type :text-area
+   :editable false
+   :style-class ["pane-text-area"]
+   :text result})
+
+(defn ->result-tree-item [x]
+  (if (and (seqable? x) (not (string? x)))
+    (cond
+      (map-entry? x) {:fx/type :tree-item
+                      :value (str (pr-str (key x)) " " (pr-str (val x)))
+                      :children (if (and (seqable? (val x)) (not (string? (val x))))
+                                  (map ->result-tree-item (val x))
+                                  [(->result-tree-item (val x))]) }
+      :else          {:fx/type :tree-item :value (pr-str x) :children (map ->result-tree-item (seq x))})
+    {:fx/type :tree-item :value (pr-str x)}))
+
+(defn result-tree-pane [{:keys [fx/context result]}]
+  {:fx/type :tree-view
+   :cell-factory {:fx/cell-type :tree-cell
+                  :describe (fn [x]
+                              {:text (str x)})}
+   :root (->result-tree-item result)})
+
+(defn result-pane [{:keys [fx/context]}]
+  (let [result-panel-type (fx/sub-ctx context ui.subs/selected-flow-result-panel-type)
+        result (fx/sub-ctx context ui.subs/selected-flow-result-panel-content (= result-panel-type :pprint))]
+    {:fx/type :border-pane
+     :top {:fx/type :h-box
+           :style-class ["bar"]
+           :children [{:fx/type :toggle-button
+                       :on-selected-changed (fn [pressed?]
+                                              (event-handler {:event/type ::ui.events/set-result-panel-type
+                                                              :panel-type (if pressed? :tree :pprint)}))
+                       :style-class (cond-> ["button"]
+                                      (= result-panel-type :tree)   (into ["pprint-button"])
+                                      (= result-panel-type :pprint) (into ["tree-button"]))
+                       :graphic {:fx/type font-icon}
+                       :text ""}]}
+     :center {:fx/type (case result-panel-type
+                         :pprint result-pprint-pane
+                         :tree result-tree-pane)
+              :result result}}))
 
 (defn errors-pane [{:keys [fx/context error-traces]}]
   {:fx/type :border-pane
@@ -261,7 +297,7 @@
                      {:fx/type :split-pane
                       :style-class ["split-pane" "vertical-split-pane"]
                       :orientation :vertical
-                      :items [{:fx/type pprint-pane}
+                      :items [{:fx/type result-pane}
                               {:fx/type locals-pane}]}]}}))
 
 (defn flow-tabs [{:keys [fx/context]}]
