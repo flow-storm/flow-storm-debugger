@@ -42,7 +42,7 @@
                                                        :form-id form-id
                                                        :coor coor
                                                        :symbol symbol
-                                                       :value (utils/read-form value)
+                                                       :value value
                                                        :timestamp (utils/get-timestamp)}))))
 
 (defn flow-traces [db flow-id]
@@ -65,7 +65,7 @@
                            :trace-idx trace-idx
                            :coor coor                                                  
                            :timestamp (utils/get-timestamp)}
-                    (not err) (assoc :result (utils/read-form result))
+                    (not err) (assoc :result result)
                     err       (assoc :err err))
         flow-trace-idx (get-in db [:flows flow-id :trace-idx])]
 

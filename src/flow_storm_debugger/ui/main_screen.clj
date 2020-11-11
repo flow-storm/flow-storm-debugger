@@ -200,23 +200,29 @@
    :style-class ["pane-text-area"]
    :text result})
 
+(defn print-tree-val [v]
+  (if-let [tag (:tag (meta v))]
+    (str "#" tag (pr-str v))
+    (pr-str v)))
+
 (defn ->result-tree-item [x]
   (if (and (seqable? x) (not (string? x)))
     (cond
       (map-entry? x) {:fx/type :tree-item
-                      :value (str (pr-str (key x)) " " (pr-str (val x)))
+                      :value (str (pr-str (key x)) " " (print-tree-val (val x)))
                       :children (if (and (seqable? (val x)) (not (string? (val x))))
                                   (map ->result-tree-item (val x))
                                   [(->result-tree-item (val x))]) }
-      :else          {:fx/type :tree-item :value (pr-str x) :children (map ->result-tree-item (seq x))})
-    {:fx/type :tree-item :value (pr-str x)}))
+      :else          {:fx/type :tree-item :value (print-tree-val x) :children (map ->result-tree-item (seq x))})
+    {:fx/type :tree-item :value (print-tree-val x)}))
 
 (defn result-tree-pane [{:keys [fx/context result]}]
   {:fx/type :tree-view
    :cell-factory {:fx/cell-type :tree-cell
                   :describe (fn [x]
                               {:text (str x)})}
-   :root (->result-tree-item result)})
+   :root (binding [*print-length* 5]
+           (->result-tree-item result))})
 
 (defn result-pane [{:keys [fx/context]}]
   (let [result-panel-type (fx/sub-ctx context ui.subs/selected-flow-result-panel-type)

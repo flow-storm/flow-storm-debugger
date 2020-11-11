@@ -1,5 +1,6 @@
 (ns flow-storm-debugger.ui.utils
   (:require [clojure.string :as str]
+            [clojure.edn :as edn]
             #?(:cljs [cljs.tools.reader :as tools-reader])
             [zprint.core :as zp]))
 
@@ -14,7 +15,10 @@
 
 (defn read-form [s]
   (try
-    (read-string s)
+    (edn/read-string {:default (fn [tag val]
+                                 ;; assuming that all tagged structures support meta
+                                 (with-meta val {:tag tag}))}
+                     s)
     (catch Exception e (println "Couldn't pprint" s) s)))
 
 (defn pprint-form [form]
