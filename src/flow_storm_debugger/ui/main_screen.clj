@@ -366,6 +366,10 @@
                                       {:fx/type :label
                                        :text "some traces from your disk."}]}]}]})
 
+(defn refs [{:keys [fx/context]}]
+  {:fx/type :label
+   :text "Refs"})
+
 (defn main-screen [{:keys [fx/context]}]
   (let [no-flows? (fx/sub-ctx context ui.subs/empty-flows?)        
         open-dialog (fx/sub-val context :open-dialog)
@@ -381,15 +385,33 @@
                                                (when-let [evt (keymap/keymap (keymap/key-event->key-desc kevt))]
                                                  (event-handler {:event/type evt})))
                              :stylesheets [font-styles app-styles]
-                             :root {:fx/type :border-pane                  
-                                    :center (if no-flows?
-                                              {:fx/type no-flows}
-                                              {:fx/type flow-tabs})
+                             :root {:fx/type :border-pane
+                                    :center {:fx/type :tab-pane
+                                             :side :left
+                                             :rotate-graphic true
+                                             :tabs [{:fx/type :tab
+                                                     :fx/key "flows"
+                                                     :style-class ["tab" "tool-tab"]
+                                                     :closable false
+                                                     :graphic {:fx/type :label
+                                                               :text "Flows"}
+                                                     :content (if no-flows?
+                                                                {:fx/type no-flows}
+                                                                {:fx/type flow-tabs})}
+                                                    {:fx/type :tab
+                                                     :fx/key "refs"
+                                                     :style-class ["tab" "tool-tab"]
+                                                     :closable false
+                                                     :graphic {:fx/type refs}
+                                                     :content {:fx/type :label
+                                                               :text "REFS"}}]}
+                                    
                                     :bottom {:fx/type bottom-bar}}}}]
     {:fx/type fx/ext-many
      :desc (cond-> [main-screen]
              open-dialog (into [{:fx/type (case open-dialog
-                                            :save-flow-dialog save-flow-dialog)}]))}))
+                                            :save-flow-dialog save-flow-dialog)}]))})
+  )
 
 (defonce renderer
   (fx/create-renderer

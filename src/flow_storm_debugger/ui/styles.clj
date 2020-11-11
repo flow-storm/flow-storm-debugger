@@ -10,7 +10,7 @@
 (def style 
   (css/register
    ::style
-   (let [background-color-2 "#1e1e1e"
+   (let [background-color-2 "#353535"
          background-color "#424242"
          basic-font-color "#eaeaea"
          button-back "#4b79b9"
@@ -27,6 +27,7 @@
                           :-fx-font-size 13}
                " .button" {:-fx-background-color button-back
                            :-fx-text-fill basic-font-color}
+               " .vertical-tab" {:-fx-background-color background-color-2}
                " .tree-view" {:-fx-background-color :transparent
                               " .tree-cell" {:-fx-background-color :transparent
                                              :-fx-text-fill basic-font-color}
@@ -48,6 +49,8 @@
                ;; https://stackoverflow.com/questions/17091605/how-to-change-the-tab-pane-style
                " .tab-header-area .tab-header-background" {:-fx-background-color background-color-2}
                " .tab-pane" {" .flow-tab" {:-fx-background-color background-color-2
+                                           ":selected" {:-fx-background-color background-color}}
+                             " .tool-tab" {:-fx-background-color background-color-2
                                            ":selected" {:-fx-background-color background-color}}
                              " .panel-tab" {:-fx-background-color background-color-2
                                             ":selected" {:-fx-background-color background-color}}
@@ -82,7 +85,8 @@
                                 " .local-name" {:-fx-text-fill locals-label-color}
                                 ;;" .local-val" {" .text" {:-fx-font-family "'Roboto Light'"}}
                                 
-                                } 
+                                }
+               
                " .layers-view" {}
                " .calls-tree" {:-fx-padding [10 0 10 10]
                                :-fx-border-color :pink
