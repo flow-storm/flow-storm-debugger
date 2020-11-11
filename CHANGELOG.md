@@ -3,7 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.3.6 (2020-11-11)
+
 - Fix trace result parsing and displaying (for tagged values)
+
 ## 0.3.5 (2020-11-10)
 
 - Implement tree view explorer
