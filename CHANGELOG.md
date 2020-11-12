@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.3.7 (2020-11-12)
+
+- Add basic keyboard support (remove current/all flows) 
+
 ## 0.3.6 (2020-11-11)
 
 - Fix trace result parsing and displaying (for tagged values)

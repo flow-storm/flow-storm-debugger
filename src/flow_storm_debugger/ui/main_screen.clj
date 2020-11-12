@@ -12,7 +12,8 @@
             [cljfx.composite :as composite]
             [flow-storm-debugger.ui.styles :as styles]
             [clojure.java.io :as io]
-            [cljfx.platform :as platform])
+            [cljfx.platform :as platform]
+            [flow-storm-debugger.ui.keymap :as keymap])
   (:import [javafx.scene.web WebView]
            [javafx.scene.control DialogEvent Dialog]
            [javafx.geometry Insets]
@@ -376,6 +377,9 @@
                      :width 1600
                      :height 900
                      :scene {:fx/type :scene
+                             :on-key-pressed (fn [kevt]
+                                               (when-let [evt (keymap/keymap (keymap/key-event->key-desc kevt))]
+                                                 (event-handler {:event/type evt})))
                              :stylesheets [font-styles app-styles]
                              :root {:fx/type :border-pane                  
                                     :center (if no-flows?

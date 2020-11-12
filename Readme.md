@@ -22,7 +22,7 @@ A Clojure and ClojureScript debugger with some unique features.
 ## Running the debugger
 
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.6"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.7"}}}' -m flow-storm-debugger.server
 ```
 
 And that's it !! One instance of the debugger is enough for all your Clojure and ClojureScript projects.
@@ -187,6 +187,15 @@ A new `Errors` panel will show at the bottom left corner displaying all the exce
 ![demo](./docs/errors.png)
 
 Clicking on errors will move the debugger to that point in time.
+
+### Keyboard commands
+
+You can use your keyboard to execute some actions :
+
+ Key | Command 
+-----|---------------------
+x    | Close selected flow
+X    | Close all flows
 
 ### Working at the repl
 

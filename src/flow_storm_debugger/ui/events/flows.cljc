@@ -34,6 +34,15 @@
     (cond-> db'
       (= selected-flow-id flow-id) (assoc :selected-flow-id (-> db' :flows keys first)))))
 
+(defn remove-selected-flow [{:keys [selected-flow-id] :as db}]
+  (remove-flow db selected-flow-id))
+
+(defn remove-all-flows [{:keys [flows] :as db}]
+  (reduce (fn [r flow-id]
+            (remove-flow r flow-id))
+          db
+          (keys flows)))
+
 (defn set-current-flow-trace-idx [{:keys [selected-flow-id] :as db} trace-idx]
   (let [db' (assoc-in db [:flows selected-flow-id :trace-idx] trace-idx)
         {:keys [result]} (get-selected-flow-current-trace db')]

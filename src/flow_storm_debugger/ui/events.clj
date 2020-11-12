@@ -23,6 +23,12 @@
 (defmethod dispatch-event ::remove-flow [{:keys [fx/context flow-id]}]
   {:context (fx/swap-context context events.flows/remove-flow flow-id)})
 
+(defmethod dispatch-event ::remove-selected-flow [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.flows/remove-selected-flow)})
+
+(defmethod dispatch-event ::remove-all-flows [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.flows/remove-all-flows)})
+
 (defmethod dispatch-event ::set-current-flow-trace-idx [{:keys [fx/context trace-idx]}]
   {:context (fx/swap-context context events.flows/set-current-flow-trace-idx trace-idx)})
 
