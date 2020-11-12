@@ -61,3 +61,29 @@
 							 :symbol "a"
 							 :value "10"}]
 ```
+
+### :flow-storm/ref-init-trace 
+
+- :ref-id [REQ]
+- :ref-name [OPT]
+- :init-val [REQ]
+
+#### Example
+
+```clojure
+[:flow-storm/ref-init-trace {:ref-id 1
+                             :ref-symb :person-state
+                             :init-val {:name "foo" :age 37}}]
+```
+
+### :flow-storm/ref-trace
+
+- :ref-id [REQ]
+- :patch [REQ]
+
+#### Example
+
+```clojure
+[:flow-storm/ref-trace {:ref-id 1
+                        :patch [[[:age] :r 38]]}]
+```
