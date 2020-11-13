@@ -75,3 +75,20 @@
       ;; pointing to a error, set the debugger pointing to this trace
       (and err (not (:err (flow-current-trace db flow-id))))
       (assoc-in [:flows flow-id :trace-idx] trace-idx))))
+
+(defn add-ref-init-trace [db {:keys [ref-id ref-name init-val] :as trace}]
+  (let [now (utils/get-timestamp)]
+    (-> db
+        (update :selected-ref-id #(or % ref-id))
+        (assoc-in [:refs ref-id] {:ref-name ref-name
+                                  :init-val init-val
+                                  :patches []
+                                  :patch-idx nil
+                                  :timestamp now}))))
+
+(defn add-ref-trace [db {:keys [ref-id patch] :as trace}]
+  (-> db
+      (update-in [:refs ref-id] (fn [ref]
+                                  (-> ref
+                                      (update :patches conj patch)
+                                      (update :patch-idx #(if % (inc %) 0)))))))

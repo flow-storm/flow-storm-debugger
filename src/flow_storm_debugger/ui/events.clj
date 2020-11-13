@@ -1,7 +1,9 @@
 (ns flow-storm-debugger.ui.events
   (:require [flow-storm-debugger.ui.events.flows :as events.flows]
             [flow-storm-debugger.ui.events.traces :as events.traces]
-            [cljfx.api :as fx])
+            [cljfx.api :as fx]
+            [flow-storm-debugger.ui.db :as ui.db]
+            [flow-storm-debugger.ui.fxs :as fxs])
   (:import [javafx.stage FileChooser]
            [javafx.event ActionEvent]
            [javafx.scene Node]))
@@ -58,3 +60,12 @@
     (cond-> {:context (fx/swap-context context assoc :open-dialog nil)}
       file-name (assoc :save-file {:file-name file-name
                                    :file-content flow}))))
+
+(def event-handler
+  (-> dispatch-event
+      (fx/wrap-co-effects
+       {:fx/context (fx/make-deref-co-effect ui.db/*state)})
+      (fx/wrap-effects
+       {:context (fx/make-reset-effect ui.db/*state)
+        :dispatch fx/dispatch-effect
+        :save-file fxs/save-file-fx})))

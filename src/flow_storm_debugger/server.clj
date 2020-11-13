@@ -13,7 +13,7 @@
             [flow-storm-debugger.ui.events :as ui.events]
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [flow-storm-debugger.ui.db :as ui.db]
-            [flow-storm-debugger.ui.main-screen :as ui.main-screen]
+            [flow-storm-debugger.ui.screens.main :as screens.main]
             [cljfx.api :as fx]
             [clojure.pprint :as pp]
             [clojure.java.io :as io]
@@ -41,12 +41,15 @@
   (let [[e-key e-data-map] event]
     
     (case e-key
-      :flow-storm/add-trace                (swap! ui.db/*state fx/swap-context events.traces/add-trace e-data-map) 
-      :flow-storm/init-trace               (swap! ui.db/*state fx/swap-context events.traces/init-trace e-data-map)        
-      :flow-storm/add-bind-trace           (swap! ui.db/*state fx/swap-context events.traces/add-bind-trace e-data-map) 
+      :flow-storm/add-trace      (swap! ui.db/*state fx/swap-context events.traces/add-trace e-data-map) 
+      :flow-storm/init-trace     (swap! ui.db/*state fx/swap-context events.traces/init-trace e-data-map)        
+      :flow-storm/add-bind-trace (swap! ui.db/*state fx/swap-context events.traces/add-bind-trace e-data-map)
+      :flow-storm/ref-init-trace (swap! ui.db/*state fx/swap-context events.traces/add-ref-init-trace e-data-map)
+      :flow-storm/ref-trace      (swap! ui.db/*state fx/swap-context events.traces/add-ref-trace e-data-map)
       (println "Don't know how to handle" event))
         
-    (when (#{:flow-storm/add-trace :flow-storm/init-trace :flow-storm/add-bind-trace} e-key)
+    (when (#{:flow-storm/add-trace :flow-storm/init-trace :flow-storm/add-bind-trace
+             :flow-storm/ref-trace :flow-storm/ref-init-trace} e-key)
       (swap! ui.db/*state fx/swap-context update-in [:stats :received-traces-count] inc))))
 
 (defn -main [& args]
@@ -97,7 +100,7 @@
              (println "ERROR handling ws message" e)))
          (recur))
 
-       (fx/mount-renderer ui.db/*state ui.main-screen/renderer)
+       (fx/mount-renderer ui.db/*state screens.main/renderer)
        (reset! server (http-server/run-server (-> (compojure/routes ws-routes)
                                                   (wrap-cors :access-control-allow-origin [#"http://localhost:9500"]
                                                              :access-control-allow-methods [:get :put :post :delete])

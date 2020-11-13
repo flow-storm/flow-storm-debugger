@@ -1,61 +1,25 @@
-(ns flow-storm-debugger.ui.main-screen
-  (:require [cljfx.api :as fx]
-            [cljfx.prop :as fx.prop]
-            [cljfx.mutator :as fx.mutator]
-            [cljfx.lifecycle :as fx.lifecycle]
-            [flow-storm-debugger.highlighter :as highlighter]
-            [flow-storm-debugger.ui.db :as ui.db]
-            [flow-storm-debugger.ui.subs :as ui.subs]
-            [flow-storm-debugger.ui.events :as ui.events]
+(ns flow-storm-debugger.ui.screens.flows
+  (:require [flow-storm-debugger.ui.subs.flows :as subs.flows]
+            [flow-storm-debugger.ui.events :as ui.events :refer [event-handler]]
             [clojure.string :as str]
-            [cljfx.ext.list-view :as fx.ext.list-view]
-            [cljfx.composite :as composite]
-            [flow-storm-debugger.ui.styles :as styles]
-            [clojure.java.io :as io]
-            [cljfx.platform :as platform]
-            [flow-storm-debugger.ui.keymap :as keymap])
-  (:import [javafx.scene.web WebView]
-           [javafx.scene.control DialogEvent Dialog]
-           [javafx.geometry Insets]
-           [org.kordamp.ikonli.javafx FontIcon]))
-
-(defn save-file-fx [{:keys [file-name file-content]} dispatch!]
-  (spit file-name file-content))
+            [cljfx.prop :as fx.prop]
+            [cljfx.api :as fx]
+            [flow-storm-debugger.ui.screens.components :as components]
+            [cljfx.ext.list-view :as fx.ext.list-view])
+  (:import [javafx.scene.control DialogEvent Dialog]
+           [javafx.geometry Insets]))
 
 (defn remove-new-lines [s]
   (if s (str/replace s #"\n" " ") ""))
 
-(def event-handler
-  (-> ui.events/dispatch-event
-      (fx/wrap-co-effects
-       {:fx/context (fx/make-deref-co-effect ui.db/*state)})
-      (fx/wrap-effects
-       {:context (fx/make-reset-effect ui.db/*state)
-        :dispatch fx/dispatch-effect
-        :save-file save-file-fx})))
-
-(defn font-icon [_]
-  ;; Check icons here
-  ;; https://kordamp.org/ikonli/cheat-sheet-materialdesign.html
-  {:fx/type fx/ext-instance-factory :create #(FontIcon.)})
-
-(def ext-with-html
-  (fx/make-ext-with-props
-    {:html (fx.prop/make
-            (fx.mutator/setter (fn [web-view html] (.loadContent (.getEngine ^WebView web-view) html)))
-            fx.lifecycle/scalar)
-     :css-uri (fx.prop/make
-               (fx.mutator/setter (fn [web-view css-uri] (.setUserStyleSheetLocation (.getEngine ^WebView web-view) css-uri)))
-               fx.lifecycle/scalar)}))
-
 (defn code-browser [{:keys [fx/context]}]
-  (let [hl-forms (fx/sub-ctx context ui.subs/selected-flow-forms-highlighted)
+  (let [hl-forms (fx/sub-ctx context subs.flows/selected-flow-forms-highlighted)
         {:keys [code-panel-styles]} (fx/sub-val context :styles)
         forms-html (->> hl-forms
                         (map (fn [[_ form-str]]
                                (str "<pre class=\"form\">" form-str "</pre>")))
                         (reduce str))]
-   {:fx/type ext-with-html
+   {:fx/type components/ext-with-html
     :props {:html (str "<div class=\"forms\">"
                        forms-html
                        "</div>"
@@ -63,24 +27,16 @@
             :css-uri code-panel-styles}
     :desc {:fx/type :web-view}}))
 
-(defn bottom-bar [{:keys [fx/context]}]
-  (let [{:keys [received-traces-count connected-clients]} (fx/sub-ctx context ui.subs/stats)]
-    {:fx/type :border-pane
-     ;;:pref-height 50
-     :right {:fx/type :label
-             :text (format "Connected clients: %d Received traces: %d" connected-clients received-traces-count)}
-     :style-class ["bar"]}))
-
 (defn load-button [{:keys [icon?]}]
   (cond-> {:fx/type :button
            :text "Load"
            :style-class ["button" "load-button"]
            :on-action {:event/type ::ui.events/load-flow}}
-    icon? (assoc :graphic {:fx/type font-icon})
+    icon? (assoc :graphic {:fx/type components/font-icon})
     icon? (assoc :text "")))
 
 (defn controls-pane [{:keys [fx/context]}]
-  (let [{:keys [traces trace-idx]} (fx/sub-ctx context ui.subs/selected-flow)
+  (let [{:keys [traces trace-idx]} (fx/sub-ctx context subs.flows/selected-flow)
         last-trace (dec (count traces))]
     {:fx/type :border-pane
      :style-class ["controls-pane"]    
@@ -89,16 +45,16 @@
             :children [{:fx/type :button
                         :on-mouse-clicked {:event/type ::ui.events/set-current-flow-trace-idx :trace-idx 0}
                         :style-class ["button" "reset-button"]
-                        :graphic {:fx/type font-icon}}
+                        :graphic {:fx/type components/font-icon}}
                        {:fx/type :button
                         :on-mouse-clicked {:event/type ::ui.events/selected-flow-prev}
                         :style-class ["button" "prev-button"]
-                        :graphic {:fx/type font-icon}
+                        :graphic {:fx/type components/font-icon}
                         :disable (zero? trace-idx)}
                        {:fx/type :button
                         :on-mouse-clicked {:event/type ::ui.events/selected-flow-next}
                         :style-class ["button" "next-button"]
-                        :graphic {:fx/type font-icon}
+                        :graphic {:fx/type components/font-icon}
                         :disable (>= trace-idx last-trace)}]}
      :center {:fx/type :label :text (str trace-idx "/" last-trace)}
      :right {:fx/type :h-box
@@ -107,12 +63,12 @@
                          :icon? true}
                         {:fx/type :button
                          :style-class ["button" "save-button"]
-                         :graphic {:fx/type font-icon}
+                         :graphic {:fx/type components/font-icon}
                          :on-mouse-clicked {:event/type ::ui.events/open-dialog
                                             :dialog :save-flow-dialog}}]}}))
 
 (defn layers-pane [{:keys [fx/context]}]
-  (let [layers (fx/sub-ctx context ui.subs/selected-flow-similar-traces)
+  (let [layers (fx/sub-ctx context subs.flows/selected-flow-similar-traces)
         selected-item (some #(when (:selected? %) %) layers)]
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
@@ -160,8 +116,8 @@
                                         {:fx/type :label :text (str "<" fn-name ">")}]}]))})))
 
 (defn calls-tree-pane [{:keys [fx/context]}]
-  (let [fn-call-tree (fx/sub-ctx context ui.subs/fn-call-traces)
-        current-trace-idx (fx/sub-ctx context ui.subs/selected-flow-trace-idx)]
+  (let [fn-call-tree (fx/sub-ctx context subs.flows/fn-call-traces)
+        current-trace-idx (fx/sub-ctx context subs.flows/selected-flow-trace-idx)]
    {:fx/type :pane
     :children (if fn-call-tree
                 [{:fx/type calls-tree
@@ -170,7 +126,7 @@
                 [])}))
 
 (defn locals-pane [{:keys [fx/context]}]
-  (let [locals (fx/sub-ctx context ui.subs/selected-flow-current-locals)]
+  (let [locals (fx/sub-ctx context subs.flows/selected-flow-current-locals)]
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
              :on-selected-item-changed (fn [[_ lvalue]]
@@ -186,7 +142,7 @@
                                                   :children [(if result?
                                                                {:fx/type :label
                                                                 :style-class ["label" "result-label"]
-                                                                :graphic {:fx/type font-icon}}
+                                                                :graphic {:fx/type components/font-icon}}
                                                                {:fx/type :label
                                                                 :style-class ["label" "local-name"]
                                                                 :text lname})
@@ -226,8 +182,8 @@
            (->result-tree-item result))})
 
 (defn result-pane [{:keys [fx/context]}]
-  (let [result-panel-type (fx/sub-ctx context ui.subs/selected-flow-result-panel-type)
-        result (fx/sub-ctx context ui.subs/selected-flow-result-panel-content (= result-panel-type :pprint))]
+  (let [result-panel-type (fx/sub-ctx context subs.flows/selected-flow-result-panel-type)
+        result (fx/sub-ctx context subs.flows/selected-flow-result-panel-content (= result-panel-type :pprint))]
     {:fx/type :border-pane
      :top {:fx/type :h-box
            :style-class ["bar"]
@@ -238,7 +194,7 @@
                        :style-class (cond-> ["button"]
                                       (= result-panel-type :tree)   (into ["pprint-button"])
                                       (= result-panel-type :pprint) (into ["tree-button"]))
-                       :graphic {:fx/type font-icon}
+                       :graphic {:fx/type components/font-icon}
                        :text ""}]}
      :center {:fx/type (case result-panel-type
                          :pprint result-pprint-pane
@@ -265,7 +221,7 @@
                    :items error-traces}}})
 
 (defn selected-flow [{:keys [fx/context]}]
-  (let [error-traces (fx/sub-ctx context ui.subs/selected-flow-errors)
+  (let [error-traces (fx/sub-ctx context subs.flows/selected-flow-errors)
         left-pane-tabs {:fx/type :tab-pane
                         :tabs [{:fx/type :tab
                                 :style-class ["tab" "panel-tab"]
@@ -308,7 +264,7 @@
                               {:fx/type locals-pane}]}]}}))
 
 (defn flow-tabs [{:keys [fx/context]}]
-  (let [flows-tabs (fx/sub-ctx context ui.subs/flows-tabs)]
+  (let [flows-tabs (fx/sub-ctx context subs.flows/flows-tabs)]
     {:fx/type :tab-pane
      :tabs (->> flows-tabs
                 (mapv (fn [[flow-id tab-name]]
@@ -365,83 +321,3 @@
                                       {:fx/type load-button}
                                       {:fx/type :label
                                        :text "some traces from your disk."}]}]}]})
-
-(defn refs [{:keys [fx/context]}]
-  {:fx/type :label
-   :text "Refs"})
-
-(defn main-screen [{:keys [fx/context]}]
-  (let [no-flows? (fx/sub-ctx context ui.subs/empty-flows?)        
-        open-dialog (fx/sub-val context :open-dialog)
-        {:keys [app-styles font-styles]} (fx/sub-val context :styles)
-        main-screen {:fx/type :stage
-                     :title "Flow Storm debugger"
-                     :showing true
-                     :on-close-request (fn [& _] (System/exit 0))
-                     :width 1600
-                     :height 900
-                     :scene {:fx/type :scene
-                             :on-key-pressed (fn [kevt]
-                                               (when-let [evt (keymap/keymap (keymap/key-event->key-desc kevt))]
-                                                 (event-handler {:event/type evt})))
-                             :stylesheets [font-styles app-styles]
-                             :root {:fx/type :border-pane
-                                    :center {:fx/type :tab-pane
-                                             :side :left
-                                             :rotate-graphic true
-                                             :tabs [{:fx/type :tab
-                                                     :fx/key "flows"
-                                                     :style-class ["tab" "tool-tab"]
-                                                     :closable false
-                                                     :graphic {:fx/type :label
-                                                               :text "Flows"}
-                                                     :content (if no-flows?
-                                                                {:fx/type no-flows}
-                                                                {:fx/type flow-tabs})}
-                                                    {:fx/type :tab
-                                                     :fx/key "refs"
-                                                     :style-class ["tab" "tool-tab"]
-                                                     :closable false
-                                                     :graphic {:fx/type refs}
-                                                     :content {:fx/type :label
-                                                               :text "REFS"}}]}
-                                    
-                                    :bottom {:fx/type bottom-bar}}}}]
-    {:fx/type fx/ext-many
-     :desc (cond-> [main-screen]
-             open-dialog (into [{:fx/type (case open-dialog
-                                            :save-flow-dialog save-flow-dialog)}]))})
-  )
-
-(defonce renderer
-  (fx/create-renderer
-    :middleware (comp
-                  ;; Pass context to every lifecycle as part of option map
-                  fx/wrap-context-desc
-                  (fx/wrap-map-desc (fn [_] {:fx/type main-screen})))
-    :opts {:fx.opt/type->lifecycle #(or (fx/keyword->lifecycle %)
-                                        ;; For functions in `:fx/type` values, pass
-                                        ;; context from option map to these functions
-                                        (fx/fn->lifecycle-with-context %))
-           :fx.opt/map-event-handler event-handler}))
-
-(comment
-  (renderer)
-  (import '[javafx.scene.text Font])
-  (Font/loadFont (io/input-stream (io/resource "fonts/Roboto-Medium.ttf")) (double 16))
-  (Font/loadFont (str (io/resource "fonts/Roboto-Bold.ttf")) 16.)
-  (Font/loadFont (str (io/resource "fonts/Roboto-Italic.ttf")) 16.)
-  (Font/loadFont (str (io/resource "fonts/Roboto-Light.ttf")) 16.)
-  (Font/loadFont (str (io/resource "fonts/Roboto-Thin.ttf")) 16.)
-  (do
-    (fx/mount-renderer ui.db/*state renderer)
-
-    (add-watch #'styles/style :refresh-app (fn [_ _ _ _]
-                                             (swap! ui.db/*state fx/swap-context assoc :style styles/style)))
-    )
-  (remove-watch #'styles/style :refresh-app)
-  
-(event-handler {:event/type ::ui.events/select-flow
-                :flow-id 333})
-
-  )

@@ -1,4 +1,4 @@
-(ns flow-storm-debugger.ui.subs
+(ns flow-storm-debugger.ui.subs.flows
   (:require [cljfx.api :as fx]
             [flow-storm-debugger.highlighter :refer [highlight-expr]]
             [flow-storm-debugger.ui.utils :as utils]))
@@ -160,10 +160,3 @@
     (when (some #(:fn-name %) call-traces)
       (build-tree-from-traces call-traces))))
 
-(defn stats [context]
-  (fx/sub-val context :stats))
-
-(comment
-  (require '[flow-storm-debugger.ui.db :as ui.db])
-  (selected-flow-forms-highlighted @ui.db/*state)
-  )

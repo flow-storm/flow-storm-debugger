@@ -4,7 +4,9 @@
 
 (defonce *state
   (atom (fx/create-context {:flows {}
-                            :selected-flow-id nil                            
+                            :refs {}
+                            :selected-flow-id nil
+                            :selected-ref-id nil
                             :stats {:connected-clients 0
                                     :received-traces-count 0}
                             :open-dialog nil}
