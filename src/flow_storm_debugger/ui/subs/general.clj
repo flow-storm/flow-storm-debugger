@@ -3,3 +3,6 @@
 
 (defn stats [context]
   (fx/sub-val context :stats))
+
+(defn selected-tool-idx [context]
+  (fx/sub-val context :selected-tool-idx))

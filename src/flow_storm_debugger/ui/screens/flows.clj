@@ -151,56 +151,6 @@
                                                               :text (remove-new-lines lvalue)}]}})}
             :items locals}}))
 
-(defn result-pprint-pane [{:keys [fx/context result]}]
-  {:fx/type :text-area
-   :editable false
-   :style-class ["pane-text-area"]
-   :text result})
-
-(defn print-tree-val [v]
-  (if-let [tag (:tag (meta v))]
-    (str "#" tag (pr-str v))
-    (pr-str v)))
-
-(defn ->result-tree-item [x]
-  (if (and (seqable? x) (not (string? x)))
-    (cond
-      (map-entry? x) {:fx/type :tree-item
-                      :value (str (pr-str (key x)) " " (print-tree-val (val x)))
-                      :children (if (and (seqable? (val x)) (not (string? (val x))))
-                                  (map ->result-tree-item (val x))
-                                  [(->result-tree-item (val x))]) }
-      :else          {:fx/type :tree-item :value (print-tree-val x) :children (map ->result-tree-item (seq x))})
-    {:fx/type :tree-item :value (print-tree-val x)}))
-
-(defn result-tree-pane [{:keys [fx/context result]}]
-  {:fx/type :tree-view
-   :cell-factory {:fx/cell-type :tree-cell
-                  :describe (fn [x]
-                              {:text (str x)})}
-   :root (binding [*print-length* 5]
-           (->result-tree-item result))})
-
-(defn result-pane [{:keys [fx/context]}]
-  (let [result-panel-type (fx/sub-ctx context subs.flows/selected-flow-result-panel-type)
-        result (fx/sub-ctx context subs.flows/selected-flow-result-panel-content (= result-panel-type :pprint))]
-    {:fx/type :border-pane
-     :top {:fx/type :h-box
-           :style-class ["bar"]
-           :children [{:fx/type :toggle-button
-                       :on-selected-changed (fn [pressed?]
-                                              (event-handler {:event/type ::ui.events/set-result-panel-type
-                                                              :panel-type (if pressed? :tree :pprint)}))
-                       :style-class (cond-> ["button"]
-                                      (= result-panel-type :tree)   (into ["pprint-button"])
-                                      (= result-panel-type :pprint) (into ["tree-button"]))
-                       :graphic {:fx/type components/font-icon}
-                       :text ""}]}
-     :center {:fx/type (case result-panel-type
-                         :pprint result-pprint-pane
-                         :tree result-tree-pane)
-              :result result}}))
-
 (defn errors-pane [{:keys [fx/context error-traces]}]
   {:fx/type :border-pane
    :top {:fx/type :label :text "Errors:"}
@@ -243,6 +193,7 @@
                                 :closable false}]}]
    {:fx/type :border-pane
     :style {:-fx-padding 10}
+    :style-class ["border-pane" "flow-tab-content"]
     :top {:fx/type controls-pane}
     :center {:fx/type :split-pane
              :style-class ["split-pane" "horizontal-split-pane"]
@@ -260,7 +211,10 @@
                      {:fx/type :split-pane
                       :style-class ["split-pane" "vertical-split-pane"]
                       :orientation :vertical
-                      :items [{:fx/type result-pane}
+                      :items [{:fx/type components/result-pane
+                               :toggle-type-event ::ui.events/set-result-panel-type
+                               :type-subs subs.flows/selected-flow-result-panel-type
+                               :result-subs subs.flows/selected-flow-result-panel-content}
                               {:fx/type locals-pane}]}]}}))
 
 (defn flow-tabs [{:keys [fx/context]}]

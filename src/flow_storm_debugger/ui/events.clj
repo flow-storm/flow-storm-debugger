@@ -1,5 +1,6 @@
 (ns flow-storm-debugger.ui.events
   (:require [flow-storm-debugger.ui.events.flows :as events.flows]
+            [flow-storm-debugger.ui.events.refs :as events.refs]
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.db :as ui.db]
@@ -60,6 +61,30 @@
     (cond-> {:context (fx/swap-context context assoc :open-dialog nil)}
       file-name (assoc :save-file {:file-name file-name
                                    :file-content flow}))))
+
+(defmethod dispatch-event ::select-tools-tab [{:keys [fx/context tool-idx]}]
+  {:context (fx/swap-context context assoc :selected-tool-idx tool-idx)})
+
+(defmethod dispatch-event ::select-ref [{:keys [fx/context ref-id]}]
+  {:context (fx/swap-context context events.refs/select-ref ref-id)})
+
+(defmethod dispatch-event ::remove-ref [{:keys [fx/context ref-id]}]
+  {:context (fx/swap-context context events.refs/remove-ref ref-id)})
+
+(defmethod dispatch-event ::selected-ref-first [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.refs/selected-ref-first)})
+
+(defmethod dispatch-event ::selected-ref-prev [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.refs/selected-ref-prev)})
+
+(defmethod dispatch-event ::selected-ref-next [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.refs/selected-ref-next)})
+
+(defmethod dispatch-event ::selected-ref-last [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.refs/selected-ref-last)})
+
+(defmethod dispatch-event ::set-selected-ref-value-panel-type [{:keys [fx/context panel-type]}]
+  {:context (fx/swap-context context events.refs/set-selected-ref-value-panel-type panel-type)})
 
 (def event-handler
   (-> dispatch-event

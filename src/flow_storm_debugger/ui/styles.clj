@@ -10,23 +10,26 @@
 (def style 
   (css/register
    ::style
-   (let [background-color-2 "#353535"
+   (let [background-color-2 "#292929"
          background-color "#424242"
          basic-font-color "#eaeaea"
-         button-back "#4b79b9"
+         button-back "#dcdcdc" #_"#4b79b9"
+         button-font-color :black
          locals-label-color :pink
          return-label-color "#00ffa5"
          expression-selected-color "#902638"
          font-family "'Roboto Medium'"
          icon (fn [i] {:-fx-icon-code i
-                       :-fx-icon-color basic-font-color
+                       :-fx-icon-color button-font-color
                        :-fx-icon-size 16})]
-     {".root" {:-fx-background-color background-color
+     {"#tools-tab-pane > .tab-header-area" {:-fx-padding [0 0 0 0]}
+      ".root" {:-fx-background-color background-color
                " .text" {:-fx-font-family font-family}
                " .label" {:-fx-text-fill basic-font-color 
                           :-fx-font-size 13}
                " .button" {:-fx-background-color button-back
-                           :-fx-text-fill basic-font-color}
+                           :-fx-text-fill button-font-color
+                           :-fx-padding 3}
                " .vertical-tab" {:-fx-background-color background-color-2}
                " .tree-view" {:-fx-background-color :transparent
                               " .tree-cell" {:-fx-background-color :transparent
@@ -43,15 +46,22 @@
                               " .list-cell:even" {:-fx-background-color background-color}
                               " .list-cell:odd" {:-fx-background-color "#4a4a4a"}}
                " .no-flows" {" .text" {:-fx-font-size 16}}
+               " .no-refs" {" .text" {:-fx-font-size 16}}
                " .controls-pane" {:-fx-background-color background-color-2
                                   :-fx-padding 10}
-               
+               " .flow-tab-content" {:-fx-padding 10}
+               " .ref-tab-content" {:-fx-padding 10}
+               " .tab:selected .focus-indicator" {:-fx-border-color :transparent}
                ;; https://stackoverflow.com/questions/17091605/how-to-change-the-tab-pane-style
-               " .tab-header-area .tab-header-background" {:-fx-background-color background-color-2}
+               " .tab-header-area" {" .tab-header-background" {:-fx-background-color background-color-2}
+                                    :-fx-padding [0 0 0 0]}
                " .tab-pane" {" .flow-tab" {:-fx-background-color background-color-2
                                            ":selected" {:-fx-background-color background-color}}
+                             " .ref-tab" {:-fx-background-color background-color-2
+                                          ":selected" {:-fx-background-color background-color}}
                              " .tool-tab" {:-fx-background-color background-color-2
-                                           ":selected" {:-fx-background-color background-color}}
+                                           :-fx-padding [5 20 5 20]
+                                           ":selected" {:-fx-background-color "#3b527d"}}
                              " .panel-tab" {:-fx-background-color background-color-2
                                             ":selected" {:-fx-background-color background-color}}
                              " > .tab-header-area" {" > .headers-region" {" > .tab" {:-fx-background-insets [0 1 0 0]}}}}
@@ -66,7 +76,9 @@
                " .pane-text-area" {:-fx-text-fill basic-font-color
                                    :-fx-background-color background-color
                                    :-fx-padding 10
-                                   " .scroll-pane" {" .content" {:-fx-background-color background-color}}}
+                                   " .scroll-pane" {:-fx-background-color :transparent
+                                                    " .content" {:-fx-background-color background-color
+                                                                 :-fx-padding 0}}}
                " .web-view" {:-fx-background-color :blue}
                " .load-button" {" .ikonli-font-icon" (icon "mdi-folder-plus")}
                " .save-button" {" .ikonli-font-icon" (icon "mdi-content-save")}
@@ -76,8 +88,10 @@
                " .pprint-button" {:-fx-padding 3
                                   " .ikonli-font-icon" (icon "mdi-file-powerpoint-box")}
                " .reset-button" {" .ikonli-font-icon" (icon "mdi-reload")}
+               " .first-button" {" .ikonli-font-icon" (icon "mdi-page-first")}
                " .prev-button" {" .ikonli-font-icon" (icon "mdi-chevron-left")}
                " .next-button" {" .ikonli-font-icon" (icon "mdi-chevron-right")}
+               " .last-button" {" .ikonli-font-icon" (icon "mdi-page-last")}
                " .result-label" {" .ikonli-font-icon" (merge (icon "mdi-arrow-right-bold")
                                                              {:-fx-icon-color return-label-color})}               
                " .strong-text" {:-fx-font-weight :bold}

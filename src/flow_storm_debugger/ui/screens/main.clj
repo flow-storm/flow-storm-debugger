@@ -4,6 +4,7 @@
             [flow-storm-debugger.ui.events :as ui.events]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.refs :as subs.refs]
+            [cljfx.ext.tab-pane :as fx.ext.tab-pane]
             [flow-storm-debugger.ui.subs.general :as subs.general]
             [flow-storm-debugger.ui.screens.flows :as screens.flows]
             [flow-storm-debugger.ui.screens.refs :as screens.refs]))
@@ -20,6 +21,7 @@
   (let [no-flows? (fx/sub-ctx context subs.flows/empty-flows?)
         no-refs? (fx/sub-ctx context subs.refs/empty-refs?)
         open-dialog (fx/sub-val context :open-dialog)
+        selected-tool-idx (fx/sub-val context :selected-tool-idx) 
         {:keys [app-styles font-styles]} (fx/sub-val context :styles)
         main-screen {:fx/type :stage
                      :title "Flow Storm debugger"
@@ -33,27 +35,36 @@
                                                  (ui.events/event-handler {:event/type evt})))
                              :stylesheets [font-styles app-styles]
                              :root {:fx/type :border-pane
-                                    :center {:fx/type :tab-pane
-                                             :side :left
-                                             :rotate-graphic true
-                                             :tabs [{:fx/type :tab
-                                                     :fx/key "flows"
-                                                     :style-class ["tab" "tool-tab"]
-                                                     :closable false
-                                                     :graphic {:fx/type :label
-                                                               :text "Flows"}
-                                                     :content (if no-flows?
-                                                                {:fx/type screens.flows/no-flows}
-                                                                {:fx/type screens.flows/flow-tabs})}
-                                                    {:fx/type :tab
-                                                     :fx/key "refs"
-                                                     :style-class ["tab" "tool-tab"]
-                                                     :closable false
-                                                     :graphic {:fx/type :label
-                                                               :text "Refs"}
-                                                     :content (if no-refs?
-                                                                {:fx/type screens.refs/no-refs}
-                                                                {:fx/type screens.refs/refs-tabs})}]}
+                                    :center {:fx/type  fx.ext.tab-pane/with-selection-props
+                                             :props {:on-selected-index-changed (fn [idx]
+                                                                                 (ui.events/event-handler {:event/type ::ui.events/select-tools-tab
+                                                                                                           :tool-idx  idx}))
+                                                     :selected-index selected-tool-idx}
+                                             :desc {:fx/type :tab-pane
+                                                    :side :left
+                                                    :id "tools-tab-pane"
+                                                    :style-class ["tab-pane" "tools-tab-pane"]
+                                                    :rotate-graphic true
+                                                    :tabs [{:fx/type :tab
+                                                            :fx/key "flows"
+                                                            :id "flows"
+                                                            :style-class ["tab" "tool-tab"]
+                                                            :closable false
+                                                            :graphic {:fx/type :label
+                                                                      :text "Flows"}
+                                                            :content (if no-flows?
+                                                                       {:fx/type screens.flows/no-flows}
+                                                                       {:fx/type screens.flows/flow-tabs})}
+                                                           {:fx/type :tab
+                                                            :fx/key "refs"
+                                                            :id "refs"
+                                                            :style-class ["tab" "tool-tab"]
+                                                            :closable false
+                                                            :graphic {:fx/type :label
+                                                                      :text "Refs"}
+                                                            :content (if no-refs?
+                                                                       {:fx/type screens.refs/no-refs}
+                                                                       {:fx/type screens.refs/refs-tabs})}]}}
                                     
                                     :bottom {:fx/type bottom-bar}}}}]
     {:fx/type fx/ext-many

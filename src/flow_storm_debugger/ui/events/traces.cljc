@@ -81,9 +81,9 @@
     (-> db
         (update :selected-ref-id #(or % ref-id))
         (assoc-in [:refs ref-id] {:ref-name ref-name
-                                  :init-val init-val
+                                  :init-val (utils/read-form init-val)
                                   :patches []
-                                  :patch-idx nil
+                                  :patches-applied 0
                                   :timestamp now}))))
 
 (defn add-ref-trace [db {:keys [ref-id patch] :as trace}]
@@ -91,4 +91,4 @@
       (update-in [:refs ref-id] (fn [ref]
                                   (-> ref
                                       (update :patches conj patch)
-                                      (update :patch-idx #(if % (inc %) 0)))))))
+                                      (update :patches-applied inc))))))

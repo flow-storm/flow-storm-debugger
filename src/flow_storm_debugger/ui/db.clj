@@ -7,6 +7,7 @@
                             :refs {}
                             :selected-flow-id nil
                             :selected-ref-id nil
+                            :selected-tool-idx 0
                             :stats {:connected-clients 0
                                     :received-traces-count 0}
                             :open-dialog nil}

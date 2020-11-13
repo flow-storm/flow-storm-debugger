@@ -65,7 +65,7 @@
                          (coor-in-scope? (:coor bt) coor)
                          (<= (:timestamp bt) timestamp)))]
     (when-not (empty? coor)
-      (->> bind-traces          ;;(filter in-scope? bind-traces)
+      (->> bind-traces
            (reduce (fn [r {:keys [symbol value] :as bt}]
                      (if (in-scope? bt)
                        (assoc r symbol value)
