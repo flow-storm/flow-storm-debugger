@@ -35,12 +35,10 @@
                  :disable last?}]}))
 
 (defn value-pane [{:keys [fx/context]}]
-  {:fx/type :v-box
-   :style {:-fx-padding [10 0 0 0]}
-   :children [{:fx/type components/result-pane
-               :type-subs subs.refs/selected-ref-value-panel-type
-               :result-subs subs.refs/selected-ref-value-panel-content
-               :toggle-type-event ::ui.events/set-selected-ref-value-panel-type}]})
+  {:fx/type components/result-pane
+   :type-subs subs.refs/selected-ref-value-panel-type
+   :result-subs subs.refs/selected-ref-value-panel-content
+   :toggle-type-event ::ui.events/set-selected-ref-value-panel-type})
 
 (defn selected-ref [{:keys [fx/context]}]
   {:fx/type :border-pane
