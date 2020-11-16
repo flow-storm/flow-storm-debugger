@@ -43,9 +43,9 @@
   (fsa/trace-ref "super-ref-map" b)
 
 
-  #trace (let [a {:a 10 :b [1 2 3]}
-               b 100]
-           (+ (:a a) b))
+  ;; #trace (let [a {:a 10 :b [1 2 3]}
+  ;;              b 100]
+           ;; (+ (:a a) b))
 
   ;; #trace (+ 1 (:a {:a 1}))
   )

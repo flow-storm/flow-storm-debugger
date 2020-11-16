@@ -92,6 +92,7 @@
                " .prev-button" {" .ikonli-font-icon" (icon "mdi-chevron-left")}
                " .next-button" {" .ikonli-font-icon" (icon "mdi-chevron-right")}
                " .last-button" {" .ikonli-font-icon" (icon "mdi-page-last")}
+               " .squash-button" {" .ikonli-font-icon" (icon "mdi-arrow-compress")}
                " .result-label" {" .ikonli-font-icon" (merge (icon "mdi-arrow-right-bold")
                                                              {:-fx-icon-color return-label-color})}               
                " .strong-text" {:-fx-font-weight :bold}

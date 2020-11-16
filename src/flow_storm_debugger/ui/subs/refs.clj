@@ -4,6 +4,12 @@
             [editscript.core :as edit.core]
             [editscript.edit :as edit.edit]))
 
+(defn apply-patches [init-val patches]
+  (reduce (fn [r p]
+            (edit.core/patch r (edit.edit/edits->script p)))
+          init-val
+          patches))
+
 (defn empty-refs? [context]
   (empty? (fx/sub-val context :refs)))
 
@@ -21,10 +27,7 @@
 
 (defn selected-ref-value-panel-content [context pprint?]
   (let [{:keys [init-val patches patches-applied]} (fx/sub-ctx context selected-ref)
-        val-at-idx (reduce (fn [r p]
-                             (edit.core/patch r (edit.edit/edits->script p)))
-                           init-val
-                           (take patches-applied patches))
+        val-at-idx (apply-patches init-val (take patches-applied patches))
         val (if (zero? patches-applied) init-val val-at-idx)]
     
     (if pprint?
@@ -44,7 +47,8 @@
     {:first? (zero? patches-applied)
      :last? (= patches-applied (count patches))
      :n (inc patches-applied)
-     :of (inc (count patches))}))
+     :of (inc (count patches))
+     :squash? (> (count patches) 3)}))
 
 
 

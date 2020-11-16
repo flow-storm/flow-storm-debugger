@@ -6,7 +6,7 @@
             [cljfx.ext.tab-pane :as fx.ext.tab-pane]))
 
 (defn controls-pane [{:keys [fx/context]}]
-  (let [{:keys [first? last? n of]} (fx/sub-ctx context subs.refs/selected-ref-controls-position)]
+  (let [{:keys [first? last? n of squash?]} (fx/sub-ctx context subs.refs/selected-ref-controls-position)]
     {:fx/type :h-box
      :alignment :center-left
      :style-class ["controls-pane"]    
@@ -21,8 +21,16 @@
                  :style-class ["button" "prev-button"]
                  :graphic {:fx/type components/font-icon}
                  :disable first?}
-                {:fx/type :label
-                 :text (format "%d / %d" n of)}
+                {:fx/type :v-box
+                 :alignment :center
+                 :children [{:fx/type :label
+                             :text (format "%d / %d" n of)}
+                            {:fx/type :button
+                             :on-mouse-clicked {:event/type ::ui.events/selected-ref-squash}
+                             :style-class ["button" "squash-button"]
+                             :graphic {:fx/type components/font-icon}
+                             :disable (not squash?)
+                             }]}
                 {:fx/type :button
                  :on-mouse-clicked {:event/type ::ui.events/selected-ref-next}
                  :style-class ["button" "next-button"]
@@ -50,8 +58,9 @@
   (let [refs-tabs (fx/sub-ctx context subs.refs/refs-tabs)]
     {:fx/type fx.ext.tab-pane/with-selection-props
      :props {:on-selected-item-changed (fn [tab]
-                                         (ui.events/event-handler {:event/type ::ui.events/select-ref
-                                                                   :ref-id (Integer/parseInt (.getId tab))}))}
+                                         (when tab
+                                          (ui.events/event-handler {:event/type ::ui.events/select-ref
+                                                                    :ref-id (Integer/parseInt (.getId tab))})))}
      :desc {:fx/type :tab-pane
             :tabs (->> refs-tabs
                        (mapv (fn [[ref-id ref-name]]

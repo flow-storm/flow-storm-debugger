@@ -83,6 +83,9 @@
 (defmethod dispatch-event ::selected-ref-last [{:keys [fx/context]}]
   {:context (fx/swap-context context events.refs/selected-ref-last)})
 
+(defmethod dispatch-event ::selected-ref-squash [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.refs/selected-ref-squash)})
+
 (defmethod dispatch-event ::set-selected-ref-value-panel-type [{:keys [fx/context panel-type]}]
   {:context (fx/swap-context context events.refs/set-selected-ref-value-panel-type panel-type)})
 
