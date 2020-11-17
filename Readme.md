@@ -14,15 +14,17 @@ A Clojure and ClojureScript debugger with some unique features.
 - **Locals** inspection.
 - **Multiple flows** tracing (see [flows](#flows)).
 - **Save, load and share** your debugging sessions (see [saving and loading](#saving-and-loading)).
+- Trace **reference state changes**.
 - **Call tree** execution analyzer (see [call tree](#call-tree)).
 - **Layers** execution analyzer (see [layers](#layers)).
 - **Inspect and explore** large expression **results** by pprinting and a collapsible tree.
 - Multiple ways of **jumping in time**.
+- Library code tracing.
 
 ## Running the debugger
 
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.3.7"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.4.0"}}}' -m flow-storm-debugger.server
 ```
 
 And that's it !! One instance of the debugger is enough for all your Clojure and ClojureScript projects.
@@ -187,6 +189,18 @@ A new `Errors` panel will show at the bottom left corner displaying all the exce
 ![demo](./docs/errors.png)
 
 Clicking on errors will move the debugger to that point in time.
+
+### Reference state changes tracing
+
+You can trace references (like atoms) by using `flow-storm.api/trace-ref` like :
+
+```clojure
+user> (fsa/trace-ref re-frame.db/app-db {:ref-name "re-frame-state"})
+```
+
+### Library code tracing
+
+See https://github.com/jpmonettas/flow-storm#instrumenting-library-code-with-trace-var
 
 ### Keyboard commands
 
