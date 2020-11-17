@@ -23,18 +23,31 @@
 
 (defn selected-ref-value-panel-type [context]
   (or (:value-panel-type (fx/sub-ctx context selected-ref))
-      :pprint))
+      :tree))
 
 (defn selected-ref-value-panel-content [context pprint?]
   (let [{:keys [init-val patches patches-applied]} (fx/sub-ctx context selected-ref)
         val-at-idx (apply-patches init-val (take patches-applied patches))
-        val (if (zero? patches-applied) init-val val-at-idx)]
-    
-    (if pprint?
-      (utils/pprint-form val)
+        val (if (zero? patches-applied) init-val val-at-idx)
+        ret {:val (if pprint?
+                    (utils/pprint-form val)
 
-      (-> val
-          utils/read-form))))
+                    (-> val
+                        utils/read-form))}]
+
+    (if (and (not-empty patches) (pos? patches-applied))
+
+      (->> (nth patches (dec patches-applied))
+           (reduce (fn [r [coor & [op :as opcmd] :as patch-op]]
+                     (cond
+                       (#{:r :+} op) (update r :patch-map assoc coor opcmd)
+
+                       (#{:-} op) (update r :removes conj patch-op)))                   
+                   {:patch-map {}
+                    :removes []})
+           (merge ret))
+      
+      ret)))
 
 (defn refs-tabs [context]
   (let [refs (fx/sub-ctx context refs)]

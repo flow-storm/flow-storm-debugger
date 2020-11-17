@@ -52,7 +52,8 @@
   {:fx/type :border-pane
    :style-class ["border-pane" "ref-tab-content"]
    :top {:fx/type controls-pane}
-   :center {:fx/type value-pane}})
+   :center {:fx/type value-pane}
+   })
 
 (defn refs-tabs [{:keys [fx/context]}]
   (let [refs-tabs (fx/sub-ctx context subs.refs/refs-tabs)]

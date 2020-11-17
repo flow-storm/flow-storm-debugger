@@ -34,13 +34,15 @@
                " .tree-view" {:-fx-background-color :transparent
                               " .tree-cell" {:-fx-background-color :transparent
                                              :-fx-text-fill basic-font-color}
-                              " .arrow" {:-fx-background-color basic-font-color}}
+                              " .arrow" {:-fx-background-color basic-font-color}
+                              " .tree-edit-update" {:-fx-background-color :green}}
                ;; styling scrollbars
                ;; https://guigarage.com/2015/11/styling-a-javafx-scrollbar/
                " .scroll-bar" {" .track-background" {:-fx-background-color background-color-2}
                                " .thumb" {:-fx-background-color background-color}}
                " .bar" {:-fx-background-color background-color-2
                         :-fx-padding 5}
+               
                " .list-view" {:-fx-background-color :transparent
                               " .list-cell" {:-fx-text-fill basic-font-color}
                               " .list-cell:even" {:-fx-background-color background-color}
@@ -102,7 +104,7 @@
                                 
                                 }
                
-               " .layers-view" {}
+               " .layers-view" {}               
                " .calls-tree" {:-fx-padding [10 0 10 10]
                                :-fx-border-color :pink
                                :-fx-border-width [0 0 0 1]}

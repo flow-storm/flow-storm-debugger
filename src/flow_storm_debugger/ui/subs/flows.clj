@@ -45,10 +45,10 @@
 
 (defn selected-flow-result-panel-content [context pprint?]
   (let [content (:result-panel-content (fx/sub-ctx context selected-flow))]
-    (if pprint?
-      (utils/pprint-form-str content)
-      (-> content
-          utils/read-form))))
+    {:val (if pprint?
+            (utils/pprint-form-str content)
+            (-> content
+                utils/read-form))}))
 
 (defn selected-flow-result-panel-type [context]
   (or (:result-panel-type (fx/sub-ctx context selected-flow))
