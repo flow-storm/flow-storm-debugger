@@ -97,9 +97,11 @@
                                                             {:style {:-fx-text-fill :pink}
                                                              :text (str coor)})}
                                  :items (map first removes)}]}]
-    (cond-> {:fx/type :border-pane
-             :center tree-cmp}
-      (not-empty removes) (assoc :bottom removes-cmp))))
+    (cond-> {:fx/type :split-pane
+             :style-class ["split-pane" "vertical-split-pane"]
+             :orientation :vertical
+             :items (cond-> [tree-cmp]
+                      (not-empty removes) (into [removes-cmp]))})))
 
 (defn result-pane [{:keys [fx/context type-subs result-subs toggle-type-event]}]
   (let [result-panel-type (fx/sub-ctx context type-subs)

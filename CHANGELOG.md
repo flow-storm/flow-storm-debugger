@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Making ref patch removes panel a split panel instead of a v-box
 - Fix ref states patches and squash functionality
 
 ## 0.3.7 (2020-11-12)
