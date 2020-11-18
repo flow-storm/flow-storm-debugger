@@ -35,7 +35,7 @@
     (pr-str v)))
 
 (defn ->result-tree-item [x patch-map coor]
-  (let [expanded? (boolean (some #(utils/parent-coor? coor %) (vals patch-map)))]
+  (let [expanded? (boolean (some #(utils/parent-coor? coor %) (keys patch-map)))]
    (if (and (seqable? x) (not (string? x)))
      (cond
        (map-entry? x) {:fx/type :tree-item

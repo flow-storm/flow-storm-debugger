@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Fix ref states patches and squash functionality
+
 ## 0.3.7 (2020-11-12)
 
 - Add basic keyboard support (remove current/all flows) 

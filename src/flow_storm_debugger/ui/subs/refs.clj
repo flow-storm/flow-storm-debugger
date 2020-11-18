@@ -32,8 +32,7 @@
         ret {:val (if pprint?
                     (utils/pprint-form val)
 
-                    (-> val
-                        utils/read-form))}]
+                    val)}]
 
     (if (and (not-empty patches) (pos? patches-applied))
 

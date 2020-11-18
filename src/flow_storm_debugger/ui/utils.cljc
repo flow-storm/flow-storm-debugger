@@ -19,7 +19,10 @@
                                  ;; assuming that all tagged structures support meta
                                  (with-meta val {:tag tag}))}
                      s)
-    (catch Exception e (println "Couldn't pprint" s) s)))
+    (catch Exception e
+      (println "Couldn't pprint" s)
+      (println e)
+      s)))
 
 (defn pprint-form [form]
   (zp/zprint-str form {:map {:sort? false}}))  ;; don't sort keys since it breaks coordinates

@@ -32,7 +32,7 @@
                      squashed-init-val (apply-patches init-val to-squash)]
                  (-> ref
                      (assoc :init-val squashed-init-val)
-                     (assoc :patches (drop squash-count patches))
+                     (assoc :patches (into [] (drop squash-count patches)))
                      (assoc :patches-applied unsquashed-count))))))
 
 (defn set-selected-ref-value-panel-type [{:keys [selected-ref-id] :as db} t]
