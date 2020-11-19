@@ -92,3 +92,20 @@
                                   (-> ref
                                       (update :patches conj patch)
                                       (update :patches-applied inc))))))
+
+(defn add-tap-trace [db {:keys [tap-id tap-name value timestamp] :as trace}]
+  (if-not (get-in db [:taps tap-id])
+    (-> db
+        (assoc-in [:taps tap-id] {:tap-id tap-id
+                                  :tap-name tap-name
+                                  :tap-trace-idx 0
+                                  :tap-values [{:timestamp timestamp
+                                                :tap-trace-idx 0
+                                                :value value}]})
+        (update :selected-tap-id #(or % tap-id)))
+    (update-in db [:taps tap-id] (fn [tap]
+                                   (-> tap
+                                       (update :tap-values (fn [tv]
+                                                             (conj tv {:timestamp timestamp
+                                                                       :value value
+                                                                       :tap-trace-idx (count tv)}))))))))

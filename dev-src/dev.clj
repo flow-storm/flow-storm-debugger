@@ -3,6 +3,7 @@
             [flow-storm-debugger.ui.screens.main :as screens.main]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.general :as subs.general]
+            [flow-storm-debugger.ui.subs.taps :as subs.taps]
             [flow-storm-debugger.ui.db :as db]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.styles :as styles]
@@ -22,14 +23,25 @@
   (subs.flows/selected-flow-errors @db/*state)
   
   (subs.general/selected-tool @db/*state)
+  
+  (subs.taps/taps @db/*state)
+  (subs.taps/taps-tabs @db/*state)
+  (subs.taps/selected-tap @db/*state)
+  (subs.taps/selected-tap-values @db/*state)
+  (subs.taps/selected-tap-value-panel-type @db/*state)
+  (subs.taps/selected-tap-value-panel-content @db/*state false)
 
   (add-watch #'styles/style :refresh-app
              (fn [_ _ _ _]
                (swap! db/*state fx/swap-context assoc-in [:styles :app-styles] (:cljfx.css/url styles/style))))
 
   (require '[flow-storm.api :as fsa])
-  (fsa/connect)
-
+  (fsa/connect {:tap-name "TAPPP"})
+  
+  (tap> "HELLO")
+  (tap> {:a 41})
+  (tap> (:cljfx.context/m @db/*state))
+  
   (def a (atom 0))
 
   (fsa/trace-ref a {:ref-name "super-ref"})

@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Taps implementation
+
 ## 0.4.1 (2020-11-20)
 
 - Making ref patch removes panel a split panel instead of a v-box

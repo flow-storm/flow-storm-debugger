@@ -49,6 +49,7 @@
                               " .list-cell:odd" {:-fx-background-color "#4a4a4a"}}
                " .no-flows" {" .text" {:-fx-font-size 16}}
                " .no-refs" {" .text" {:-fx-font-size 16}}
+               " .no-taps" {" .text" {:-fx-font-size 16}}
                " .controls-pane" {:-fx-background-color background-color-2
                                   :-fx-padding 10}
                " .flow-tab-content" {:-fx-padding 10}
@@ -60,6 +61,8 @@
                " .tab-pane" {" .flow-tab" {:-fx-background-color background-color-2
                                            ":selected" {:-fx-background-color background-color}}
                              " .ref-tab" {:-fx-background-color background-color-2
+                                          ":selected" {:-fx-background-color background-color}}
+                             " .tap-tab" {:-fx-background-color background-color-2
                                           ":selected" {:-fx-background-color background-color}}
                              " .tool-tab" {:-fx-background-color background-color-2
                                            :-fx-padding [5 20 5 20]

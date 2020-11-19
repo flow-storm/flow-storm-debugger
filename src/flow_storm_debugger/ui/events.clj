@@ -1,6 +1,7 @@
 (ns flow-storm-debugger.ui.events
   (:require [flow-storm-debugger.ui.events.flows :as events.flows]
             [flow-storm-debugger.ui.events.refs :as events.refs]
+            [flow-storm-debugger.ui.events.taps :as events.taps]
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.db :as ui.db]
@@ -88,6 +89,18 @@
 
 (defmethod dispatch-event ::set-selected-ref-value-panel-type [{:keys [fx/context panel-type]}]
   {:context (fx/swap-context context events.refs/set-selected-ref-value-panel-type panel-type)})
+
+(defmethod dispatch-event ::set-selected-tap-value-panel-type [{:keys [fx/context panel-type]}]
+  {:context (fx/swap-context context events.taps/set-selected-tap-value-panel-type panel-type)})
+
+(defmethod dispatch-event ::select-tap [{:keys [fx/context tap-id]}]
+  {:context (fx/swap-context context events.taps/select-tap tap-id)})
+
+(defmethod dispatch-event ::remove-tap [{:keys [fx/context tap-id]}]
+  {:context (fx/swap-context context events.taps/remove-tap tap-id)})
+
+(defmethod dispatch-event ::set-current-tap-trace-idx [{:keys [fx/context tap-trace-idx]}]
+  {:context (fx/swap-context context events.taps/set-current-tap-trace-idx tap-trace-idx)})
 
 (def event-handler
   (-> dispatch-event
