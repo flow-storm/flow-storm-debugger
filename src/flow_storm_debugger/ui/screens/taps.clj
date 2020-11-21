@@ -5,7 +5,7 @@
             [flow-storm-debugger.ui.screens.components :as components]
             [cljfx.ext.tab-pane :as fx.ext.tab-pane]
             [cljfx.ext.list-view :as fx.ext.list-view]
-            [flow-storm-debugger.ui.events :as ui.events :refer [event-handler]]))
+            [flow-storm-debugger.ui.events :as ui.events]))
 
 (defn value-pane [{:keys [fx/context]}]
   {:fx/type components/result-pane
@@ -21,9 +21,7 @@
     :style-class ["border-pane" "horizontal-split-pane"]
     :items [{:fx/type fx.ext.list-view/with-selection-props
                 :props {:selection-mode :single
-                        :on-selected-item-changed (fn [{:keys [tap-trace-idx]}]
-                                                    (event-handler {:event/type ::ui.events/set-current-tap-trace-idx
-                                                                    :tap-trace-idx tap-trace-idx}))
+                        :on-selected-item-changed {:event/type ::ui.events/set-current-tap-trace-idx}
                         :selected-item selected-item}
                 :desc {:fx/type :list-view
                        :style-class ["list-view" "taps-list-view"]
@@ -43,10 +41,7 @@
 (defn taps-tabs [{:keys [fx/context]}]
   (let [taps-tabs (fx/sub-ctx context subs.taps/taps-tabs)]
     {:fx/type fx.ext.tab-pane/with-selection-props
-     :props {:on-selected-item-changed (fn [tab]
-                                         (when tab
-                                           (ui.events/event-handler {:event/type ::ui.events/select-tap
-                                                                     :tap-id (Integer/parseInt (.getId tab))})))}
+     :props {:on-selected-item-changed {:event/type ::ui.events/select-tap}}
      :desc {:fx/type :tab-pane
             :tabs (->> taps-tabs
                        (mapv (fn [[tap-id tap-name]]

@@ -2,7 +2,7 @@
   (:require [cljfx.api :as fx]
             [clojure.core.cache :as cache]))
 
-(defonce *state
+#_(defonce *state
   (atom (fx/create-context {:flows {}
                             :refs {}
                             :taps {}

@@ -5,7 +5,7 @@
             [cljfx.prop :as fx.prop]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.utils :as utils]
-            [flow-storm-debugger.ui.events :as ui.events :refer [event-handler]])
+            [flow-storm-debugger.ui.events :as ui.events])
   (:import [org.kordamp.ikonli.javafx FontIcon]
            [javafx.scene.web WebView]))
 
@@ -111,9 +111,7 @@
      :top {:fx/type :h-box
            :style-class ["bar"]
            :children [{:fx/type :toggle-button
-                       :on-selected-changed (fn [pressed?]
-                                              (event-handler {:event/type toggle-type-event
-                                                              :panel-type (if pressed? :tree :pprint)}))
+                       :on-selected-changed {:event/type toggle-type-event}
                        :style-class (cond-> ["button"]
                                       (= result-panel-type :tree)   (into ["pprint-button"])
                                       (= result-panel-type :pprint) (into ["tree-button"]))

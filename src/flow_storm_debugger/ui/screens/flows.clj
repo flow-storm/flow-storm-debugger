@@ -1,6 +1,6 @@
 (ns flow-storm-debugger.ui.screens.flows
   (:require [flow-storm-debugger.ui.subs.flows :as subs.flows]
-            [flow-storm-debugger.ui.events :as ui.events :refer [event-handler]]
+            [flow-storm-debugger.ui.events :as ui.events]
             [clojure.string :as str]
             [cljfx.prop :as fx.prop]
             [cljfx.api :as fx]
@@ -72,9 +72,7 @@
         selected-item (some #(when (:selected? %) %) layers)]
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
-             :on-selected-item-changed (fn [{:keys [trace-idx]}]
-                                         (event-handler {:event/type ::ui.events/set-current-flow-trace-idx
-                                                         :trace-idx trace-idx}))
+             :on-selected-item-changed  {:event/type ::ui.events/set-current-flow-layer}
              :selected-item selected-item}
      :desc {:fx/type :list-view
             :style-class ["list-view" "layers-view"]
@@ -129,9 +127,7 @@
   (let [locals (fx/sub-ctx context subs.flows/selected-flow-current-locals)]
     {:fx/type fx.ext.list-view/with-selection-props
      :props {:selection-mode :single
-             :on-selected-item-changed (fn [[_ lvalue]]
-                                         (event-handler {:event/type ::ui.events/set-result-panel
-                                                         :content lvalue}))}
+             :on-selected-item-changed {:event/type ::ui.events/select-current-flow-local}}
      :desc {:fx/type :list-view
             :style-class ["list-view" "locals-view"]
             :cell-factory {:fx/cell-type :list-cell
@@ -164,9 +160,8 @@
                                                :style (if selected? {:-fx-background-color "#902638"} {})
                                                :graphic {:fx/type :label
                                                          :style-class ["label" "clickable"]
-                                                         :on-mouse-clicked (fn [_]
-                                                                             (event-handler {:event/type ::ui.events/set-current-flow-trace-idx
-                                                                                             :trace-idx trace-idx}))
+                                                         :on-mouse-clicked {:event/type ::ui.events/set-current-flow-trace-idx
+                                                                            :trace-idx trace-idx}
                                                          :text (:error/message err)}})}
                    :items error-traces}}})
 
@@ -227,24 +222,18 @@
                          :style-class ["tab" "flow-tab"]
                          :on-closed {:event/type ::ui.events/remove-flow
                                      :flow-id flow-id}
-                         :on-selection-changed (fn [ev]
-                                                 (when (.isSelected (.getTarget ev))
-                                                   (event-handler {:event/type ::ui.events/select-flow
-                                                                   :flow-id flow-id})))
+                         :on-selection-changed {:event/type ::ui.events/select-flow
+                                                :flow-id flow-id}
                          :graphic {:fx/type :label :text tab-name}
                          :content {:fx/type selected-flow} 
                          :id (str flow-id)
                          :closable true})))}))
 
-
 (defn save-flow-dialog [_]
   {:fx/type :text-input-dialog
    :showing true
    :header-text "Filename:"
-   :on-hidden (fn [^DialogEvent e]
-                (let [file-name (.getResult ^Dialog (.getSource e))]
-                  (event-handler {:event/type ::ui.events/save-selected-flow
-                                  :file-name file-name})))})
+   :on-hidden {:event/type ::ui.events/save-selected-flow}})
 
 (defn no-flows [_]
   {:fx/type :anchor-pane

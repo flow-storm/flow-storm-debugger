@@ -1,5 +1,6 @@
 (ns dev
-  (:require [flow-storm-debugger.server :as server]
+  (:require [flow-storm-debugger.components.server :as server]
+            [flow-storm-debugger.components.ui :as ui]
             [flow-storm-debugger.ui.screens.main :as screens.main]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.general :as subs.general]
@@ -7,34 +8,42 @@
             [flow-storm-debugger.ui.db :as db]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.styles :as styles]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [com.stuartsierra.component :as sierra.component]))
 
+
+(def system (sierra.component/system-map
+             :ui (ui/ui {:main-cmp screens.main/main-screen
+                         :watch-styles? true})
+               :server (sierra.component/using
+                        (server/http-server {:port 7722})
+                        [:ui])))
+
+(defn ui-refresh []
+  ((-> system :ui :app :renderer)))
 
 (comment
 
-  db/*state
-  (def s (:cljfx.context/m @db/*state))
-
-  (server/-main)
+  ;; TODO:
+  ;; - fix events
   
-  (screens.main/renderer)
+  (def state-ref (-> system :ui :state))
   
+  (def state (:cljfx.context/m @state-ref))
 
-  (subs.flows/selected-flow-errors @db/*state)
+  (subs.flows/selected-flow-errors @state-ref)
   
-  (subs.general/selected-tool @db/*state)
+  (subs.general/selected-tool-idx @state-ref)
   
-  (subs.taps/taps @db/*state)
-  (subs.taps/taps-tabs @db/*state)
-  (subs.taps/selected-tap @db/*state)
-  (subs.taps/selected-tap-values @db/*state)
-  (subs.taps/selected-tap-value-panel-type @db/*state)
-  (subs.taps/selected-tap-value-panel-content @db/*state false)
+  (subs.taps/taps @state-ref)
+  (subs.taps/taps-tabs @state-ref)
+  (subs.taps/selected-tap @state-ref)
+  (subs.taps/selected-tap-values @state-ref)
+  (subs.taps/selected-tap-value-panel-type @state-ref)
+  (subs.taps/selected-tap-value-panel-content @state-ref false)
 
-  (add-watch #'styles/style :refresh-app
-             (fn [_ _ _ _]
-               (swap! db/*state fx/swap-context assoc-in [:styles :app-styles] (:cljfx.css/url styles/style))))
-
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  
   (require '[flow-storm.api :as fsa])
   (fsa/connect {:tap-name "TAPPP"})
   
@@ -63,7 +72,13 @@
   (swap! b update :new-field inc)
   (swap! b dissoc :foo-field)
   
+  ;; #trace (->> (range 10) (map (fn [i] (+ i 2))))
 
+  (defn factorial [n]
+    (if (zero? n)
+      1
+      (* n (factorial (dec n)))))
+  
   ;; #trace (let [a {:a 10 :b [1 2 3]}
   ;;              b 100]
   ;;          (+ (:a a) b))

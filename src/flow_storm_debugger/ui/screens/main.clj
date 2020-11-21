@@ -1,6 +1,5 @@
 (ns flow-storm-debugger.ui.screens.main
-  (:require [cljfx.api :as fx]
-            [flow-storm-debugger.ui.keymap :as keymap]
+  (:require [cljfx.api :as fx]            
             [flow-storm-debugger.ui.events :as ui.events]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.refs :as subs.refs]
@@ -34,15 +33,11 @@
                      :width 1600
                      :height 900
                      :scene {:fx/type :scene
-                             :on-key-pressed (fn [kevt]
-                                               (when-let [evt (keymap/keymap (keymap/key-event->key-desc kevt))]
-                                                 (ui.events/event-handler {:event/type evt})))
+                             :on-key-pressed {:event/type ::ui.events/key-pressed}
                              :stylesheets [font-styles app-styles]
                              :root {:fx/type :border-pane
                                     :center {:fx/type  fx.ext.tab-pane/with-selection-props
-                                             :props {:on-selected-index-changed (fn [idx]
-                                                                                 (ui.events/event-handler {:event/type ::ui.events/select-tools-tab
-                                                                                                           :tool-idx  idx}))
+                                             :props {:on-selected-index-changed {:event/type ::ui.events/select-tools-tab}
                                                      :selected-index selected-tool-idx}
                                              :desc {:fx/type :tab-pane
                                                     :side :left
@@ -95,14 +90,4 @@
              open-dialog (into [{:fx/type (case open-dialog
                                             :save-flow-dialog screens.flows/save-flow-dialog)}]))}))
 
-(defonce renderer
-  (fx/create-renderer
-    :middleware (comp
-                  ;; Pass context to every lifecycle as part of option map
-                  fx/wrap-context-desc
-                  (fx/wrap-map-desc (fn [_] {:fx/type main-screen})))
-    :opts {:fx.opt/type->lifecycle #(or (fx/keyword->lifecycle %)
-                                        ;; For functions in `:fx/type` values, pass
-                                        ;; context from option map to these functions
-                                        (fx/fn->lifecycle-with-context %))
-           :fx.opt/map-event-handler ui.events/event-handler}))
+

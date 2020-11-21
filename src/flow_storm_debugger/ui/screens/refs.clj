@@ -52,16 +52,12 @@
   {:fx/type :border-pane
    :style-class ["border-pane" "ref-tab-content"]
    :top {:fx/type controls-pane}
-   :center {:fx/type value-pane}
-   })
+   :center {:fx/type value-pane}})
 
 (defn refs-tabs [{:keys [fx/context]}]
   (let [refs-tabs (fx/sub-ctx context subs.refs/refs-tabs)]
     {:fx/type fx.ext.tab-pane/with-selection-props
-     :props {:on-selected-item-changed (fn [tab]
-                                         (when tab
-                                          (ui.events/event-handler {:event/type ::ui.events/select-ref
-                                                                    :ref-id (Integer/parseInt (.getId tab))})))}
+     :props {:on-selected-item-changed {:event/type ::ui.events/select-ref}}
      :desc {:fx/type :tab-pane
             :tabs (->> refs-tabs
                        (mapv (fn [[ref-id ref-name]]

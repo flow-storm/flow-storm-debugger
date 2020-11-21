@@ -9,7 +9,8 @@
         cljfx/cljfx                 {:mvn/version "1.7.10"}
         cljfx/css                   {:mvn/version "1.1.0"}
         zprint/zprint               {:mvn/version "1.0.0"}
-        juji/editscript             {:mvn/version "0.4.6"}}
+        juji/editscript             {:mvn/version "0.4.6"}
+        com.stuartsierra/component  {:mvn/version "1.0.0"}}
  :aliases {:dev {:extra-paths ["dev-src"]
                  :extra-deps {jpmonettas/flow-storm {
                                                      ;;:mvn/version "0.3.2"

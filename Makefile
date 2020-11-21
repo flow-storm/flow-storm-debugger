@@ -20,7 +20,7 @@ deploy:
 	mvn deploy:deploy-file -Dfile=flow-storm-debugger.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
 
 cider-repl:
-	clj -Sdeps '{:deps {nrepl {:mvn/version "0.8.0"} refactor-nrepl {:mvn/version "2.5.0"} cider/cider-nrepl {:mvn/version "0.25.3"}}}' -m nrepl.cmdline --middleware '["refactor-nrepl.middleware/wrap-refactor", "cider.nrepl/cider-middleware"]'
+	clj -A:dev:jdk11 -Sdeps '{:deps {nrepl {:mvn/version "0.8.0"} refactor-nrepl {:mvn/version "2.5.0"} cider/cider-nrepl {:mvn/version "0.25.3"}}}' -m nrepl.cmdline --middleware '["refactor-nrepl.middleware/wrap-refactor", "cider.nrepl/cider-middleware"]'
 
 run:
 	clj -m flow-storm-debugger.server
