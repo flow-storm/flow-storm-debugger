@@ -55,9 +55,16 @@
    :center {:fx/type value-pane}})
 
 (defn refs-tabs [{:keys [fx/context]}]
-  (let [refs-tabs (fx/sub-ctx context subs.refs/refs-tabs)]
+  (let [refs-tabs (fx/sub-ctx context subs.refs/refs-tabs)
+        selected-ref-id (fx/sub-val context :selected-ref-id)
+        selected-index (->> refs-tabs
+                            (map-indexed vector)
+                            (some (fn [[i [rid]]]
+                                    (when (= rid selected-ref-id)
+                                      i))))]
     {:fx/type fx.ext.tab-pane/with-selection-props
-     :props {:on-selected-item-changed {:event/type ::ui.events/select-ref}}
+     :props {:selected-index selected-index
+             :on-selected-item-changed {:event/type ::ui.events/select-ref}}
      :desc {:fx/type :tab-pane
             :tabs (->> refs-tabs
                        (mapv (fn [[ref-id ref-name]]

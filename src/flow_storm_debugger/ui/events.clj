@@ -3,6 +3,8 @@
             [flow-storm-debugger.ui.events.refs :as events.refs]
             [flow-storm-debugger.ui.events.taps :as events.taps]
             [flow-storm-debugger.ui.events.traces :as events.traces]
+            [flow-storm-debugger.ui.events.timeline :as events.timeline]
+            [flow-storm-debugger.ui.events.panels :as events.panels]
             [flow-storm-debugger.ui.keymap :as keymap]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.db :as ui.db]
@@ -23,8 +25,9 @@
   {:context (fx/swap-context context events.flows/selected-flow-next)})
 
 (defmethod dispatch-event ::select-flow [{:keys [fx/context fx/event flow-id]}]
-  (when (.isSelected (.getTarget event))
-    {:context (fx/swap-context context events.flows/select-flow flow-id)}))
+  (when event
+    (let [flow-id (Integer/parseInt (.getId event))]
+      {:context (fx/swap-context context events.flows/select-flow flow-id)})))
 
 (defmethod dispatch-event ::remove-flow [{:keys [fx/context flow-id]}]
   {:context (fx/swap-context context events.flows/remove-flow flow-id)})
@@ -122,8 +125,12 @@
 
 (defmethod dispatch-event ::set-current-tap-trace-idx [{:keys [fx/context fx/event]}]
   (let [tap-trace-idx (:tap-trace-idx event)]
-   {:context (fx/swap-context context events.taps/set-current-tap-trace-idx tap-trace-idx)}))
+    {:context (fx/swap-context context events.taps/set-current-tap-trace-idx tap-trace-idx)}))
+
+(defmethod dispatch-event ::focus-thing [{:keys [fx/context thing]}]
+  {:context (fx/swap-context context events.panels/focus-thing thing)})
 
 (defmethod dispatch-event ::key-pressed [{:keys [fx/context fx/event]}]
   (let [dst-event (keymap/keymap (keymap/key-event->key-desc event))]
     {:dispatch dst-event}))
+

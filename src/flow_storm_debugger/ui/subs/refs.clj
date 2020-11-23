@@ -5,10 +5,11 @@
             [editscript.edit :as edit.edit]))
 
 (defn apply-patches [init-val patches]
-  (reduce (fn [r p]
-            (edit.core/patch r (edit.edit/edits->script p)))
-          init-val
-          patches))
+  (->> patches
+       (map :patch)
+       (reduce (fn [r p]
+                 (edit.core/patch r (edit.edit/edits->script p)))
+               init-val)))
 
 (defn empty-refs? [context]
   (empty? (fx/sub-val context :refs)))
@@ -37,6 +38,7 @@
     (if (and (not-empty patches) (pos? patches-applied))
 
       (->> (nth patches (dec patches-applied))
+           :patch
            (reduce (fn [r [coor & [op :as opcmd] :as patch-op]]
                      (cond
                        (#{:r :+} op) (update r :patch-map assoc coor opcmd)

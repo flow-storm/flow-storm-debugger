@@ -9,6 +9,7 @@
             [flow-storm-debugger.ui.screens.flows :as screens.flows]
             [flow-storm-debugger.ui.screens.refs :as screens.refs]
             [flow-storm-debugger.ui.screens.taps :as screens.taps]
+            [flow-storm-debugger.ui.screens.timeline :as screens.timeline]
             ))
 
 (defn bottom-bar [{:keys [fx/context]}]
@@ -81,8 +82,7 @@
                                                             :closable false
                                                             :graphic {:fx/type :label
                                                                       :text "Timeline"}
-                                                            :content {:fx/type :label
-                                                                      :text "Comming soon..."}}]}}
+                                                            :content {:fx/type screens.timeline/timeline}}]}}
                                     
                                     :bottom {:fx/type bottom-bar}}}}]
     {:fx/type fx/ext-many

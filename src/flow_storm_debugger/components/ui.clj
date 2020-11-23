@@ -65,7 +65,8 @@
                           :event-handler ui.events/dispatch-event
                           :effects {:save-file fxs/save-file-fx}
                           :desc-fn (fn [_] {:fx/type main-cmp})
-                          :renderer-error-handler (fn [e] (println e)))
+                          ;; :renderer-error-handler (fn [e] (println e))
+                          )
           
           this (assoc this
                       :state state

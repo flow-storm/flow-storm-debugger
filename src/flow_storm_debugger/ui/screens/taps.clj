@@ -16,32 +16,39 @@
 (defn selected-tap [{:keys [fx/context]}]
   (let [tap-values (fx/sub-ctx context subs.taps/selected-tap-values)
         selected-item (some #(when (:selected? %) %) tap-values)]
-    {:fx/type :split-pane
-    :orientation :horizontal
-    :style-class ["border-pane" "horizontal-split-pane"]
-    :items [{:fx/type fx.ext.list-view/with-selection-props
-                :props {:selection-mode :single
-                        :on-selected-item-changed {:event/type ::ui.events/set-current-tap-trace-idx}
-                        :selected-item selected-item}
-                :desc {:fx/type :list-view
-                       :style-class ["list-view" "taps-list-view"]
-                       :cell-factory {:fx/cell-type :list-cell
-                                      :describe (fn [{:keys [value selected?]}]                                
-                                                  {:text ""
-                                                   :style (if selected?
-                                                            {:-fx-background-color "#902638"}
-                                                            {})
-                                                   :graphic {:fx/type :label
-                                                             :style-class ["label" "clickable"]
-                                                            
-                                                             :text value}})}
-                       :items tap-values}}
-               {:fx/type value-pane}]}))
+    {:fx/type :split-pane     
+     :orientation :horizontal
+     :style-class ["border-pane" "horizontal-split-pane" "taps-pane"]
+     :items [{:fx/type fx.ext.list-view/with-selection-props
+              :props {:selection-mode :single
+                      :on-selected-item-changed {:event/type ::ui.events/set-current-tap-trace-idx}
+                      :selected-item selected-item}
+              :desc {:fx/type :list-view
+                     :style-class ["list-view" "taps-list-view"]
+                     :cell-factory {:fx/cell-type :list-cell
+                                    :describe (fn [{:keys [value selected?]}]                                
+                                                {:text ""
+                                                 :style (if selected?
+                                                          {:-fx-background-color "#902638"}
+                                                          {})
+                                                 :graphic {:fx/type :label
+                                                           :style-class ["label" "clickable"]
+                                                           
+                                                           :text value}})}
+                     :items tap-values}}
+             {:fx/type value-pane}]}))
 
 (defn taps-tabs [{:keys [fx/context]}]
-  (let [taps-tabs (fx/sub-ctx context subs.taps/taps-tabs)]
+  (let [taps-tabs (fx/sub-ctx context subs.taps/taps-tabs)
+        selected-tap-id (fx/sub-val context :selected-tap-id)
+        selected-index (->> taps-tabs
+                            (map-indexed vector)
+                            (some (fn [[i [tid]]]
+                                    (when (= tid selected-tap-id)
+                                      i))))]
     {:fx/type fx.ext.tab-pane/with-selection-props
-     :props {:on-selected-item-changed {:event/type ::ui.events/select-tap}}
+     :props {:on-selected-item-changed {:event/type ::ui.events/select-tap}
+             :selected-index selected-index}
      :desc {:fx/type :tab-pane
             :tabs (->> taps-tabs
                        (mapv (fn [[tap-id tap-name]]

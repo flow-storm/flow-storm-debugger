@@ -111,4 +111,10 @@
                " .calls-tree" {:-fx-padding [10 0 10 10]
                                :-fx-border-color :pink
                                :-fx-border-width [0 0 0 1]}
+               " .taps-pane" {:-fx-padding 10}
+               " .timeline-pane" {:-fx-padding 10
+                                  " .timeline-list-view" {" .timeline-trace-header" {:-fx-padding [0 5 0 0]}
+                                                          " .timeline-trace-flow-header" {:-fx-text-fill "#85e68c"}
+                                                          " .timeline-trace-ref-header" {:-fx-text-fill :pink}
+                                                          " .timeline-trace-tap-header" {:-fx-text-fill :orange}}}
                " .clickable" {:-fx-cursor :hand}}})))

@@ -5,7 +5,8 @@
             [cljfx.prop :as fx.prop]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.screens.components :as components]
-            [cljfx.ext.list-view :as fx.ext.list-view])
+            [cljfx.ext.list-view :as fx.ext.list-view]
+            [cljfx.ext.tab-pane :as fx.ext.tab-pane])
   (:import [javafx.scene.control DialogEvent Dialog]
            [javafx.geometry Insets]))
 
@@ -96,7 +97,7 @@
        :children (-> [{:fx/type :h-box
                        :style-class ["h-box" "clickable"]
                        :on-mouse-clicked {:event/type ::ui.events/set-current-flow-trace-idx
-                                        :trace-idx (inc call-trace-idx)}
+                                          :trace-idx (inc call-trace-idx)}
                        :children [{:fx/type :label :text "("}
                                   {:fx/type :label :style {:-fx-font-weight :bold}
                                    :text (str fn-name " ")}
@@ -212,22 +213,33 @@
                                :result-subs subs.flows/selected-flow-result-panel-content}
                               {:fx/type locals-pane}]}]}}))
 
+
+
 (defn flow-tabs [{:keys [fx/context]}]
-  (let [flows-tabs (fx/sub-ctx context subs.flows/flows-tabs)]
-    {:fx/type :tab-pane
-     :tabs (->> flows-tabs
-                (mapv (fn [[flow-id tab-name]]
-                        {:fx/type :tab
-                         :fx/key (str flow-id)
-                         :style-class ["tab" "flow-tab"]
-                         :on-closed {:event/type ::ui.events/remove-flow
-                                     :flow-id flow-id}
-                         :on-selection-changed {:event/type ::ui.events/select-flow
-                                                :flow-id flow-id}
-                         :graphic {:fx/type :label :text tab-name}
-                         :content {:fx/type selected-flow} 
-                         :id (str flow-id)
-                         :closable true})))}))
+  (let [flows-tabs (fx/sub-ctx context subs.flows/flows-tabs)
+        selected-flow-id (fx/sub-val context :selected-flow-id)
+        selected-index (->> flows-tabs
+                            (map-indexed vector)
+                            (some (fn [[i [fid]]]
+                                    (when (= fid selected-flow-id)
+                                      i))))]
+    
+    {:fx/type  fx.ext.tab-pane/with-selection-props
+     :props {:selected-index selected-index
+             :on-selected-item-changed {:event/type ::ui.events/select-ref}}
+     :desc {:fx/type :tab-pane
+            :tabs (->> flows-tabs
+                       (map (fn [[flow-id flow-name]]
+                              {:fx/type :tab
+                               :style-class ["tab" "flow-tab"]
+                               :on-closed {:event/type ::ui.events/remove-flow
+                                           :flow-id flow-id}
+                               :on-selection-changed {:event/type ::ui.events/select-flow
+                                                      :flow-id flow-id}
+                               :graphic {:fx/type :label :text flow-name}
+                               :content {:fx/type selected-flow} 
+                               :id (str flow-id)
+                               :closable true})))}}))
 
 (defn save-flow-dialog [_]
   {:fx/type :text-input-dialog

@@ -5,6 +5,7 @@
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.general :as subs.general]
             [flow-storm-debugger.ui.subs.taps :as subs.taps]
+            [flow-storm-debugger.ui.subs.timeline :as subs.timeline]
             [flow-storm-debugger.ui.db :as db]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.styles :as styles]
@@ -31,9 +32,12 @@
   
   (def state (:cljfx.context/m @state-ref))
 
-  (subs.flows/selected-flow-errors @state-ref)
+  (def ff (subs.flows/flows @state-ref))
+  (:flow-id (subs.flows/selected-flow @state-ref))
   
   (subs.general/selected-tool-idx @state-ref)
+  
+  (subs.timeline/timeline @state-ref)
   
   (subs.taps/taps @state-ref)
   (subs.taps/taps-tabs @state-ref)
@@ -49,40 +53,48 @@
   
   (tap> "HELLO")
   (tap> {:a 41})
-  (tap> (:cljfx.context/m @db/*state))
+  (tap> state)
   
-  (def a (atom 0))
+  (def a-ref (atom {:ages [1 2 3 30]}))
 
-  (fsa/trace-ref a {:ref-name "super-ref"})
-
-  (swap! a inc)
-
-  (def b (atom {:ages [1 2 3 30]}))
-
-  (fsa/trace-ref b {:ref-name "super-ref-map"})
+  (fsa/trace-ref a-ref {:ref-name "super-ref-map"})
   
-  (swap! b assoc :new-field 42)
-  (swap! b assoc :foo-field 0)
-  (swap! b assoc :new-other-field [1 2 3])
-  (swap! b assoc :crazy-field [1 2 3])
-  (swap! b assoc :crazy-field-bla [1 2 3])
-  (swap! b assoc :crazy [777])
-  (swap! b assoc :crazy2 [777])
-  (swap! b assoc :crazy3 777)
-  (swap! b update :new-field inc)
-  (swap! b dissoc :foo-field)
+  (swap! a-ref assoc :new-field 42)
+  (swap! a-ref assoc :foo-field 0)
+  (swap! a-ref assoc :new-other-field [1 2 3])
+  (swap! a-ref assoc :crazy-field [1 2 3])
+  (swap! a-ref assoc :crazy-field-bla [1 2 3])
+  (swap! a-ref assoc :crazy [777])
+  (swap! a-ref assoc :crazy2 [777])
+  (swap! a-ref assoc :crazy3 777)
+  (swap! a-ref update :new-field inc)
+  (swap! a-ref dissoc :foo-field)
   
   ;; #trace (->> (range 10) (map (fn [i] (+ i 2))))
 
+  
+  ;; #trace (let [a {:a 10 :b [1 2 3]}
+  ;;              b 100]
+  ;;          (swap! a-ref #(update % :ages conj 42))
+  ;;         (+ (:a a) b))
+
+  ;; #trace (+ 1 (:a {:a 1}))
+
+  (spit "./sample-state.edn" state)
+
+  
   (defn factorial [n]
     (if (zero? n)
       1
       (* n (factorial (dec n)))))
-  
-  ;; #trace (let [a {:a 10 :b [1 2 3]}
-  ;;              b 100]
-  ;;          (+ (:a a) b))
 
-  ;; #trace (+ 1 (:a {:a 1}))
+  
+  (defn bar []
+    (+ 2 (* 2 (factorial 5))))
+
+  (+ 1 (+ 3 (bar)))
+
+  
+  
   )
 
