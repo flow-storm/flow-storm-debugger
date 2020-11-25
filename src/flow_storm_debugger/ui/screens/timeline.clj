@@ -30,7 +30,7 @@
    :style-class ["h-box" "clickable"]
    :children [{:fx/type :label
                :style-class ["label" "timeline-trace-header" "timeline-trace-flow-header"]
-               :text (format "[%s]" (:flow-id trace))}
+               :text (format "[%s]" (:flow-name trace))}
               {:fx/type :label :text (format "... [%d]" (:trace-group-count trace))}]})
 
 (defn ref-trace [{:keys [fx/context trace]}]

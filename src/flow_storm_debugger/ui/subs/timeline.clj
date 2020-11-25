@@ -50,11 +50,13 @@
                 
                 (assoc (first part) :trace/type :flow-fn-call)
                 
-                {:trace/type :flow-group
-                 :flow-id (:flow-id (first part))
-                 :trace-idx (:trace-idx (first part))
-                 :trace-group-count (count part)
-                 :timestamp (:timestamp (first part))}))))))
+                (let [{:keys [flow-id trace-idx timestamp]} (first part)]
+                  {:trace/type :flow-group
+                   :flow-name (get-in flows [flow-id :flow-name])
+                   :flow-id flow-id
+                   :trace-idx trace-idx
+                   :trace-group-count (count part)
+                   :timestamp timestamp})))))))
 
 (defn- all-ref-traces [context]
   (let [refs (fx/sub-ctx context subs.refs/refs)
