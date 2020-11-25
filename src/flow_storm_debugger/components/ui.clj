@@ -24,10 +24,13 @@
                     renderer-middleware identity
                     renderer-error-handler renderer/default-error-handler}}]
   (let [handler (-> event-handler
-                    (event-handler/wrap-co-effects
-                      (defaults/fill-co-effects co-effects *context))
-                    (event-handler/wrap-effects
-                      (defaults/fill-effects effects *context)))
+                    (fx/wrap-co-effects
+                     {:fx/context (fn [] (deref *context))})
+                    (fx/wrap-effects
+                     (merge
+                      {:context (fn [v _] (reset! *context v))
+                       :dispatch (fn [v dispatch!] (dispatch! v))}
+                      effects)))
         renderer (fx/create-renderer
                    :error-handler renderer-error-handler
                    :middleware (comp
@@ -59,7 +62,11 @@
                                                   :received-traces-count 0}
                                           :open-dialog nil
                                           :styles styles}
-                                         cache/lru-cache-factory))
+                                         (fn [base]
+                                           ;; if this number is too small we are not going to be able
+                                           ;; to cache many subscriptions and they will have to be
+                                           ;; constantly recalculated affecting UX
+                                           (cache/lru-cache-factory base :threshold 10000))))
 
           app (create-app state
                           :event-handler ui.events/dispatch-event

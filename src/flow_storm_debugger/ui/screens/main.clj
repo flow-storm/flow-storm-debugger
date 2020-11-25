@@ -20,11 +20,54 @@
              :text (format "Connected clients: %d Received traces: %d" connected-clients received-traces-count)}
      :style-class ["bar"]}))
 
+(defn flows-tab [{:keys [fx/context]}]
+  (let [no-flows? (fx/sub-ctx context subs.flows/empty-flows?)]
+    {:fx/type :tab
+     :id "flows"
+     :style-class ["tab" "tool-tab"]
+     :closable false
+     :graphic {:fx/type :label
+               :text "Flows"}
+     :content (if no-flows?
+                {:fx/type screens.flows/no-flows}
+                {:fx/type screens.flows/flow-tabs})}))
+
+
+(defn refs-tab [{:keys [fx/context]}]
+  (let [no-refs? (fx/sub-ctx context subs.refs/empty-refs?)]
+    {:fx/type :tab
+     :id "refs"
+     :style-class ["tab" "tool-tab"]
+     :closable false
+     :graphic {:fx/type :label
+               :text "Refs"}
+     :content (if no-refs?
+                {:fx/type screens.refs/no-refs}
+                {:fx/type screens.refs/refs-tabs})}))
+
+(defn taps-tab [{:keys [fx/context]}]
+  (let [no-taps? (fx/sub-ctx context subs.taps/empty-taps?)]
+    {:fx/type :tab
+     :id "taps"
+     :style-class ["tab" "tool-tab"]
+     :closable false
+     :graphic {:fx/type :label
+               :text "Taps"}
+     :content (if no-taps?
+                {:fx/type screens.taps/no-taps}
+                {:fx/type screens.taps/taps-tabs})}))
+
+(defn timeline-tab [{:keys [fx/context]}]
+  {:fx/type :tab
+   :id "timeline"
+   :style-class ["tab" "tool-tab"]
+   :closable false
+   :graphic {:fx/type :label
+             :text "Timeline"}
+   :content {:fx/type screens.timeline/timeline}})
+
 (defn main-screen [{:keys [fx/context]}]
-  (let [no-flows? (fx/sub-ctx context subs.flows/empty-flows?)
-        no-refs? (fx/sub-ctx context subs.refs/empty-refs?)
-        no-taps? (fx/sub-ctx context subs.taps/empty-taps?)
-        open-dialog (fx/sub-val context :open-dialog)
+  (let [open-dialog (fx/sub-val context :open-dialog)
         selected-tool-idx (fx/sub-val context :selected-tool-idx) 
         {:keys [app-styles font-styles]} (fx/sub-val context :styles)
         main-screen {:fx/type :stage
@@ -45,44 +88,10 @@
                                                     :id "tools-tab-pane"
                                                     :style-class ["tab-pane" "tools-tab-pane"]
                                                     :rotate-graphic true
-                                                    :tabs [{:fx/type :tab
-                                                            :fx/key "flows"
-                                                            :id "flows"
-                                                            :style-class ["tab" "tool-tab"]
-                                                            :closable false
-                                                            :graphic {:fx/type :label
-                                                                      :text "Flows"}
-                                                            :content (if no-flows?
-                                                                       {:fx/type screens.flows/no-flows}
-                                                                       {:fx/type screens.flows/flow-tabs})}
-                                                           {:fx/type :tab
-                                                            :fx/key "refs"
-                                                            :id "refs"
-                                                            :style-class ["tab" "tool-tab"]
-                                                            :closable false
-                                                            :graphic {:fx/type :label
-                                                                      :text "Refs"}
-                                                            :content (if no-refs?
-                                                                       {:fx/type screens.refs/no-refs}
-                                                                       {:fx/type screens.refs/refs-tabs})}
-                                                           {:fx/type :tab
-                                                            :fx/key "taps"
-                                                            :id "taps"
-                                                            :style-class ["tab" "tool-tab"]
-                                                            :closable false
-                                                            :graphic {:fx/type :label
-                                                                      :text "Taps"}
-                                                            :content (if no-taps?
-                                                                       {:fx/type screens.taps/no-taps}
-                                                                       {:fx/type screens.taps/taps-tabs})}
-                                                           {:fx/type :tab
-                                                            :fx/key "timeline"
-                                                            :id "timeline"
-                                                            :style-class ["tab" "tool-tab"]
-                                                            :closable false
-                                                            :graphic {:fx/type :label
-                                                                      :text "Timeline"}
-                                                            :content {:fx/type screens.timeline/timeline}}]}}
+                                                    :tabs [{:fx/type flows-tab}
+                                                           {:fx/type refs-tab}
+                                                           {:fx/type taps-tab}
+                                                           {:fx/type timeline-tab}]}}
                                     
                                     :bottom {:fx/type bottom-bar}}}}]
     {:fx/type fx/ext-many
