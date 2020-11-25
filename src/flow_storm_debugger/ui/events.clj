@@ -24,7 +24,7 @@
 (defmethod dispatch-event ::selected-flow-next [{:keys [fx/context]}]
   {:context (fx/swap-context context events.flows/selected-flow-next)})
 
-(defmethod dispatch-event ::select-flow [{:keys [fx/context fx/event flow-id]}]
+(defmethod dispatch-event ::select-flow [{:keys [fx/context fx/event flow-id]}]  
   (when event
     (let [flow-id (Integer/parseInt (.getId event))]
       {:context (fx/swap-context context events.flows/select-flow flow-id)})))
@@ -133,4 +133,7 @@
 (defmethod dispatch-event ::key-pressed [{:keys [fx/context fx/event]}]
   (let [dst-event (keymap/keymap (keymap/key-event->key-desc event))]
     {:dispatch dst-event}))
+
+(defmethod dispatch-event nil [m]
+  (println "Don't know how to dispatch event: " m))
 

@@ -226,7 +226,7 @@
     
     {:fx/type  fx.ext.tab-pane/with-selection-props
      :props {:selected-index selected-index
-             :on-selected-item-changed {:event/type ::ui.events/select-ref}}
+             :on-selected-item-changed {:event/type ::ui.events/select-flow}}
      :desc {:fx/type :tab-pane
             :tabs (->> flows-tabs
                        (map (fn [[flow-id flow-name]]
@@ -234,8 +234,6 @@
                                :style-class ["tab" "flow-tab"]
                                :on-closed {:event/type ::ui.events/remove-flow
                                            :flow-id flow-id}
-                               :on-selection-changed {:event/type ::ui.events/select-flow
-                                                      :flow-id flow-id}
                                :graphic {:fx/type :label :text flow-name}
                                :content {:fx/type selected-flow} 
                                :id (str flow-id)
