@@ -35,7 +35,7 @@
        (assoc-in [:flows flow-id :timestamp] timestamp)
        (update-in [:flows flow-id :bind-traces] #(or % [])))))
 
-(defn add-bind-trace [db {:keys [flow-id form-id form-flow-id coor symbol value] :as trace}]
+(defn add-bind-trace [db {:keys [flow-id form-id form-flow-id coor symbol value timestamp] :as trace}]
   (let [flow-id (or flow-id
                     (get-in db [:form-flow-id->flow-id form-flow-id]))]
     (-> db
@@ -44,7 +44,7 @@
                                                        :coor coor
                                                        :symbol symbol
                                                        :value value
-                                                       :timestamp (utils/get-timestamp)}))))
+                                                       :timestamp timestamp}))))
 
 (defn flow-traces [db flow-id]
   (get-in db [:flows flow-id :traces]))

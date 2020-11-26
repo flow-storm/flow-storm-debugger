@@ -21,6 +21,7 @@
    :return-label-color        ["#FF0000" "#00ffa5"]
    :expression-selected-color ["#FFC8C8" "#902638"]
    :selected-tool-color       ["#ffe02e" "#3b527d"]
+   :tree-edit-update          ["#85e68c" "#477e30"]
    :divider-color             ["#e5e5e5" "#aaaaaa"]
    :timeline-color-1          ["#477e30" "#85e68c"]
    :timeline-color-2          ["#c35abc" "#FFC0CB"]
@@ -56,7 +57,7 @@
                                 " .tree-cell" {:-fx-background-color :transparent
                                                :-fx-text-fill (th :basic-font-color)}
                                 " .arrow" {:-fx-background-color (th :basic-font-color)}
-                                " .tree-edit-update" {:-fx-background-color :green}}
+                                " .tree-edit-update" {:-fx-background-color (th :tree-edit-update)}}
                  ;; styling scrollbars
                  ;; https://guigarage.com/2015/11/styling-a-javafx-scrollbar/
                  " .scroll-bar" {" .track-background" {:-fx-background-color (th :background-color-2)}

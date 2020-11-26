@@ -54,6 +54,7 @@
 - :coor [REQ]
 - :symbol [REQ]
 - :value [REQ]
+- :timestamp [REQ]
 
 #### Example
 
@@ -63,6 +64,7 @@
 							 :form-flow-id 321
 							 :coor [3]
 							 :symbol "a"
+							 :timestamp 1605808610611
 							 :value "10"}]
 ```
 
