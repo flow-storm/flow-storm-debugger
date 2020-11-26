@@ -93,7 +93,7 @@
                                   (-> ref
                                       (update :patches conj {:timestamp timestamp
                                                              :ref-id ref-id
-                                                             :patch patch})
+                                                             :patch (utils/read-form patch)})
                                       (update :patches-applied inc))))))
 
 (defn add-tap-trace [db {:keys [tap-id tap-name value timestamp] :as trace}]
