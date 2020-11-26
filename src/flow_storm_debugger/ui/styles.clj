@@ -11,20 +11,20 @@
 
 (def themes
   ;;COLOR                      LIGHT     DARK
-  {:background-color          ["#FFFFFF" "#424242"]
-   :background-color-2        ["red" "#292929"]
-   :background-color-3        ["yellow" "#4a4a4a"]
-   :basic-font-color          ["orange" "#eaeaea"]
-   :button-back               ["blue" "#dcdcdc"]
-   :button-font-color         ["green" "#000000"]
-   :locals-label-color        ["blue" "#FFC0CB"]
-   :return-label-color        ["red" "#00ffa5"]
-   :expression-selected-color ["brown" "#902638"]
-   :selected-tool-color       ["yellow" "#3b527d"]
-   :divider-color             ["green" "#aaaaaa"]
-   :timeline-color-1          ["pink" "#85e68c"]
-   :timeline-color-2          ["orange" "#FFC0CB"]
-   :timeline-color-3          ["red" "#FFA500"]})
+  {:background-color          ["#FAFAFA" "#424242"]
+   :background-color-2        ["#e5e5e5" "#292929"]
+   :background-color-3        ["#F6F6F6" "#4a4a4a"]
+   :basic-font-color          ["#39525d" "#eaeaea"]
+   :button-back               ["#39525d" "#dcdcdc"]
+   :button-font-color         ["#FAFAFA" "#000000"]
+   :locals-label-color        ["#c35abc" "#FFC0CB"]
+   :return-label-color        ["#FF0000" "#00ffa5"]
+   :expression-selected-color ["#FFC8C8" "#902638"]
+   :selected-tool-color       ["#ffe02e" "#3b527d"]
+   :divider-color             ["#e5e5e5" "#aaaaaa"]
+   :timeline-color-1          ["#477e30" "#85e68c"]
+   :timeline-color-2          ["#c35abc" "#FFC0CB"]
+   :timeline-color-3          ["#dd8f00" "#FFA500"]})
 
 (defn th [theme-key]
   (let [selected-theme @theme
@@ -67,7 +67,9 @@
                  " .list-view" {:-fx-background-color :transparent
                                 " .list-cell" {:-fx-text-fill (th :basic-font-color)}
                                 " .list-cell:even" {:-fx-background-color (th :background-color)}
-                                " .list-cell:odd" {:-fx-background-color (th :background-color-3)}}
+                                " .list-cell:odd" {:-fx-background-color (th :background-color-3)}
+                                " .list-cell:filled:selected" {:-fx-background-color (th :expression-selected-color)}
+                                }
                  " .no-flows" {" .text" {:-fx-font-size 16}}
                  " .no-refs" {" .text" {:-fx-font-size 16}}
                  " .no-taps" {" .text" {:-fx-font-size 16}}

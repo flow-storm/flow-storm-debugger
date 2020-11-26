@@ -83,9 +83,6 @@
             :cell-factory {:fx/cell-type :list-cell
                            :describe (fn [{:keys [result selected?]}]                                
                                        {:text ""
-                                        :style (if selected?
-                                                 {:-fx-background-color "#902638"}
-                                                 {})
                                         :graphic {:fx/type :label
                                                   :style-class ["label" "clickable"]
                                                   
@@ -161,7 +158,6 @@
                    :cell-factory {:fx/cell-type :list-cell
                                   :describe (fn [{:keys [err trace-idx selected?]}]                                
                                               {:text ""
-                                               :style (if selected? {:-fx-background-color "#902638"} {})
                                                :graphic {:fx/type :label
                                                          :style-class ["label" "clickable"]
                                                          :on-mouse-clicked {:event/type ::ui.events/set-current-flow-trace-idx

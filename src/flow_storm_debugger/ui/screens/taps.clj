@@ -28,9 +28,6 @@
                      :cell-factory {:fx/cell-type :list-cell
                                     :describe (fn [{:keys [value selected?]}]                                
                                                 {:text ""
-                                                 :style (if selected?
-                                                          {:-fx-background-color "#902638"}
-                                                          {})
                                                  :graphic {:fx/type :label
                                                            :style-class ["label" "clickable"]
                                                            
