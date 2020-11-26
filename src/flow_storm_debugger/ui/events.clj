@@ -107,7 +107,7 @@
 
 (defmethod dispatch-event ::set-selected-ref-value-panel-type [{:keys [fx/context fx/event]}]
   (let [pressed? event
-        panel-type (if pressed? :tree :pprint)]
+        panel-type (if pressed? :pprint :tree)]
     {:context (fx/swap-context context events.refs/set-selected-ref-value-panel-type panel-type)}))
 
 (defmethod dispatch-event ::set-selected-tap-value-panel-type [{:keys [fx/context fx/event]}]

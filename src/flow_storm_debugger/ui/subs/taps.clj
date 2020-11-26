@@ -15,7 +15,7 @@
 
 (defn selected-tap-value-panel-type [context]
   (or (:value-panel-type (fx/sub-ctx context selected-tap))
-      :tree))
+      :pprint))
 
 (defn selected-tap-value [context]
   (let [{:keys [tap-trace-idx tap-values]} (fx/sub-ctx context selected-tap)]
