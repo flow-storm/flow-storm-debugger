@@ -15,7 +15,9 @@
 
 (def system (sierra.component/system-map
              :ui (ui/ui {:main-cmp screens.main/main-screen
-                         :watch-styles? true})
+                         :watch-styles? true
+                         :theme :dark
+                         :font-size 13})
                :server (sierra.component/using
                         (server/http-server {:port 7722})
                         [:ui])))

@@ -19,13 +19,16 @@
         forms-html (->> hl-forms
                         (map (fn [[_ form-str]]
                                (str "<pre class=\"form\">" form-str "</pre>")))
-                        (reduce str))]
-   {:fx/type components/ext-with-html
-    :props {:html (str "<div class=\"forms\">"
-                       forms-html
-                       "</div>"
-                       "<script>document.getElementById('expr').scrollIntoView()</script>")
-            :css-uri code-panel-styles}
+                        (reduce str))
+        html (str "<html>"
+                  "<style>" code-panel-styles "</style>"
+                  "<div class=\"forms\">"
+                  forms-html
+                  "</div>"
+                  "<script>document.getElementById('expr').scrollIntoView()</script>"
+                  "</html>")]
+    {:fx/type components/ext-with-html
+    :props {:html html}
     :desc {:fx/type :web-view}}))
 
 (defn load-button [{:keys [icon?]}]

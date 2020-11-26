@@ -47,11 +47,14 @@
 (defn swap-state! [ui f]
   (swap! (:state ui) fx/swap-context f))
 
-(defrecord UI [styles watch-styles? state app main-cmp]
+(defrecord UI [font-size theme watch-styles? state app main-cmp]
   sierra.component/Lifecycle
   (start [this]
     (println "Starting UI...")
-    (let [state (atom (fx/create-context {:flows {}
+    (reset! styles/theme theme)
+    (reset! styles/font-size font-size)
+    (let [styles (styles/build-styles)
+          state (atom (fx/create-context {:flows {}
                                           :refs {}
                                           :taps {}
                                           :selected-flow-id nil
@@ -83,7 +86,7 @@
         (println "Watching styles")
         (add-watch #'styles/style :refresh-app
                    (fn [_ _ _ _]
-                     (swap-state! this (fn [s] (assoc-in s [:styles :app-styles] (:cljfx.css/url styles/style)))))))
+                     (swap-state! this (fn [s] (assoc-in s [:styles :app-styles] (:cljfx.css/url @styles/style)))))))
       
       (println "UI started.")
 
@@ -96,19 +99,9 @@
     (println "UI stopped.")
     this))
 
-(defn build-styles []
-  (let [code-panel-styles (io/resource "code-panel-styles.css")
-        app-styles (:cljfx.css/url styles/style)
-        custom-app-styles (io/file "./flow-storm-app-styles.css")
-        custom-code-panel-styles (io/file "./flow-storm-code-panel-styles.css")]
-   {:app-styles        (or (when (.exists custom-app-styles) (str (.toURI custom-app-styles)))
-                           app-styles)
-    :font-styles       (str (io/resource "fonts.css"))
-    :code-panel-styles (str (or (when (.exists custom-code-panel-styles) (.toURI custom-code-panel-styles))
-                                code-panel-styles))}))
-
-(defn ui [{:keys [main-cmp watch-styles?]}]  
+(defn ui [{:keys [font-size theme main-cmp watch-styles?]}]  
   ;;(Platform/setImplicitExit true)
-  (map->UI {:styles (build-styles)
+  (map->UI {:font-size font-size
+            :theme theme
             :main-cmp main-cmp
             :watch-styles? watch-styles?}))

@@ -221,22 +221,9 @@ same flow tab instead of creating multiple tabs.
 Only the form that "fires the flow" needs to be traced with `#ztrace`, the rest of the form can be just
 traced with a normal `#trace`.
 
-### Customizing styles (Experimental)
+### Themes and font-size
 
-You can customize UI styles by providing custom `flow-storm-app-styles.css` and `flow-storm-code-panel-styles.css` style files in the same directory
-where you are running the debugger.
-
-If you want to tweak the current ui, you can run the debugger once with `--spit-style-files` command line option which will create
-style files in your current directory and exit. Then you can edit them, tweak whatever you want (like font sizes, colors, etc) and re-run the debugger with no options.
-
-**Important** new versions of the debugger will contain new stylesheets and if you have customizations you will have to delete them,
-regenerate the stylesheets and make the changes again. This method of customizing the UI is powerful but also super anoying since you need to tweak your stylesheets
-after every upgrade. For this reason I'll probably change this feature for something less powerful but more practical.
-
-They are javafx stylesheets so this resources are handy :
-
-- Official JavaFX [CSS reference](https://openjfx.io/javadoc/12/javafx.graphics/javafx/scene/doc-files/cssref.html) - to see what you can style with CSS
-- [modena.css](https://gist.github.com/maxd/63691840fc372f22f470) - default CSS used by JavaFX, helpful when documentation is not enough
+You can choose your theme and font size by providing --theme and --font-size on the command line.
 
 ## Developers section
 
