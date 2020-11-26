@@ -24,7 +24,7 @@ A Clojure and ClojureScript debugger with some unique features.
 ## Running the debugger
 
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.4.1"}}}' -m flow-storm-debugger.server
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.4.1"}}}' -m flow-storm-debugger.main
 ```
 
 And that's it !! One instance of the debugger is enough for all your Clojure and ClojureScript projects.
