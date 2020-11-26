@@ -62,19 +62,38 @@
               {:fx/type :label               
                :text (str (:value trace))}]})
 
+(defn no-traces [{:keys [fx/context]}]
+  {:fx/type :anchor-pane
+   :style-class ["no-traces"]
+   :children [{:fx/type :v-box
+               :pref-width 200
+               :anchor-pane/left 100
+               :anchor-pane/right 100
+               :anchor-pane/top 100
+               :alignment :center
+               :spacing 20
+               :children [{:fx/type :text-flow
+                           :pref-width Double/MAX_VALUE
+                           :text-alignment :center
+                           :children [{:fx/type :label
+                                       :text "No flows, refs or taps had been traced yet."}]}]}]})
+
 (defn timeline [{:keys [fx/context]}]
   (let [traces (fx/sub-ctx context subs.timeline/timeline)]
-    {:fx/type :border-pane
-     :style-class ["border-pane" "timeline-pane"]
-     :center {:fx/type :list-view
-              :style-class ["list-view" "timeline-list-view"]
-              :cell-factory {:fx/cell-type :list-cell
-                             :describe (fn [trace]
-                                         (when trace
-                                          {:text ""
-                                           :graphic (case (:trace/type trace)
-                                                      :flow-fn-call {:fx/type flow-fn-call :trace trace}
-                                                      :flow-group   {:fx/type flow-group   :trace trace}
-                                                      :ref          {:fx/type ref-trace    :trace trace}                                                     
-                                                      :tap          {:fx/type tap-trace    :trace trace})}))}
-              :items traces}}))
+    (if (seq traces)
+      {:fx/type :border-pane
+       :style-class ["border-pane" "timeline-pane"]
+       :center {:fx/type :list-view
+                :style-class ["list-view" "timeline-list-view"]
+                :cell-factory {:fx/cell-type :list-cell
+                               :describe (fn [trace]
+                                           (when trace
+                                             {:text ""
+                                              :graphic (case (:trace/type trace)
+                                                         :flow-fn-call {:fx/type flow-fn-call :trace trace}
+                                                         :flow-group   {:fx/type flow-group   :trace trace}
+                                                         :ref          {:fx/type ref-trace    :trace trace}                                                     
+                                                         :tap          {:fx/type tap-trace    :trace trace})}))}
+                :items traces}}
+
+      {:fx/type no-traces})))

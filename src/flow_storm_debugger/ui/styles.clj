@@ -50,6 +50,7 @@
                " .no-flows" {" .text" {:-fx-font-size 16}}
                " .no-refs" {" .text" {:-fx-font-size 16}}
                " .no-taps" {" .text" {:-fx-font-size 16}}
+               " .no-traces" {" .text" {:-fx-font-size 16}}
                " .controls-pane" {:-fx-background-color background-color-2
                                   :-fx-padding 10}
                " .flow-tab-content" {:-fx-padding 10}
