@@ -10,6 +10,15 @@
     (cond-> db'
       (= selected-tap-id tap-id) (assoc :selected-tap-id (-> db' :taps keys first)))))
 
+(defn remove-all-taps [{:keys [taps] :as db}]
+  (reduce (fn [r tap-id]
+            (remove-tap r tap-id))
+          db
+          (keys taps)))
+
+(defn remove-selected-tap [{:keys [selected-tap-id] :as db}]
+  (remove-tap db selected-tap-id))
+
 (defn set-selected-tap-value-panel-type [{:keys [selected-tap-id] :as db} t]
   (assoc-in db [:taps selected-tap-id :value-panel-type] t))
 

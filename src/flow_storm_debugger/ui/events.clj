@@ -132,7 +132,14 @@
 
 (defmethod dispatch-event ::key-pressed [{:keys [fx/context fx/event]}]
   (let [dst-event (keymap/keymap (keymap/key-event->key-desc event))]
-    {:dispatch dst-event}))
+    {:dispatch {:event/type dst-event}}))
+
+(defmethod dispatch-event ::remove-current-tool-tab [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.panels/remove-current-tool-tab)})
+
+(defmethod dispatch-event ::remove-all-current-tool-tabs [{:keys [fx/context]}]
+  {:context (fx/swap-context context events.panels/remove-all-current-tool-tabs)})
+
 
 (defmethod dispatch-event nil [m]
   (println "Don't know how to dispatch event: " m))

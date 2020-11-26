@@ -7,6 +7,6 @@
 
 (def keymap
   {
-   "x" :flow-storm-debugger.ui.events/remove-selected-flow
-   "X" :flow-storm-debugger.ui.events/remove-all-flows
+   "x" :flow-storm-debugger.ui.events/remove-current-tool-tab
+   "X" :flow-storm-debugger.ui.events/remove-all-current-tool-tabs
    })

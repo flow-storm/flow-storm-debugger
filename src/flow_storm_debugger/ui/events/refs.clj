@@ -11,6 +11,15 @@
     (cond-> db'
       (= selected-ref-id ref-id) (assoc :selected-ref-id (-> db' :refs keys first)))))
 
+(defn remove-selected-ref [{:keys [selected-ref-id] :as db}]
+  (remove-ref db selected-ref-id))
+
+(defn remove-all-refs [{:keys [refs] :as db}]
+  (reduce (fn [r ref-id]
+            (remove-ref r ref-id))
+          db
+          (keys refs)))
+
 (defn selected-ref-first [{:keys [selected-ref-id] :as db}]
   (assoc-in db [:refs selected-ref-id :patches-applied] 0))
 

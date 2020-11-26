@@ -69,11 +69,12 @@
      :center {:fx/type :list-view
               :style-class ["list-view" "timeline-list-view"]
               :cell-factory {:fx/cell-type :list-cell
-                             :describe (fn [trace]                                
-                                         {:text ""
-                                          :graphic (case (:trace/type trace)
-                                                     :flow-fn-call {:fx/type flow-fn-call :trace trace}
-                                                     :flow-group   {:fx/type flow-group   :trace trace}
-                                                     :ref          {:fx/type ref-trace    :trace trace}                                                     
-                                                     :tap          {:fx/type tap-trace    :trace trace})})}
+                             :describe (fn [trace]
+                                         (when trace
+                                          {:text ""
+                                           :graphic (case (:trace/type trace)
+                                                      :flow-fn-call {:fx/type flow-fn-call :trace trace}
+                                                      :flow-group   {:fx/type flow-group   :trace trace}
+                                                      :ref          {:fx/type ref-trace    :trace trace}                                                     
+                                                      :tap          {:fx/type tap-trace    :trace trace})}))}
               :items traces}}))
