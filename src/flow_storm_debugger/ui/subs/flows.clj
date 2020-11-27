@@ -12,26 +12,27 @@
     (-> (get flows selected-flow-id)
         (assoc :id selected-flow-id))))
 
-(defn selected-flow-current-trace [context]
-  (let [{:keys [traces trace-idx]} (fx/sub-ctx context selected-flow)]
-    (get traces trace-idx)))
-
 (defn selected-flow-forms [context]
   (let [selected-flow (fx/sub-ctx context selected-flow)]
     (:forms selected-flow)))
 
+(defn selected-flow-current-trace [context]
+  (let [{:keys [traces trace-idx]} (fx/sub-ctx context selected-flow)]
+    (get traces trace-idx)))
+
 (defn selected-flow-forms-highlighted [context]
   (let [forms (fx/sub-ctx context selected-flow-forms)
         current-trace (fx/sub-ctx context selected-flow-current-trace)]
-   (->> forms
-        (mapv (fn [[form-id form-str]]
-                (let [h-form-str (cond-> form-str
+    (->> (vals forms)
+         (sort-by :timestamp >)
+         (mapv (fn [{:keys [form-id form-str]}]
+                 (let [h-form-str (cond-> form-str
 
-                                   ;; if it is the current-one, highlight it
-                                   (= form-id (:form-id current-trace))
-                                   (highlight-expr (:coor current-trace) "<b id=\"expr\" class=\"hl\">" "</b>"))]
-                  
-                 [form-id h-form-str]))))))
+                                    ;; if it is the current-one, highlight it
+                                    (= form-id (:form-id current-trace))
+                                    (highlight-expr (:coor current-trace) "<b id=\"expr\" class=\"hl\">" "</b>"))]
+                   
+                   [form-id h-form-str]))))))
 
 (defn flow-comparator [f1 f2]
   (compare (:timestamp f1) (:timestamp f2)))
@@ -144,12 +145,8 @@
 (defn selected-flow-trace-idx [context]
   (:trace-idx (fx/sub-ctx context selected-flow)))
 
-(defn selected-flow-forms [context]
-  (:forms (fx/sub-ctx context selected-flow)))
-
 (defn fn-call-traces [context]
   (let [traces  (fx/sub-ctx context selected-flow-traces)
-        forms (fx/sub-ctx context selected-flow-forms)
         call-traces (->> traces
                          (map-indexed (fn [idx t]
                                         (if (fn-call-trace? t)
