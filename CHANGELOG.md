@@ -3,7 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
-- Taps implementation
+## 0.5.0 (2020-11-27)
+
+- Timeline tool implementation
+- Taps tool implementation
 
 ## 0.4.1 (2020-11-20)
 
