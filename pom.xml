@@ -17,6 +17,11 @@
       <version>1.7.10</version>
     </dependency>
     <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.cli</artifactId>
+      <version>1.0.194</version>
+    </dependency>
+    <dependency>
       <groupId>compojure</groupId>
       <artifactId>compojure</artifactId>
       <version>1.6.2</version>
@@ -30,6 +35,11 @@
       <groupId>ring-cors</groupId>
       <artifactId>ring-cors</artifactId>
       <version>0.1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>com.stuartsierra</groupId>
+      <artifactId>component</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>zprint</groupId>
@@ -62,11 +72,9 @@
       <version>2.4.0</version>
     </dependency>
   </dependencies>
-  
-    <build>
-      <sourceDirectory>src</sourceDirectory>
-    </build>
-  
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+  </build>
   <repositories>
     <repository>
       <id>clojars</id>

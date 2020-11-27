@@ -107,7 +107,7 @@
   (let [result-panel-type (fx/sub-ctx context type-subs)
         result (fx/sub-ctx context result-subs (= result-panel-type :pprint))]
     {:fx/type :border-pane
-     :style {:-fx-padding [10 0 0 0]}
+     :style-class ["border-pane" "result-pane"]
      :top {:fx/type :h-box
            :style-class ["bar"]
            :children [{:fx/type :toggle-button

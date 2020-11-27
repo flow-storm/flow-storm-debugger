@@ -77,8 +77,12 @@
                  " .no-traces" {" .text" {:-fx-font-size 16}}
                  " .controls-pane" {:-fx-background-color (th :background-color-2)
                                     :-fx-padding 10}
-                 " .flow-tab-content" {:-fx-padding 10}
-                 " .ref-tab-content" {:-fx-padding 10}
+                 " .result-pane" {" .pprint-button" {:-fx-padding 1}
+                                  " .tree-button" {:-fx-padding 1}}
+                 " .flow-tab-content" {:-fx-padding 10
+                                       " .result-pane" {" .bar" {:-fx-padding [4 4 4 4]}}}
+                 " .ref-tab-content" {:-fx-padding 10
+                                      " .result-pane" {:-fx-padding [10 0 0 0]}}
                  " .tab:selected .focus-indicator" {:-fx-border-color :transparent}
                  ;; https://stackoverflow.com/questions/17091605/how-to-change-the-tab-pane-style
                  " .tab-header-area" {" .tab-header-background" {:-fx-background-color (th :background-color-2)}
