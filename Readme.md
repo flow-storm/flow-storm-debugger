@@ -105,12 +105,10 @@ Next we have the **code panel**.
 
 The code panel shows the relevant code for this flow, marking in red the current expression.
 
-You can analyze the current expression result by using the **result panel** :
-
-![Result](./docs/images/flows-factorial-results.png)
+You can analyze the current expression result by using the **result panel** at the top right corner.
 
 Any value in the result panel can be visualized pprinted or with a collapsible tree. 
-This can be toggled on/off by the small button in the top left corner.
+This can be toggled on/off by the small button in its top left corner.
 
 The bottom right panel contains the **locals panel** which shows the bindings values available for the current expression.
 
@@ -154,11 +152,55 @@ X    | Close all flows
 
 #### Refs <a name="refs"></a>
 
+The refs tool  will help you analyze your refs (atoms, vars, ...) state changes by allowing you to step over the states and see how they change.
+
 ![Refs](./docs/images/refs.png)
+
+Like in the flows tool, every traced reference gets its own tab.
+
+The **top bar** contains some useful controls. You can move to the first, prev, next or last state by using the arrows.
+The `6/6` label in the screenshot shows how many state changes you have for this reference and what is the current state being
+shown in the panel below.
+
+The small button in the middle allows you to squash your states. After a while you probably don't need all states and are
+just interested in the latest ones, this will squash all but the latest 4 states into the initial state.
+
+I find this tool super useful when working with re-frame or cljfx applications.
+
+For re-frame you can instrument the db like :
+```clojure
+(fsa/trace-ref re-frame.db/app-db {:re-name "browser-app-db-state"})
+```
+
+while for cljfx applications I tend to do like :
+
+```clojure
+(def *context (atom (fx/create-context {...})))
+
+(fsa/trace-ref *context {:re-name "desktop-app-db-state"})
+```
+
+You can add those on you main or init code, right after you execute `(fsa/connect)` and then just have a 
+debugger instance open while you use the application.
+
+##### Refs keyboard bindings
+
+Key | Command 
+-----|---------------------
+x    | Close selected ref
+X    | Close all refs
+
 
 #### Taps <a name="taps"></a>
 
 ![Taps](./docs/images/taps.png)
+
+##### Taps keyboard bindings
+
+Key | Command 
+-----|---------------------
+x    | Close selected tap
+X    | Close all taps
 
 #### Timeline <a name="timeline"></a>
 
