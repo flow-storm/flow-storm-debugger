@@ -28,7 +28,8 @@
 
       (do
         (println "Usage : flow-storm-debugger [OPTIONS]")
-        (println (-> parsed-args :errors))
+        (when-let [errors (-> parsed-args :errors)]
+          (println errors))
         (println (-> parsed-args :summary))
         (System/exit 0))
 

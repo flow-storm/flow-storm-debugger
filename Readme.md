@@ -2,7 +2,7 @@
 
 A Clojure and ClojureScript debugger with some unique features.
 
-![demo](./docs/demo.gif)
+![demo](./docs/images/demo.gif)
 
 [![Clojars Project](https://img.shields.io/clojars/v/jpmonettas/flow-storm-debugger.svg)](https://clojars.org/jpmonettas/flow-storm-debugger)
 
@@ -82,7 +82,7 @@ Each tool will be explained in more detail in the next sections but this is a sm
 
 Flows is going to be your stepper, but a stepper that can jump around in time.
 
-![Flows](./docs/flows.png)
+![Flows](./docs/images/flows.png)
 
 There are a bunch of tools packed in that screenshot, so I will try to explain them separately.
 
@@ -101,27 +101,27 @@ or just because you want to analyze them later.
 
 Next we have the **code panel**.
 
-![Code](./docs/flows-factorial-code.png)
+![Code](./docs/images/flows-factorial-code.png)
 
 The code panel shows the relevant code for this flow, marking in red the current expression.
 
 You can analyze the current expression result by using the **result panel** :
 
-![Result](./docs/flows-factorial-results.png)
+![Result](./docs/images/flows-factorial-results.png)
 
 Any value in the result panel can be visualized pprinted or with a collapsible tree. 
 This can be toggled on/off by the small button in the top left corner.
 
 The bottom right panel contains the **locals panel** which shows the bindings values available for the current expression.
 
-![Locals](./docs/locals.png)
+![Locals](./docs/images/locals.png)
 
 The first row (the one with the right arrow) is special, and always shows the current expression result.
 Clicking on any row will show that value in the result panel.
 
 In a different tab next to the **code panel** lays the **layers** and **tree** panels.
 
-![Layers](./docs/flows-factorial-layers.png)
+![Layers](./docs/images/flows-factorial-layers.png)
 
 The **layers panel**  is useful for analyzing iterations, doesn't matter if they are loops or recursive functions.
 
@@ -134,14 +134,14 @@ Clicking on any layer will also move the debugger to that point in time.
 
 The **tree panel** shows how all the functions in this flow are being called, their arguments and their return values.
 
-![Tree](./docs/flows-factorial-tree.png)
+![Tree](./docs/images/flows-factorial-tree.png)
 
 Clicking on function calls or returns will moves the debugger to that position in time.
 
 In case any errors or exceptions happens while executing traced code, the **errors panel** will popup and 
 the debugger will automatically position itself right on the expression that throwed the error.
 
-![demo](./docs/errors.png)
+![demo](./docs/images/errors.png)
 
 Clicking on errors will move the debugger to that point in time.
 
@@ -154,17 +154,34 @@ X    | Close all flows
 
 #### Refs <a name="refs"></a>
 
-![Refs](./docs/refs.png)
+![Refs](./docs/images/refs.png)
 
 #### Taps <a name="taps"></a>
 
-![Taps](./docs/taps.png)
+![Taps](./docs/images/taps.png)
 
 #### Timeline <a name="timeline"></a>
 
-![Timeline](./docs/timeline.png)
+![Timeline](./docs/images/timeline.png)
 
 ### Debugger command line options and customizations
+
+The debugger accept some command line options you can use to configure some aspects of it :
+
+```bash
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.5.0-SNAPSHOT"}}}' -m flow-storm-debugger.main --help
+
+Usage : flow-storm-debugger [OPTIONS]
+  -fs, --font-size size  13     Font Size
+  -p, --port PORT        7722   Port number
+  -t, --theme THEME      :dark  Theme, can be light or dark
+  -h, --help
+
+```
+
+For example you can choose between light or dark themes :
+
+![themes](./docs/images/themes.png)
 
 ## Developers section
 
