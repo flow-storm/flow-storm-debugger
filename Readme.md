@@ -193,7 +193,15 @@ X    | Close all refs
 
 #### Taps <a name="taps"></a>
 
+The taps tool is a tap> value visualizer.
+
 ![Taps](./docs/images/taps.png)
+
+Every connected process gets its own tap tab. This allows you to easily work with values coming from 
+different applications.
+
+Clicking on any value on the left will expand it no the right, so you can use your normal pprint or collapsible tree
+to explore it.
 
 ##### Taps keyboard bindings
 
@@ -204,7 +212,17 @@ X    | Close all taps
 
 #### Timeline <a name="timeline"></a>
 
+The timeline tool shows you an overview of everything the debugger has received sorted by time.
+
 ![Timeline](./docs/images/timeline.png)
+
+It merges all the information (every flow, ref, tap) available in the debugger in one view.
+
+I find this useful when debugging distributed applications. Let's say you connected your mobile react-native application
+and a couple of services to the debugger. Then you can fire some action on the client and view all the events in the order they
+execute.
+
+From there you can click on any row to jump into the right tool for a deeper analysis.
 
 ### Debugger command line options and customizations
 
