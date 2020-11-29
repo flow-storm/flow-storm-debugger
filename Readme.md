@@ -245,3 +245,9 @@ For example you can choose between light or dark themes :
 ## Developers section
 
 If you are interested in developing flow-storm-debugger take a look at [here](./docs/devs.md).
+
+## More ideas to explore
+
+- Try leverage re-frame traces and implemet a UI providing the same utilities re-frame10x provides.
+- Implement a interactive code display so you can move in time by clicking over expressions.
+- Connect to a socket repl and maybe instrument stuff thru it?
