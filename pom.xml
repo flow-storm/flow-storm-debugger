@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>jpmonettas</groupId>
   <artifactId>flow-storm-debugger</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1-SNAPSHOT</version>
   <name>flow-storm-debugger</name>
   <dependencies>
     <dependency>

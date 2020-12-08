@@ -3,7 +3,8 @@
             [flow-storm-debugger.components.server :as server]
             [flow-storm-debugger.components.ui :as ui]
             [flow-storm-debugger.ui.screens.main :as screens.main]
-            [clojure.tools.cli :as tools-cli])
+            [clojure.tools.cli :as tools-cli]
+            [taoensso.timbre :as log])
   (:gen-class))
 
 (def cli-options
@@ -18,7 +19,8 @@
     :default :dark
     :parse-fn #(keyword %)
     :validate [#(#{:light :dark} %) "Must be `dark` or `light`"]]
-   ["-h" "--help"]])
+   ["-h" "--help"]
+   ["-v" "--verbose" "Enable verbose mode, will log a bunch of internal information"]])
 
 (defn -main [& args]
   (let [parsed-args (tools-cli/parse-opts args cli-options)]
@@ -43,7 +45,13 @@
                     :server (sierra.component/using
                              (server/http-server {:port port})
                              [:ui]))]
+        
+        (if (-> parsed-args :options :verbose)
+          (log/merge-config! {:min-level :debug
+                              :appenders {:println {:min-level :debug}}})
+          (log/merge-config! {:min-level :info
+                              :appenders {:println {:min-level :info}}}))
 
-        (println "Starting system...")
+        (log/info "Starting system...")
         (sierra.component/start-system system)
-        (println "System started.")))))
+        (log/info "System started.")))))

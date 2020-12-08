@@ -9,7 +9,8 @@
             [flow-storm-debugger.ui.events.traces :as events.traces]
             [clojure.core.async :refer [go-loop] :as async]
             [ring.middleware.params :refer [wrap-params]]
-            [ring.middleware.keyword-params :refer [wrap-keyword-params]]))
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [taoensso.timbre :as log]))
 
 (defn build-websocket []
   ;; TODO: move all this stuff to sierra components or something like that
@@ -35,7 +36,7 @@
       :flow-storm/ref-init-trace (ui/swap-state! ui (fn [s] (events.traces/add-ref-init-trace s e-data-map)))
       :flow-storm/ref-trace      (ui/swap-state! ui (fn [s] (events.traces/add-ref-trace s e-data-map)))
       :flow-storm/tap-trace      (ui/swap-state! ui (fn [s] (events.traces/add-tap-trace s e-data-map)))
-      (println "Don't know how to handle" event))
+      (log/warn "Don't know how to handle" {:event event}))
         
     (when (#{:flow-storm/add-trace :flow-storm/init-trace :flow-storm/add-bind-trace
              :flow-storm/ref-trace :flow-storm/ref-init-trace
@@ -48,7 +49,7 @@
   
   sierra.component/Lifecycle
   (start [this]
-    (println "Starting HttpServer...")
+    (log/info "Starting HttpServer...")
     (let [msg-proc-thread (Thread.
                            (fn []
                              (loop []
@@ -63,25 +64,27 @@
                                      (dispatch-ws-event event ui)))
                                  
                                  (catch Exception e
-                                   (println "ERROR handling ws message" e)))
+                                   (log/error "ERROR handling ws message" e)))
                                (recur))))
           server (http-server/run-server (-> (compojure/routes ws-routes)
                                              wrap-keyword-params
                                              wrap-params)
-                                         {:port port})]
+                                         {:port port
+                                          :max-ws (* 50 1024 1024) ;; 50 Mb
+                                          })]
       ;; start the message process thread loop
       (.start msg-proc-thread)
       
-      (println "HttpServer started.")
+      (log/info "HttpServer started.")
       (assoc this
              :msg-process-thread msg-proc-thread
              :server server)))
 
   (stop [this]
-    (println "Stopping HttpServer...")
+    (log/info "Stopping HttpServer...")
     ((:server this))
     (.stop (:msg-process-thread this))
-    (println "HttpServer stopped.")
+    (log/info "HttpServer stopped.")
     (dissoc this :server :msg-process-thread)))
 
 (defn http-server [{:keys [host port]}]

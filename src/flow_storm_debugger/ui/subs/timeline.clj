@@ -2,9 +2,11 @@
   (:require [cljfx.api :as fx]
             [flow-storm-debugger.ui.subs.flows :as subs.flows]
             [flow-storm-debugger.ui.subs.refs :as subs.refs]
-            [flow-storm-debugger.ui.subs.taps :as subs.taps]))
+            [flow-storm-debugger.ui.subs.taps :as subs.taps]
+            [taoensso.timbre :as log]))
 
 (defn partition-traces [traces]
+  (log/debug "[SUB] partition-traces firing")
   (loop [partitions []
          batch []
          [t & tr] traces]
@@ -41,6 +43,7 @@
                tr)))))
 
 (defn- all-flows-fn-call-traces [context]
+  (log/debug "[SUB]  all-flows-fn-call-traces firing")
   (let [flows (fx/sub-ctx context subs.flows/flows)]
     (->> (vals flows)
        (mapcat :traces)
@@ -59,6 +62,7 @@
                    :timestamp timestamp})))))))
 
 (defn- all-ref-traces [context]
+  (log/debug "[SUB]  all-ref-traces firing")
   (let [refs (fx/sub-ctx context subs.refs/refs)
         ref-traces (fn [{:keys [ref-name init-val patches ref-id timestamp]}]
                      (let [init-trace {:ref-id ref-id
@@ -76,12 +80,14 @@
          (map (fn [t] (assoc t :trace/type :ref))))))
 
 (defn- all-tap-traces [context]
+  (log/debug "[SUB]  all-tap-traces firing")
   (let [taps (fx/sub-ctx context subs.taps/taps)]
    (->> (vals taps)
         (mapcat :tap-values )
         (map (fn [t] (assoc t :trace/type :tap))))))
 
 (defn timeline [context]
+  (log/debug "[SUB] timeline firing")
   (let [traces (-> (fx/sub-ctx context all-flows-fn-call-traces)
                    (into (fx/sub-ctx context all-ref-traces))
                    (into (fx/sub-ctx context all-tap-traces)))]

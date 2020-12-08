@@ -11,7 +11,8 @@
         zprint/zprint               {:mvn/version "1.0.0"}
         juji/editscript             {:mvn/version "0.4.6"}
         com.stuartsierra/component  {:mvn/version "1.0.0"}
-        org.clojure/tools.cli       {:mvn/version "1.0.194"}}
+        org.clojure/tools.cli       {:mvn/version "1.0.194"}
+        com.taoensso/timbre         {:mvn/version "5.1.0"}}
  :aliases {:dev {:extra-paths ["dev-src"]
                  :extra-deps {jpmonettas/flow-storm {
                                                      ;;:mvn/version "0.3.2"

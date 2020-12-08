@@ -8,7 +8,8 @@
             [flow-storm-debugger.ui.events :as ui.events]
             [flow-storm-debugger.ui.fxs :as fxs]
             [flow-storm-debugger.ui.styles :as styles]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [taoensso.timbre :as log]))
 
 (defn create-app "A copy of fx/create-app but that doesn't wrap event-handler in wrap-async."  
   [*context & {:keys [event-handler
@@ -50,7 +51,7 @@
 (defrecord UI [font-size theme watch-styles? state app main-cmp]
   sierra.component/Lifecycle
   (start [this]
-    (println "Starting UI...")
+    (log/info "Starting UI...")
     (reset! styles/theme theme)
     (reset! styles/font-size font-size)
     (let [styles (styles/build-styles)
@@ -83,20 +84,20 @@
                       :app app)]
 
       (when watch-styles?
-        (println "Watching styles")
+        (log/info "Watching styles")
         (add-watch #'styles/style :refresh-app
                    (fn [_ _ _ _]
                      (swap-state! this (fn [s] (assoc-in s [:styles :app-styles] (:cljfx.css/url @styles/style)))))))
       
-      (println "UI started.")
+      (log/info "UI started.")
 
       this))
 
   (stop [this]
-    (println "Stopping UI...")
+    (log/info "Stopping UI...")
     (remove-watch #'styles/style :refresh-app)
     @(fx/unmount-renderer (:state this) (-> this :app :renderer))    
-    (println "UI stopped.")
+    (log/info "UI stopped.")
     this))
 
 (defn ui [{:keys [font-size theme main-cmp watch-styles?]}]  

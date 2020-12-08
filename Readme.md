@@ -21,6 +21,19 @@ A Clojure and ClojureScript debugger with some unique features.
 - Library code tracing.
 - And more...
 
+## A one liner to experiment in the debugger
+
+Running this one liner will run the debugger and a clojure repl already connected to it :
+```bash
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.5.0"} jpmonettas/flow-storm {:mvn/version "0.4.2"}}}' \
+-e "(require '[flow-storm-debugger.main :as fsd]) (require '[flow-storm.api :as fsa]) (fsd/-main) (fsa/connect) " -r
+```
+
+
+```clojure
+user> #trace (reduce + (map inc (range 10)))
+```
+
 ## Running the debugger
 
 ```bash
@@ -235,7 +248,7 @@ Usage : flow-storm-debugger [OPTIONS]
   -p, --port PORT        7722   Port number
   -t, --theme THEME      :dark  Theme, can be light or dark
   -h, --help
-
+  -v, --verbose                 Enable verbose mode, will log a bunch of internal information
 ```
 
 For example you can choose between light or dark themes :

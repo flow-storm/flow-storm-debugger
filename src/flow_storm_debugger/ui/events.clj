@@ -8,12 +8,15 @@
             [flow-storm-debugger.ui.keymap :as keymap]
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.db :as ui.db]
-            [flow-storm-debugger.ui.fxs :as fxs])
+            [flow-storm-debugger.ui.fxs :as fxs]
+            [taoensso.timbre :as log])
   (:import [javafx.stage FileChooser]
            [javafx.event ActionEvent]
            [javafx.scene Node]))
 
-(defmulti dispatch-event :event/type)
+(defmulti dispatch-event (fn [e]
+                           (log/debug (str "[EVENT] " (:event/type e)))
+                           (:event/type e)))
 
 (defmethod dispatch-event ::init [{:keys [fx/context]}]
   {:context context})
@@ -142,5 +145,5 @@
 
 
 (defmethod dispatch-event nil [m]
-  (println "Don't know how to dispatch event: " m))
+  (log/info "Don't know how to dispatch event: " m))
 
