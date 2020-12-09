@@ -8,6 +8,14 @@
   (log/debug "[SUB] flows firing")
   (fx/sub-val context :flows))
 
+(defn all-flows-traces [context]
+  (log/debug "[SUB] flows-traces firing")
+  (let [flows (fx/sub-val context :flows)]
+   (->> flows
+        vals
+        (mapcat (fn [{:keys [flow-id flow-name traces]}]
+                  (map #(assoc % :flow-name flow-name) traces))))))
+
 (defn selected-flow [context]
   (log/debug "[SUB] selected-flow firing")
   (let [selected-flow-id (fx/sub-val context :selected-flow-id)

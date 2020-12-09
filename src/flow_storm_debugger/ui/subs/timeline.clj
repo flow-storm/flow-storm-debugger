@@ -44,18 +44,17 @@
 
 (defn- all-flows-fn-call-traces [context]
   (log/debug "[SUB]  all-flows-fn-call-traces firing")
-  (let [flows (fx/sub-ctx context subs.flows/flows)]
-    (->> (vals flows)
-       (mapcat :traces)
+  (let [flows-traces (fx/sub-ctx context subs.flows/all-flows-traces)]
+    (->> flows-traces
        (partition-traces)
        (map (fn [part]
               (if (and (= (count part) 1) (subs.flows/fn-call-trace? (first part)))
                 
                 (assoc (first part) :trace/type :flow-fn-call)
                 
-                (let [{:keys [flow-id trace-idx timestamp]} (first part)]
+                (let [{:keys [flow-id flow-name trace-idx timestamp]} (first part)]
                   {:trace/type :flow-group
-                   :flow-name (get-in flows [flow-id :flow-name])
+                   :flow-name flow-name
                    :flow-id flow-id
                    :trace-idx trace-idx
                    :trace-group-count (count part)

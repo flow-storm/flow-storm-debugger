@@ -145,5 +145,5 @@
 
 
 (defmethod dispatch-event nil [m]
-  (log/info "Don't know how to dispatch event: " m))
+  (log/info "Don't know how to dispatch event: " (dissoc m :fx/context)))
 
