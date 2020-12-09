@@ -9,6 +9,7 @@
   (log/debug "[SUB] partition-traces firing")
   (loop [partitions []
          batch []
+         batch-last nil
          [t & tr] traces]
     (if-not t
 
@@ -22,43 +23,47 @@
         (subs.flows/fn-call-trace? t)
         (recur (conj partitions [t])
                []
+               nil
                tr)
 
         ;; if the batch is empty start a new one
         (empty? batch)
         (recur partitions
                [t]
+               t
                tr)
 
         ;; if we are changing flow-id start a new batch
-        (not= (:flow-id t) (:flow-id (last batch)))
+        (not= (:flow-id t) (:flow-id batch-last))
         (recur (conj partitions batch)
                [t]
+               t
                tr)
 
         ;; else accumulate on the batch
         :else
         (recur partitions
                (conj batch t)
+               t
                tr)))))
 
 (defn- all-flows-fn-call-traces [context]
   (log/debug "[SUB]  all-flows-fn-call-traces firing")
   (let [flows-traces (fx/sub-ctx context subs.flows/all-flows-traces)]
     (->> flows-traces
-       (partition-traces)
-       (map (fn [part]
-              (if (and (= (count part) 1) (subs.flows/fn-call-trace? (first part)))
-                
-                (assoc (first part) :trace/type :flow-fn-call)
-                
-                (let [{:keys [flow-id flow-name trace-idx timestamp]} (first part)]
-                  {:trace/type :flow-group
-                   :flow-name flow-name
-                   :flow-id flow-id
-                   :trace-idx trace-idx
-                   :trace-group-count (count part)
-                   :timestamp timestamp})))))))
+         (partition-traces)
+         (map (fn [part]
+                (if (and (= (count part) 1) (subs.flows/fn-call-trace? (first part)))
+                  
+                  (assoc (first part) :trace/type :flow-fn-call)
+                  
+                  (let [{:keys [flow-id flow-name trace-idx timestamp]} (first part)]
+                    {:trace/type :flow-group
+                     :flow-name flow-name
+                     :flow-id flow-id
+                     :trace-idx trace-idx
+                     :trace-group-count (count part)
+                     :timestamp timestamp})))))))
 
 (defn- all-ref-traces [context]
   (log/debug "[SUB]  all-ref-traces firing")

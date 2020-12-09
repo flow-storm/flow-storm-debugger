@@ -17,7 +17,7 @@
        (update :selected-flow-id #(or % flow-id))
        (update-in [:flows flow-id :flow-name] #(or % (flow-name form)))
        (assoc-in [:flows flow-id :forms form-id] {:timestamp timestamp
-                                                  :form-str (utils/pprint-form-for-html form)
+                                                  :form-str form
                                                   :form-id form-id})
        (update :form-flow-id->flow-id assoc form-flow-id flow-id)
        (update-in [:flows flow-id :traces] (fn [traces]

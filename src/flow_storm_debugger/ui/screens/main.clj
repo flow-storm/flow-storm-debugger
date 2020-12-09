@@ -70,6 +70,7 @@
   (let [open-dialog (fx/sub-val context :open-dialog)
         selected-tool-idx (fx/sub-val context :selected-tool-idx) 
         {:keys [app-styles font-styles]} (fx/sub-val context :styles)
+        ui-blocked? (fx/sub-val context :blocked?)
         main-screen {:fx/type :stage
                      :title "Flow Storm debugger"
                      :showing true
@@ -80,6 +81,7 @@
                              :on-key-pressed {:event/type ::ui.events/key-pressed}
                              :stylesheets [font-styles app-styles]
                              :root {:fx/type :border-pane
+                                    :disable (or ui-blocked? false)
                                     :center {:fx/type  fx.ext.tab-pane/with-selection-props
                                              :props {:on-selected-index-changed {:event/type ::ui.events/select-tools-tab}
                                                      :selected-index selected-tool-idx}

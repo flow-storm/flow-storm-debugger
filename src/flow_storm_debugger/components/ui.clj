@@ -45,8 +45,11 @@
     {:renderer renderer
      :handler handler}))
 
-(defn swap-state! [ui f]
-  (swap! (:state ui) fx/swap-context f))
+(defn deref-state [state-ref]
+  (:cljfx.context/m @state-ref))
+
+(defn swap-state! [state-ref f]
+  (swap! state-ref fx/swap-context f))
 
 (defrecord UI [font-size theme watch-styles? state app main-cmp]
   sierra.component/Lifecycle
@@ -87,7 +90,7 @@
         (log/info "Watching styles")
         (add-watch #'styles/style :refresh-app
                    (fn [_ _ _ _]
-                     (swap-state! this (fn [s] (assoc-in s [:styles :app-styles] (:cljfx.css/url @styles/style)))))))
+                     (swap-state! state (fn [s] (assoc-in s [:styles :app-styles] (:cljfx.css/url @styles/style)))))))
       
       (log/info "UI started.")
 

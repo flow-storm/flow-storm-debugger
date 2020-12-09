@@ -33,11 +33,18 @@
   (let [{:keys [traces trace-idx]} (fx/sub-ctx context selected-flow)]
     (get traces trace-idx)))
 
+(defn selected-flow-forms-pprinted [context]
+  (log/debug "[SUB] selected-flow-forms-pprinted firing")
+  (let [forms (fx/sub-ctx context selected-flow-forms)]
+    (->> (vals forms)
+         (mapv (fn [form]
+                 (update form :form-str utils/pprint-form-for-html))))))
+
 (defn selected-flow-forms-highlighted [context]
   (log/debug "[SUB] selected-flow-forms-highlighted firing")
-  (let [forms (fx/sub-ctx context selected-flow-forms)
+  (let [forms (fx/sub-ctx context selected-flow-forms-pprinted)
         current-trace (fx/sub-ctx context selected-flow-current-trace)]
-    (->> (vals forms)
+    (->> forms
          (sort-by :timestamp >)
          (mapv (fn [{:keys [form-id form-str]}]
                  (let [h-form-str (cond-> form-str

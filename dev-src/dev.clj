@@ -10,28 +10,34 @@
             [cljfx.api :as fx]
             [flow-storm-debugger.ui.styles :as styles]
             [clojure.pprint :as pp]
-            [com.stuartsierra.component :as sierra.component]))
-
+            [com.stuartsierra.component :as sierra.component]
+            [taoensso.timbre :as log]
+            [flow-storm.api :as fsa]))
 
 (def system (sierra.component/system-map
-             :ui (ui/ui {:main-cmp screens.main/main-screen
-                         :watch-styles? true
-                         :theme :dark
-                         :font-size 13})
-               :server (sierra.component/using
-                        (server/http-server {:port 7722})
-                        [:ui])))
+                 :ui (ui/ui {:main-cmp screens.main/main-screen
+                             :watch-styles? true
+                             :theme :dark
+                             :font-size 13})
+                 :server (sierra.component/using
+                          (server/http-server {:port 7722})
+                          [:ui])))
 
 (defn ui-refresh []
   ((-> system :ui :app :renderer)))
 
 (comment
 
+  (fsa/connect {:tap-name "black-debugger"
+                :port 7777})
+  (fsa/trace-ref (-> system :ui :state)
+                 {:ref-name "debugger-state"
+                  :ignore-keys [:cljfx.context/generation :cljfx.context/*cache]})
+  
   ;; TODO:
   ;; - fix events
   
   (def state-ref (-> system :ui :state))
-  
   (def state (:cljfx.context/m @state-ref))
 
   (def ff (subs.flows/flows @state-ref))
@@ -49,9 +55,19 @@
   (subs.taps/selected-tap-value-panel-content @state-ref false)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (require '[clj-async-profiler.core :as prof])
+  (prof/start {:framebuf 500000000 :interval 5000000}) ;; 5 millis
+  (prof/stop)
+  (prof/serve-files 7700)
   
   (require '[flow-storm.api :as fsa])
   (fsa/connect {:tap-name "TAPPP"})
+
+  (require '[clj-async-profiler.core :as prof])
+  (prof/start)
+  (prof/stop)
+  (prof/serve-files 7700)
   
   (tap> "HELLO")
   (tap> {:a 41})
