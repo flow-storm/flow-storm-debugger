@@ -118,14 +118,15 @@
 (defn selected-flow-similar-traces [context]
   (log/debug "[SUB] selected-flow-similar-traces firing")
   (let [{:keys [traces trace-idx]} (fx/sub-ctx context selected-flow)
-        traces (mapv (fn [idx t] (assoc t :trace-idx idx :selected? (= idx trace-idx))) (range) traces)
+        traces (into [] (map-indexed (fn [idx t] (assoc t :trace-idx idx :selected? (= idx trace-idx)))) traces)
         {:keys [form-id coor]} (get traces trace-idx)
         current-coor (get-in traces [trace-idx :coor])
-        similar-traces (->> traces
-                            (filter (fn similar [t]
-                                      (and (= (:form-id t) form-id)
-                                           (= (:coor t)    coor)
-                                           (:result t)))))]
+        similar-traces (into []
+                             (filter (fn similar [t]
+                                       (and (= (:form-id t) form-id)
+                                            (= (:coor t)    coor)
+                                            (:result t))))
+                             traces)]
     similar-traces))
 
 (defn empty-flows? [context]
