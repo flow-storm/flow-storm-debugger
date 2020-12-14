@@ -25,7 +25,7 @@ A Clojure and ClojureScript debugger with some unique features.
 
 Running this one liner will run the debugger and a clojure repl already connected to it :
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.5.0"} jpmonettas/flow-storm {:mvn/version "0.4.2"}}}' \
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.6.0"} jpmonettas/flow-storm {:mvn/version "0.5.0"}}}' \
 -e "(require '[flow-storm-debugger.main :as fsd]) (require '[flow-storm.api :as fsa]) (fsd/-main) (fsa/connect) " -r
 ```
 
@@ -37,7 +37,7 @@ user> #trace (reduce + (map inc (range 10)))
 ## Running the debugger
 
 ```bash
-clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.5.0"}}}' -m flow-storm-debugger.main
+clj -Sdeps '{:deps {jpmonettas/flow-storm-debugger {:mvn/version "0.6.0"}}}' -m flow-storm-debugger.main
 ```
 
 And that's it !! One instance of the debugger is enough for all your Clojure and ClojureScript projects.

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## 0.6.0 (2020-12-14)
+
+- Receive and apply traces in batches for better perf. Needs flow-storm > 0.5.0
+
 ## 0.5.0 (2020-11-27)
 
 - Timeline tool implementation
