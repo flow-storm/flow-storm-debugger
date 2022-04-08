@@ -7,10 +7,10 @@ A trace debugger for Clojure
 # Installing 
 
 Debugger GUI artifact :
-[![Clojars Project](https://img.shields.io/clojars/v/jpmonettas/flow-storm-dbg.svg)](https://clojars.org/jpmonettas/flow-storm-dbg)
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
 
 Instrumentation artifact :
-[![Clojars Project](https://img.shields.io/clojars/v/jpmonettas/flow-storm-inst.svg)](https://clojars.org/jpmonettas/flow-storm-inst)
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
 To check that it working run a repl with both deps in your dependencies :
 
