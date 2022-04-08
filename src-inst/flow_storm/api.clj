@@ -132,6 +132,9 @@
 (defn trampoline
 
   "Require `fn-symb` ns, instrument `ns-set` and then call (apply `fn-symb` `fn-args`).
+
+  `profile` can be :full (for full instrumentation) or :light for disable #{:expr :binding :anonymous-fn}
+
   Designed to be used from clj -X like :
 
   clj -X:dbg:inst:dev:build flow-storm.api/trampoline :ns-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
@@ -139,10 +142,15 @@
   if you want to run depstar traced.
   "
 
-  [{:keys [ns-set fn-symb fn-args]}]
-  (let [f (requiring-resolve fn-symb)]
+  [{:keys [ns-set fn-symb fn-args profile]}]
+  (let [inst-opts (case profile
+                    :full {}
+                    :light {:disable #{:expr :binding :anonymous-fn}}
+                    {})
+        f (requiring-resolve fn-symb)]
     (local-connect)
     (instrument-forms-for-namespaces (or ns-set
                                          #{(namespace fn-symb)})
-                                     {})
-    (apply f fn-args)))
+                                     inst-opts)
+    (log "Instrumentation done.")
+    (run* (apply f fn-args))))

@@ -41,3 +41,42 @@ Proper manual coming...
 # Notes
 
 Only Clojure local debugging is supported now, but remote debugging and ClojureScript are planned.
+
+# Some examples
+
+### Debug the clojurescript compiler in one command
+
+Given you can compile and run a cljs file, like :
+
+```bash
+clj -Sdeps {:deps {org.clojure/clojure {:mvn/version "1.11.0"}          \
+					org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
+    -M -m cljs.main -t nodejs /home/jmonetta/tmp/cljstest/foo/script.cljs
+```
+
+You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/trampoline`, like :
+
+```bash
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"}  \
+                    com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"} \
+					org.clojure/clojure {:mvn/version "1.11.0"}                                 \
+					org.clojure/clojurescript {:mvn/version "1.11.4"}}}'                        \
+	-X flow-storm.api/trampoline :ns-set '#{"cljs."}'                                           \
+	                             :profile ':light'                                              \
+								 :fn-symb 'cljs.main/-main'                                     \
+								 :fn-args '["-t" "nodejs" "/home/jmonetta/tmp/cljstest/foo/script.cljs"]'
+```
+
+### Debug depsta while building flow-storm jars
+
+```bash
+clj -X:dbg:inst:dev:build flow-storm.api/trampoline :ns-set '#{\"hf.depstar\"}' \
+                                                    :fn-symb 'hf.depstar/jar'   \
+													:fn-args '[{:jar "flow-storm-dbg.jar"         \
+													            :aliases [:dbg]                   \
+																:paths-only false                 \
+																:sync-pom true                    \
+																:version "1.1.1"                  \
+																:group-id "com.github.jpmonettas" \
+																:artifact-id "flow-storm-dbg"}]'
+```
