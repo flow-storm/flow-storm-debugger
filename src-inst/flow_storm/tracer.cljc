@@ -13,6 +13,9 @@
 
 (def trace-queue nil)
 
+(defn enqueue-trace! [trace]
+  (.put trace-queue trace))
+
 (defonce ^Thread send-thread nil)
 
 (def ^:dynamic *runtime-ctx* nil)
@@ -46,8 +49,8 @@
   (let [trace (trace-types/map->FlowInitTrace {:flow-id flow-id
                                                :form-ns form-ns
                                                :form form
-                                               :timestamp (get-timestamp)})]
-    (.put trace-queue trace)))
+                                               :timestamp (get-timestamp)})]    
+    (enqueue-trace! trace)))
 
 (defn get-current-thread-id []
   #?(:clj (.getId (Thread/currentThread))
@@ -69,7 +72,7 @@
                                                    :def-kind def-kind
                                                    :mm-dispatch-val dispatch-val
                                                    :timestamp (get-timestamp)})]
-        (.put trace-queue trace)
+        (enqueue-trace! trace)
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
 (defn trace-expr-exec-trace
@@ -85,7 +88,7 @@
                                            :timestamp (get-timestamp)
                                            :result result
                                            :outer-form? outer-form?})]
-    (.put trace-queue trace)
+    (enqueue-trace! trace)
     result))
 
 (defn trace-fn-call-trace
@@ -101,7 +104,7 @@
                                              :thread-id (get-current-thread-id)
                                              :args-vec args-vec
                                              :timestamp (get-timestamp)})]
-    (.put trace-queue trace)))
+    (enqueue-trace! trace)))
 
 (defn trace-bound-trace
   
@@ -116,7 +119,7 @@
                                            :timestamp (get-timestamp)
                                            :symbol (name symb)
                                            :value val})]
-    (.put trace-queue trace)))
+    (enqueue-trace! trace)))
 
 ;; (defn ref-init-trace
 ;;   "Sends the `:ref-init-trace` trace"

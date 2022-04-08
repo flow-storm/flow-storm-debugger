@@ -106,8 +106,8 @@
           (alter-var-root v (fn [_] (eval vval))))
         (eval inst-form))
       (catch Exception e
-        ;; (utils/log-error "Evaluating form" e)
-        ;; (System/exit 1)
+        #_(utils/log-error (format "Evaluating form %s" (pr-str inst-form)) e)
+        #_(System/exit 1)
         (let [e-msg (.getMessage e)
               ex-type (cond
 

@@ -1,9 +1,12 @@
-.PHONY: 
+.PHONY: test
 
 clean:
 	-rm flow-storm-dbg.jar
 	-rm flow-storm-inst.jar
 	-rm pom.xml
+
+test:
+	clj -M:test:inst
 
 lint-dbg:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared
