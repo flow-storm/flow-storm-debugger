@@ -1,0 +1,97 @@
+@font-face {
+    src: url('fonts/Roboto-Light.ttf');
+}
+
+@font-face {
+    src: url('fonts/Roboto-Medium.ttf');
+}
+
+.vertical-tab:selected {
+	-fx-background-color: #4743ba;
+    
+}
+
+.vertical-tab:selected .tab-label { 
+	-fx-text-fill: white;
+}
+
+.button {
+	-fx-background-color: #888;   
+}
+
+.button:focused { /* this is so buttons doesn't look smaller when they are focused */
+	-fx-background-insets: 0 0 -1 0;
+}
+
+.button .ikonli-font-icon {
+	-fx-icon-color: white;
+}
+
+.tree-search {
+	-fx-background-insets: 1 0 1 0;
+}
+
+.form-pane {
+	-fx-background-color: #eee;
+}
+
+.form-pane.form-background-highlighted {
+	-fx-background-color: #ebecff;
+}
+
+.label.defmethod {
+	-fx-text-fill: #9c0084;
+}
+
+.label.defn {
+	-fx-text-fill: #222;
+}
+
+.label.extend-type {
+	-fx-text-fill: #369658;
+}
+
+.label.extend-protocol {
+	-fx-text-fill: #369658;
+}
+
+.label.anonymous {
+	-fx-text-fill: #222;
+}
+
+.label.fn-ns {
+	-fx-text-fill: #999;
+}
+
+.label.fn-args {
+	-fx-text-fill: #777;
+}
+
+.code-token {
+	-fx-font-family: 'monospaced';
+	-fx-font-size: 13;
+	-fx-fill: #0b0d2e;
+}
+.code-token.executing {
+    -fx-stroke: #459e11;
+	-fx-stroke-width: 1;
+}
+
+.code-token.interesting {
+	-fx-fill: #de00c0;
+	-fx-cursor: hand;
+	-fx-font-weight: bold;
+}
+
+.form-pane {
+	-fx-padding: 10;
+}
+
+.thread-controls-pane {
+	-fx-background-color: #ddd;
+	-fx-padding: 10;
+}
+
+.trace-position-box {
+	-fx-alignment: center;
+}

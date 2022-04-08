@@ -1,0 +1,18 @@
+(ns flow-storm.debugger.trace-indexer.protos)
+
+(defprotocol TraceIndex
+  (thread-exec-count [_])
+  (add-form [_ form-id form-ns def-kind mm-dispatch-val form])
+  (get-form [_ form-id])
+  (add-fn-call-trace [_ trace])
+  (add-exec-trace [_ trace])
+  (add-bind-trace [_ trace])
+  (get-trace [_ idx])
+  (bindings-for-trace [_ trace-idx])
+  (interesting-expr-traces [_ form-id trace-idx])
+  (callstack-tree-root [_])
+  (callstack-node-frame [_ node])
+  (callstack-tree-childs [_ node])
+  (callstack-frame-call-trace-idx [_ trace-idx])
+  (find-fn-calls [_ fn-ns fn-name form-id])
+  (search-next-fn-call-trace [_ s from-idx print-level on-result-cb on-progress-cb]))
