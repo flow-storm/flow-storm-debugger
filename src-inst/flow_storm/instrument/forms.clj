@@ -218,7 +218,7 @@
         remove-&-symb
         remove-type-hint-tags)))
 
-(defn instrument-dot [args ctx]
+(defn instrument-special-dot [args ctx]
   (list* (first args)
          ;; To handle the case when second argument to dot call
          ;; is a list e.g (. class-name (method-name args*))
@@ -230,18 +230,24 @@
              s))
          (instrument-coll (rest (rest args)) ctx)))
 
-(defn instrument-def [args ctx]
-  (let [[sym & rargs] args]
+(defn instrument-special-def [orig-form args ctx]
+  (let [[sym & rargs] args
+        is-fn-def? (and (seq? (first rargs))
+                        (= 'fn* (-> rargs first first)))
+        ctx (cond-> ctx
+              is-fn-def? (assoc :fn-ctx {:trace-name sym
+                                         :kind :defn
+                                         :orig-form orig-form}))]
     (list* (merge-meta sym
-                       ;; Instrument the metadata, because
-                       ;; that's where tests are stored.
-                       (instrument (or (meta sym) {}) ctx)
-                       ;; to be used later for meta stripping
-                       {::def-symbol true})
+             ;; Instrument the metadata, because
+             ;; that's where tests are stored.
+             (instrument (or (meta sym) {}) ctx)
+             ;; to be used later for meta stripping
+             {::def-symbol true})
 
            (map (fn [arg] (instrument arg ctx)) rargs))))
 
-(defn instrument-loop*-like
+(defn instrument-special-loop*-like
 
   "Trace lets and loops bindings right side recursively."
 
@@ -268,45 +274,63 @@
              vec)
         (instrument-coll (rest args) ctx)))
 
-(defn instrument-fn* [[_ & args :as form] {:keys [orig-outer-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
+(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind extend-ctx orig-outer-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns defn-def] :as ctx}]
+  (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
+        fn-form (cond
+                  (= outer-form-kind :extend-protocol) (:orig-form extend-ctx)
+                  (= outer-form-kind :extend-type) (:orig-form extend-ctx)
+                  (= outer-form-kind :defrecord) (:orig-form extend-ctx)
+                  (= outer-form-kind :deftype) (:orig-form extend-ctx)
+                  (= (:kind fn-ctx) :reify) (:orig-form fn-ctx)
+                  (= (:kind fn-ctx) :defmethod) (:orig-form fn-ctx)
+                  (= (:kind fn-ctx) :defn) (:orig-form fn-ctx)
+                  (= (:kind fn-ctx) :anonymous) (:orig-form fn-ctx)
+                  :else (throw (Exception. (format "Don't know how to handle functions of this type. %s %s %s" fn-ctx outer-form-kind extend-ctx))))
+        outer-preamble (-> []
+                           (into [`(~on-outer-form-init-fn {:form-id ~form-id
+                                                            :ns ~form-ns
+                                                            :def-kind ~(cond
+                                                                         (= outer-form-kind :extend-protocol) :extend-protocol
+                                                                         (= outer-form-kind :extend-type) :extend-type
+                                                                         (= outer-form-kind :defrecord) :extend-type
+                                                                         (= outer-form-kind :deftype) :extend-type
+                                                                         (= (:kind fn-ctx) :defmethod) :defmethod
+                                                                         (= (:kind fn-ctx) :defn) :defn)
+                                                            :dispatch-val ~(:dispatch-val fn-ctx)}
+                                    ~fn-form)])
+                           (into [`(~on-fn-call-fn ~form-id ~form-ns ~(str fn-trace-name) ~(clear-fn-args-vec arity-args-vec))])
+                           (into (args-bind-tracers arity-args-vec form-coor ctx)))
+
+        ctx' (-> ctx
+                 (dissoc :fn-ctx)) ;; remove :fn-ctx so fn* down the road instrument as anonymous fns
+
+        lazy-seq-fn? (lazy-seq-form? (first arity-body-forms))
+
+        inst-arity-body-form (if (or (and (disable :anonymous-fn) (not fn-ctx)) ;; don't instrument anonymous-fn if they are disabled
+                                     (and (#{:deftype :defrecord} outer-form-kind)
+                                          (or (str/starts-with? (str fn-trace-name) "->")
+                                              (str/starts-with? (str fn-trace-name) "map->"))) ;; don't instrument record constructors
+                                     (excluding-fns (symbol form-ns (str fn-trace-name))) ;; don't instrument if in excluding-fn
+                                     lazy-seq-fn?) ;; don't instrument if lazy-seq-fn
+                               ;; NOTE: on skipping instrumentation for lazy-seq fns
+                               ;;
+                               ;; if the fn* returns a lazy-seq we can't wrap it or we will generate a
+                               ;; recursion and we risk getting a StackOverflow.
+                               ;; If we can't wrap the output we can't wrap the call neither since
+                               ;; they are sinchronized, so we skip this fn* body tracing
+                               `(do ~@arity-body-forms)
+
+                               (instrument-outer-form ctx'
+                                                      (instrument-coll arity-body-forms ctx')
+                                                      outer-preamble))]
+    (-> `(~arity-args-vec ~inst-arity-body-form)
+        (merge-meta (meta arity)))))
+
+(defn instrument-special-fn* [[_ & args :as form] ctx]
   (let [[a1 & a1r] args
         {:keys [defn-def]} ctx
-        ;; if current ctx contains a defn-def, it is because we are a defn fn*, so use it to trace the fn-call
-        ;; then remove it from ctx so fn* declared down the road don't think they are defn
-        instrument-fn-arities-bodies (fn [fn-name [arity-args-vec & arity-body-forms :as arity]]
-                                       (let [orig-form (or (:orig-form defn-def) (::original-form (meta form)))
-                                             outer-preamble (-> []
-                                                                (into [`(~on-outer-form-init-fn {:form-id ~form-id
-                                                                                                 :ns ~form-ns
-                                                                                                 :def-kind ~(:kind defn-def)
-                                                                                                 :dispatch-val ~(:dispatch-val defn-def)
-                                                                                                 }
-                                                                         (quote ~orig-outer-form)
-                                                                         )])
-                                                                (into [`(~on-fn-call-fn ~form-id ~form-ns ~(str fn-name) ~(clear-fn-args-vec arity-args-vec))])
-                                                                (into (args-bind-tracers arity-args-vec (-> form meta ::coor) ctx)))
-
-                                             ctx' (-> ctx
-                                                      (assoc :orig-form orig-form)
-                                                      (dissoc :defn-def))
-
-                                             lazy-seq-fn? (lazy-seq-form? (first arity-body-forms))
-                                             inst-arity-body-form (if (or (and (disable :anonymous-fn) (not defn-def))
-                                                                          (excluding-fns (symbol form-ns (str fn-name)))
-                                                                          lazy-seq-fn?)
-                                                                    ;; SKIP instrumentation
-                                                                    ;;
-                                                                    ;; if the fn* returns a lazy-seq we can't wrap it or we will generate a
-                                                                    ;; recursion and we risk getting a StackOverflow.
-                                                                    ;; If we can't wrap the output we can't wrap the call neither since
-                                                                    ;; they are sinchronized, so we skip this fn* body tracing
-                                                                    `(do ~@arity-body-forms)
-
-                                                                    (instrument-outer-form ctx'
-                                                                                           (instrument-coll arity-body-forms ctx')
-                                                                                           outer-preamble))]
-                                         (-> `(~arity-args-vec ~inst-arity-body-form)
-                                             (merge-meta (meta arity)))))
+        orig-form (::original-form (meta form))
+        form-coor (-> form meta ::coor)
         [fn-name arities-bodies-seq] (cond
 
                                        ;; named fn like (fn* fn-name ([] ...) ([p1] ...))
@@ -315,16 +339,23 @@
 
                                        ;; anonymous fn like (fn* [] ...), comes from expanding #( % )
                                        (vector? a1)
-                                       [(gensym "fn-") [`(~a1 ~@a1r)]]
+                                       [nil [`(~a1 ~@a1r)]]
 
                                        ;; anonymous fn like (fn* ([] ...) ([p1] ...))
                                        :else
-                                       [(or (:fn-name defn-def) (gensym "fn-")) args])
-        instrumented-arities-bodies (map #(instrument-fn-arities-bodies fn-name %) arities-bodies-seq)]
+                                       [nil args])
+        ctx (cond-> ctx
+              (nil? (:fn-ctx ctx)) (assoc :fn-ctx (or (:fn-ctx ctx)
+                                                      {:trace-name fn-name
+                                                       :kind :anonymous
+                                                       :orig-form orig-form})))
+        instrumented-arities-bodies (map #(instrument-fn-arity-body form-coor % ctx) arities-bodies-seq)]
 
-    `(~fn-name ~@instrumented-arities-bodies)))
+    (if (nil? fn-name)
+      `(~@instrumented-arities-bodies)
+      `(~fn-name ~@instrumented-arities-bodies))))
 
-(defn instrument-case* [args ctx]
+(defn instrument-special-case* [args ctx]
   (case (:compiler ctx)
     :clj (let [[a1 a2 a3 a4 a5 & ar] args]
            ;; Anyone know what a2 and a3 represent? They were always 0 on my tests.
@@ -332,6 +363,40 @@
     :cljs (let [[a1 left-vec right-vec else] args]
             `(~a1 ~left-vec ~(instrument-coll right-vec ctx) ~(instrument else ctx)))))
 
+(defn instrument-special-reify* [[proto-or-interface-vec & methods] orig-form ctx]
+  (let [inst-methods (->> methods
+                          (map (fn [[method-name args-vec & body :as form]]
+                                 (let [form-coor (-> form meta ::coor)
+                                       ctx (assoc ctx :fn-ctx {:trace-name method-name
+                                                               :kind :reify
+                                                               :orig-form orig-form})
+                                       [_ inst-body] (instrument-fn-arity-body form-coor `(~args-vec ~@body) ctx)]
+                                   `(~method-name ~args-vec ~inst-body)))))]
+    `(~proto-or-interface-vec ~@inst-methods)))
+
+(defn instrument-special-deftype* [[a1 a2 a3 a4 a5 & methods] {:keys [outer-form-kind deftype-ctx] :as ctx}]
+  (let [inst-methods (->> methods
+                          (map (fn [[method-name args-vec & body :as form]]
+                                 (if (and (= outer-form-kind :defrecord)
+                                          (= "clojure.core" (namespace method-name)))
+
+                                   ;; don't instrument defrecord types
+                                   `(~method-name ~args-vec ~@body)
+
+                                   (let [form-coor (-> form meta ::coor)
+                                         ctx (assoc ctx :fn-ctx {:trace-name method-name
+                                                                 :kind :extend-type
+                                                                 :orig-form (:orig-form deftype-ctx)})
+                                         [_ inst-body] (instrument-fn-arity-body form-coor `(~args-vec ~@body) ctx)]
+                                     `(~method-name ~args-vec ~inst-body))))))]
+    `(~a1 ~a2 ~a3 ~a4 ~a5 ~@inst-methods)))
+
+#_(map #(if (seq? %)
+        (let [[a1 a2 & ar] %]
+          (merge-meta (list* a1 a2 (instrument-coll ar ctx))
+            (meta %)))
+        %)
+     args)
 (definstrumenter instrument-special-form
   "Instrument form representing a macro call or special-form."
   [[name & args :as form] {:keys [orig-outer-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
@@ -341,29 +406,23 @@
         ;; play it safe and use a `try`.
         (try
           (condp #(%1 %2) name
-            '#{if do recur throw finally try monitor-exit monitor-enter} (instrument-coll args ctx)
-                 '#{new} (cons (first args) (instrument-coll (rest args) ctx))
-                 '#{quote & var clojure.core/import*} args
-                 '#{.} (instrument-dot args ctx)
-                 '#{def} (instrument-def args ctx)
-                 '#{set!} (list (first args)
-                                (instrument (second args) ctx))
-                 '#{loop* let* letfn*} (instrument-loop*-like form ctx)
-                 '#{reify* deftype*} (map #(if (seq? %)
-                                             (let [[a1 a2 & ar] %]
-                                               (merge-meta (list* a1 a2 (instrument-coll ar ctx))
-                                                 (meta %)))
-                                             %)
-                                          args)
-                 '#{fn*} (instrument-fn* form ctx)
-                 '#{catch} `(~@(take 2 args)
-                             ~@(instrument-coll (drop 2 args) ctx))
-                 '#{case*} (instrument-case* args ctx))
+            '#{do if recur throw finally try monitor-exit monitor-enter} (instrument-coll args ctx)
+            '#{new} (cons (first args) (instrument-coll (rest args) ctx))
+            '#{quote & var clojure.core/import*} args
+            '#{.} (instrument-special-dot args ctx)
+            '#{def} (instrument-special-def (::original-form (meta form)) args ctx)
+            '#{set!} (list (first args)
+                           (instrument (second args) ctx))
+            '#{loop* let* letfn*} (instrument-special-loop*-like form ctx)
+            '#{deftype*} (instrument-special-deftype* args ctx)
+            '#{reify*} (instrument-special-reify* args (::original-form (meta form)) ctx)
+            '#{fn*} (instrument-special-fn* form ctx)
+            '#{catch} `(~@(take 2 args)
+                        ~@(instrument-coll (drop 2 args) ctx))
+            '#{case*} (instrument-special-case* args ctx))
           (catch Exception e
-            (binding [*print-length* 4
-                      *print-level*  2
-                      *out* *err*]
-              (println "Failed to instrument" name args
+            (binding [*out* *err*]
+              (println "Failed to instrument" name args (pr-str form)
                        ", please file a bug report: " e))
             args))))
 
@@ -443,7 +502,7 @@
   (or (dont-break-forms name)
       (contains-recur? form)))
 
-(defn cljs-multi-arity-defn? [[x1 & x2]]
+#_(defn cljs-multi-arity-defn? [[x1 & x2]]
   (when (= x1 'do)
     (let [[xdef & xset] (keep first x2)]
       (and (= xdef 'def)
@@ -473,6 +532,22 @@
 (defn- expanded-clojure-core-extend-form? [[symb] _]
   (= symb 'clojure.core/extend))
 
+(defn- expanded-deftype-form [form _]
+  (cond
+
+    (and (> (count form) 5)
+         (let [x (nth form 4)]
+           (and (seq? x) (= (first x) 'deftype*))))
+    :defrecord
+
+    (and (seq? form)
+         (>= (count form) 3)
+         (let [x (nth form 2)]
+           (and (seq? x) (= (first x) 'deftype*))))
+    :deftype
+
+    :else nil))
+
 (defn- expanded-extend-protocol-form? [form _]
   (and (seq? form)
        (= 'do (first form))
@@ -485,7 +560,8 @@
 
       (expanded-defn-form? form) :defn ;; this covers (defn foo [] ...), (def foo (fn [] ...)), and multy arities
       (expanded-defmethod-form? form ctx) :defmethod
-      (expanded-clojure-core-extend-form? form ctx) :extend-type
+      (or (expanded-clojure-core-extend-form? form ctx)
+          (expanded-deftype-form form ctx)) :extend-type
       (expanded-extend-protocol-form? form ctx) :extend-protocol
 
       ;; (and (= compiler :cljs)
@@ -506,23 +582,22 @@
     inst-form))
 
 (defn- instrument-core-extend-form [[_ ext-type & exts :as form] ctx]
+  ;; We need special instrumentation for core/extend (extend-protocol and extend-type)
+  ;; so we can trace fn-name, and trace that each fn is a protocol/type fn*
   (let [inst-ext (fn [[etype emap]]
                    (let [inst-emap (reduce-kv
                                     (fn [r k f]
-                                      ;; This ' is needed in `fn-name` because it will end up
+                                      ;; @@@HACKY This ' is needed in `fn-name` because it will end up
                                       ;; in (fn* fn-name ([])) functions entry of extend-type after instrumenting
                                       ;; because of how fn-name thing is currently designed
                                       ;; This if we use the same name as the type key there it will compile
                                       ;; but will cause problems in situations when recursion is used
                                       ;; `fn-name` will be used only for reporting purposes, so there is no harm
-                                      (let [fn-name (symbol (format "%s'" (name k)))]
+                                      (let [fn-name (symbol (format "%s" (name k)))]
                                         (assoc r k (instrument f
-                                                               (assoc ctx :defn-def {:fn-name fn-name
-                                                                                     :kind (or (-> ctx :defn-def :kind)
-                                                                                               :extend-type)
-                                                                                     :orig-form (or
-                                                                                                 (-> ctx :defn-def :orig-form)
-                                                                                                 (::original-form (meta form)))})))))
+                                                               (assoc ctx :fn-ctx {:trace-name fn-name
+                                                                                   :kind :extend-type
+                                                                                   :orig-form (-> ctx :extend-ctx :orig-form)})))))
                                     {}
                                     emap)]
                      (list etype inst-emap)))
@@ -534,6 +609,39 @@
   (let [inst-mfn (instrument mfn ctx)]
     `(. ~mname clojure.core/addMethod ~mdisp-val ~inst-mfn)))
 
+(defn- update-context-for-top-level-form
+
+  "Set the context for instrumenting fn*s down the road."
+
+  [ctx form]
+
+  (cond
+
+    (expanded-defmethod-form? form ctx)
+    (assoc ctx
+           :fn-ctx {:trace-name (nth form 1)
+                    :kind :defmethod
+                    :dispatch-val (pr-str (nth form 3))
+                    :orig-form (::original-form (meta form))})
+
+    (expanded-extend-protocol-form? form ctx)
+    (assoc ctx
+           :outer-form-kind :extend-protocol
+           :extend-ctx {:orig-form (::original-form (meta form))})
+
+    (expanded-clojure-core-extend-form? form ctx)
+    (assoc ctx
+           :outer-form-kind :extend-type
+           :extend-ctx {:orig-form (::original-form (meta form))})
+
+    (expanded-deftype-form form ctx)
+    (assoc ctx
+           :outer-form-kind (expanded-deftype-form form ctx)
+           :extend-ctx {:orig-form (::original-form (meta form))})
+
+    :else
+    ctx))
+
 (defn- instrument-function-like-form
   "Instrument form representing a function call or special-form."
   [[name :as form] ctx]
@@ -542,56 +650,17 @@
     ;; can instrument everything.
     (maybe-instrument (instrument-coll form ctx) ctx)
 
+    (cond
+      ;; If special form, thread with care.
+      (special-symbol? name)
+      (if (dont-break? form)
+        (instrument-special-form form ctx)
+        (maybe-instrument (instrument-special-form form ctx) ctx))
 
-    (let [ctx (cond ;; UPDATE `ctx` !!!
-                ;; we are defining a mutimethod
-                ;; set the context for the next fn* down the road
-                (expanded-defmethod-form? form ctx)
-                (assoc ctx
-                       :defn-def {:fn-name (nth form 1)
-                                  :kind :defmethod
-                                  :dispatch-val (pr-str (nth form 3))
-                                  :orig-form (::original-form (meta form))})
-
-
-                (expanded-defn-form? form)
-                (assoc ctx
-                       :defn-def {:fn-name (nth form 1)
-                                  :kind :defn
-                                  :orig-form (::original-form (meta form))})
-
-                (expanded-extend-protocol-form? form ctx)
-                (assoc ctx
-                       :defn-def {:orig-form (::original-form (meta form))
-                                  :kind :extend-protocol})
-
-                ;; all extend-protocols forms will pass thru here also, since they are the same
-                ;; inside the `do`, so keep the definicion :kind
-                (expanded-clojure-core-extend-form? form ctx)
-                (assoc ctx
-                       :defn-def {:orig-form (::original-form (meta form))
-                                  :kind (or (-> ctx :defn-def :kind) :extend-type)})
-
-                :else
-                ctx)]
-
-      (cond
-        (expanded-defmethod-form? form ctx)
-        (instrument-clojure-defmethod-form form ctx)
-
-        (expanded-clojure-core-extend-form? form ctx)
-        (instrument-core-extend-form form ctx)
-
-        ;; If special form, thread with care.
-        (special-symbol? name)
-        (if (dont-break? form)
-          (instrument-special-form form ctx)
-          (maybe-instrument (instrument-special-form form ctx) ctx))
-
-        ;; Otherwise, probably just a function. Just leave the
-        ;; function name and instrument the args.
-        :else
-        (maybe-instrument (instrument-function-call form ctx) ctx)))))
+      ;; Otherwise, probably just a function. Just leave the
+      ;; function name and instrument the args.
+      :else
+      (maybe-instrument (instrument-function-call form ctx) ctx))))
 
 (defn- instrument
   "Walk through form and return it instrumented with traces. "
@@ -678,22 +747,43 @@
        f))
    form))
 
+(defn- instrument-start
+
+  "Like instrument but meant to be used around outer forms, not in recursions
+  since it will do some checks that are only important in outer forms. "
+
+  [form ctx]
+  (cond
+    (expanded-defmethod-form? form ctx)
+    (instrument-clojure-defmethod-form form ctx)
+
+    (expanded-clojure-core-extend-form? form ctx)
+    (instrument-core-extend-form form ctx)
+
+    (expanded-extend-protocol-form? form ctx)
+    `(do ~@(map (fn [ext-form] (instrument-core-extend-form ext-form ctx)) (rest form)))
+
+    :else (instrument form ctx)))
+
 (defn instrument-tagged-code
   [form ctx]
-  (-> form
-      ;; Go through everything again, and instrument any form with
-      ;; debug metadata.
-      (instrument ctx)
-      (strip-instrumentation-meta)))
+  (let [updated-ctx (update-context-for-top-level-form ctx form)]
+    (-> form
+       ;; Go through everything again, and instrument any form with
+       ;; debug metadata.
+       (instrument-start updated-ctx)
+       (strip-instrumentation-meta))))
 
 (defn instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
   [{:keys [orig-form form-ns on-flow-start-fn] :as ctx} forms preamble]
   `(let [curr-ctx# flow-storm.tracer/*runtime-ctx*]
+     ;; @@@ Speed rebinding on every function call probably makes execution much slower
+     ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
      (binding [flow-storm.tracer/*runtime-ctx* (or curr-ctx# (flow-storm.tracer/empty-runtime-ctx))]
 
-       (when-not curr-ctx#
-         (~on-flow-start-fn (:flow-id flow-storm.tracer/*runtime-ctx*) ~form-ns ~orig-form))
+       (when-not curr-ctx# ;; signal a flow start if our *runtime-ctx* is empty
+         (~on-flow-start-fn (:flow-id flow-storm.tracer/*runtime-ctx*) nil nil))
 
        ~@(-> preamble
              (into [(instrument-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))

@@ -24,7 +24,7 @@
                                                  :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                                                 (flow-cmp/def-kind-colored-label (format "F %s/%s" fn-ns fn-name) form-def-kind))
+                                                 (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))
                                            (.setPrefWidth 500))
                                   cnt-lbl (doto (label (str cnt))
                                             (.setPrefWidth 100))

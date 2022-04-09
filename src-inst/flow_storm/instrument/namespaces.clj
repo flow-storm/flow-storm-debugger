@@ -52,8 +52,7 @@
   (or (nil? form)
       (when (and (seq? form)
                  (symbol? (first form)))
-        (contains? '#{"ns" "defrecord" "defmulti" "deftype"
-                      "defprotocol" "defmacro" "comment" "import-macros"}
+        (contains? '#{"ns" "defmulti" "defprotocol" "defmacro" "comment" "import-macros"}
                    (name (first form))))
       (let [macro-expanded-form (try
                                   (inst-forms/macroexpand-all macroexpand-1 form ::original-form)
@@ -104,7 +103,10 @@
       (if (inst-forms/expanded-def-form? inst-form)
         (let [[v vval] (expanded-defn-parse (str (ns-name ns)) inst-form)]
           (alter-var-root v (fn [_] (eval vval))))
-        (eval inst-form))
+        (do
+          ;; enable for debugging
+          #_(log (with-out-str (clojure.pprint/pprint inst-form)))
+          (eval inst-form)))
       (catch Exception e
         #_(utils/log-error (format "Evaluating form %s" (pr-str inst-form)) e)
         #_(System/exit 1)

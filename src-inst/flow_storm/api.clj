@@ -1,6 +1,7 @@
 (ns flow-storm.api
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
+  (:refer-clojure :exclude [trampoline])
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log log-error]]
             [flow-storm.instrument.namespaces :as inst-ns]
@@ -142,11 +143,12 @@
   if you want to run depstar traced.
   "
 
-  [{:keys [ns-set fn-symb fn-args profile]}]
-  (let [inst-opts (case profile
-                    :full {}
-                    :light {:disable #{:expr :binding :anonymous-fn}}
-                    {})
+  [{:keys [ns-set excluding-ns fn-symb fn-args profile]}]
+  (let [inst-opts (-> (case profile
+                        :full {}
+                        :light {:disable #{:expr :binding :anonymous-fn}}
+                        {})
+                      (assoc :excluding-ns excluding-ns))
         f (requiring-resolve fn-symb)]
     (local-connect)
     (instrument-forms-for-namespaces (or ns-set

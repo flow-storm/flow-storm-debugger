@@ -4,6 +4,11 @@ A trace debugger for Clojure
 
 ![demo](./docs/images/screenshot.png)
 
+# Prerequisites
+
+	- jdk11+
+    - clojure 1.10.0+
+	
 # Installing 
 
 Debugger GUI artifact :
@@ -40,7 +45,7 @@ Proper manual coming...
 
 # Notes
 
-Only Clojure local debugging is supported now, but remote debugging and ClojureScript are planned.
+Only Clojure local debugging is supported so far, but remote debugging and ClojureScript are planned.
 
 # Some examples
 
@@ -57,10 +62,7 @@ clj -Sdeps {:deps {org.clojure/clojure {:mvn/version "1.11.0"}          \
 You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/trampoline`, like :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"}  \
-                    com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"} \
-					org.clojure/clojure {:mvn/version "1.11.0"}                                 \
-					org.clojure/clojurescript {:mvn/version "1.11.4"}}}'                        \
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"} org.clojure/clojure {:mvn/version "1.11.0"} org.clojure/clojurescript {:mvn/version "1.11.4"}}}' \
 	-X flow-storm.api/trampoline :ns-set '#{"cljs."}'                                           \
 	                             :profile ':light'                                              \
 								 :fn-symb 'cljs.main/-main'                                     \

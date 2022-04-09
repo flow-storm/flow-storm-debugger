@@ -22,6 +22,11 @@
 (defprotocol Adder
   (add [x]))
 
+(defrecord ARecord [n]
+
+  Adder
+  (add [_] (+ n 1000)))
+
 (defprotocol Suber
   (sub [x]))
 
@@ -38,8 +43,9 @@
 (defn boo [xs]
   (let [a 25
         b (+ a 4)
-        c (+ a b 7)]
+        c (+ a b 7)
+        d (add (->ARecord 5))]
     (-> (reduce + (map do-it xs))
        add
        sub
-       (+ c))))
+       (+ c d))))
