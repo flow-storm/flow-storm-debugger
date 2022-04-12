@@ -7,8 +7,7 @@
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state :refer [dbg-state]]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.trace-types :as trace-types]
-            [flow-storm.utils :as utils])
+            [flow-storm.trace-types :as trace-types])
   (:import [javafx.scene.control Label ListView ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.collections FXCollections ObservableList]
            [javafx.scene Node]

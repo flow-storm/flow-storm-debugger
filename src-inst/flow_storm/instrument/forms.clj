@@ -274,7 +274,7 @@
              vec)
         (instrument-coll (rest args) ctx)))
 
-(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind extend-ctx orig-outer-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns defn-def] :as ctx}]
+(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind extend-ctx form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
         fn-form (cond
                   (= outer-form-kind :extend-protocol) (:orig-form extend-ctx)
@@ -328,7 +328,6 @@
 
 (defn instrument-special-fn* [[_ & args :as form] ctx]
   (let [[a1 & a1r] args
-        {:keys [defn-def]} ctx
         orig-form (::original-form (meta form))
         form-coor (-> form meta ::coor)
         [fn-name arities-bodies-seq] (cond
@@ -581,7 +580,7 @@
     ;; else do nothing
     inst-form))
 
-(defn- instrument-core-extend-form [[_ ext-type & exts :as form] ctx]
+(defn- instrument-core-extend-form [[_ ext-type & exts] ctx]
   ;; We need special instrumentation for core/extend (extend-protocol and extend-type)
   ;; so we can trace fn-name, and trace that each fn is a protocol/type fn*
   (let [inst-ext (fn [[etype emap]]
@@ -776,7 +775,7 @@
 
 (defn instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
-  [{:keys [orig-form form-ns on-flow-start-fn] :as ctx} forms preamble]
+  [{:keys [on-flow-start-fn] :as ctx} forms preamble]
   `(let [curr-ctx# flow-storm.tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?

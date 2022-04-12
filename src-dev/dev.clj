@@ -6,9 +6,17 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [dev-tester]))
 
+;; clj -X:dbg:inst:dev flow-storm.api/cli-run :fn-symb 'dev-tester/boo' :fn-args '[[2 "hello" 8]]'
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(javafx.embed.swing.JFXPanel.)
+
+(defn run [& _]
+  (fs-api/run
+    {:flow-id 0}
+    (dev-tester/boo [2 "hello" 8])))
 
 (defn start-and-add-data [& _]
 
@@ -18,13 +26,7 @@
   (fs-api/instrument-forms-for-namespaces #{"dev-tester"}
                                           {:disable #{} #_#{:expr :anonymous-fn :binding}})
 
-  ;; add some data for dev
-  (fs-api/run
-    {:flow-id 0
-     :ns "dev"}
-    (dev-tester/boo [2 "hello" 8]))
-
-  )
+  (run))
 
 #_(add-tap (bound-fn* pp/pprint))
 

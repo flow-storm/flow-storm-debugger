@@ -130,7 +130,7 @@
 
   inst-ns/instrument-files-for-namespaces)
 
-(defn trampoline
+(defn cli-run
 
   "Require `fn-symb` ns, instrument `ns-set` and then call (apply `fn-symb` `fn-args`).
 
@@ -143,7 +143,12 @@
   if you want to run depstar traced.
   "
 
-  [{:keys [ns-set excluding-ns fn-symb fn-args profile]}]
+  [{:keys [instrument-ns excluding-ns fn-symb fn-args profile]}]
+  (assert (set? instrument-ns) "instrument-ns should be a set of namespaces prefixes")
+  (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces")
+  (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
+  (assert (vector? fn-args) "fn-args should be a vector")
+  (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
   (let [inst-opts (-> (case profile
                         :full {}
                         :light {:disable #{:expr :binding :anonymous-fn}}
@@ -151,8 +156,7 @@
                       (assoc :excluding-ns excluding-ns))
         f (requiring-resolve fn-symb)]
     (local-connect)
-    (instrument-forms-for-namespaces (or ns-set
-                                         #{(namespace fn-symb)})
+    (instrument-forms-for-namespaces (into #{(namespace fn-symb)} instrument-ns)
                                      inst-opts)
     (log "Instrumentation done.")
-    (run* (apply f fn-args))))
+    (eval (run* `(~f ~@fn-args)))))

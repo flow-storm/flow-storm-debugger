@@ -103,7 +103,9 @@
       (if (inst-forms/expanded-def-form? inst-form)
         (let [[v vval] (expanded-defn-parse (str (ns-name ns)) inst-form)]
           (alter-var-root v (fn [_] (eval vval))))
-        (do
+
+        (eval inst-form)
+        #_(do
           ;; enable for debugging
           #_(log (with-out-str (clojure.pprint/pprint inst-form)))
           (eval inst-form)))
