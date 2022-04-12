@@ -1,20 +1,30 @@
 (ns flow-storm.instrument.tester)
 
-(defrecord Rectangle [w h])
-(defrecord Circle [r])
-
 (defprotocol Shape
   (area [_]))
 
-(extend-protocol Shape
-
-  Rectangle
+;; Defrecord implementing a protocol
+(defrecord Rectangle [w h]  
+  Shape
   (area [r]
-    (* (:w r) (:h r)))
+    (* (:w r) (:h r))))
+
+(defrecord Circle [r])
+
+;; Extending a protocol
+(extend-protocol Shape
 
   Circle
   (area [c]
     (* Math/PI (Math/pow (:r c) 2))))
+
+(deftype Triangle [b h])
+
+;; Extending a type
+(extend-type Triangle
+  Shape
+  (area [t]
+    (/ (* (.-b t) (.-h t)) 2)))
 
 (defn area-sum [shapes]
   (reduce + (map area shapes)))
@@ -41,8 +51,17 @@
   (let [map-shapes [{:type :circle :r 5}
                     {:type :rectangle :w 7 :h 8}]
         rec-shapes [(->Circle 5)
-                    (->Rectangle 7 8)]]
+                    (->Rectangle 7 8)
+                    (->Triangle 10 5)]]
     (+
      (perimeter-sum map-shapes)
      (area-sum rec-shapes)
      (reduce + (build-lazy)))))
+
+(comment
+(do-all)
+  
+
+
+  
+  )
