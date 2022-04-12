@@ -12,15 +12,16 @@
    [clojure.string :as str]))
 
 
-;;;;;;;;;;;;;;;;;;;;
-;; Some utilities ;;
-;;;;;;;;;;;;;;;;;;;;
-
 (declare instrument-outer-form)
 (declare instrument-coll)
 (declare instrument-special-form)
 (declare instrument-function-call)
 (declare instrument-case-map)
+
+(def orphan-flow-id -1)
+;;;;;;;;;;;;;;;;;;;;
+;; Some utilities ;;
+;;;;;;;;;;;;;;;;;;;;
 
 (defn merge-meta
 
@@ -779,11 +780,8 @@
   `(let [curr-ctx# flow-storm.tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
-     (binding [flow-storm.tracer/*runtime-ctx* (or curr-ctx# (flow-storm.tracer/empty-runtime-ctx))]
 
-       (when-not curr-ctx# ;; signal a flow start if our *runtime-ctx* is empty
-         (~on-flow-start-fn (:flow-id flow-storm.tracer/*runtime-ctx*) nil nil))
-
+     (binding [flow-storm.tracer/*runtime-ctx* (or curr-ctx# (flow-storm.tracer/empty-runtime-ctx orphan-flow-id))]
        ~@(-> preamble
              (into [(instrument-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 

@@ -20,11 +20,9 @@
 
 (def ^:dynamic *runtime-ctx* nil)
 
-(defn empty-runtime-ctx
-  ([] (empty-runtime-ctx nil))
-  ([flow-id]
-   {:flow-id (or flow-id (rand-int 1000))
-    :init-traced-forms (atom #{})}))
+(defn empty-runtime-ctx [flow-id]
+  {:flow-id flow-id 
+   :init-traced-forms (atom #{})})
 
 (defn get-timestamp []
   #?(:cljs (.getTime (js/Date.))
