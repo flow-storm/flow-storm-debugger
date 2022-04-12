@@ -144,7 +144,7 @@
   "
 
   [{:keys [instrument-ns excluding-ns fn-symb fn-args profile]}]
-  (assert (set? instrument-ns) "instrument-ns should be a set of namespaces prefixes")
+  (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
   (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces")
   (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
   (assert (vector? fn-args) "fn-args should be a vector")

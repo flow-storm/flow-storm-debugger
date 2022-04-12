@@ -306,7 +306,7 @@
 
         lazy-seq-fn? (lazy-seq-form? (first arity-body-forms))
 
-        inst-arity-body-form (if (or (and (disable :anonymous-fn) (not fn-ctx)) ;; don't instrument anonymous-fn if they are disabled
+        inst-arity-body-form (if (or (and (disable :anonymous-fn) (= :anonymous (:kind fn-ctx))) ;; don't instrument anonymous-fn if they are disabled
                                      (and (#{:deftype :defrecord} outer-form-kind)
                                           (or (str/starts-with? (str fn-trace-name) "->")
                                               (str/starts-with? (str fn-trace-name) "map->"))) ;; don't instrument record constructors

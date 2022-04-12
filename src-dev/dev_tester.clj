@@ -45,7 +45,7 @@
         b (+ a 4)
         c (+ a b 7)
         d (add (->ARecord 5))]
-    (-> (reduce + (map do-it xs))
+    (-> (reduce + (map (fn [x] (+ 1 (do-it x))) xs))
        add
        sub
        (+ c d))))
