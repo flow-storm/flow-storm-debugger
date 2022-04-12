@@ -134,18 +134,21 @@
 
   "Require `fn-symb` ns, instrument `ns-set` and then call (apply `fn-symb` `fn-args`).
 
-  `profile` can be :full (for full instrumentation) or :light for disable #{:expr :binding :anonymous-fn}
+  `profile` (optional) should be :full (for full instrumentation) or :light for disable #{:expr :binding :anonymous-fn}
 
-  Designed to be used from clj -X like :
+  `require-before` (optional) should be a set of namespaces you want to require before the instrumentation.
 
-  clj -X:dbg:inst:dev:build flow-storm.api/trampoline :ns-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
+  cli-run is designed to be used with clj -X like :
 
-  if you want to run depstar traced.
+  clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
+
+  if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns fn-symb fn-args profile]}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile]}]
   (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
-  (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces")
+  (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
+  (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
   (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
   (assert (vector? fn-args) "fn-args should be a vector")
   (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
@@ -155,7 +158,14 @@
                         {})
                       (assoc :excluding-ns excluding-ns))
         f (requiring-resolve fn-symb)]
+
+    (when (seq require-before)
+      (doseq [ns-name require-before]
+        (log (format "Requiring ns %s" ns-name))
+        (require (symbol ns-name))))
+
     (local-connect)
+    (log "Instrumenting namespaces")
     (instrument-forms-for-namespaces (into #{(namespace fn-symb)} instrument-ns)
                                      inst-opts)
     (log "Instrumentation done.")
