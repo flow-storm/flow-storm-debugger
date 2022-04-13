@@ -65,8 +65,18 @@
       (and (= (ns-name ns) 'cljs.core)
            (str/includes? e-msg "macroexpanding resolve"))
 
+      ;; clojure.core.async/go
+      ;; need to figure out a way of doing :
+      ;; (clojure.walk/macroexpand-all
+      ;;  '(go (+ a 2)))
+      ;; currently it complains it can't find `a` symbol
+      ;; don't know why macroexpanding checks for `a`, in what environment?
+      (str/includes? e-msg "Syntax error macroexpanding clojure.core.async/go")
       {:type :known-error
-       :messge "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
+       :msg "We can't instrument clojure.core.async/go blocks yet since we can't clojure.walk/macroexpand-all them."}
+
+      {:type :known-error
+       :msg "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
 
       :else
       {:type :unknown-error})))
