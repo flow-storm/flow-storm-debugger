@@ -91,7 +91,8 @@
 
       ;; known issue, using recur inside fn* (without loop*)
       (str/includes? e-msg "recur")
-      {:type :known-error}
+      {:type :known-error
+       :msg "We can't yet instrument using recur inside fn* (without loop*)"}
 
       (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Must assign primitive to primitive mutable"))
       {:type :known-error
@@ -187,6 +188,7 @@
              (try
 
                (if (uninteresting-form? ns form)
+
                  (print ".")
 
                  (do
@@ -200,8 +202,8 @@
                        (log (ex-message ei))
                        (System/exit 1))
                    (case ex-type
-                       :known-error   (print (utils/colored-string "X" :yellow))
-                       :unknown-error (print (utils/colored-string "X" :red)))))))
+                     :known-error   (print (utils/colored-string "X" :yellow))
+                     :unknown-error (print (utils/colored-string "X" :red)))))))
            (println)))))))
 
 (defn instrument-files-for-namespaces

@@ -252,7 +252,7 @@
 
   "Trace lets and loops bindings right side recursively."
 
-  [[_ & args :as form] {:keys [disable] :as ctx}]
+  [[name & args :as form] {:keys [disable] :as ctx}]
 
   (cons (->> (first args)
              (partition 2)
