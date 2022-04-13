@@ -2,6 +2,7 @@
   (:require [flow-storm.instrument.forms :as inst-forms]
             [clojure.string :as str]
             [clojure.java.io :as io]
+            [clojure.set :as set]
             [clojure.tools.reader :as reader]
             [clojure.tools.namespace.parse :as tools-ns-parse]
             [clojure.tools.namespace.file :as tools-ns-file]
@@ -236,9 +237,21 @@
                                    deps))
                          (tools-ns-deps/graph)
                          all-ns-info)
-        sorted-file-set (->> (tools-ns-deps/topo-sort ns-graph)
-                             (keep (fn [ns-symb]
-                                     (when-let [file (get-in all-ns-info [ns-symb :file])]
-                                       [ns-symb file]))))]
-    (doseq [[ns-symb file] sorted-file-set]
+        ;; all files that have dependencies between eachother that need to be
+        ;; processed in topological order
+        dependent-files-vec (->> (tools-ns-deps/topo-sort ns-graph)
+                              (keep (fn [ns-symb]
+                                      (when-let [file (get-in all-ns-info [ns-symb :file])]
+                                        [ns-symb file])))
+                              (into []))
+        all-files-set (into #{} (map (fn [[ns-name {:keys [file]}]] [ns-name file]) all-ns-info))
+        independent-files (set/difference all-files-set
+                                          (into #{} dependent-files-vec))
+        to-instrument-vec (into dependent-files-vec independent-files)]
+
+    #_(log (format "Dependent files in order : %s" dependent-files-vec))
+    #_(log (format "Independent files : %s" independent-files))
+    #_(log (format "To instrument : %s" to-instrument-vec))
+
+    (doseq [[ns-symb file] to-instrument-vec]
       (instrument-and-eval-file-forms ns-symb file config))))

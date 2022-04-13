@@ -157,7 +157,11 @@
                         :light {:disable #{:expr :binding :anonymous-fn}}
                         {})
                       (assoc :excluding-ns excluding-ns))
-        f (requiring-resolve fn-symb)]
+        fn-ns-name (namespace fn-symb)
+        _ (require (symbol fn-ns-name))
+        f (resolve fn-symb)
+        ns-to-instrument (into #{fn-ns-name} instrument-ns)
+        ]
 
     (when (seq require-before)
       (doseq [ns-name require-before]
@@ -165,8 +169,7 @@
         (require (symbol ns-name))))
 
     (local-connect)
-    (log "Instrumenting namespaces")
-    (instrument-forms-for-namespaces (into #{(namespace fn-symb)} instrument-ns)
-                                     inst-opts)
+    (log (format "Instrumenting namespaces %s" ns-to-instrument))
+    (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")
     (eval (run* `(~f ~@fn-args)))))

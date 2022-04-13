@@ -237,8 +237,8 @@
                         (= 'fn* (-> rargs first first)))
         ctx (cond-> ctx
               is-fn-def? (assoc :fn-ctx {:trace-name sym
-                                         :kind :defn
-                                         :orig-form orig-form}))]
+                                         :kind :defn}
+                                :orig-form orig-form))]
     (list* (merge-meta sym
              ;; Instrument the metadata, because
              ;; that's where tests are stored.
@@ -275,18 +275,18 @@
              vec)
         (instrument-coll (rest args) ctx)))
 
-(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind extend-ctx form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
+(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind orig-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
         fn-form (cond
-                  (= outer-form-kind :extend-protocol) (:orig-form extend-ctx)
-                  (= outer-form-kind :extend-type) (:orig-form extend-ctx)
-                  (= outer-form-kind :defrecord) (:orig-form extend-ctx)
-                  (= outer-form-kind :deftype) (:orig-form extend-ctx)
-                  (= (:kind fn-ctx) :reify) (:orig-form fn-ctx)
-                  (= (:kind fn-ctx) :defmethod) (:orig-form fn-ctx)
-                  (= (:kind fn-ctx) :defn) (:orig-form fn-ctx)
-                  (= (:kind fn-ctx) :anonymous) (:orig-form fn-ctx)
-                  :else (throw (Exception. (format "Don't know how to handle functions of this type. %s %s %s" fn-ctx outer-form-kind extend-ctx))))
+                  (= outer-form-kind :extend-protocol) orig-form
+                  (= outer-form-kind :extend-type) orig-form
+                  (= outer-form-kind :defrecord) orig-form
+                  (= outer-form-kind :deftype) orig-form
+                  (= (:kind fn-ctx) :reify) orig-form
+                  (= (:kind fn-ctx) :defmethod) orig-form
+                  (= (:kind fn-ctx) :defn) orig-form
+                  (= (:kind fn-ctx) :anonymous) orig-form
+                  :else (throw (Exception. (format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind))))
         outer-preamble (-> []
                            (into [`(~on-outer-form-init-fn {:form-id ~form-id
                                                             :ns ~form-ns
@@ -329,7 +329,6 @@
 
 (defn instrument-special-fn* [[_ & args :as form] ctx]
   (let [[a1 & a1r] args
-        orig-form (::original-form (meta form))
         form-coor (-> form meta ::coor)
         [fn-name arities-bodies-seq] (cond
 
@@ -345,10 +344,8 @@
                                        :else
                                        [nil args])
         ctx (cond-> ctx
-              (nil? (:fn-ctx ctx)) (assoc :fn-ctx (or (:fn-ctx ctx)
-                                                      {:trace-name fn-name
-                                                       :kind :anonymous
-                                                       :orig-form orig-form})))
+              (nil? (:fn-ctx ctx)) (assoc :fn-ctx {:trace-name fn-name
+                                                   :kind :anonymous}))
         instrumented-arities-bodies (map #(instrument-fn-arity-body form-coor % ctx) arities-bodies-seq)]
 
     (if (nil? fn-name)
@@ -597,7 +594,7 @@
                                         (assoc r k (instrument f
                                                                (assoc ctx :fn-ctx {:trace-name fn-name
                                                                                    :kind :extend-type
-                                                                                   :orig-form (-> ctx :extend-ctx :orig-form)})))))
+                                                                                   :orig-form (:orig-form ctx)})))))
                                     {}
                                     emap)]
                      (list etype inst-emap)))
@@ -619,25 +616,25 @@
 
     (expanded-defmethod-form? form ctx)
     (assoc ctx
+           :orig-form (::original-form (meta form))
            :fn-ctx {:trace-name (nth form 1)
                     :kind :defmethod
-                    :dispatch-val (pr-str (nth form 3))
-                    :orig-form (::original-form (meta form))})
+                    :dispatch-val (pr-str (nth form 3))})
 
     (expanded-extend-protocol-form? form ctx)
     (assoc ctx
            :outer-form-kind :extend-protocol
-           :extend-ctx {:orig-form (::original-form (meta form))})
+           :orig-form (::original-form (meta form)))
 
     (expanded-clojure-core-extend-form? form ctx)
     (assoc ctx
            :outer-form-kind :extend-type
-           :extend-ctx {:orig-form (::original-form (meta form))})
+           :orig-form (::original-form (meta form)))
 
     (expanded-deftype-form form ctx)
     (assoc ctx
            :outer-form-kind (expanded-deftype-form form ctx)
-           :extend-ctx {:orig-form (::original-form (meta form))})
+           :orig-form (::original-form (meta form)))
 
     :else
     ctx))
