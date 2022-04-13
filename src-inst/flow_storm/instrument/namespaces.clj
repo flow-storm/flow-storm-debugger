@@ -43,6 +43,19 @@
           #{}
           ns-set))
 
+(defn- macroexpansion-error-data [ns ex]
+  (let [e-msg (.getMessage ex)]
+    (cond
+      ;; Hard to fix, and there shouldn't be a lot of cases like that
+      (and (= (ns-name ns) 'cljs.core)
+           (str/includes? e-msg "macroexpanding resolve"))
+
+      {:type :known-error
+       :messge "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
+
+      :else
+      {:type :unknown-error})))
+
 (defn uninteresting-form?
 
   "Predicate to check if a `form` is interesting to instrument."
@@ -57,19 +70,7 @@
       (let [macro-expanded-form (try
                                   (inst-forms/macroexpand-all macroexpand-1 form ::original-form)
                                   (catch Exception e
-                                    (let [e-msg (.getMessage e)
-                                          ex-type (cond
-                                                    ;; core.cljs has a macro called resolve, and also some local fns
-                                                    ;; shadowing resolve with a local fn
-                                                    ;; When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work
-                                                    ;; Hard to fix, and there shouldn't be a lot of cases like that
-                                                    (and (= (ns-name ns) 'cljs.core)
-                                                         (str/includes? e-msg "macroexpanding resolve"))
-                                                    :known-error
-
-                                                    :else
-                                                    :unknown-error)]
-                                      (throw (ex-info "Error macroexpanding form" {:type ex-type})))))
+                                    (throw (ex-info "Error macroexpanding form" (macroexpansion-error-data ns e)))))
             kind (inst-forms/expanded-form-type macro-expanded-form {:compiler :clj})]
         (not (contains? #{:defn :defmethod :extend-type :extend-protocol} kind)))))
 
@@ -84,44 +85,61 @@
         var-symb (symbol ns-name (str var-name))]
     [(find-var var-symb) var-val]))
 
+(defn eval-form-error-data [inst-form ex]
+  (let [e-msg (.getMessage ex)]
+    (cond
+
+      ;; known issue, using recur inside fn* (without loop*)
+      (str/includes? e-msg "recur")
+      {:type :known-error}
+
+      (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Must assign primitive to primitive mutable"))
+      {:type :known-error
+       :msg "Instrumenting (set! x ...) inside a deftype* being x a mutable primitive type confuses the compiler"
+       :retry-disabling #{:expr}}
+
+      (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Method code too large!"))
+      {:type :known-error
+       :msg "Instrumented expresion is too large for the clojure compiler"
+       :retry-disabling #{:expr}}
+
+      :else
+      (binding [*print-meta* true]
+        (utils/log-error (format "Evaluating form %s Msg: %s Cause : %s" (pr-str inst-form) (.getMessage ex) (.getMessage (.getCause ex))) ex)
+        (System/exit 1)
+        {:type :unknown-error}))))
+
 (defn instrument-and-eval-form
 
   "Instrument `form` and evaluates it under `ns`."
 
-  [ns form config]
+  ([ns form config] (instrument-and-eval-form ns form config false))
 
-  (let [ctx (inst-forms/build-form-instrumentation-ctx config (str (ns-name ns)) form nil)
+  ([ns form config retrying?]
 
-        inst-form (try
-                    (-> form
-                        (inst-forms/instrument-all ctx)
-                        (inst-forms/maybe-unwrap-outer-form-instrumentation ctx))
-                    (catch Exception _
-                      (throw (ex-info "Error instrumenting form" {:type :unknown-error}))))]
+   (let [ctx (inst-forms/build-form-instrumentation-ctx config (str (ns-name ns)) form nil)
 
-    (try
-      (if (inst-forms/expanded-def-form? inst-form)
-        (let [[v vval] (expanded-defn-parse (str (ns-name ns)) inst-form)]
-          (alter-var-root v (fn [_] (eval vval))))
+         inst-form (try
+                     (-> form
+                         (inst-forms/instrument-all ctx)
+                         (inst-forms/maybe-unwrap-outer-form-instrumentation ctx))
+                     (catch Exception _
+                       (throw (ex-info "Error instrumenting form" {:type :unknown-error}))))]
 
-        (eval inst-form)
-        #_(do
-          ;; enable for debugging
-          #_(log (with-out-str (clojure.pprint/pprint inst-form)))
-          (eval inst-form)))
-      (catch Exception e
-        #_(utils/log-error (format "Evaluating form %s" (pr-str inst-form)) e)
-        #_(System/exit 1)
-        (let [e-msg (.getMessage e)
-              ex-type (cond
+     (try
+       (if (inst-forms/expanded-def-form? inst-form)
+         (let [[v vval] (expanded-defn-parse (str (ns-name ns)) inst-form)]
+           (alter-var-root v (fn [_] (eval vval))))
 
-                        ;; known issue, using recur inside fn* (without loop*)
-                        (str/includes? e-msg "recur")
-                        :known-error
-
-                        :else
-                        :unknown-error)]
-          (throw (ex-info "Error evaluating form" {:type ex-type})))))))
+         (eval inst-form))
+       (catch Exception e
+         (let [{:keys [msg retry-disabling] :as error-data} (eval-form-error-data inst-form e)]
+           (if (and (not retrying?) retry-disabling)
+             (do
+               (log (utils/colored-string (format "\n\nKnown error %s, retrying disabling %s\n\n" msg retry-disabling)
+                                          :yellow))
+               (instrument-and-eval-form ns form (assoc config :disable retry-disabling) true))
+             (throw (ex-info "Error evaluating form" error-data)))))))))
 
 (defn read-file-ns-decl
 
@@ -153,7 +171,8 @@
   (let [[_ ns-from-decl] (read-file-ns-decl file-url)]
     (if-not ns-from-decl
 
-      (log (format "Warning, skipping %s since it doesn't contain a (ns ) decl. We don't support (in-ns ...) yet." (.getFile file-url)))
+      (log (utils/colored-string (format "\n\nWarning, skipping %s since it doesn't contain a (ns ) decl. We don't support (in-ns ...) yet.\n\n" (.getFile file-url))
+                                 :yellow))
 
       ;; this is IMPORTANT, once we have `ns-from-decl` all the instrumentation work
       ;; should be done as if we where in `ns-from-decl`
@@ -162,7 +181,7 @@
          (let [ns (find-ns ns-from-decl)
                file-forms (read-string {:read-cond :allow}
                                        (format "[%s]" (slurp file-url)))]
-           (log (format "Instrumenting namespace: %s Forms (%d) (%s)" ns-from-decl (count file-forms) (.getFile file-url)))
+           (log (format "\nInstrumenting namespace: %s Forms (%d) (%s)" ns-from-decl (count file-forms) (.getFile file-url)))
 
            (doseq [form file-forms]
              (try
