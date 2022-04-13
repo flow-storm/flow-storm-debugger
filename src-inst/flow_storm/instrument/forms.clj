@@ -563,7 +563,7 @@
       (or (expanded-clojure-core-extend-form? form ctx)
           (expanded-deftype-form form ctx)) :extend-type
       (expanded-extend-protocol-form? form ctx) :extend-protocol
-
+      (expanded-def-form? form) :def
       ;; (and (= compiler :cljs)
       ;;      (cljs-multi-arity-defn? form))
       ;; :defn-cljs-multi-arity
