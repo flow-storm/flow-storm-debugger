@@ -64,6 +64,8 @@
       ;; Hard to fix, and there shouldn't be a lot of cases like that
       (and (= (ns-name ns) 'cljs.core)
            (str/includes? e-msg "macroexpanding resolve"))
+      {:type :known-error
+       :msg "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
 
       ;; clojure.core.async/go
       ;; need to figure out a way of doing :
@@ -74,9 +76,6 @@
       (str/includes? e-msg "Syntax error macroexpanding clojure.core.async/go")
       {:type :known-error
        :msg "We can't instrument clojure.core.async/go blocks yet since we can't clojure.walk/macroexpand-all them."}
-
-      {:type :known-error
-       :msg "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
 
       :else
       {:type :unknown-error})))
@@ -173,7 +172,7 @@
          (let [{:keys [msg retry-disabling] :as error-data} (eval-form-error-data inst-form e)]
            (if (and (not retrying?) retry-disabling)
              (do
-               (log (utils/colored-string (format "\n\nKnown error %s, retrying disabling %s\n\n" msg retry-disabling)
+               (log (utils/colored-string (format "\n\nKnown error %s, retrying disabling %s for this form\n\n" msg retry-disabling)
                                           :yellow))
                (instrument-and-eval-form ns form (assoc config :disable retry-disabling) true))
              (throw (ex-info "Error evaluating form" error-data)))))))))
