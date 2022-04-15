@@ -7,10 +7,10 @@
             [flow-storm.debugger.state :as state :refer [dbg-state]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]])
   (:import [javafx.collections ObservableList]
-           [javafx.scene.control SelectionModel TreeCell TextField  Tooltip TreeView TreeItem]
+           [javafx.scene.control SelectionModel SplitPane TreeCell TextField  Tooltip TreeView TreeItem]
            [javafx.scene.input MouseEvent MouseButton]
            [ javafx.beans.value ChangeListener]
-           [javafx.geometry Insets Pos]
+           [javafx.geometry Insets Pos Orientation]
            [javafx.scene.layout HBox Priority VBox]))
 
 (defn update-call-stack-tree-pane [flow-id thread-id]
@@ -185,7 +185,10 @@
         labeled-args-pane  (v-box [(label "Args:") callstack-fn-args-pane])
         labeled-ret-pane (v-box [(label "Ret:") callstack-fn-ret-pane])
         args-ret-pane (doto (h-box [labeled-args-pane labeled-ret-pane])
-                        (.setSpacing 5.0))]
+                        (.setSpacing 5.0))
+        top-bottom-split (doto (SplitPane.)
+                           (.setOrientation (Orientation/VERTICAL))
+                           (.setDividerPosition 0 0.75))]
     (HBox/setHgrow labeled-args-pane Priority/ALWAYS)
     (HBox/setHgrow labeled-ret-pane Priority/ALWAYS)
     (.addListener (.selectedItemProperty tree-view-sel-model)
@@ -198,6 +201,9 @@
 
     (store-obj flow-id (ui-vars/thread-callstack-tree-view-id thread-id) tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)
-    (v-box [search-pane
-            tree-view
-            args-ret-pane])))
+    (-> top-bottom-split
+        .getItems
+        (.addAll [(v-box [search-pane tree-view])
+                  args-ret-pane]))
+
+    top-bottom-split))
