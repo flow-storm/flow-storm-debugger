@@ -48,6 +48,8 @@
 ;;                                 :state/selected-flow-id
 ;;                                 :state/trace-counter]))
 
+(def orphans-flow-id -1)
+
 (defprotocol FlowStore
   (create-flow [_ flow-id exec-form-ns exec-form timestamp])
   (remove-flow [_ flow-id])

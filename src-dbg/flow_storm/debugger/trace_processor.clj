@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.trace-processor
-  (:require [flow-storm.debugger.state :as state :refer [dbg-state]]
+  (:require [flow-storm.debugger.state :as dbg-state :refer [dbg-state]]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
@@ -12,17 +12,17 @@
   (process [_]))
 
 (defn increment-trace-counter []
-  (state/increment-trace-counter dbg-state))
+  (dbg-state/increment-trace-counter dbg-state))
 
 (defn first-exec-trace-init [flow-id thread-id form-id]
-  (state/set-trace-idx dbg-state flow-id thread-id 0)
+  (dbg-state/set-trace-idx dbg-state flow-id thread-id 0)
   (ui-utils/run-now
    (flow-code/highlight-form flow-id thread-id form-id)))
 
 (extend-protocol ProcessTrace
   FlowInitTrace
   (process [{:keys [flow-id form-ns form timestamp]}]
-    (state/create-flow dbg-state flow-id form-ns form timestamp)
+    (dbg-state/create-flow dbg-state flow-id form-ns form timestamp)
     (ui-utils/run-now (flows-screen/remove-flow flow-id))
     (ui-utils/run-now (flows-screen/create-empty-flow flow-id)))
 
@@ -30,13 +30,13 @@
   (process [{:keys [flow-id form-id thread-id form ns def-kind mm-dispatch-val]}]
 
     ;; if thread doesn't exist, create one
-    (when-not (state/get-thread dbg-state flow-id thread-id)
-      (state/create-thread dbg-state flow-id thread-id
+    (when-not (dbg-state/get-thread dbg-state flow-id thread-id)
+      (dbg-state/create-thread dbg-state flow-id thread-id
                            (mut-trace-indexer/make-indexer))
       (flows-screen/create-empty-thread flow-id thread-id))
 
     ;; add the form
-    (indexer/add-form (state/thread-trace-indexer dbg-state flow-id thread-id)
+    (indexer/add-form (dbg-state/thread-trace-indexer dbg-state flow-id thread-id)
                       form-id
                       ns
                       def-kind
@@ -45,7 +45,7 @@
 
   ExecTrace
   (process [{:keys [flow-id thread-id form-id] :as trace}]
-    (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)]
+    (let [indexer (dbg-state/thread-trace-indexer dbg-state flow-id thread-id)]
 
       (when (zero? (indexer/thread-exec-count indexer))
         (first-exec-trace-init flow-id thread-id form-id))
@@ -54,8 +54,8 @@
 
   FnCallTrace
   (process [{:keys [flow-id thread-id form-id] :as trace}]
-    (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)]
-      (state/update-fn-call-stats dbg-state flow-id thread-id trace)
+    (let [indexer (dbg-state/thread-trace-indexer dbg-state flow-id thread-id)]
+      (dbg-state/update-fn-call-stats dbg-state flow-id thread-id trace)
 
       (when (zero? (indexer/thread-exec-count indexer))
         (first-exec-trace-init flow-id thread-id form-id))
@@ -64,9 +64,15 @@
 
   BindTrace
   (process [{:keys [flow-id thread-id] :as trace}]
-    (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)]
+    (let [indexer (dbg-state/thread-trace-indexer dbg-state flow-id thread-id)]
       (indexer/add-bind-trace indexer trace))))
 
 (defn dispatch-trace [trace]
+  (when (and (= (:flow-id trace) dbg-state/orphans-flow-id)
+             (not (dbg-state/get-flow dbg-state dbg-state/orphans-flow-id)))
+    ;; whenever we receive a trace for dbg-state/orphans-flow-id and it is not there create-it
+    (dbg-state/create-flow dbg-state dbg-state/orphans-flow-id nil nil 0)
+    (ui-utils/run-now (flows-screen/create-empty-flow dbg-state/orphans-flow-id)))
+
   (process trace)
   (increment-trace-counter))
