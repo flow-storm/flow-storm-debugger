@@ -139,7 +139,7 @@
       (let [ctx-menu-options (->> traces
                               (map (fn [t]
                                      (let [tidx (-> t meta :trace-idx)]
-                                       {:text (format "%d | %s" tidx (flow-cmp/format-value-short (:result t)))
+                                       {:text (format "%s" (flow-cmp/format-value-short (:result t)))
                                         :on-click #(jump-to-coord flow-id thread-id tidx)}))))
             ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
         (.setOnMouseClicked token-text (event-handler

@@ -4,6 +4,9 @@
 ;; Some testing code ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
+(defmacro dummy-sum-macro [a b]
+  `(+ ~a ~b))
+
 (defn factorial [n]
   (if (zero? n)
     1
@@ -42,12 +45,17 @@
 
 (defn boo [xs]
   (let [a 25
-        b (+ a 4)
+        b (dummy-sum-macro a 4)
         c (+ a b 7)
-        d (add (->ARecord 5))]
+        d (add (->ARecord 5))
+        j (loop [i 100
+                 sum 0]
+            (if (> i 0)
+              (recur (dec i) (+ sum i))
+              sum))]
     (->> xs
          (pmap (fn [x] (+ 1 (do-it x))))
          (reduce + )
          add
          sub
-         (+ c d))))
+         (+ c d j))))

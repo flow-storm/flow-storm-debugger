@@ -3,12 +3,10 @@
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.set :as set]
-            [clojure.tools.reader :as reader]
             [clojure.tools.namespace.parse :as tools-ns-parse]
             [clojure.tools.namespace.file :as tools-ns-file]
             [clojure.tools.namespace.dependency :as tools-ns-deps]
-            [flow-storm.utils :as utils :refer [log]])
-  (:import [java.io PushbackReader]))
+            [flow-storm.utils :as utils :refer [log]]))
 
 (defn all-ns-with-prefixes
 

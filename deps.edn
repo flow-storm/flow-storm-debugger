@@ -1,5 +1,5 @@
-{:paths []
- :deps {;; Refs patches
+{:paths [] #_["src-inst" "src-dbg" "src-shared" "resources" ]
+ :deps { ;; Refs patches
         ;; juji/editscript           {:mvn/version "0.4.6"}
 
         ;; Json serde
@@ -8,6 +8,15 @@
 
         ;; Remote debugging
         ;; org.java-websocket/Java-WebSocket {:mvn/version "1.5.2"}
+
+        ;; To use it as :local/root, for debugging, remove after
+        ;; org.openjfx/javafx-controls {:mvn/version "18"}
+        ;; org.openjfx/javafx-base {:mvn/version "18"}
+        ;; org.openjfx/javafx-graphics {:mvn/version "18"}
+        ;; org.openjfx/javafx-swing {:mvn/version "18"}
+        ;; org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
+        ;; org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
+        ;; org.clojure/tools.namespace {:mvn/version "1.2.0"}
         }
 
  :jvm-opts []
@@ -24,7 +33,6 @@
 
            :inst {:extra-paths ["src-inst" "src-shared"]
                   :extra-deps {;; Namespaces instrumentation
-                               org.clojure/tools.reader {:mvn/version "1.3.6"}
                                org.clojure/tools.namespace {:mvn/version "1.2.0"}
                                }}
 

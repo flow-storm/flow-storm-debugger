@@ -773,7 +773,7 @@
 
 (defn instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
-  [{:keys [on-flow-start-fn] :as ctx} forms preamble]
+  [ctx forms preamble]
   `(let [curr-ctx# flow-storm.tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
