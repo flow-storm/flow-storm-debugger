@@ -364,9 +364,9 @@
   (let [inst-methods (->> methods
                           (map (fn [[method-name args-vec & body :as form]]
                                  (let [form-coor (-> form meta ::coor)
-                                       ctx (assoc ctx :fn-ctx {:trace-name method-name
-                                                               :kind :reify
-                                                               :orig-form orig-form})
+                                       ctx (assoc ctx
+                                                  :fn-ctx {:trace-name method-name
+                                                           :kind :reify})
                                        [_ inst-body] (instrument-fn-arity-body form-coor `(~args-vec ~@body) ctx)]
                                    `(~method-name ~args-vec ~inst-body)))))]
     `(~proto-or-interface-vec ~@inst-methods)))
@@ -382,8 +382,7 @@
 
                                    (let [form-coor (-> form meta ::coor)
                                          ctx (assoc ctx :fn-ctx {:trace-name method-name
-                                                                 :kind :extend-type
-                                                                 :orig-form (:orig-form deftype-ctx)})
+                                                                 :kind :extend-type})
                                          [_ inst-body] (instrument-fn-arity-body form-coor `(~args-vec ~@body) ctx)]
                                      `(~method-name ~args-vec ~inst-body))))))]
     `(~a1 ~a2 ~a3 ~a4 ~a5 ~@inst-methods)))
@@ -593,8 +592,7 @@
                                       (let [fn-name (symbol (format "%s" (name k)))]
                                         (assoc r k (instrument f
                                                                (assoc ctx :fn-ctx {:trace-name fn-name
-                                                                                   :kind :extend-type
-                                                                                   :orig-form (:orig-form ctx)})))))
+                                                                                   :kind :extend-type})))))
                                     {}
                                     emap)]
                      (list etype inst-emap)))
@@ -612,32 +610,21 @@
 
   [ctx form]
 
-  (cond
+  (cond-> (assoc ctx :orig-form (::original-form (meta form)))
 
     (expanded-defmethod-form? form ctx)
-    (assoc ctx
-           :orig-form (::original-form (meta form))
-           :fn-ctx {:trace-name (nth form 1)
+    (assoc :fn-ctx {:trace-name (nth form 1)
                     :kind :defmethod
                     :dispatch-val (pr-str (nth form 3))})
 
     (expanded-extend-protocol-form? form ctx)
-    (assoc ctx
-           :outer-form-kind :extend-protocol
-           :orig-form (::original-form (meta form)))
+    (assoc :outer-form-kind :extend-protocol)
 
     (expanded-clojure-core-extend-form? form ctx)
-    (assoc ctx
-           :outer-form-kind :extend-type
-           :orig-form (::original-form (meta form)))
+    (assoc :outer-form-kind :extend-type)
 
     (expanded-deftype-form form ctx)
-    (assoc ctx
-           :outer-form-kind (expanded-deftype-form form ctx)
-           :orig-form (::original-form (meta form)))
-
-    :else
-    ctx))
+    (assoc :outer-form-kind (expanded-deftype-form form ctx))))
 
 (defn- instrument-function-like-form
   "Instrument form representing a function call or special-form."
