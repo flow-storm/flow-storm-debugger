@@ -63,7 +63,8 @@
                           (.setOnAction (event-handler
                                          [_]
                                          (let [{:keys [flow/execution-expr]} (state/get-flow dbg-state flow-id)]
-                                           (target-commands/run-command :re-run-flow flow-id execution-expr)))))
+                                           (when execution-expr
+                                             (target-commands/run-command :re-run-flow flow-id execution-expr))))))
         trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
         controls-box (doto (h-box [prev-btn next-btn re-run-flow-btn])
