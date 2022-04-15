@@ -66,6 +66,9 @@
 (defn flow-tab-id [flow-id]
   (format "flow_tab_%d" flow-id))
 
+(defn thread-tool-tab-pane-id [thread-id]
+  (format "thread_tool_tab_pane_id_%d" thread-id))
+
 (defn thread-curr-trace-lbl-id [thread-id]
   (format "thread_curr_trace_lbl_%d" thread-id))
 

@@ -360,7 +360,7 @@
     :cljs (let [[a1 left-vec right-vec else] args]
             `(~a1 ~left-vec ~(instrument-coll right-vec ctx) ~(instrument else ctx)))))
 
-(defn instrument-special-reify* [[proto-or-interface-vec & methods] orig-form ctx]
+(defn instrument-special-reify* [[proto-or-interface-vec & methods] ctx]
   (let [inst-methods (->> methods
                           (map (fn [[method-name args-vec & body :as form]]
                                  (let [form-coor (-> form meta ::coor)
@@ -371,7 +371,7 @@
                                    `(~method-name ~args-vec ~inst-body)))))]
     `(~proto-or-interface-vec ~@inst-methods)))
 
-(defn instrument-special-deftype* [[a1 a2 a3 a4 a5 & methods] {:keys [outer-form-kind deftype-ctx] :as ctx}]
+(defn instrument-special-deftype* [[a1 a2 a3 a4 a5 & methods] {:keys [outer-form-kind] :as ctx}]
   (let [inst-methods (->> methods
                           (map (fn [[method-name args-vec & body :as form]]
                                  (if (and (= outer-form-kind :defrecord)
@@ -411,7 +411,7 @@
                            (instrument (second args) ctx))
             '#{loop* let* letfn*} (instrument-special-loop*-like form ctx)
             '#{deftype*} (instrument-special-deftype* args ctx)
-            '#{reify*} (instrument-special-reify* args (::original-form (meta form)) ctx)
+            '#{reify*} (instrument-special-reify* args ctx)
             '#{fn*} (instrument-special-fn* form ctx)
             '#{catch} `(~@(take 2 args)
                         ~@(instrument-coll (drop 2 args) ctx))

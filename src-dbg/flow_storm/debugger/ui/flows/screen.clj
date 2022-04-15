@@ -90,6 +90,8 @@
                              (.setContent (flow-fns/create-functions-pane flow-id thread-id))
                              (.setOnSelectionChanged (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))))]
 
+    (store-obj flow-id (ui-vars/thread-tool-tab-pane-id thread-id) thread-tools-tab-pane)
+
     ;; make thread-tools-tab-pane take the full height
     (-> thread-tools-tab-pane
         .prefHeightProperty

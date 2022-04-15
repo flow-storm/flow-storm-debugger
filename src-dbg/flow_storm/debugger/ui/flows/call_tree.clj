@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.flows.call-tree
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
+            [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.utils :refer [log]]
@@ -62,7 +63,9 @@
                         (h-box [(label "(") ns-lbl fn-name-lbl (label (str dispatch-val)) args-lbl (label ")")])
                         (h-box [(label "(") ns-lbl fn-name-lbl args-lbl (label ")")]))
           ctx-menu-options [{:text (format "Goto trace %d" call-trace-idx)
-                             :on-click #(flow-code/jump-to-coord flow-id thread-id call-trace-idx)}
+                             :on-click #(do
+                                          (ui-flows-gral/select-tool-tab flow-id thread-id :code)
+                                          (flow-code/jump-to-coord flow-id thread-id call-trace-idx))}
                             {:text (format "Hide %s/%s from this tree" fn-ns fn-name)
                              :on-click #(do
                                           (state/callstack-tree-hide-fn dbg-state flow-id thread-id fn-name fn-ns)

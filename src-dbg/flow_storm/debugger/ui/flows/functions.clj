@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]]
+            [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.debugger.state :as state :refer [dbg-state]]
@@ -145,6 +146,7 @@
                                                :trace-idx)
                                  ctx-menu (ui-utils/make-context-menu [{:text (format "Goto trace %d" trace-idx)
                                                                         :on-click (fn []
+                                                                                    (ui-flows-gral/select-tool-tab flow-id thread-id :code)
                                                                                     (flows-code/jump-to-coord flow-id thread-id trace-idx))}])]
                              (.show ctx-menu
                                     fn-call-list-view
