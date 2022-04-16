@@ -27,16 +27,18 @@
 
      inst-code)))
 
-(defn instrument-var [var-symb config]
-  (let [form (some->> (clj.repl/source-fn var-symb)
-                      (read-string {:read-cond :allow}))
-        form-ns (find-ns (symbol (namespace var-symb)))]
-    (if form
+(defn instrument-var
+  ([var-symb] (instrument-var var-symb {}))
+  ([var-symb config]
+   (let [form (some->> (clj.repl/source-fn var-symb)
+                       (read-string {:read-cond :allow}))
+         form-ns (find-ns (symbol (namespace var-symb)))]
+     (if form
 
-      (binding [*ns* form-ns]
-        (inst-ns/instrument-and-eval-form form-ns form config))
+       (binding [*ns* form-ns]
+         (inst-ns/instrument-and-eval-form form-ns form config))
 
-      (log (format "Couldn't find source for %s" var-symb)))))
+       (log (format "Couldn't find source for %s" var-symb))))))
 
 (defn uninstrument-var [var-symb]
   (let [ns-name (namespace var-symb)]

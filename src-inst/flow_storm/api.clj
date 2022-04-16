@@ -92,7 +92,7 @@
 (defn- runi*
   ([form] `(runi {} ~form))
   ([{:keys [ns flow-id] :as opts} form]
-   `(let [flow-id# ~(or flow-id 0)
+   `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
           curr-ns# ~(or ns `(str (ns-name *ns*)))]
       (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
