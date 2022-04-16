@@ -41,8 +41,8 @@
       (.setRotateGraphic true)
       (.setSide (Side/LEFT)))
 
-    (.addAll tabs [flows-tab refs-tab taps-tab
-                   timeline-tab browser-tab docs-tab])
+    (.addAll tabs [flows-tab #_refs-tab #_taps-tab
+                   #_timeline-tab #_browser-tab #_docs-tab])
 
     tabs-p))
 
