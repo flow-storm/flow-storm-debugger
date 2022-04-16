@@ -17,11 +17,31 @@
 
 (declare jump-to-coord)
 
+(defn- maybe-unwrap-runi-tokens
+
+  "Unwrap and discard the (fn* flow-storm.api/flowstorm-runi ([] <EXPR>)) wrapping added so we just show <EXPR>"
+
+  [print-tokens]
+
+  (if-let [runi-token-idx (some (fn [[i t]] (when (= "flow-storm.api/flowstorm-runi" (get t 0))
+                                              i))
+                                (map vector (range) (take 10 print-tokens)))]
+    (let [wrap-beg (case runi-token-idx
+                     3 9 ;; when it fits in one line
+                     5 13) ;; when it render in multiple lines
+          wrap-end (- (count print-tokens) 2)]
+      (subvec print-tokens wrap-beg wrap-end))
+
+    print-tokens))
+
 (defn- add-form [flow-id thread-id form-id]
   (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
         form (indexer/get-form indexer form-id)
         print-tokens (binding [pp/*print-right-margin* 80]
-                       (form-pprinter/pprint-tokens (:form/form form)))
+                       (-> (form-pprinter/pprint-tokens (:form/form form))
+                           ;; if it is a wrapped repl expression discard some tokens that the user
+                           ;; isn't interested in
+                           maybe-unwrap-runi-tokens))
         [forms-box] (obj-lookup flow-id (ui-vars/thread-forms-box-id thread-id))
         tokens-texts (->> print-tokens
                           (map (fn [tok]

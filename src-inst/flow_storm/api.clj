@@ -96,7 +96,7 @@
           curr-ns# ~(or ns `(str (ns-name *ns*)))]
       (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-        ((core/instrument ~opts (fn [] ~form)))))))
+        ((core/instrument ~opts (fn* flowstorm-runi ([] ~form))))))))
 
 (defmacro runi
 
