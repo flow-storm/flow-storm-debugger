@@ -99,8 +99,8 @@
 (defn thread-callstack-tree-view-id [thread-id]
   (format "callstack_tree_view_%s" thread-id))
 
-(defn thread-callstack-tree-item [thread-id trace-idx]
-  (format "callstack_tree_item_%d_%d" thread-id trace-idx))
+(defn thread-callstack-tree-cell [thread-id trace-idx]
+  (format "callstack_tree_cell_%d_%d" thread-id trace-idx))
 
 (defn thread-fn-args-print-combo [thread-id]
   (format "thread_fn_args_print_combo_%d" thread-id))

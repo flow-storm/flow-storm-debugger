@@ -7,7 +7,7 @@
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.scene.layout BorderPane]
-           [javafx.scene.control Label TabPane TabPane$TabClosingPolicy Tab]
+           [javafx.scene.control TabPane TabPane$TabClosingPolicy]
            [javafx.geometry Side]
            [javafx.application Platform]))
 
@@ -20,21 +20,22 @@
         tabs (.getTabs tabs-p)
         flows-tab (doto (ui-utils/tab "Flows" "vertical-tab")
                     (.setContent (flows-screen/main-pane)))
-        refs-tab (doto (Tab. "Refs")
-                   (.setContent (Label. "Refs comming soon"))
-                   (.setDisable true))
-        taps-tab (doto (Tab. "Taps")
-                   (.setContent (Label. "Taps comming soon"))
-                   (.setDisable true))
-        timeline-tab (doto (Tab. "Timeline")
-                       (.setContent (Label. "Timeline comming soon"))
-                       (.setDisable true))
-        browser-tab (doto (Tab. "Browser")
-                      (.setContent (Label. "Browser comming soon"))
-                      (.setDisable true))
-        docs-tab (doto (Tab. "Docs")
-                   (.setContent (Label. "Docs comming soon"))
-                   (.setDisable true))]
+        ;; refs-tab (doto (ui-utils/tab "Refs")
+        ;;            (.setContent (Label. "Refs comming soon"))
+        ;;            (.setDisable true))
+        ;; taps-tab (doto (ui-utils/tab "Taps")
+        ;;            (.setContent (Label. "Taps comming soon"))
+        ;;            (.setDisable true))
+        ;; timeline-tab (doto (ui-utils/tab "Timeline")
+        ;;                (.setContent (Label. "Timeline comming soon"))
+        ;;                (.setDisable true))
+        ;; browser-tab (doto (ui-utils/tab "Browser")
+        ;;               (.setContent (Label. "Browser comming soon"))
+        ;;               (.setDisable true))
+        ;; docs-tab (doto (ui-utils/tab "Docs")
+        ;;            (.setContent (Label. "Docs comming soon"))
+        ;;            (.setDisable true))
+        ]
     (doto tabs-p
       (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE)
 
