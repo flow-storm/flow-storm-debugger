@@ -3,7 +3,7 @@
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state :refer [dbg-state]]
             [flow-storm.debugger.target-commands :as target-commands]
@@ -258,9 +258,11 @@
 (defn- create-result-pane [flow-id thread-id]
   (let [tools-tab-pane (doto (TabPane.)
                          (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE))
-        pprint-tab (doto (Tab. "Pprint")
+        pprint-tab (doto (Tab.)
+                     (.setGraphic (icon "mdi-code-braces"))
                      (.setContent (flow-cmp/create-pprint-pane flow-id thread-id "expr_result")))
-        tree-tab (doto (Tab. "Tree")
+        tree-tab (doto (Tab.)
+                   (.setGraphic (icon "mdi-file-tree"))
                    (.setDisable true)
                    (.setContent (flow-cmp/create-result-tree-pane flow-id thread-id)))]
     (-> tools-tab-pane

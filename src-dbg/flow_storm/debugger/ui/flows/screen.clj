@@ -3,7 +3,7 @@
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon]]
             [flow-storm.debugger.state :as dbg-state :refer [dbg-state]]
             [flow-storm.debugger.target-commands :as target-commands])
   (:import [javafx.scene.control Tab TabPane TabPane$TabClosingPolicy]
@@ -27,9 +27,9 @@
         threads-tab-pane (doto (TabPane.)
                            (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE))
         _ (store-obj flow-id "threads_tabs_pane" threads-tab-pane)
-        flow-tab (doto (Tab. (if (= flow-id dbg-state/orphans-flow-id)
-                               "orphans"
-                               (str "flow-" flow-id)))
+        flow-tab (doto (if (= flow-id dbg-state/orphans-flow-id)
+                         (doto (Tab.) (.setGraphic (icon "mdi-filter")))
+                         (Tab. (str "flow-" flow-id)))
                    (.setOnCloseRequest (event-handler
                                         [ev]
                                         (dbg-state/remove-flow dbg-state flow-id)
@@ -61,7 +61,7 @@
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
                                                  (inc (dbg-state/current-trace-idx dbg-state flow-id thread-id))))))
-        re-run-flow-btn (doto (ui-utils/icon-button "mdi-reload")
+        re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
                           (.setOnAction (event-handler
                                          [_]
                                          (let [{:keys [flow/execution-expr]} (dbg-state/get-flow dbg-state flow-id)]
@@ -81,14 +81,17 @@
         thread-tools-tab-pane (doto (TabPane.)
                                (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE)
                                (.setSide (Side/BOTTOM)))
-        code-tab (doto (Tab. "Code")
+        code-tab (doto (Tab.)
+                   (.setGraphic (icon "mdi-code-parentheses"))
                    (.setContent (flow-code/create-code-pane flow-id thread-id)))
-        callstack-tree-tab (doto (Tab. "Call tree")
+        callstack-tree-tab (doto (Tab.)
+                             (.setGraphic (icon "mdi-file-tree"))
                              (.setContent (flow-tree/create-call-stack-tree-pane flow-id thread-id))
                              (.setOnSelectionChanged (event-handler [_] (flow-tree/update-call-stack-tree-pane flow-id thread-id))))
-        instrument-tab (doto (Tab. "Functions")
-                             (.setContent (flow-fns/create-functions-pane flow-id thread-id))
-                             (.setOnSelectionChanged (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))))]
+        instrument-tab (doto (Tab.)
+                         (.setGraphic (icon "mdi-format-list-numbers"))
+                         (.setContent (flow-fns/create-functions-pane flow-id thread-id))
+                         (.setOnSelectionChanged (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))))]
 
     (store-obj flow-id (ui-vars/thread-tool-tab-pane-id thread-id) thread-tools-tab-pane)
 

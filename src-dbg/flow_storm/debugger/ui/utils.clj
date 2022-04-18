@@ -67,6 +67,9 @@
         (.setGraphic ^Node this nil)
         (update-item-fn this item)))))
 
+(defn icon [icon-name]
+  (FontIcon. icon-name))
+
 (defn icon-button
   ([icon-name]
    (icon-button icon-name nil))
