@@ -41,16 +41,16 @@
          objs (get all-objs obj-id)]
      (when-not objs
        (log (format "Object not found %s" obj-id))
-       (log (keys all-objs)))
+       #_(log (keys all-objs)))
      objs))
 
   ([flow-id obj-id]
 
    (let [all-objs @flows-ui-objs
          objs (get-in all-objs [flow-id obj-id])]
-     (when-not objs
+     #_(when-not objs
        (log (format "Flow object not found flow-id: %d obj-id: %s" flow-id obj-id))
-       #_(log (keys (get all-objs flow-id))))
+       (log (keys (get all-objs flow-id))))
      objs)))
 
 (defn clean-flow-objs [flow-id]

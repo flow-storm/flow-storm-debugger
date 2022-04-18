@@ -8,7 +8,7 @@
             [flow-storm.debugger.state :as state :refer [dbg-state]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]])
   (:import [javafx.collections ObservableList]
-           [javafx.scene.control SelectionModel SplitPane TreeCell TextField  Tooltip TreeView TreeItem]
+           [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
            [javafx.scene.input KeyCode]
            [ javafx.beans.value ChangeListener]
            [javafx.geometry Insets Pos Orientation]

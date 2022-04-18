@@ -13,21 +13,25 @@
 
   This is the recommended way of using the debugger for debugging code that
   generates a lot of data since data doesn't need to serialize/deserialize it like
-  in a remote debugging session case."
+  in a remote debugging session case.
 
-  []
+  `config` should be a map containing: `:verbose?`"
 
-  (require '[flow-storm.debugger.trace-processor])
-  (require '[flow-storm.debugger.main])
-  (let [local-dispatch-trace (resolve 'flow-storm.debugger.trace-processor/dispatch-trace)
-        start-debugger       (resolve 'flow-storm.debugger.main/start-debugger)]
-    (start-debugger)
-    (tracer/start-trace-sender
-     {:send-fn (fn [trace]
-                 (try
-                   (local-dispatch-trace trace)
-                   (catch Exception e
-                     (log-error "Exception dispatching trace " e))))})))
+  ([] (local-connect {}))
+
+  ([config]
+   (require '[flow-storm.debugger.trace-processor])
+   (require '[flow-storm.debugger.main])
+   (let [local-dispatch-trace (resolve 'flow-storm.debugger.trace-processor/dispatch-trace)
+         start-debugger       (resolve 'flow-storm.debugger.main/start-debugger)]
+     (start-debugger)
+     (tracer/start-trace-sender
+      (assoc config
+             :send-fn (fn [trace]
+                        (try
+                          (local-dispatch-trace trace)
+                          (catch Exception e
+                            (log-error "Exception dispatching trace " e)))))))))
 
 (def instrument-var
 
@@ -132,11 +136,13 @@
 
 (defn cli-run
 
-  "Require `fn-symb` ns, instrument `ns-set` and then call (apply `fn-symb` `fn-args`).
+  "Require `fn-symb` ns, instrument `ns-set` (excluding `excluding-ns`) and then call (apply `fn-symb` `fn-args`).
 
   `profile` (optional) should be :full (for full instrumentation) or :light for disable #{:expr :binding :anonymous-fn}
 
   `require-before` (optional) should be a set of namespaces you want to require before the instrumentation.
+
+  `verbose?` (optional) when true show more logging.
 
   cli-run is designed to be used with clj -X like :
 
@@ -145,7 +151,7 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile]}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose?]}]
   (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
   (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
   (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
@@ -168,7 +174,7 @@
         (log (format "Requiring ns %s" ns-name))
         (require (symbol ns-name))))
 
-    (local-connect)
+    (local-connect {:verbose? verbose?})
     (log (format "Instrumenting namespaces %s" ns-to-instrument))
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")

@@ -224,7 +224,7 @@
      "Creates and starts a thread that read traces from the global `trace-queue`
   and send them using `send-fn`"
      
-     [{:keys [send-fn]}]
+     [{:keys [send-fn verbose?]}]
 
      ;; Stop the previous running `send-thread` if we have one
      (when send-thread (.interrupt send-thread))
@@ -244,7 +244,8 @@
                                 (let [{:keys [cnt last-report-t last-report-cnt]} @*consumer-stats]
                                   (when (zero? (mod cnt 100000))
                                     
-                                    (log-stats cnt qsize last-report-cnt last-report-t)
+                                    (when verbose?
+                                      (log-stats cnt qsize last-report-cnt last-report-t))
                                     
                                     (swap! *consumer-stats
                                            assoc
