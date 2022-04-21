@@ -55,8 +55,8 @@
 (defn build-main-pane []
   (let [mp (doto (BorderPane.)
              (.setCenter (main-tabs-pane))
-             (.setBottom (bottom-box))
-             (.setStyle "-fx-font-family: 'Roboto Medium';"))]
+             (.setBottom (bottom-box)))]
+    (ui-utils/add-class mp "main-pane")
     mp))
 
 (defn reset-scene-main-pane []
@@ -64,14 +64,15 @@
     (alter-var-root #'main-pane (constantly mp))
     (.setRoot scene mp)))
 
-(defn start-ui []
+(defn start-ui [{:keys [styles]}]
   ;; Initialize the JavaFX toolkit
   (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
 
   (ui-utils/run-now
    (try
-     (let [scene (Scene. (build-main-pane) 1024 768)]
+     (let [scene (Scene. (build-main-pane) 1024 768)
+           stylesheets (.getStylesheets scene)]
 
        (doto scene
          (.setOnKeyPressed (event-handler
@@ -87,8 +88,9 @@
                                 :else
                                 (log (format "Unhandled keypress %s" key-name)))))))
 
-       (doto (.getStylesheets scene)
-         (.add (str (io/resource "styles.css"))))
+
+       (.add stylesheets (str (io/resource "styles.css")))
+       (when styles (.add stylesheets (str (io/as-url (io/file styles)))))
 
        (alter-var-root #'scene (constantly scene))
        (alter-var-root #'stage (constantly (doto (Stage.)

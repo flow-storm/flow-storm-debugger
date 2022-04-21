@@ -24,7 +24,7 @@
    (require '[flow-storm.debugger.main])
    (let [local-dispatch-trace (resolve 'flow-storm.debugger.trace-processor/dispatch-trace)
          start-debugger       (resolve 'flow-storm.debugger.main/start-debugger)]
-     (start-debugger)
+     (start-debugger config)
      (tracer/start-trace-sender
       (assoc config
              :send-fn (fn [trace]
@@ -144,6 +144,8 @@
 
   `verbose?` (optional) when true show more logging.
 
+  `styles` (optional) a file path containing styles (css) that will override default styles
+
   cli-run is designed to be used with clj -X like :
 
   clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"com.github.jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
@@ -151,7 +153,7 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose?]}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles]}]
   (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
   (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
   (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
@@ -174,7 +176,8 @@
         (log (format "Requiring ns %s" ns-name))
         (require (symbol ns-name))))
 
-    (local-connect {:verbose? verbose?})
+    (local-connect {:verbose? verbose?
+                    :styles styles})
     (log (format "Instrumenting namespaces %s" ns-to-instrument))
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")

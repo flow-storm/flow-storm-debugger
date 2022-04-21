@@ -6,9 +6,17 @@
     src: url('fonts/Roboto-Medium.ttf');
 }
 
+.main-pane {
+	-fx-font-family: 'Roboto Medium';
+	-fx-font-size: 12;
+}
+
+.tab .ikonli-font-icon {
+	-fx-font-size: 15;
+}
+
 .vertical-tab:selected {
 	-fx-background-color: #4743ba;
-    
 }
 
 .vertical-tab:selected .tab-label { 

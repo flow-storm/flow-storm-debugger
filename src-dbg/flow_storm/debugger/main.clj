@@ -3,7 +3,7 @@
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]))
 
-(defn start-debugger []
+(defn start-debugger [config]
   (dbg-state/init-state!)
   (ui-vars/reset-state!)
-  (ui-main/start-ui))
+  (ui-main/start-ui config))
