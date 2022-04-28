@@ -1,4 +1,4 @@
-{:paths [] #_["src-inst" "src-dbg" "src-shared" "resources" ]
+{:paths ["src-inst" "src-dbg" "src-shared" "resources" ]
  :deps { ;; Refs patches
         ;; juji/editscript           {:mvn/version "0.4.6"}
 

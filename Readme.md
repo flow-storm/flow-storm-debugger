@@ -17,7 +17,7 @@ Debugger GUI artifact :
 Instrumentation artifact :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
-To check that it working run a repl with both deps in your dependencies :
+To check that it is working run a repl with both deps in your dependencies :
 
 ```bash
 clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"}}}'
@@ -54,31 +54,31 @@ Only Clojure local debugging is supported so far, but remote debugging and Cloju
 Given you can compile and run a cljs file, like :
 
 ```bash
-clj -Sdeps {:deps {org.clojure/clojure {:mvn/version "1.11.0"}          \
-					org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
-    -M -m cljs.main -t nodejs /home/jmonetta/tmp/cljstest/foo/script.cljs
+clj -Sdeps {:deps {org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
+    -M -m cljs.main -t nodejs ./org/foo/myscript.cljs
 ```
 
-You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/trampoline`, like :
+You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/cli-run`, like :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"} org.clojure/clojure {:mvn/version "1.11.0"} org.clojure/clojurescript {:mvn/version "1.11.4"}}}' \
-	-X flow-storm.api/trampoline :ns-set '#{"cljs."}'                                           \
-	                             :profile ':light'                                              \
-								 :fn-symb 'cljs.main/-main'                                     \
-								 :fn-args '["-t" "nodejs" "/home/jmonetta/tmp/cljstest/foo/script.cljs"]'
+clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}' \
+	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
+                              :profile ':light'                     \
+                              :require-before '#{"cljs.repl.node"}' \
+                              :fn-symb 'cljs.main/-main'            \
+                              :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
 ```
 
-### Debug depsta while building flow-storm jars
+### Debug depstar while building flow-storm jars
 
 ```bash
-clj -X:dbg:inst:dev:build flow-storm.api/trampoline :ns-set '#{\"hf.depstar\"}' \
-                                                    :fn-symb 'hf.depstar/jar'   \
-													:fn-args '[{:jar "flow-storm-dbg.jar"         \
-													            :aliases [:dbg]                   \
-																:paths-only false                 \
-																:sync-pom true                    \
-																:version "1.1.1"                  \
-																:group-id "com.github.jpmonettas" \
-																:artifact-id "flow-storm-dbg"}]'
+clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-ns '#{"hf.depstar"}'              \
+                                                 :fn-symb 'hf.depstar/jar'                     \
+												 :fn-args '[{:jar "flow-storm-dbg.jar"         \
+													         :aliases [:dbg]                   \
+														     :paths-only false                 \
+															 :sync-pom true                    \
+															 :version "1.1.1"                  \
+															 :group-id "com.github.jpmonettas" \
+															 :artifact-id "flow-storm-dbg"}]'
 ```
