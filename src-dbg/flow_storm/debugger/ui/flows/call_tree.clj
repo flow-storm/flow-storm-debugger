@@ -117,7 +117,7 @@
                           (.setPrefWidth 70)
                           (.setAlignment Pos/CENTER))
         search-lvl-txt (doto (TextField. "2")
-                         (.setPrefWidth 30)
+                         (.setPrefWidth 50)
                          (.setAlignment Pos/CENTER))
         search-match-lbl (label "")
         search-btn (ui-utils/icon-button "mdi-magnify" "tree-search")
