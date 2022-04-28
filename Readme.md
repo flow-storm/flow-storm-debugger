@@ -20,7 +20,7 @@ Instrumentation artifact :
 To check that it is working run a repl with both deps in your dependencies :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0-alpha-SNAPSHOT"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"}}}'
 ```
 
 and then :
@@ -67,18 +67,4 @@ clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github
                               :require-before '#{"cljs.repl.node"}' \
                               :fn-symb 'cljs.main/-main'            \
                               :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
-```
-
-### Debug depstar while building flow-storm jars
-
-```bash
-clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-ns '#{"hf.depstar"}'              \
-                                                 :fn-symb 'hf.depstar/jar'                     \
-												 :fn-args '[{:jar "flow-storm-dbg.jar"         \
-													         :aliases [:dbg]                   \
-														     :paths-only false                 \
-															 :sync-pom true                    \
-															 :version "1.1.1"                  \
-															 :group-id "com.github.jpmonettas" \
-															 :artifact-id "flow-storm-dbg"}]'
 ```
