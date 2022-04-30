@@ -1,33 +1,25 @@
-.PHONY: test
-
-clean:
-	-rm flow-storm-dbg.jar
-	-rm flow-storm-inst.jar
-	-rm pom.xml
+.PHONY: test lint-dbg lint-inst install-dbg install-inst deploy-dbg deploy-inst
 
 test:
 	clj -M:test:inst
 
-lint-dbg:
-	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared
-
-lint-inst:
-	clj-kondo --config .clj-kondo/config.edn --lint src-inst src-shared
-
+lint:
+	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst
+    
 flow-storm-dbg.jar:
-	clj -X:build hf.depstar/jar :jar flow-storm-dbg.jar :aliases '[:dbg]' :paths-only false :sync-pom true :version '"$(VERSION)"' :group-id com.github.jpmonettas :artifact-id flow-storm-dbg;
+	clj -T:build jar-dbg
 
 flow-storm-inst.jar:
-	clj -X:build hf.depstar/jar :jar flow-storm-inst.jar :aliases '[:inst]' :sync-pom true :version '"$(VERSION)"' :group-id com.github.jpmonettas :artifact-id flow-storm-inst;
+	clj -T:build jar-inst
 
 install-dbg: flow-storm-dbg.jar
-	mvn install:install-file -Dfile=flow-storm-dbg.jar -DpomFile=pom.xml
+	mvn install:install-file -Dfile=target/flow-storm-dbg.jar -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-dbg/pom.xml
 
 install-inst: flow-storm-inst.jar
-	mvn install:install-file -Dfile=flow-storm-inst.jar -DpomFile=pom.xml
+	mvn install:install-file -Dfile=target/flow-storm-inst.jar -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-inst/pom.xml
 
 deploy-dbg:
-	mvn deploy:deploy-file -Dfile=flow-storm-dbg.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
+	mvn deploy:deploy-file -Dfile=target/flow-storm-dbg.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-dbg/pom.xml -Durl=https://clojars.org/repo
 
 deploy-inst:
-	mvn deploy:deploy-file -Dfile=flow-storm-inst.jar -DrepositoryId=clojars -DpomFile=pom.xml -Durl=https://clojars.org/repo
+	mvn deploy:deploy-file -Dfile=target/flow-storm-inst.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-inst/pom.xml -Durl=https://clojars.org/repo

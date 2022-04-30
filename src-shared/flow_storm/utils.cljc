@@ -1,11 +1,5 @@
 (ns flow-storm.utils)
 
-(defn read-trace-tag [form]
-  `(flow-storm.core/instrument ~form))
-
-(defn read-rtrace-tag [form]
-  `(flow-storm.api/runi ~form))
-
 #?(:clj
    (defn colored-string [s c]
      (let [color {:red 31

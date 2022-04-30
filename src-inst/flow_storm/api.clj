@@ -1,11 +1,13 @@
 (ns flow-storm.api
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
-  (:refer-clojure :exclude [trampoline])
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log log-error]]
             [flow-storm.instrument.namespaces :as inst-ns]
-            [flow-storm.core :as core]))
+            [flow-storm.core :as fs-core]))
+
+(def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
+(def debugger-main-ns 'flow-storm.debugger.main)
 
 (defn local-connect
 
@@ -20,10 +22,10 @@
   ([] (local-connect {}))
 
   ([config]
-   (require '[flow-storm.debugger.trace-processor])
-   (require '[flow-storm.debugger.main])
-   (let [local-dispatch-trace (resolve 'flow-storm.debugger.trace-processor/dispatch-trace)
-         start-debugger       (resolve 'flow-storm.debugger.main/start-debugger)]
+   (require debugger-trace-processor-ns)
+   (require debugger-main-ns)
+   (let [local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "dispatch-trace"))
+         start-debugger       (resolve (symbol (name debugger-main-ns) "start-debugger"))]
      (start-debugger config)
      (tracer/start-trace-sender
       (assoc config
@@ -53,7 +55,7 @@
   `opts` is a map that support :flow-id and :disable
   See `instrument-forms-for-namespaces` for :disable"
 
-  core/instrument-var)
+  fs-core/instrument-var)
 
 (def uninstrument-var
 
@@ -61,7 +63,7 @@
 
   (uninstrument-var var-symb)"
 
-  core/uninstrument-var)
+  fs-core/uninstrument-var)
 
 (def uninstrument-vars
 
@@ -69,7 +71,7 @@
 
   (uninstrument-vars var-symbols)"
 
-  core/uninstrument-vars)
+  fs-core/uninstrument-vars)
 
 ;; TODO: deduplicate code between `run` and `runi`
 (defn- run*
@@ -100,7 +102,7 @@
           curr-ns# ~(or ns `(str (ns-name *ns*)))]
       (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-        ((core/instrument ~opts (fn* flowstorm-runi ([] ~form))))))))
+        ((fs-core/instrument ~opts (fn* flowstorm-runi ([] ~form))))))))
 
 (defmacro runi
 
@@ -182,3 +184,9 @@
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")
     (eval (run* `(~f ~@fn-args)))))
+
+(defn read-trace-tag [form]
+  `(fs-core/instrument ~form))
+
+(defn read-rtrace-tag [form]
+  `(runi ~form))

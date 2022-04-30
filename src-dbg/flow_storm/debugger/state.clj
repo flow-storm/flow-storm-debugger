@@ -1,6 +1,5 @@
 (ns flow-storm.debugger.state
-  (:require #_[clojure.spec.alpha :as s]
-            [flow-storm.tracer]
+  (:require [flow-storm.tracer]
             [flow-storm.debugger.trace-indexer.protos :as indexer])
   (:import [java.util HashMap Map$Entry]))
 

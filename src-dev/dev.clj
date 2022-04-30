@@ -4,7 +4,8 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error]]
             [clojure.tools.namespace.repl :refer [refresh]]
-            [dev-tester]))
+            [dev-tester]
+            [flow-storm.api-v2-0-40-FLOWNS :as dbg-api]))
 
 ;; clj -X:dbg:inst:dev flow-storm.api/cli-run :fn-symb 'dev-tester/boo' :fn-args '[[2 "hello" 8]]'
 
@@ -28,7 +29,7 @@
 
   (run))
 
-#_(add-tap (bound-fn* pp/pprint))
+(add-tap (bound-fn* println))
 
 (defn local-restart-everything []
   (tracer/stop-trace-sender)
@@ -44,3 +45,15 @@
      Thread$UncaughtExceptionHandler
      (uncaughtException [_ _ throwable]
        (log-error "Unhandled exception" throwable))))
+
+
+(defn self-instrument []
+
+  (dbg-api/local-connect {:styles "/home/jmonetta/.flow-storm/meta-debugger.css"})
+
+  (dbg-api/instrument-forms-for-namespaces #{"flow-storm."} {}))
+
+(defn run-test-instrumented []
+  (dbg-api/run
+    {:flow-id 0}
+    (start-and-add-data nil)))

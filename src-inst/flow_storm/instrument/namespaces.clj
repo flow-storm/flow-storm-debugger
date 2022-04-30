@@ -8,6 +8,8 @@
             [clojure.tools.namespace.dependency :as tools-ns-deps]
             [flow-storm.utils :as utils :refer [log]]))
 
+(def flow-storm-ns-tag "FLOWNS")
+
 (defn all-ns-with-prefixes
 
   "Return all loaded namespaces that start with `prefixes` but
@@ -18,6 +20,7 @@
        (keep (fn [ns]
                (let [nsname (str (ns-name ns))]
                  (when (and (not (excluding-ns nsname))
+                            (not (str/includes? nsname flow-storm-ns-tag))
                             (some (fn [prefix]
                                     (str/starts-with? nsname prefix))
                                   prefixes))

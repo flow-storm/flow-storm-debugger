@@ -1,15 +1,10 @@
 (ns flow-storm.tracer
   #?(:clj
      (:require [flow-storm.utils :refer [log log-error]]
-               #_[jsonista.core :as json]
                [flow-storm.trace-types :as trace-types]))
   #?(:cljs (:require [flow-storm.trace-types :as trace-types]))
   
-  #?(:clj (:import [java.util.concurrent ArrayBlockingQueue]
-                   #_[org.java_websocket.client WebSocketClient]
-                   #_[java.net URI]
-                   #_[org.java_websocket.handshake ServerHandshake]
-                   #_[java.io FileOutputStream DataOutputStream])))
+  #?(:clj (:import [java.util.concurrent ArrayBlockingQueue])))
 
 (def trace-queue nil)
 

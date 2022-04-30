@@ -54,7 +54,7 @@
               (recur (dec i) (+ sum i))
               sum))]
     (->> xs
-         (pmap (fn [x] (+ 1 (do-it x))))
+         (map (fn [x] (+ 1 (do-it x))))
          (reduce + )
          add
          sub

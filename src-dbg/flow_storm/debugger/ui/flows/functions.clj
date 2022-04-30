@@ -88,43 +88,41 @@
                               (ui-utils/create-list-cell-factory
                                (fn [list-cell {:keys [args-vec]}]
                                  (let [[args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
-                                       [print-args-type _] (.getSelectedItem (.getSelectionModel args-print-type-combo))
+                                       pargs (.getSelectedItem (.getSelectionModel args-print-type-combo))
                                        arg-selector (fn [n]
                                                       (when (< n (count args-vec))
                                                         (str "... " (flow-cmp/format-value-short (nth args-vec n)) " ...")))
-                                       args-lbl (label (case print-args-type
-                                                         :all-args (flow-cmp/format-value-short args-vec)
-                                                         :a0       (arg-selector 0)
-                                                         :a1       (arg-selector 1)
-                                                         :a2       (arg-selector 2)
-                                                         :a3       (arg-selector 3)
-                                                         :a4       (arg-selector 4)
-                                                         :a5       (arg-selector 5)
-                                                         :a6       (arg-selector 6)
-                                                         :a7       (arg-selector 7)
-                                                         :a8       (arg-selector 8)
-                                                         :a9       (arg-selector 9)))]
+                                       args-lbl (label (cond
+                                                         (= pargs "Print all args")   (flow-cmp/format-value-short args-vec)
+                                                         (= pargs "Print only arg 0") (arg-selector 0)
+                                                         (= pargs "Print only arg 1") (arg-selector 1)
+                                                         (= pargs "Print only arg 2") (arg-selector 2)
+                                                         (= pargs "Print only arg 3") (arg-selector 3)
+                                                         (= pargs "Print only arg 4") (arg-selector 4)
+                                                         (= pargs "Print only arg 5") (arg-selector 5)
+                                                         (= pargs "Print only arg 6") (arg-selector 6)
+                                                         (= pargs "Print only arg 7") (arg-selector 7)
+                                                         (= pargs "Print only arg 8") (arg-selector 8)
+                                                         (= pargs "Print only arg 9") (arg-selector 9)))]
                                    (.setGraphic ^Node list-cell args-lbl))))))
         combo-cell-factory (proxy [javafx.util.Callback] []
                              (call [lv]
                                (ui-utils/create-list-cell-factory
-                                (fn [cell [_ text]]
+                                (fn [cell text]
                                   (.setText cell text)))))
         args-print-type-combo (doto (ComboBox.)
                                 (.setItems (doto (FXCollections/observableArrayList)
-                                             (.addAll (into-array Object [[:all-args "Print all args"]
-                                                                          [:a0       "Print only arg 0"]
-                                                                          [:a1       "Print only arg 1"]
-                                                                          [:a2       "Print only arg 2"]
-                                                                          [:a3       "Print only arg 3"]
-                                                                          [:a4       "Print only arg 4"]
-                                                                          [:a5       "Print only arg 5"]
-                                                                          [:a6       "Print only arg 6"]
-                                                                          [:a7       "Print only arg 7"]
-                                                                          [:a8       "Print only arg 8"]
-                                                                          [:a9       "Print only arg 9"]]))))
-                                (.setConverter (proxy [StringConverter] []
-                                                      (toString [[_ text]] text)))
+                                             (.addAll (into-array String ["Print all args"
+                                                                          "Print only arg 0"
+                                                                          "Print only arg 1"
+                                                                          "Print only arg 2"
+                                                                          "Print only arg 3"
+                                                                          "Print only arg 4"
+                                                                          "Print only arg 5"
+                                                                          "Print only arg 6"
+                                                                          "Print only arg 7"
+                                                                          "Print only arg 8"
+                                                                          "Print only arg 9"]))))
                                 (.setCellFactory combo-cell-factory))
         _ (.selectFirst (.getSelectionModel args-print-type-combo))
         _ (store-obj flow-id (ui-vars/thread-fn-args-print-combo thread-id) args-print-type-combo)

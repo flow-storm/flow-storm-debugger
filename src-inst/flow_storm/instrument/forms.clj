@@ -8,8 +8,8 @@
 
   (:require
    [clojure.walk :as walk]
-   #_[cljs.analyzer :as ana]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [flow-storm.tracer :as tracer]))
 
 
 (declare instrument-outer-form)
@@ -177,11 +177,11 @@
 
   "Generates a form to trace a `symb` binding at `coor`."
 
-  [symb coor {:keys [on-bind-fn disable] :as ctx}]
+  [symb coor {:keys [disable] :as ctx}]
 
   (when-not (or (disable :binding)
                 (uninteresting-symb? symb))
-    `(~on-bind-fn
+    `(tracer/trace-bound-trace
       (quote ~symb)
       ~symb
       ~{:coor coor
@@ -275,7 +275,7 @@
              vec)
         (instrument-coll (rest args) ctx)))
 
-(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind orig-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
+(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind orig-form form-id form-ns disable excluding-fns] :as ctx}]
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
         fn-form (cond
                   (= outer-form-kind :extend-protocol) orig-form
@@ -288,18 +288,18 @@
                   (= (:kind fn-ctx) :anonymous) orig-form
                   :else (throw (Exception. (format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind))))
         outer-preamble (-> []
-                           (into [`(~on-outer-form-init-fn {:form-id ~form-id
-                                                            :ns ~form-ns
-                                                            :def-kind ~(cond
-                                                                         (= outer-form-kind :extend-protocol) :extend-protocol
-                                                                         (= outer-form-kind :extend-type) :extend-type
-                                                                         (= outer-form-kind :defrecord) :extend-type
-                                                                         (= outer-form-kind :deftype) :extend-type
-                                                                         (= (:kind fn-ctx) :defmethod) :defmethod
-                                                                         (= (:kind fn-ctx) :defn) :defn)
-                                                            :dispatch-val ~(:dispatch-val fn-ctx)}
-                                    ~fn-form)])
-                           (into [`(~on-fn-call-fn ~form-id ~form-ns ~(str fn-trace-name) ~(clear-fn-args-vec arity-args-vec))])
+                           (into [`(tracer/trace-form-init-trace {:form-id ~form-id
+                                                                  :ns ~form-ns
+                                                                  :def-kind ~(cond
+                                                                               (= outer-form-kind :extend-protocol) :extend-protocol
+                                                                               (= outer-form-kind :extend-type) :extend-type
+                                                                               (= outer-form-kind :defrecord) :extend-type
+                                                                               (= outer-form-kind :deftype) :extend-type
+                                                                               (= (:kind fn-ctx) :defmethod) :defmethod
+                                                                               (= (:kind fn-ctx) :defn) :defn)
+                                                                  :dispatch-val ~(:dispatch-val fn-ctx)}
+                                                                 ~fn-form)])
+                           (into [`(tracer/trace-fn-call-trace ~form-id ~form-ns ~(str fn-trace-name) ~(clear-fn-args-vec arity-args-vec))])
                            (into (args-bind-tracers arity-args-vec form-coor ctx)))
 
         ctx' (-> ctx
@@ -395,7 +395,7 @@
      args)
 (definstrumenter instrument-special-form
   "Instrument form representing a macro call or special-form."
-  [[name & args :as form] {:keys [orig-outer-form form-id form-ns on-outer-form-init-fn on-fn-call-fn disable excluding-fns] :as ctx}]
+  [[name & args :as form] {:keys [orig-outer-form form-id form-ns disable excluding-fns] :as ctx}]
   (cons name
         ;; We're dealing with some low level stuff here, and some of
         ;; these internal forms are completely undocumented, so let's
@@ -438,7 +438,7 @@
   [[name & args :as fncall] ctx]
   (cons name (instrument-coll args ctx)))
 
-(defn- instrument-form [form coor {:keys [on-expr-exec-fn form-id outer-form? disable]}]
+(defn- instrument-form [form coor {:keys [form-id outer-form? disable]}]
   ;; only disable :fn-call traces if it is not the outer form, we still want to
   ;; trace it since its the function return trace
   (if (and (disable :expr) (not outer-form?))
@@ -447,7 +447,7 @@
 
     (let [trace-data (cond-> {:coor coor, :form-id form-id}
                        outer-form? (assoc :outer-form? outer-form?))]
-      `(~on-expr-exec-fn ~form nil ~trace-data))))
+      `(tracer/trace-expr-exec-trace ~form nil ~trace-data))))
 
 (defn- maybe-instrument
   "If the form has been tagged with ::coor on its meta, then instrument it
@@ -569,9 +569,10 @@
 
 (defn maybe-unwrap-outer-form-instrumentation [inst-form _]
   (if (and (seq? inst-form)
-           (= 'flow-storm.tracer/trace-expr-exec-trace (first inst-form)))
+           (symbol? (first inst-form))
+           (= "trace-expr-exec-trace" (-> inst-form first name)))
 
-    ;; discard the on-expr-exec-fn
+    ;; discard the flow-storm.tracer/trace-expr-exec-trace
     (second inst-form)
 
     ;; else do nothing
@@ -717,17 +718,10 @@
   (walk-indexed
    (fn [_ f]
      (if (instance? clojure.lang.IObj f)
-       (let [keys [::original-form ::coor ::def-symbol]
-             f    #_(if (::def-symbol (meta f)) ;; TODO: figure this out
-                    (let [br (::breakfunction (meta f))
-                          f1 (strip-meta f keys)]
-                      (if br
-                        (vary-meta f1 assoc :cider/instrumented (name (:name (meta br))))
-                        f1))
-                    (strip-meta f keys))
-             (strip-meta f keys)]
-         ;; also strip meta of the meta
-         (with-meta f (strip-instrumentation-meta (meta f))))
+
+       (let [keys [::original-form ::coor ::def-symbol]]
+         (strip-meta f keys))
+
        f))
    form))
 
@@ -761,11 +755,11 @@
 (defn instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
   [ctx forms preamble]
-  `(let [curr-ctx# flow-storm.tracer/*runtime-ctx*]
+  `(let [curr-ctx# tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
 
-     (binding [flow-storm.tracer/*runtime-ctx* (or curr-ctx# (flow-storm.tracer/empty-runtime-ctx orphan-flow-id))]
+     (binding [tracer/*runtime-ctx* (or curr-ctx# (tracer/empty-runtime-ctx orphan-flow-id))]
        ~@(-> preamble
              (into [(instrument-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 
@@ -791,12 +785,7 @@
 (defn build-form-instrumentation-ctx [{:keys [disable excluding-fns]} form-ns form env]
   (let [form-id (hash form)]
     (assert (or (nil? disable) (set? disable)) ":disable configuration should be a set")
-    {:on-expr-exec-fn       'flow-storm.tracer/trace-expr-exec-trace
-     :on-bind-fn            'flow-storm.tracer/trace-bound-trace
-     :on-fn-call-fn         'flow-storm.tracer/trace-fn-call-trace
-     :on-outer-form-init-fn 'flow-storm.tracer/trace-form-init-trace
-     :on-flow-start-fn      'flow-storm.tracer/trace-flow-init-trace
-     :environment      env
+    {:environment      env
      :compiler         (if (contains? env :js-globals)
                          :cljs
                          :clj)

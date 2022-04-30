@@ -20,7 +20,7 @@ Instrumentation artifact :
 To check that it is working run a repl with both deps in your dependencies :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0-alpha-SNAPSHOT"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}'
 ```
 
 and then :
