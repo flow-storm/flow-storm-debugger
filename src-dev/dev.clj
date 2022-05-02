@@ -5,7 +5,7 @@
             [flow-storm.utils :refer [log-error]]
             [clojure.tools.namespace.repl :refer [refresh]]
             [dev-tester]
-            [flow-storm.api-v2-0-40-FLOWNS :as dbg-api]))
+            [flow-storm.api-v2-0-38-FLOWNS :as dbg-api]))
 
 ;; clj -X:dbg:inst:dev flow-storm.api/cli-run :fn-symb 'dev-tester/boo' :fn-args '[[2 "hello" 8]]'
 

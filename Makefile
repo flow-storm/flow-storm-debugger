@@ -1,11 +1,14 @@
-.PHONY: test lint-dbg lint-inst install-dbg install-inst deploy-dbg deploy-inst
+.PHONY: clean test lint-dbg lint-inst install-dbg install-inst deploy-dbg deploy-inst
+
+clean:
+	clj -T:build clean
 
 test:
 	clj -M:test:inst
 
 lint:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst
-    
+
 flow-storm-dbg.jar:
 	clj -T:build jar-dbg
 

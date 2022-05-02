@@ -20,7 +20,7 @@ Instrumentation artifact :
 To check that it is working run a repl with both deps in your dependencies :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}}}'
 ```
 
 and then :
@@ -61,7 +61,7 @@ clj -Sdeps {:deps {org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
 You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/cli-run`, like :
 
 ```bash
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.0"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.0"}}}' \
+clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}}}' \
 	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
                               :profile ':light'                     \
                               :require-before '#{"cljs.repl.node"}' \

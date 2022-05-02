@@ -38,8 +38,9 @@
 
            :dev {:extra-paths ["src-dev"]
                  :extra-deps {com.clojure-goes-fast/clj-async-profiler {:mvn/version "0.5.1"}
-                              com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.40"}
-                              com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.40"}
+                              ;; to self instrument
+                              com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"}
+                              com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}
                               }
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}
 
