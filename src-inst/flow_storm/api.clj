@@ -29,7 +29,7 @@
      (start-debugger config)
      (tracer/start-trace-sender
       (assoc config
-             :send-fn (fn [trace]
+             :send-fn (fn local-send [trace]
                         (try
                           (local-dispatch-trace trace)
                           (catch Exception e

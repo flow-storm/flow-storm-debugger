@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon]]
-            [flow-storm.debugger.state :as dbg-state :refer [dbg-state]]
+            [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.target-commands :as target-commands])
   (:import [javafx.scene.control Tab TabPane TabPane$TabClosingPolicy]
            [javafx.geometry Side]))
@@ -32,7 +32,7 @@
                          (Tab. (str "flow-" flow-id)))
                    (.setOnCloseRequest (event-handler
                                         [ev]
-                                        (dbg-state/remove-flow dbg-state flow-id)
+                                        (dbg-state/remove-flow flow-id)
                                         (remove-flow flow-id)
                                         ;; since we are destroying this tab, we don't need
                                         ;; this event to propagate anymore
@@ -49,7 +49,7 @@
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
-                                                 (dec (dbg-state/current-trace-idx dbg-state flow-id thread-id))))))
+                                                 (dec (dbg-state/current-trace-idx flow-id thread-id))))))
         curr-trace-lbl (label "0")
         separator-lbl (label "/")
         thread-trace-count-lbl (label "-")
@@ -60,11 +60,11 @@
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
-                                                 (inc (dbg-state/current-trace-idx dbg-state flow-id thread-id))))))
+                                                 (inc (dbg-state/current-trace-idx flow-id thread-id))))))
         re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
                           (.setOnAction (event-handler
                                          [_]
-                                         (let [{:keys [flow/execution-expr]} (dbg-state/get-flow dbg-state flow-id)]
+                                         (let [{:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)]
                                            (when execution-expr
                                              (target-commands/run-command :re-run-flow flow-id execution-expr))))))
         trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")

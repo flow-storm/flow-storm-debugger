@@ -5,7 +5,7 @@
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.state :as state :refer [dbg-state]]
+            [flow-storm.debugger.state :as state]
             [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.trace-types :as trace-types])
   (:import [javafx.scene.control Label ListView ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
@@ -35,7 +35,7 @@
     print-tokens))
 
 (defn- add-form [flow-id thread-id form-id]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
         form (indexer/get-form indexer form-id)
         print-tokens (binding [pp/*print-right-margin* 80]
                        (-> (form-pprinter/pprint-tokens (:form/form form))
@@ -112,7 +112,7 @@
     (ui-utils/rm-class form-pane "form-background-highlighted")))
 
 (defn highlight-form [flow-id thread-id form-id]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
         form (indexer/get-form indexer form-id)
         [form-pane]          (obj-lookup flow-id (ui-vars/thread-form-box-id thread-id form-id))
         [thread-scroll-pane] (obj-lookup flow-id (ui-vars/thread-forms-scroll-id thread-id))
@@ -124,7 +124,7 @@
 
                                        (if (= :defn (:form/def-kind form))
 
-                                         (let [curr-trace-idx (state/current-trace-idx dbg-state flow-id thread-id)
+                                         (let [curr-trace-idx (state/current-trace-idx flow-id thread-id)
                                                curr-fn-call-trace-idx (indexer/callstack-frame-call-trace-idx indexer curr-trace-idx)
                                                {:keys [fn-name]} (indexer/get-trace indexer curr-fn-call-trace-idx)]
                                            (target-commands/run-command :instrument-fn (symbol (:form/ns form) fn-name) {}))
@@ -174,10 +174,10 @@
                                       (jump-to-coord flow-id thread-id (-> traces first meta :trace-idx)))))))
 
 (defn jump-to-coord [flow-id thread-id next-trace-idx]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
         trace-count (indexer/thread-exec-count indexer)]
     (when (<= 0 next-trace-idx (dec trace-count))
-      (let [curr-idx (state/current-trace-idx dbg-state flow-id thread-id)
+      (let [curr-idx (state/current-trace-idx flow-id thread-id)
             curr-trace (indexer/get-trace indexer curr-idx)
             curr-form-id (:form-id curr-trace)
             next-trace (indexer/get-trace indexer next-trace-idx)
@@ -244,7 +244,7 @@
         ;; update locals panel
         (update-locals-pane flow-id thread-id (indexer/bindings-for-trace indexer next-trace-idx))
 
-        (state/set-trace-idx dbg-state flow-id thread-id next-trace-idx)))))
+        (state/set-trace-idx flow-id thread-id next-trace-idx)))))
 
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])

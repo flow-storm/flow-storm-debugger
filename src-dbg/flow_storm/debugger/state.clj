@@ -49,33 +49,8 @@
 
 (def orphans-flow-id -1)
 
-(defprotocol FlowStore
-  (create-flow [_ flow-id exec-form-ns exec-form timestamp])
-  (remove-flow [_ flow-id])
-  (get-flow [_ flow-id]))
-
-(defprotocol ThreadStore
-  (create-thread [_ flow-id thread-id trace-indexer])
-  (get-thread [_ flow-id thread-id])
-  (thread-trace-indexer [_ flow-id thread-id])
-  (current-trace-idx [_ flow-id thread-id])
-  (set-trace-idx [_ flow-id thread-id idx])
-  (update-fn-call-stats [_ flow-id thread-id fn-call-trace])
-  (fn-call-stats [_ flow-id thread-id])
-  (clear-flow-fn-call-stats [_ flow-id]))
-
-(defprotocol UIState
-  (increment-trace-counter [_])
-  (callstack-tree-hide-fn [_ flow-id thread-id fn-name fn-ns])
-  (callstack-tree-hidden? [_ flow-id thread-id fn-name fn-ns])
-  (callstack-tree-item-expanded? [_ flow-id thread-id fn-call-trace-idx])
-  (callstack-tree-expand-calls [_ flow-id thread-id fn-call-trace-indexes])
-  (callstack-tree-select-path [_ flow-id thread-id select-path])
-  (callstack-tree-collapse-calls [_ flow-id thread-id fn-call-trace-indexes])
-  (callstack-tree-collapse-all-calls [_ flow-id thread-id]))
-
-
-(def dbg-state nil)
+(def *state nil)
+(def ^HashMap fn-call-stats-map nil)
 
 (def initial-state {:trace-counter 0
                     :flows {}
@@ -85,62 +60,67 @@
 ;; Utils ;;
 ;;;;;;;;;;;
 
-(defrecord DebuggerState [*state ^HashMap fn-call-stats]
+(defn clear-flow-fn-call-stats [flow-id]
+  (locking fn-call-stats-map
+    (let [flow-keys (->> (.entrySet fn-call-stats-map)
+                         (keep (fn [^Map$Entry entry]
+                                 (let [key (.getKey entry)]
+                                   (when (= flow-id (first key))
+                                     key))))
+                         doall)]
+      (doseq [key flow-keys]
+        (.remove fn-call-stats-map key)))))
 
-  FlowStore
+(defn create-flow [flow-id exec-form-ns exec-form timestamp]
+  ;; if a flow for `flow-id` already exist we discard it and
+  ;; will be GCed
+  (swap! *state assoc-in [:flows flow-id] {:flow/id flow-id
+                                           :flow/threads {}
+                                           :flow/execution-expr {:ns exec-form-ns
+                                                                 :form exec-form}
+                                           :timestamp timestamp})
+  (clear-flow-fn-call-stats flow-id))
 
-  (create-flow [this flow-id exec-form-ns exec-form timestamp]
-    ;; if a flow for `flow-id` already exist we discard it and
-    ;; will be GCed
-    (swap! *state assoc-in [:flows flow-id] {:flow/id flow-id
-                                             :flow/threads {}
-                                             :flow/execution-expr {:ns exec-form-ns
-                                                                   :form exec-form}
-                                             :timestamp timestamp})
-    (clear-flow-fn-call-stats this flow-id))
+(defn remove-flow [flow-id]
+  (swap! *state update :flows dissoc flow-id)
+  (clear-flow-fn-call-stats flow-id))
 
-  (remove-flow [this flow-id]
-    (swap! *state update :flows dissoc flow-id)
-    (clear-flow-fn-call-stats this flow-id))
+(defn get-flow [flow-id]
+  (get-in @*state [:flows flow-id]))
 
-  (get-flow [_ flow-id]
-    (get-in @*state [:flows flow-id]))
+(defn create-thread [flow-id thread-id trace-indexer]
+               (swap! *state assoc-in [:flows flow-id :flow/threads thread-id]
+                      {:thread/id thread-id
+                       :thread/trace-indexer trace-indexer
+                       :thread/curr-trace-idx nil
+                       :thread/callstack-tree-hidden-fns #{}
+                       :thread/callstack-expanded-traces #{}
+                       :thread/callstack-selected-trace-idx nil
+                       :thread/fn-call-stats {}}))
 
-  ThreadStore
+(defn get-thread [flow-id thread-id]
+  (get-in @*state [:flows flow-id :flow/threads thread-id]))
 
-  (create-thread [_ flow-id thread-id trace-indexer]
-    (swap! *state assoc-in [:flows flow-id :flow/threads thread-id]
-           {:thread/id thread-id
-            :thread/trace-indexer trace-indexer
-            :thread/curr-trace-idx nil
-            :thread/callstack-tree-hidden-fns #{}
-            :thread/callstack-expanded-traces #{}
-            :thread/callstack-selected-trace-idx nil
-            :thread/fn-call-stats {}}))
+(defn thread-trace-indexer [flow-id thread-id]
+  (:thread/trace-indexer (get-thread flow-id thread-id)))
 
-  (get-thread [_ flow-id thread-id]
-    (get-in @*state [:flows flow-id :flow/threads thread-id]))
+(defn current-trace-idx [flow-id thread-id]
+  (:thread/curr-trace-idx (get-thread flow-id thread-id)))
 
-  (thread-trace-indexer [this flow-id thread-id]
-    (:thread/trace-indexer (get-thread this flow-id thread-id)))
+(defn set-trace-idx [flow-id thread-id idx]
+  (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/curr-trace-idx] idx))
 
-  (current-trace-idx [this flow-id thread-id]
-    (:thread/curr-trace-idx (get-thread this flow-id thread-id)))
+(defn update-fn-call-stats [flow-id thread-id {:keys [fn-ns fn-name form-id]}]
+  (locking fn-call-stats-map
+    (let [k [flow-id thread-id fn-ns fn-name form-id]
+          curr-val (.getOrDefault fn-call-stats-map k 0)]
+      (.put fn-call-stats-map k (inc curr-val)))))
 
-  (set-trace-idx [_ flow-id thread-id idx]
-    (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/curr-trace-idx] idx))
-
-  (update-fn-call-stats [_ flow-id thread-id {:keys [fn-ns fn-name form-id]}]
-    (locking fn-call-stats
-      (let [k [flow-id thread-id fn-ns fn-name form-id]
-            curr-val (.getOrDefault fn-call-stats k 0)]
-        (.put fn-call-stats k (inc curr-val)))))
-
-  (fn-call-stats [this target-flow-id target-thread-id]
-    (locking fn-call-stats
-      (let [indexer (thread-trace-indexer this target-flow-id target-thread-id)]
-       (->> (.entrySet fn-call-stats)
-            (keep (fn [^Map$Entry entry]
+(defn fn-call-stats [target-flow-id target-thread-id]
+  (locking fn-call-stats-map
+    (let [indexer (thread-trace-indexer target-flow-id target-thread-id)]
+      (->> (.entrySet fn-call-stats-map)
+           (keep (fn [^Map$Entry entry]
                    (let [[flow-id thread-id fn-ns fn-name form-id] (.getKey entry)
                          {:keys [form/form form/def-kind multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
                      (when (and (= target-flow-id flow-id)
@@ -153,61 +133,37 @@
                         :dispatch-val dispatch-val
                         :cnt (.getValue entry)}))))))))
 
-  (clear-flow-fn-call-stats [_ flow-id]
-    (locking fn-call-stats
-      (let [flow-keys (->> (.entrySet fn-call-stats)
-                           (keep (fn [^Map$Entry entry]
-                                   (let [key (.getKey entry)]
-                                     (when (= flow-id (first key))
-                                       key))))
-                           doall)]
-        (doseq [key flow-keys]
-          (.remove fn-call-stats key)))))
+(defn callstack-tree-hide-fn [flow-id thread-id fn-name fn-ns]
+  (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns] conj {:name fn-name :ns fn-ns}))
 
-  UIState
+(defn callstack-tree-hidden? [flow-id thread-id fn-name fn-ns]
+  (let [hidden-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
+    (contains? hidden-set {:name fn-name :ns fn-ns})))
 
-  (callstack-tree-hide-fn [_ flow-id thread-id fn-name fn-ns]
-    (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns] conj {:name fn-name :ns fn-ns}))
+(defn increment-trace-counter []
+  (swap! *state update :trace-counter inc))
 
-  (callstack-tree-hidden? [_ flow-id thread-id fn-name fn-ns]
-    (let [hidden-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
-      (contains? hidden-set {:name fn-name :ns fn-ns})))
+(defn callstack-tree-item-expanded? [flow-id thread-id fn-call-trace-idx]
+  (let [expanded-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces])]
+    (contains? expanded-set fn-call-trace-idx)))
 
-  (increment-trace-counter [_]
-    (swap! *state update :trace-counter inc))
+(defn callstack-tree-expand-calls [flow-id thread-id fn-call-trace-indexes]
+  (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] into fn-call-trace-indexes))
 
-  (callstack-tree-item-expanded? [_ flow-id thread-id fn-call-trace-idx]
-    (let [expanded-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces])]
-      (contains? expanded-set fn-call-trace-idx)))
+(defn callstack-tree-select-path [flow-id thread-id select-path]
+  (let [[target-id & parents-ids] select-path]
+    (swap! *state update-in [:flows flow-id :flow/threads thread-id]
+           (fn [thread]
+             (-> thread
+                 (assoc :thread/callstack-expanded-traces (into #{} parents-ids))
+                 (assoc :thread/callstack-selected-trace-idx target-id))))))
 
-  (callstack-tree-expand-calls [_ flow-id thread-id fn-call-trace-indexes]
-    (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] into fn-call-trace-indexes))
+(defn callstack-tree-collapse-calls [flow-id thread-id fn-call-trace-indexes]
+  (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] (fn [traces] (apply disj traces fn-call-trace-indexes))))
 
-  (callstack-tree-select-path [_ flow-id thread-id select-path]
-    (let [[target-id & parents-ids] select-path]
-      (swap! *state update-in [:flows flow-id :flow/threads thread-id]
-             (fn [thread]
-               (-> thread
-                   (assoc :thread/callstack-expanded-traces (into #{} parents-ids))
-                   (assoc :thread/callstack-selected-trace-idx target-id))))))
-
-  (callstack-tree-collapse-calls [_ flow-id thread-id fn-call-trace-indexes]
-    (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] (fn [traces] (apply disj traces fn-call-trace-indexes))))
-
-  (callstack-tree-collapse-all-calls [_ flow-id thread-id]
-    (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] #{})))
-
-(defn make-debugger-state []
-  (->DebuggerState (atom initial-state
-                         ;; :validator (fn [next-state]
-                         ;;              (if-not (s/valid? ::state next-state)
-                         ;;                (do
-                         ;;                  (log (str "STATE Error" (with-out-str (s/explain ::state next-state))))
-                         ;;                  false)
-
-                         ;;                true))
-                         )
-                   (HashMap.)))
+(defn callstack-tree-collapse-all-calls [flow-id thread-id]
+  (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] #{}))
 
 (defn init-state! []
-  (alter-var-root #'dbg-state (constantly (make-debugger-state))))
+  (alter-var-root #'*state (constantly (atom initial-state)))
+  (alter-var-root #'fn-call-stats-map (constantly (HashMap.))))

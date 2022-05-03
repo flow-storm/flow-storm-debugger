@@ -5,7 +5,7 @@
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.state :as state :refer [dbg-state]]
+            [flow-storm.debugger.state :as state]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
@@ -15,7 +15,7 @@
            [javafx.scene.layout HBox Priority VBox]))
 
 (defn update-call-stack-tree-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
         lazy-tree-item (fn lazy-tree-item [tree-node]
                          (let [calls (indexer/callstack-tree-childs indexer tree-node)]
                            (proxy [TreeItem] [tree-node]
@@ -25,7 +25,7 @@
                                    (let [new-children (->> calls
                                                            (remove (fn [child-node]
                                                                      (let [{:keys [fn-name fn-ns]} (indexer/callstack-node-frame indexer child-node)]
-                                                                       (state/callstack-tree-hidden? dbg-state flow-id thread-id fn-name fn-ns))))
+                                                                       (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
                                                            (map lazy-tree-item)
                                                            (into-array TreeItem))]
                                      (.setAll super-childrens new-children)
@@ -57,7 +57,7 @@
                        [_]
                        (update-call-stack-tree-pane flow-id thread-id))))
 
-    (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+    (let [indexer (state/thread-trace-indexer flow-id thread-id)
           {:keys [multimethod/dispatch-val form/def-kind]} (indexer/get-form indexer form-id)
           ns-lbl (label (str fn-ns "/") "fn-ns")
           fn-name-lbl (flow-cmp/def-kind-colored-label fn-name def-kind)
@@ -71,7 +71,7 @@
                                           (flow-code/jump-to-coord flow-id thread-id call-trace-idx))}
                             {:text (format "Hide %s/%s from this tree" fn-ns fn-name)
                              :on-click #(do
-                                          (state/callstack-tree-hide-fn dbg-state flow-id thread-id fn-name fn-ns)
+                                          (state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
                                           (update-call-stack-tree-pane flow-id thread-id))}]
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (doto fn-call-box
@@ -91,7 +91,7 @@
 
     "."
 
-    (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+    (let [indexer (state/thread-trace-indexer flow-id thread-id)
           {:keys [multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
 
       (if dispatch-val
@@ -110,7 +110,7 @@
         (.select ^SelectionModel tree-selection-model tree-item)))))
 
 (defn- create-tree-search-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
         search-txt (doto (TextField.)
                      (.setPromptText "Search"))
         search-from-txt (doto (TextField. "0")
@@ -127,7 +127,7 @@
                    (.setOnMouseClicked (event-handler [ev]))
                    (.setStyle ""))
 
-                 (state/callstack-tree-collapse-all-calls dbg-state flow-id thread-id)
+                 (state/callstack-tree-collapse-all-calls flow-id thread-id)
                  (indexer/search-next-fn-call-trace
                   indexer
                   (.getText search-txt)
@@ -137,8 +137,7 @@
                     (if next-match-path
                       (let [[match-trace-idx] next-match-path]
                         (log (format "Next match at %s" next-match-path))
-                        (state/callstack-tree-select-path dbg-state
-                                                          flow-id
+                        (state/callstack-tree-select-path flow-id
                                                           thread-id
                                                           next-match-path)
                         (ui-utils/run-later
@@ -174,7 +173,7 @@
       (.setPadding (Insets. 4.0)))))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+  (let [indexer (state/thread-trace-indexer flow-id thread-id)
 
         cell-factory (proxy [javafx.util.Callback] []
                        (call [tv]
@@ -190,7 +189,7 @@
                                (let [frame (indexer/callstack-node-frame indexer tree-node)
                                      frame-trace-idx (:call-trace-idx frame)
                                      expanded? (or (nil? frame-trace-idx)
-                                                   (state/callstack-tree-item-expanded? dbg-state flow-id thread-id frame-trace-idx))
+                                                   (state/callstack-tree-item-expanded? flow-id thread-id frame-trace-idx))
                                      tree-item (.getTreeItem this)]
 
                                  (doto this
@@ -207,12 +206,12 @@
                                                      (event-handler
                                                       [ev]
                                                       (when (= (.getTreeItem ev) tree-item)
-                                                        (state/callstack-tree-collapse-calls dbg-state flow-id thread-id #{frame-trace-idx}))))
+                                                        (state/callstack-tree-collapse-calls flow-id thread-id #{frame-trace-idx}))))
                                    (.addEventHandler (TreeItem/branchExpandedEvent)
                                                      (event-handler
                                                       [ev]
                                                       (when (= (.getTreeItem ev) tree-item)
-                                                        (state/callstack-tree-expand-calls dbg-state flow-id thread-id #{frame-trace-idx}))))
+                                                        (state/callstack-tree-expand-calls flow-id thread-id #{frame-trace-idx}))))
                                    (.setExpanded expanded?))))))))
         search-pane (create-tree-search-pane flow-id thread-id)
         tree-view (doto (TreeView.)
@@ -230,7 +229,7 @@
                           {:text "Hide from tree"
                            :on-click (fn [& _]
                                        (let [{:keys [fn-name fn-ns]} (get-selected-frame)]
-                                         (state/callstack-tree-hide-fn dbg-state flow-id thread-id fn-name fn-ns)
+                                         (state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
                                          (update-call-stack-tree-pane flow-id thread-id)))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)
         callstack-fn-args-pane   (flow-cmp/create-pprint-pane flow-id thread-id "fn_args")

@@ -49,11 +49,23 @@
 
 (defn self-instrument []
 
+  ;; start outer meta debugger
   (dbg-api/local-connect {:styles "/home/jmonetta/.flow-storm/meta-debugger.css"})
 
+  ;; this are lazily required by (fs-api/local-connect), but lets require it before
+  ;; so instrument-forms-for-namespaces can see them
+  (require 'flow-storm.debugger.trace-processor)
+  (require 'flow-storm.debugger.main)
+
+  ;; instrument target debugger (this will automatically avoid instrumenting the meta debugger)
   (dbg-api/instrument-forms-for-namespaces #{"flow-storm."} {}))
 
 (defn run-test-instrumented []
   (dbg-api/run
     {:flow-id 0}
     (start-and-add-data nil)))
+
+(comment
+  (self-instrument)
+  (run-test-instrumented)
+  )

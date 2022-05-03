@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.debugger.state :as state :refer [dbg-state]]
+            [flow-storm.debugger.state :as state]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.code :as flows-code])
   (:import [javafx.scene.layout Priority HBox VBox]
@@ -56,7 +56,7 @@
                                                      (target-commands/run-command :eval-form-bulk forms))))}
         ctx-menu-show-similar-fn-call-item {:text "Show function calls"
                                             :on-click (fn []
-                                                        (let [indexer (state/thread-trace-indexer dbg-state flow-id thread-id)
+                                                        (let [indexer (state/thread-trace-indexer flow-id thread-id)
                                                               {:keys [form-id fn-ns fn-name]} (first (.getSelectedItems fns-list-selection))
                                                               [observable-fn-calls-list] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-id thread-id))
                                                               fn-call-traces (indexer/find-fn-calls indexer fn-ns fn-name form-id)]
@@ -163,7 +163,7 @@
     (h-box [fns-list-pane fn-calls-list-pane])))
 
 (defn update-functions-pane [flow-id thread-id]
-  (let [fn-call-stats (->> (state/fn-call-stats dbg-state flow-id thread-id)
+  (let [fn-call-stats (->> (state/fn-call-stats flow-id thread-id)
                            (sort-by :cnt >))
         [^ObservableList observable-bindings-list] (obj-lookup flow-id (ui-vars/thread-fns-list-id thread-id))]
     (.clear observable-bindings-list)

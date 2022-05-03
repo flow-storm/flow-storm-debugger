@@ -11,7 +11,7 @@
 
 (defmacro run-later
   [& body]
-  `(run-later* (fn []
+  `(run-later* (fn ~(symbol "run-later-fn") []
                  (try
                    ~@body
                    (catch Exception e#
@@ -28,7 +28,7 @@
 
 (defmacro run-now
   [& body]
-  `(run-now* (fn [] ~@body)))
+  `(run-now* (fn ~(symbol "run-now-fn") [] ~@body)))
 
 (defn event-handler*
   [f]
@@ -36,7 +36,7 @@
     (handle [_ e] (f e))))
 
 (defmacro event-handler [arg & body]
-  `(event-handler* (fn ~arg ~@body)))
+  `(event-handler* (fn ~(symbol "event-handler-fn") ~arg ~@body)))
 
 (defn make-context-menu [items]
   (let [cm (ContextMenu.)
