@@ -35,11 +35,9 @@ user> #rtrace (reduce + (map inc (range 10)))
 
 # Documentation 
 
-This demo videos are all the documentation so far.
+This demo video is all the documentation so far.
 
-- Flows basics (soon ...)
-- Debugging cli tools (soon ...)
-- Debugging the clojurescript compiler (soon ...)
+- Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
 
 Proper manual coming...
 
