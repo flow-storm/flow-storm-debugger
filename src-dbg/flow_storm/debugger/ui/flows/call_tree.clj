@@ -39,7 +39,7 @@
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
-  (let [step-1 (flow-cmp/format-value-short args-vec)]
+  (let [step-1 (flow-cmp/format-value-short @args-vec)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
@@ -95,7 +95,7 @@
           {:keys [multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
 
       (if dispatch-val
-        (format "(%s/%s %s %s)" fn-ns fn-name (str dispatch-val) (format-tree-fn-call-args args))
+        (format "(%s/%s %s %s)" fn-ns fn-name (str @dispatch-val) (format-tree-fn-call-args args))
         (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args))))))
 
 

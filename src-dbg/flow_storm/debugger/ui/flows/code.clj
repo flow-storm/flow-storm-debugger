@@ -79,7 +79,7 @@
                           (fn [list-cell symb-val]
                             (let [symb-lbl (doto (label (first symb-val))
                                              (.setPrefWidth 100))
-                                  val-lbl (label  (flow-cmp/format-value-short (second symb-val)))
+                                  val-lbl (label  (flow-cmp/format-value-short @(second symb-val)))
                                   hbox (h-box [symb-lbl val-lbl])]
                               (.setGraphic ^Node list-cell hbox))))))
         locals-list-view (doto (ListView. observable-bindings-list)
@@ -159,7 +159,7 @@
       (let [ctx-menu-options (->> traces
                               (map (fn [t]
                                      (let [tidx (-> t meta :trace-idx)]
-                                       {:text (format "%s" (flow-cmp/format-value-short (:result t)))
+                                       {:text (format "%s" (flow-cmp/format-value-short @(:result t)))
                                         :on-click #(jump-to-coord flow-id thread-id tidx)}))))
             ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
         (.setOnMouseClicked token-text (event-handler

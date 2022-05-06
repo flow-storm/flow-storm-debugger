@@ -21,7 +21,7 @@
                          (ui-utils/create-list-cell-factory
                           (fn [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
                             (let [fn-lbl (doto (case form-def-kind
-                                                 :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name dispatch-val) form-def-kind)
+                                                 :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name @dispatch-val) form-def-kind)
                                                  :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
@@ -87,13 +87,14 @@
                             (call [lv]
                               (ui-utils/create-list-cell-factory
                                (fn [list-cell {:keys [args-vec]}]
-                                 (let [[args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
+                                 (let [args-vec-val @args-vec
+                                       [args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
                                        pargs (.getSelectedItem (.getSelectionModel args-print-type-combo))
                                        arg-selector (fn [n]
-                                                      (when (< n (count args-vec))
-                                                        (str "... " (flow-cmp/format-value-short (nth args-vec n)) " ...")))
+                                                      (when (< n (count args-vec-val))
+                                                        (str "... " (flow-cmp/format-value-short (nth args-vec-val n)) " ...")))
                                        args-lbl (label (cond
-                                                         (= pargs "Print all args")   (flow-cmp/format-value-short args-vec)
+                                                         (= pargs "Print all args")   (flow-cmp/format-value-short args-vec-val)
                                                          (= pargs "Print only arg 0") (arg-selector 0)
                                                          (= pargs "Print only arg 1") (arg-selector 1)
                                                          (= pargs "Print only arg 2") (arg-selector 2)

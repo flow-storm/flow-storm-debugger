@@ -2,6 +2,7 @@
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
+            [flow-storm.trace-types :as trace-types]
             [flow-storm.utils :refer [log log-error]]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.core :as fs-core]))
@@ -31,7 +32,9 @@
       (assoc config
              :send-fn (fn local-send [trace]
                         (try
-                          (local-dispatch-trace trace)
+                          (-> trace
+                              trace-types/wrap-local-values
+                              local-dispatch-trace)
                           (catch Exception e
                             (log-error "Exception dispatching trace " e)))))))))
 

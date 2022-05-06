@@ -23,17 +23,6 @@
   #?(:cljs (.getTime (js/Date.))
      :clj (System/currentTimeMillis)))
 
-#_(def ^:dynamic *print-length* nil)
-#_(def ^:dynamic *print-level* nil)
-#_(defn serialize-val [v]
-  (try
-    (binding [clojure.core/*print-length* (or *print-length* 50)
-              clojure.core/*print-level* (or *print-level* 5)]
-      (pr-str v))
-    (catch Exception e      
-      (println "Warning: can't serialize this, skipping " (type v))
-      "ERROR_SERIALIZING")))
-
 (defn trace-flow-init-trace
 
   "Send flow initialization trace"

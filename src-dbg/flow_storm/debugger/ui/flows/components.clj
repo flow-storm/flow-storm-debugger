@@ -36,5 +36,5 @@
         val-str (with-out-str
                   (binding [clojure.core/*print-level* 7
                             clojure.core/*print-length* 50]
-                    (pp/pprint val)))]
+                    (when val (pp/pprint @val))))]
     (.setText text-area val-str)))

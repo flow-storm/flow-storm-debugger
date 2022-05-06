@@ -125,7 +125,7 @@
 
                                                          (if (and (> i from-idx)
                                                                   (or (str/includes? fn-name search-str)
-                                                                      (str/includes? (pr-str args-vec) search-str)))
+                                                                      (str/includes? (pr-str @args-vec) search-str)))
 
                                                            ;; if matches
                                                            (conj stack i)
