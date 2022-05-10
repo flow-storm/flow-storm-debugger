@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.flows.components
-  (:require [clojure.pprint :as pp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [label]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars])
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [label]]
+            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
+            [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.scene.control TextArea]))
 
 (defn def-kind-colored-label [text kind]
@@ -12,12 +12,8 @@
     :defn            (label text "defn")
     (label text "anonymous")))
 
-(defn format-value-short [v]
-  (let [max-len 80
-        s (binding [clojure.core/*print-level* 3
-                    clojure.core/*print-length* 3]
-            (pr-str v))
-        len (count s)]
+(defn elide-string [s max-len]
+  (let [len (count s)]
     (cond-> (subs s 0 (min max-len len))
       (> len max-len) (str " ... "))))
 
@@ -33,8 +29,5 @@
 (defn update-pprint-pane [flow-id thread-id pane-id val]
   ;; TODO: find and update the tree
   (let [[^TextArea text-area] (obj-lookup flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id))
-        val-str (with-out-str
-                  (binding [clojure.core/*print-level* 7
-                            clojure.core/*print-length* 50]
-                    (when val (pp/pprint @val))))]
+        val-str (when val (deref-ser val {:print-length 50 :print-level 7 :pprint? true}))]
     (.setText text-area val-str)))

@@ -6,7 +6,8 @@
             [flow-storm.utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]])
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]]
+            [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
            [javafx.scene.input KeyCode]
@@ -39,7 +40,7 @@
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
-  (let [step-1 (flow-cmp/format-value-short @args-vec)]
+  (let [step-1 (flow-cmp/elide-string (deref-ser args-vec {:print-length 3 :print-level 3 :pprint? false}) 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
@@ -95,7 +96,7 @@
           {:keys [multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
 
       (if dispatch-val
-        (format "(%s/%s %s %s)" fn-ns fn-name (str @dispatch-val) (format-tree-fn-call-args args))
+        (format "(%s/%s %s %s)" fn-ns fn-name (deref-ser dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args))
         (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args))))))
 
 

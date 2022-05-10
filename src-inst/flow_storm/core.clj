@@ -3,7 +3,9 @@
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.utils :refer [log]]
             [flow-storm.tracer :as tracer]
-            [clojure.repl :as clj.repl]))
+            [flow-storm.instrument.trace-types :as trace-types]
+            [clojure.repl :as clj.repl]
+            [clojure.pprint :as pp]))
 
 (defmacro instrument
 
@@ -57,10 +59,6 @@
 
           (log (format "Couldn't find source for %s" var-symb)))))))
 
-(defn uninstrument-vars [vars-symbs]
-  (doseq [var-symb vars-symbs]
-    (uninstrument-var var-symb)))
-
 (defmacro run-with-execution-ctx
   [{:keys [orig-form ns flow-id]} form]
   `(let [flow-id# ~(or flow-id 0)
@@ -68,38 +66,6 @@
      (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(or orig-form (list 'quote form)))
        ~form)))
-
-(defn eval-form-bulk
-
-  "Forms should be a collection of maps with :form-ns :form.
-  Evaluates each `form` under `form-ns`"
-
-  [forms]
-  (doseq [{:keys [form-ns form]} forms]
-    (binding [*ns* (find-ns (symbol form-ns))]
-      (eval form))))
-
-(defn instrument-form-bulk
-
-  "Forms should be a collection of maps with :form-ns :form.
-  Evaluates each `form` under `form-ns` instrumented."
-
-  [forms config]
-  (doseq [{:keys [form-ns form]} forms]
-    (binding [*ns* (find-ns (symbol form-ns))]
-      (inst-ns/instrument-and-eval-form (find-ns (symbol form-ns)) form config))))
-
-(defn re-run-flow
-
-  "Evaluates `form` under `ns` inside a execution-ctx"
-
-  [flow-id {:keys [ns form]}]
-
-  (binding [*ns* (find-ns (symbol ns))]
-    (run-with-execution-ctx
-     {:flow-id flow-id
-      :orig-form form}
-     (eval form))))
 
 #_(defn ws-connect [opts]
   (let [{:keys [send-fn]} (tracer/build-ws-sender opts)]
@@ -122,3 +88,47 @@
 #_(def untrace-ref
   "Removes the watch added by trace-ref."
   tracer/untrace-ref)
+
+(defn- instrument-fn-command [{:keys [fn-symb]}]
+  (instrument-var fn-symb))
+
+(defn uninstrument-fns-command [{:keys [vars-symbs]}]
+  (doseq [var-symb vars-symbs]
+    (uninstrument-var var-symb)))
+
+(defn eval-forms-command [{:keys [forms]}]
+  (doseq [{:keys [form-ns form]} forms]
+    (binding [*ns* (find-ns (symbol form-ns))]
+      (eval form))))
+
+(defn instrument-forms-command [{:keys [forms config]}]
+  (doseq [{:keys [form-ns form]} forms]
+    (binding [*ns* (find-ns (symbol form-ns))]
+      (inst-ns/instrument-and-eval-form (find-ns (symbol form-ns)) form config))))
+
+(defn re-run-flow-command [{:keys [flow-id execution-expr]}]
+  (let [{:keys [ns form]} execution-expr]
+    (binding [*ns* (find-ns (symbol ns))]
+      (run-with-execution-ctx
+       {:flow-id flow-id
+        :orig-form form}
+       (eval form)))))
+
+(defn- get-remote-value-command [{:keys [vid print-length print-level pprint? nth-elem]}]
+  (let [value (trace-types/get-reference-value vid)
+        print-fn (if pprint? pp/pprint print)]
+    (with-out-str
+      (binding [*print-level* print-level
+                *print-length* print-length]
+        (print-fn (cond-> value
+                    nth-elem (nth nth-elem)))))))
+
+(defn run-command [method args-map]
+  (let [f (case method
+            :instrument-fn        instrument-fn-command
+            :uninstrument-fns     uninstrument-fns-command
+            :eval-forms           eval-forms-command
+            :instrument-forms     instrument-forms-command
+            :re-run-flow          re-run-flow-command
+            :get-remote-value     get-remote-value-command)]
+    (f args-map)))

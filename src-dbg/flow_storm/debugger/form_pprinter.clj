@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.form-pprinter
   (:require [clojure.pprint :as pp]
-            [flow-storm.instrument.forms :refer [tag-form-recursively] :as inst-forms]))
+            [flow-storm.utils :as utils]))
 
 (defn- seq-delims [form]
   (let [delims (pr-str (empty form))]
@@ -9,7 +9,7 @@
       ["#{" "}"])))
 
 (defn- form-tokens [form]
-  (let [curr-coord (::inst-forms/coor (meta form))]
+  (let [curr-coord (::coor (meta form))]
     (cond
       (or (seq? form) (vector? form) (set? form))
       (let [[db de] (seq-delims form)]
@@ -73,7 +73,7 @@
   (#'pp/use-method pp/code-dispatch clojure.lang.ISeq #'pp/pprint-code-list))
 
 (defn pprint-tokens [form]
-  (let [form (tag-form-recursively form)
+  (let [form (utils/tag-form-recursively form ::coor)
         pprinted-str (with-out-str
                        (code-pprint form))
         pos->layout-char (->> pprinted-str

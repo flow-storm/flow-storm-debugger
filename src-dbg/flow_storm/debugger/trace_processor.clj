@@ -2,10 +2,10 @@
   (:require [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.trace-types :as dbg-trace-types]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
-            [flow-storm.debugger.trace-indexer.mutable.impl :as mut-trace-indexer]
-            [flow-storm.tracer])
+            [flow-storm.debugger.trace-indexer.mutable.impl :as mut-trace-indexer])
   (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
 
 (defprotocol ProcessTrace
@@ -21,8 +21,8 @@
 
 (extend-protocol ProcessTrace
   FlowInitTrace
-  (process [{:keys [flow-id form-ns form timestamp]}]
-    (dbg-state/create-flow flow-id form-ns form timestamp)
+  (process [{:keys [flow-id form-ns form timestamp] :as trace}]
+    (dbg-state/create-flow (-> trace meta :ws-conn) flow-id form-ns form timestamp)
     (ui-utils/run-now (flows-screen/remove-flow flow-id))
     (ui-utils/run-now (flows-screen/create-empty-flow flow-id)))
 
@@ -70,8 +70,19 @@
   (when (and (= (:flow-id trace) dbg-state/orphans-flow-id)
              (not (dbg-state/get-flow dbg-state/orphans-flow-id)))
     ;; whenever we receive a trace for dbg-state/orphans-flow-id and it is not there create-it
-    (dbg-state/create-flow dbg-state/orphans-flow-id nil nil 0)
+    (dbg-state/create-flow (-> trace meta :ws-conn) dbg-state/orphans-flow-id nil nil 0)
     (ui-utils/run-now (flows-screen/create-empty-flow dbg-state/orphans-flow-id)))
 
   (process trace)
   (increment-trace-counter))
+
+(defn local-dispatch-trace [trace]
+  (-> trace
+      dbg-trace-types/wrap-local-values
+      dispatch-trace))
+
+(defn remote-dispatch-trace [conn trace]
+  (-> trace
+      (dbg-trace-types/wrap-remote-values conn)
+      (with-meta {:ws-conn conn})
+      dispatch-trace))

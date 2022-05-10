@@ -1,13 +1,13 @@
 {:paths ["src-inst" "src-dbg" "src-shared" "resources" ]
- :deps { ;; Refs patches
-        ;; juji/editscript           {:mvn/version "0.4.6"}
-
-        ;; Json serde
-        ;; metosin/jsonista {:mvn/version "0.3.4"}
-
-
+ :deps {
         ;; Remote debugging
-        ;; org.java-websocket/Java-WebSocket {:mvn/version "1.5.2"}
+        org.java-websocket/Java-WebSocket {:mvn/version "1.5.2"}
+
+        ;; Traces serialization/deserialization
+        com.cognitect/transit-clj {:mvn/version"1.0.329"}
+
+        ;; Refs patches
+        ;; juji/editscript           {:mvn/version "0.4.6"}
 
         ;; To use it as :local/root, for debugging, remove after
         ;; org.openjfx/javafx-controls {:mvn/version "18"}
@@ -44,7 +44,7 @@
                               }
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}
 
-           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
+           :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
                           rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}}
                    :ns-default build
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }

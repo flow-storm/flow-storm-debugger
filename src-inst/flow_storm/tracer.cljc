@@ -1,9 +1,6 @@
 (ns flow-storm.tracer
-  #?(:clj
-     (:require [flow-storm.utils :refer [log log-error]]
-               [flow-storm.trace-types :as trace-types]))
-  #?(:cljs (:require [flow-storm.trace-types :as trace-types]))
-  
+  (:require [flow-storm.utils :refer [log log-error]]
+            [flow-storm.trace-types :as trace-types])    
   #?(:clj (:import [java.util.concurrent ArrayBlockingQueue])))
 
 (def trace-queue nil)
@@ -200,7 +197,8 @@
    
    :cljs
    (defn log-stats [_ _ _ _]  
-     ))
+     (log "Not implemented")
+     (log-error "Not implemented")))
 
 #?(:clj
    (defn start-trace-sender
@@ -226,7 +224,8 @@
 
                                 ;; Consumer stats
                                 (let [{:keys [cnt last-report-t last-report-cnt]} @*consumer-stats]
-                                  (when (zero? (mod cnt 100000))
+                                  
+                                  (when (zero? (mod cnt 1000))
                                     
                                     (when verbose?
                                       (log-stats cnt qsize last-report-cnt last-report-t))

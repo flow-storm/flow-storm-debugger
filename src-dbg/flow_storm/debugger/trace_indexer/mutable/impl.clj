@@ -4,6 +4,7 @@
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.utils :as utils :refer [log]]
             [flow-storm.trace-types :as trace-types]
+            [flow-storm.debugger.trace-types :refer [deref-ser]]
             [clojure.string :as str])
   (:import [java.util ArrayList HashMap]))
 
@@ -108,37 +109,36 @@
     (locking this
       (let [search-thread (Thread.
                            (fn []
-                             (binding [clojure.core/*print-level* print-level]
-                               (let [total-traces (count traces)
-                                     match-stack (loop [i 0
-                                                        stack ()]
-                                                   (when (and (< i total-traces)
-                                                              (not (.isInterrupted (Thread/currentThread))))
+                             (let [total-traces (count traces)
+                                   match-stack (loop [i 0
+                                                      stack ()]
+                                                 (when (and (< i total-traces)
+                                                            (not (.isInterrupted (Thread/currentThread))))
 
 
-                                                     (when (zero? (mod i 10000))
-                                                       (on-progress (* 100 (/ i total-traces))))
+                                                   (when (zero? (mod i 10000))
+                                                     (on-progress (* 100 (/ i total-traces))))
 
-                                                     (let [{:keys [fn-name args-vec] :as t} (.get traces i)]
-                                                       (if (trace-types/fn-call-trace? t)
+                                                   (let [{:keys [fn-name args-vec] :as t} (.get traces i)]
+                                                     (if (trace-types/fn-call-trace? t)
 
 
-                                                         (if (and (> i from-idx)
-                                                                  (or (str/includes? fn-name search-str)
-                                                                      (str/includes? (pr-str @args-vec) search-str)))
+                                                       (if (and (> i from-idx)
+                                                                (or (str/includes? fn-name search-str)
+                                                                    (str/includes? (deref-ser args-vec {:print-length 10 :print-level print-level :pprint? false}) search-str)))
 
-                                                           ;; if matches
-                                                           (conj stack i)
+                                                         ;; if matches
+                                                         (conj stack i)
 
-                                                           ;; else
-                                                           (recur (inc i) (conj stack i)))
-                                                         ;; it is a exec-trace, check if it is returning
-                                                         (if (:outer-form? t)
-                                                           (recur (inc i) (pop stack))
-                                                           (recur (inc i) stack))))))]
-                                 (when (.isInterrupted (Thread/currentThread))
-                                   (log "Search stopped"))
-                                 (on-result-cb match-stack)))))]
+                                                         ;; else
+                                                         (recur (inc i) (conj stack i)))
+                                                       ;; it is a exec-trace, check if it is returning
+                                                       (if (:outer-form? t)
+                                                         (recur (inc i) (pop stack))
+                                                         (recur (inc i) stack))))))]
+                               (when (.isInterrupted (Thread/currentThread))
+                                 (log "Search stopped"))
+                               (on-result-cb match-stack))))]
         (reset! ui-vars/long-running-task-thread search-thread)
         (.start search-thread)))))
 

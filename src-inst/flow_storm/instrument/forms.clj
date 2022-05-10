@@ -9,7 +9,8 @@
   (:require
    [clojure.walk :as walk]
    [clojure.string :as str]
-   [flow-storm.tracer :as tracer]))
+   [flow-storm.tracer :as tracer]
+   [flow-storm.utils :as utils]))
 
 
 (declare instrument-outer-form)
@@ -22,20 +23,6 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
 ;;;;;;;;;;;;;;;;;;;;
-
-(defn merge-meta
-
-  "Non-throwing version of (vary-meta obj merge metamap-1 metamap-2 ...).
-  Like `vary-meta`, this only applies to immutable objects. For
-  instance, this function does nothing on atoms, because the metadata
-  of an `atom` is part of the atom itself and can only be changed
-  destructively."
-
-  {:style/indent 1}
-  [obj & metamaps]
-  (try
-    (apply vary-meta obj merge metamaps)
-    (catch Exception _ obj)))
 
 (defn strip-meta
 
@@ -86,7 +73,7 @@
       ;; Macroexpand the metadata too, because sometimes metadata
       ;; contains, for example, functions. This is the case for
       ;; deftest forms.
-      (merge-meta expanded
+      (utils/merge-meta expanded
         (macroexpand-all macroexpand-1-fn md)
         (when original-key
           ;; We have to quote this, or it will get evaluated by
@@ -141,7 +128,7 @@
 
   (let [[_ name f] (macroexpand `(defn- ~@args))]
     `(def ~name
-       (fn [& args#] (merge-meta (apply ~f args#) (meta (first args#)))))))
+       (fn [& args#] (utils/merge-meta (apply ~f args#) (meta (first args#)))))))
 
 (definstrumenter instrument-coll
   "Instrument a collection."
@@ -239,7 +226,7 @@
               is-fn-def? (assoc :fn-ctx {:trace-name sym
                                          :kind :defn}
                                 :orig-form orig-form))]
-    (list* (merge-meta sym
+    (list* (utils/merge-meta sym
              ;; Instrument the metadata, because
              ;; that's where tests are stored.
              (instrument (or (meta sym) {}) ctx)
@@ -325,7 +312,7 @@
                                                       (instrument-coll arity-body-forms ctx')
                                                       outer-preamble))]
     (-> `(~arity-args-vec ~inst-arity-body-form)
-        (merge-meta (meta arity)))))
+        (utils/merge-meta (meta arity)))))
 
 (defn instrument-special-fn* [[_ & args :as form] ctx]
   (let [[a1 & a1r] args
@@ -387,12 +374,6 @@
                                      `(~method-name ~args-vec ~inst-body))))))]
     `(~a1 ~a2 ~a3 ~a4 ~a5 ~@inst-methods)))
 
-#_(map #(if (seq? %)
-        (let [[a1 a2 & ar] %]
-          (merge-meta (list* a1 a2 (instrument-coll ar ctx))
-            (meta %)))
-        %)
-     args)
 (definstrumenter instrument-special-form
   "Instrument form representing a macro call or special-form."
   [[name & args :as form] {:keys [orig-outer-form form-id form-ns disable excluding-fns] :as ctx}]
@@ -661,61 +642,11 @@
     ;; Other things are uninteresting, literals or unreadable objects.
     form))
 
-(defn- walk-indexed
-  "Walk through form calling (f coor element).
-  The value of coor is a vector of indices representing element's
-  address in the form. Unlike `clojure.walk/walk`, all metadata of
-  objects in the form is preserved."
-  ([f form] (walk-indexed [] f form))
-  ([coor f form]
-   (let [map-inner (fn [forms]
-                     (map-indexed #(walk-indexed (conj coor %1) f %2)
-                                  forms))
-         ;; Clojure uses array-maps up to some map size (8 currently).
-         ;; So for small maps we take advantage of that, otherwise fall
-         ;; back to the heuristic below.
-         ;; Maps are unordered, but we can try to use the keys as order
-         ;; hoping they can be compared one by one and that the user
-         ;; has specified them in that order. If that fails we don't
-         ;; instrument the map. We also don't instrument sets.
-         ;; This depends on Clojure implementation details.
-         walk-indexed-map (fn [map]
-                            (map-indexed (fn [i [k v]]
-                                           [(walk-indexed (conj coor (* 2 i)) f k)
-                                            (walk-indexed (conj coor (inc (* 2 i))) f v)])
-                                         map))
-         result (cond
-                  (map? form) (if (<= (count form) 8)
-                                (into {} (walk-indexed-map form))
-                                (try
-                                  (into (sorted-map) (walk-indexed-map (into (sorted-map) form)))
-                                  (catch Exception _
-                                    form)))
-                  ;; Order of sets is unpredictable, unfortunately.
-                  (set? form)  form
-                  ;; Borrowed from clojure.walk/walk
-                  (list? form) (apply list (map-inner form))
-                  (instance? clojure.lang.IMapEntry form) (vec (map-inner form))
-                  (seq? form)  (doall (map-inner form))
-                  (coll? form) (into (empty form) (map-inner form))
-                  :else form)]
-     (f coor (merge-meta result (meta form))))))
-
-(defn tag-form
-  [coor form]
-  (merge-meta form {::coor coor}))
-
-(defn tag-form-recursively
-  "Like `tag-form` but also tag all forms inside the given form."
-  [form]
-  ;; Don't use `postwalk` because it destroys previous metadata.
-  (walk-indexed tag-form form))
-
 (defn- strip-instrumentation-meta
   "Remove all tags in order to reduce java bytecode size and enjoy cleaner code
   printouts."
   [form]
-  (walk-indexed
+  (utils/walk-indexed
    (fn [_ f]
      (if (instance? clojure.lang.IObj f)
 
@@ -777,7 +708,7 @@
                            ;; :cljs (partial ana/macroexpand-1 environment)
                            :clj  macroexpand-1)
         form-with-meta (with-meta form {::original-form form})
-        tagged-form (tag-form-recursively form-with-meta) ;; tag all forms adding ::i/coor
+        tagged-form (utils/tag-form-recursively form-with-meta ::coor) ;; tag all forms adding ::i/coor
         macro-expanded-form (macroexpand-all macroexpand-1-fn tagged-form ::original-form) ;; Expand so we don't have to deal with macros.
         inst-code (instrument-tagged-code macro-expanded-form ctx)]
     inst-code))

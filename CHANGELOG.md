@@ -4,7 +4,11 @@
 
 ## New Features
 
+	* Remote debugging via `flow-storm.api/remote-connect` and `flow-storm.api/cli-run`
+	
 ### Changes
+
+	* `flow-storm.api/cli-run` now accepts :host and :port
 
 ### Bugs fixed
 

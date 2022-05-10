@@ -66,7 +66,7 @@
                                          [_]
                                          (let [{:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)]
                                            (when execution-expr
-                                             (target-commands/run-command :re-run-flow flow-id execution-expr))))))
+                                             (target-commands/run-command flow-id :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))))
         trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
         controls-box (doto (h-box [prev-btn next-btn re-run-flow-btn])

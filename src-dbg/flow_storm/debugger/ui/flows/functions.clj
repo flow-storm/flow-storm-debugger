@@ -6,13 +6,13 @@
             [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
-            [flow-storm.debugger.ui.flows.code :as flows-code])
+            [flow-storm.debugger.ui.flows.code :as flows-code]
+            [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.collections FXCollections ObservableList]
            [javafx.scene Node]
            [javafx.scene.control ComboBox ListView SelectionMode]
-           [javafx.scene.input MouseButton]
-           [javafx.util StringConverter]))
+           [javafx.scene.input MouseButton]))
 
 (defn- create-fns-list-pane [flow-id thread-id]
   (let [observable-fns-list (FXCollections/observableArrayList)
@@ -21,7 +21,7 @@
                          (ui-utils/create-list-cell-factory
                           (fn [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
                             (let [fn-lbl (doto (case form-def-kind
-                                                 :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name @dispatch-val) form-def-kind)
+                                                 :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (deref-ser dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
                                                  :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
@@ -47,13 +47,15 @@
                                                    (let [vars-symbs (->> (:vars groups)
                                                                          (map (fn [{:keys [fn-name fn-ns]}]
                                                                                 (symbol fn-ns fn-name))))]
-                                                     (target-commands/run-command :uninstrument-fn-bulk vars-symbs))
+                                                     (when (seq vars-symbs)
+                                                       (target-commands/run-command flow-id :uninstrument-fns {:vars-symbs vars-symbs})))
 
                                                    (let [forms (->> (:forms groups)
                                                                     (map (fn [{:keys [fn-ns form]}]
                                                                            {:form-ns fn-ns
                                                                             :form form})))]
-                                                     (target-commands/run-command :eval-form-bulk forms))))}
+                                                     (when (seq forms)
+                                                       (target-commands/run-command flow-id :eval-forms {:forms forms})))))}
         ctx-menu-show-similar-fn-call-item {:text "Show function calls"
                                             :on-click (fn []
                                                         (let [indexer (state/thread-trace-indexer flow-id thread-id)
@@ -87,24 +89,24 @@
                             (call [lv]
                               (ui-utils/create-list-cell-factory
                                (fn [list-cell {:keys [args-vec]}]
-                                 (let [args-vec-val @args-vec
-                                       [args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
+                                 (let [[args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
                                        pargs (.getSelectedItem (.getSelectionModel args-print-type-combo))
-                                       arg-selector (fn [n]
-                                                      (when (< n (count args-vec-val))
-                                                        (str "... " (flow-cmp/format-value-short (nth args-vec-val n)) " ...")))
-                                       args-lbl (label (cond
-                                                         (= pargs "Print all args")   (flow-cmp/format-value-short args-vec-val)
-                                                         (= pargs "Print only arg 0") (arg-selector 0)
-                                                         (= pargs "Print only arg 1") (arg-selector 1)
-                                                         (= pargs "Print only arg 2") (arg-selector 2)
-                                                         (= pargs "Print only arg 3") (arg-selector 3)
-                                                         (= pargs "Print only arg 4") (arg-selector 4)
-                                                         (= pargs "Print only arg 5") (arg-selector 5)
-                                                         (= pargs "Print only arg 6") (arg-selector 6)
-                                                         (= pargs "Print only arg 7") (arg-selector 7)
-                                                         (= pargs "Print only arg 8") (arg-selector 8)
-                                                         (= pargs "Print only arg 9") (arg-selector 9)))]
+                                       arg-n (cond
+                                               (= pargs "Print all args")   :all
+                                               (= pargs "Print only arg 0") 0
+                                               (= pargs "Print only arg 1") 1
+                                               (= pargs "Print only arg 2") 2
+                                               (= pargs "Print only arg 3") 3
+                                               (= pargs "Print only arg 4") 4
+                                               (= pargs "Print only arg 5") 5
+                                               (= pargs "Print only arg 6") 6
+                                               (= pargs "Print only arg 7") 7
+                                               (= pargs "Print only arg 8") 8
+                                               (= pargs "Print only arg 9") 9)
+                                       args-vec-str (if (= :all arg-n)
+                                                      (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false})
+                                                      (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elem arg-n}))
+                                       args-lbl (label args-vec-str)]
                                    (.setGraphic ^Node list-cell args-lbl))))))
         combo-cell-factory (proxy [javafx.util.Callback] []
                              (call [lv]

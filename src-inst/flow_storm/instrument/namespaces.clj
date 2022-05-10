@@ -110,7 +110,7 @@
         var-symb (symbol ns-name (str var-name))]
     [(find-var var-symb) var-val]))
 
-(defn eval-form-error-data [inst-form ex]
+(defn eval-form-error-data [_ ex]
   (let [e-msg (.getMessage ex)]
     (cond
 
@@ -131,8 +131,8 @@
 
       :else
       (binding [*print-meta* true]
-        (utils/log-error (format "Evaluating form %s Msg: %s Cause : %s" (pr-str inst-form) (.getMessage ex) (.getMessage (.getCause ex))) ex)
-        (System/exit 1)
+        #_(utils/log-error (format "Evaluating form %s Msg: %s Cause : %s" (pr-str inst-form) (.getMessage ex) (.getMessage (.getCause ex))) ex)
+        #_(System/exit 1)
         {:type :unknown-error}))))
 
 (defn instrument-and-eval-form
@@ -206,9 +206,9 @@
             (catch clojure.lang.ExceptionInfo ei
               (let [ex-type (:type (ex-data ei))]
                 ;; Enable for debugging unknown errors
-                #_(when (= ex-type :unknown-error)
+                (when (= ex-type :unknown-error)
                     (log (ex-message ei))
-                    (System/exit 1))
+                    #_(System/exit 1))
                 (case ex-type
                   :known-error   (print (utils/colored-string "X" :yellow))
                   :unknown-error (print (utils/colored-string "X" :red)))))))

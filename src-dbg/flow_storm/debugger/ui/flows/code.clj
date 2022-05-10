@@ -7,7 +7,8 @@
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.trace-types :as trace-types])
+            [flow-storm.trace-types :as trace-types]
+            [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.scene.control Label ListView ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.collections FXCollections ObservableList]
            [javafx.scene Node]
@@ -79,7 +80,7 @@
                           (fn [list-cell symb-val]
                             (let [symb-lbl (doto (label (first symb-val))
                                              (.setPrefWidth 100))
-                                  val-lbl (label  (flow-cmp/format-value-short @(second symb-val)))
+                                  val-lbl (label  (flow-cmp/elide-string (deref-ser (second symb-val) {:print-length 3 :print-level 3 :pprint? false}) 80))
                                   hbox (h-box [symb-lbl val-lbl])]
                               (.setGraphic ^Node list-cell hbox))))))
         locals-list-view (doto (ListView. observable-bindings-list)
@@ -127,11 +128,10 @@
                                          (let [curr-trace-idx (state/current-trace-idx flow-id thread-id)
                                                curr-fn-call-trace-idx (indexer/callstack-frame-call-trace-idx indexer curr-trace-idx)
                                                {:keys [fn-name]} (indexer/get-trace indexer curr-fn-call-trace-idx)]
-                                           (target-commands/run-command :instrument-fn (symbol (:form/ns form) fn-name) {}))
+                                           (target-commands/run-command flow-id :instrument-fn {:fn-symb (symbol (:form/ns form) fn-name)}))
 
-                                         (target-commands/run-command :instrument-form-bulk [{:form-ns (:form/ns form)
-                                                                                              :form (:form/form form)}]
-                                                                      {})))}]
+                                         (target-commands/run-command flow-id :instrument-forms {:forms [{:form-ns (:form/ns form)
+                                                                                                              :form (:form/form form)}]})))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 
     (.setOnMouseClicked form-pane
@@ -159,7 +159,7 @@
       (let [ctx-menu-options (->> traces
                               (map (fn [t]
                                      (let [tidx (-> t meta :trace-idx)]
-                                       {:text (format "%s" (flow-cmp/format-value-short @(:result t)))
+                                       {:text (format "%s" (flow-cmp/elide-string (deref-ser (:result t) {:print-length 3 :print-level 3 :pprint? false}) 80))
                                         :on-click #(jump-to-coord flow-id thread-id tidx)}))))
             ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
         (.setOnMouseClicked token-text (event-handler

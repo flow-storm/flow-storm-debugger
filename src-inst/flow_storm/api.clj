@@ -2,10 +2,14 @@
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
-            [flow-storm.trace-types :as trace-types]
+            [flow-storm.instrument.trace-types :as inst-trace-types]
             [flow-storm.utils :refer [log log-error]]
             [flow-storm.instrument.namespaces :as inst-ns]
-            [flow-storm.core :as fs-core]))
+            [flow-storm.core :as fs-core]
+            [flow-storm.json-serializer :as serializer])
+  (:import [org.java_websocket.client WebSocketClient]
+           [java.net URI]
+           [org.java_websocket.handshake ServerHandshake]))
 
 (def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
 (def debugger-main-ns 'flow-storm.debugger.main)
@@ -25,18 +29,85 @@
   ([config]
    (require debugger-trace-processor-ns)
    (require debugger-main-ns)
-   (let [local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "dispatch-trace"))
+   (let [config (assoc config :local? true)
+         local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "local-dispatch-trace"))
          start-debugger       (resolve (symbol (name debugger-main-ns) "start-debugger"))]
      (start-debugger config)
      (tracer/start-trace-sender
       (assoc config
              :send-fn (fn local-send [trace]
                         (try
-                          (-> trace
-                              trace-types/wrap-local-values
-                              local-dispatch-trace)
+                          (local-dispatch-trace trace)
                           (catch Exception e
                             (log-error "Exception dispatching trace " e)))))))))
+
+(def remote-websocket-client nil)
+
+(defn close-remote-connection []
+  (when remote-websocket-client
+    (.close remote-websocket-client)))
+
+(defn remote-connect
+
+  "Connect to a remote debugger.
+  Without arguments connects to localhost:7722.
+
+  `config` is a map with `:host`, `:port`"
+
+  ([] (remote-connect {:host "localhost" :port 7722}))
+
+  ([{:keys [host port on-connected]
+     :or {host "localhost"
+          port 7722}
+     :as config}]
+
+   (close-remote-connection) ;; if there is any active connection try to close it first
+
+   (let [uri-str (format "ws://%s:%s/ws" host port)
+         ^WebSocketClient ws-client (proxy
+                                        [WebSocketClient]
+                                        [(URI. uri-str)]
+
+                                      (onOpen [^ServerHandshake handshake-data]
+                                        (log (format "Connection opened to %s" uri-str))
+                                        (when on-connected (on-connected)))
+
+                                      (onMessage [^String message]
+                                        (let [[comm-id method args-map] (serializer/deserialize message)
+                                              resp-val (fs-core/run-command method args-map)
+                                              ret-packet [:cmd-ret [comm-id resp-val]]
+                                              ret-packet-ser (serializer/serialize ret-packet)]
+                                          (.send remote-websocket-client ret-packet-ser)))
+
+                                      (onClose [code reason remote?]
+                                        (log (format "Connection with %s closed. code=%s reson=%s remote?=%s"
+                                                     uri-str code reason remote?)))
+
+                                      (onError [^Exception e]
+                                        (log-error (format "WebSocket error connection %s" uri-str) e)))
+
+         remote-dispatch-trace (fn remote-dispatch-trace [trace]
+                                 (let [packet [:trace trace]
+                                       ser (serializer/serialize packet)]
+                                   ;; websocket library isn't clear about thread safty of send
+                                   ;; lets synchronize just in case
+                                   (locking ws-client
+                                     (.send ^WebSocketClient ws-client ^String ser))))]
+
+     (.setConnectionLostTimeout ws-client 0)
+     (.connect ws-client)
+
+     (tracer/start-trace-sender
+      (assoc config
+             :send-fn (fn remote-send [trace]
+                        (try
+                          (-> trace
+                              inst-trace-types/ref-values!
+                              remote-dispatch-trace)
+                          (catch Exception e
+                            (log-error "Exception dispatching trace " e))))))
+
+     (alter-var-root #'remote-websocket-client (constantly ws-client)))))
 
 (def instrument-var
 
@@ -67,14 +138,6 @@
   (uninstrument-var var-symb)"
 
   fs-core/uninstrument-var)
-
-(def uninstrument-vars
-
-  "Bulk version of `uninstrument-var`.
-
-  (uninstrument-vars var-symbols)"
-
-  fs-core/uninstrument-vars)
 
 ;; TODO: deduplicate code between `run` and `runi`
 (defn- run*
@@ -151,6 +214,10 @@
 
   `styles` (optional) a file path containing styles (css) that will override default styles
 
+  `host` (optional) when a host is given traces are going to be send to a remote debugger
+
+  `port` (optional) when a port is given traces are going to be send to a remote debugger
+
   cli-run is designed to be used with clj -X like :
 
   clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"com.github.jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
@@ -158,7 +225,8 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles]}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles
+           host port]}]
   (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
   (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
   (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
@@ -172,21 +240,21 @@
                       (assoc :excluding-ns excluding-ns))
         fn-ns-name (namespace fn-symb)
         _ (require (symbol fn-ns-name))
-        f (resolve fn-symb)
-        ns-to-instrument (into #{fn-ns-name} instrument-ns)
-        ]
+        _ (resolve fn-symb)
+        ns-to-instrument (into #{fn-ns-name} instrument-ns)]
 
     (when (seq require-before)
       (doseq [ns-name require-before]
         (log (format "Requiring ns %s" ns-name))
         (require (symbol ns-name))))
 
-    (local-connect {:verbose? verbose?
-                    :styles styles})
+    (if (or host port)
+      (remote-connect {:host host :port port :verbose? verbose? :styles styles})
+      (local-connect {:verbose? verbose? :styles styles}))
     (log (format "Instrumenting namespaces %s" ns-to-instrument))
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")
-    (eval (run* `(~f ~@fn-args)))))
+    (eval (run* `(~fn-symb ~@fn-args)))))
 
 (defn read-trace-tag [form]
   `(fs-core/instrument ~form))

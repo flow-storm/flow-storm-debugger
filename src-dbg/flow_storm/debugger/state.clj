@@ -1,6 +1,5 @@
 (ns flow-storm.debugger.state
-  (:require [flow-storm.tracer]
-            [flow-storm.debugger.trace-indexer.protos :as indexer])
+  (:require [flow-storm.debugger.trace-indexer.protos :as indexer])
   (:import [java.util HashMap Map$Entry]))
 
 
@@ -45,7 +44,7 @@
 
 ;; (s/def ::state (s/keys :req-un [:state/flows
 ;;                                 :state/selected-flow-id
-;;                                 :state/trace-counter]))
+;;                                  :state/trace-counter]))
 
 (def orphans-flow-id -1)
 
@@ -71,14 +70,17 @@
       (doseq [key flow-keys]
         (.remove fn-call-stats-map key)))))
 
-(defn create-flow [flow-id exec-form-ns exec-form timestamp]
+(defn create-flow [conn flow-id exec-form-ns exec-form timestamp]
   ;; if a flow for `flow-id` already exist we discard it and
   ;; will be GCed
+
   (swap! *state assoc-in [:flows flow-id] {:flow/id flow-id
+                                           :flow/origin-connection conn
                                            :flow/threads {}
                                            :flow/execution-expr {:ns exec-form-ns
                                                                  :form exec-form}
                                            :timestamp timestamp})
+
   (clear-flow-fn-call-stats flow-id))
 
 (defn remove-flow [flow-id]

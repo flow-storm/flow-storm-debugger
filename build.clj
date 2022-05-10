@@ -84,8 +84,10 @@
         step1-zloc (z-version-ns-name step0-zloc version)
         step2-zloc (z-version-require-namespaces step1-zloc version)
         step3-zloc (z-version-import-namespaces step2-zloc version)
-        ;; kind of hacky, but the inst api needs a couple of defs to be modified
-        step4-zloc (if (inst-entry-point-file? file)
+
+        step4-zloc (cond
+
+                     (inst-entry-point-file? file) ;; kind of hacky, but the inst api needs a couple of defs to be modified
                      (-> step3-zloc
                          z/right ;; find (def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
                          z/next z/next z/next z/down
@@ -99,7 +101,17 @@
                          z/up
                          z/left
                          z/left) ;; go back to ns form
-                     step3-zloc)
+
+                     (dbg-entry-point-file? file) ;; kind of hacky, but the dbg main needs a def to be modified
+                     (-> step3-zloc
+                         z/right ;; find (def flow-storm-core-ns 'flow-storm.core)
+                         z/next z/next z/next z/down
+                         (z/edit (fn [symb] (version-ns-symb symb version :require)))
+                         z/up
+                         z/up
+                         z/left)
+
+                     :else step3-zloc)
         [_ file-name ext] (re-find #"(.+)\.([cljc]+)" (.getAbsolutePath file))
         versioned-file (format "%s_v%s_%s.%s" file-name (str/replace version "-" "_") flow-storm-ns-tag ext)]
 
@@ -141,7 +153,7 @@
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
-        version (format "2.0.%s" (b/git-count-revs nil))
+        version (format "2.1.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:dbg]})
         jar-file (format "target/%s.jar" (name lib))
@@ -160,7 +172,7 @@
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "2.0.%s" (b/git-count-revs nil))
+        version (format "2.1.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:inst]})
         jar-file (format "target/%s.jar" (name lib))
