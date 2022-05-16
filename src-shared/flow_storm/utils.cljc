@@ -31,6 +31,18 @@
      ([msg e]
       (js/console.error msg e))))
 
+(defn get-timestamp []
+  #?(:cljs (.getTime (js/Date.))
+     :clj (System/currentTimeMillis)))
+
+(defn get-monotonic-timestamp []
+  #?(:cljs (js/performance.now)
+     :clj (System/nanoTime)))
+
+(defn get-current-thread-id []
+  #?(:clj (.getId (Thread/currentThread))
+     :cljs 0))
+
 (defn merge-meta
 
   "Non-throwing version of (vary-meta obj merge metamap-1 metamap-2 ...).
