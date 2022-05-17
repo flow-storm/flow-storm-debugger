@@ -55,7 +55,8 @@
   [obj & metamaps]
   (try
     (apply vary-meta obj merge metamaps)
-    (catch Exception _ obj)))
+    #?(:clj (catch Exception _ obj)
+       :cljs (catch js/Error _ obj))))
 
 (defn walk-indexed
   "Walk through form calling (f coor element).
@@ -85,8 +86,8 @@
                                 (into {} (walk-indexed-map form))
                                 (try
                                   (into (sorted-map) (walk-indexed-map (into (sorted-map) form)))
-                                  (catch Exception _
-                                    form)))
+                                  #?(:clj (catch Exception _ form)
+                                     :cljs (catch js/Error _ form))))
                   ;; Order of sets is unpredictable, unfortunately.
                   (set? form)  form
                   ;; Borrowed from clojure.walk/walk

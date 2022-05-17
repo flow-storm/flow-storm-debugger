@@ -1,0 +1,2 @@
+{:source-paths ["src-inst" "src-shared" "src-dev"]
+ :dependencies [[org.clojure/core.async "1.5.648"]]}
