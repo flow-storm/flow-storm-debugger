@@ -1,6 +1,8 @@
 (ns flow-storm.instrument.trace-types
-  (:require [flow-storm.trace-types])
-  (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
+  (:require [flow-storm.utils :as utils]
+   #?(:clj [flow-storm.trace-types]
+      :cljs [flow-storm.trace-types :refer [FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]] ))
+  #?(:clj (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace])))
 
 (def *values-references (atom {}))
 
@@ -8,7 +10,7 @@
   (get @*values-references vid))
 
 (defn- reference-value! [v]
-  (let [vid (java.util.UUID/randomUUID)#_(hash v)]
+  (let [vid (utils/rnd-uuid) #_(hash v)]
     (swap! *values-references assoc vid v)
     vid))
 

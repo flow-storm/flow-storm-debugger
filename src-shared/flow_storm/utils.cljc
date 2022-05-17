@@ -1,4 +1,6 @@
-(ns flow-storm.utils)
+(ns flow-storm.utils
+  #?(:cljs (:require [goog.string :as gstr]
+                     [goog.string.format])))
 
 #?(:clj
    (defn colored-string [s c]
@@ -31,17 +33,25 @@
      ([msg e]
       (js/console.error msg e))))
 
+(defn rnd-uuid []
+  #?(:clj (java.util.UUID/randomUUID)
+     :cljs (.-uuid ^cljs.core/UUID (random-uuid))))
+
 (defn get-timestamp []
-  #?(:cljs (.getTime (js/Date.))
+  #?(:cljs (.now js/Date)
      :clj (System/currentTimeMillis)))
 
 (defn get-monotonic-timestamp []
-  #?(:cljs (js/performance.now)
+  #?(:cljs (.now js/Date)
      :clj (System/nanoTime)))
 
 (defn get-current-thread-id []
   #?(:clj (.getId (Thread/currentThread))
      :cljs 0))
+
+(defn format [& args]
+  #?(:clj (apply clojure.core/format args)
+     :cljs (apply gstr/format args)))
 
 (defn merge-meta
 

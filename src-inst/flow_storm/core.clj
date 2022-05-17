@@ -23,11 +23,19 @@
      ;; Printing on the *err* stream is important since
      ;; printing on standard output messes  with clojurescript macroexpansion
      #_(let [pprint-on-err (fn [x]
-                           (binding [*out* *err*] (pp/pprint x)))]
-       (pprint-on-err (inst-forms/macroexpand-all form))
-       (pprint-on-err inst-code))
+                             (binding [*out* *err*] (pp/pprint x)))]
+         (pprint-on-err (inst-forms/macroexpand-all form))
+         (pprint-on-err inst-code))
 
      inst-code)))
+
+(defmacro run-with-execution-ctx
+  [{:keys [orig-form ns flow-id]} form]
+  `(let [flow-id# ~(or flow-id 0)
+         curr-ns# ~(or ns `(str (ns-name *ns*)))]
+     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
+       (tracer/trace-flow-init-trace flow-id# curr-ns# ~(or orig-form (list 'quote form)))
+       ~form)))
 
 (defn instrument-var
   ([var-symb] (instrument-var var-symb {}))
@@ -58,36 +66,6 @@
             (log (format "Don't know howto untrace %s" (pr-str expanded-form))))
 
           (log (format "Couldn't find source for %s" var-symb)))))))
-
-(defmacro run-with-execution-ctx
-  [{:keys [orig-form ns flow-id]} form]
-  `(let [flow-id# ~(or flow-id 0)
-         curr-ns# ~(or ns `(str (ns-name *ns*)))]
-     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
-       (tracer/trace-flow-init-trace flow-id# curr-ns# ~(or orig-form (list 'quote form)))
-       ~form)))
-
-#_(defn ws-connect [opts]
-  (let [{:keys [send-fn]} (tracer/build-ws-sender opts)]
-    (tracer/start-trace-sender {:send-fn send-fn})))
-
-#_(defn file-connect [opts]
-  (let [{:keys [send-fn]} (tracer/build-file-sender opts)]
-    (tracer/start-trace-sender {:send-fn send-fn})))
-
-#_(def trace-ref
-  "Adds a watch to ref with ref-name that traces its value changes.
-  The first argument is the ref to watch for.
-  The second argument is a options map. Available options are :
-  - :ref-name A string name for the ref.
-  - :ignore-keys A collection of keys that will be skipped in traces.
-
-  :ignore-keys only works for maps and does NOT ignore nested maps keys."
-  tracer/trace-ref)
-
-#_(def untrace-ref
-  "Removes the watch added by trace-ref."
-  tracer/untrace-ref)
 
 (defn- instrument-fn-command [{:keys [fn-symb]}]
   (instrument-var fn-symb))

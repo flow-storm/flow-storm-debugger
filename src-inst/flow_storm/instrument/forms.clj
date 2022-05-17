@@ -9,6 +9,7 @@
   (:require
    [clojure.walk :as walk]
    [clojure.string :as str]
+   [cljs.analyzer :as ana]
    [flow-storm.tracer :as tracer]
    [flow-storm.utils :as utils]))
 
@@ -19,7 +20,6 @@
 (declare instrument-function-call)
 (declare instrument-case-map)
 
-(def orphan-flow-id -1)
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
 ;;;;;;;;;;;;;;;;;;;;
@@ -273,7 +273,8 @@
                   (= (:kind fn-ctx) :defmethod) orig-form
                   (= (:kind fn-ctx) :defn) orig-form
                   (= (:kind fn-ctx) :anonymous) orig-form
-                  :else (throw (Exception. (format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind))))
+                  :else (let [err-msg (utils/format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind)]
+                          (throw (Exception. err-msg))))
         outer-preamble (-> []
                            (into [`(tracer/trace-form-init-trace {:form-id ~form-id
                                                                   :ns ~form-ns
@@ -571,7 +572,7 @@
                                       ;; This if we use the same name as the type key there it will compile
                                       ;; but will cause problems in situations when recursion is used
                                       ;; `fn-name` will be used only for reporting purposes, so there is no harm
-                                      (let [fn-name (symbol (format "%s" (name k)))]
+                                      (let [fn-name (symbol (name k))]
                                         (assoc r k (instrument f
                                                                (assoc ctx :fn-ctx {:trace-name fn-name
                                                                                    :kind :extend-type})))))
@@ -690,7 +691,7 @@
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
 
-     (binding [tracer/*runtime-ctx* (or curr-ctx# (tracer/empty-runtime-ctx orphan-flow-id))]
+     (binding [tracer/*runtime-ctx* (or curr-ctx# (tracer/empty-runtime-ctx tracer/orphan-flow-id))]
        ~@(-> preamble
              (into [(instrument-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 
@@ -703,9 +704,9 @@
 ;; and user cljs.analyzer/macroexpand-1 when we are in a clojurescript one.                                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn instrument-all [form {:keys [compiler #_environment] :as ctx}]
+(defn instrument-all [form {:keys [compiler environment] :as ctx}]
   (let [macroexpand-1-fn (case compiler
-                           ;; :cljs (partial ana/macroexpand-1 environment)
+                           :cljs (partial ana/macroexpand-1 environment)
                            :clj  macroexpand-1)
         form-with-meta (with-meta form {::original-form form})
         tagged-form (utils/tag-form-recursively form-with-meta ::coor) ;; tag all forms adding ::i/coor

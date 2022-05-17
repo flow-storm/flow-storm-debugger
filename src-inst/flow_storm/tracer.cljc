@@ -4,6 +4,8 @@
             [clojure.core.async :as async])    
   #?(:clj (:import [java.util.concurrent ArrayBlockingQueue])))
 
+(def orphan-flow-id -1)
+
 (def trace-chan (async/chan 30000000))
 (def send-thread-stop-chan (async/promise-chan))
 
@@ -103,12 +105,12 @@
 (defn log-stats []
   (let [{:keys [put sent last-report-sent last-report-t]} @*stats
         qsize (- put sent)]
-    (log (format "CNT: %d, Q_SIZE: %d, Speed: %.1f tps"
-                 sent
-                 qsize
-                 (quot (- sent last-report-sent)
-                       (/ (double (- (utils/get-monotonic-timestamp) last-report-t))
-                          1000000000.0))))))
+    (log (utils/format "CNT: %d, Q_SIZE: %d, Speed: %.1f tps"
+                       sent
+                       qsize
+                       (quot (- sent last-report-sent)
+                             (/ (double (- (utils/get-monotonic-timestamp) last-report-t))
+                                1000000000.0))))))
 
 (defn start-trace-sender
    

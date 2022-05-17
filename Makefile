@@ -9,6 +9,18 @@ test:
 lint:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst
 
+run-dbg:
+	clj -X:dbg flow-storm.debugger.main/start-debugger
+
+test-cljs:
+	npx shadow-cljs compile :dev-test && node public/dev-test.js
+
+test-local:
+	clj -X:dbg:inst:dev dev/start-and-add-data
+
+test-remote:
+	clj -X:dbg:inst:dev dev/run-remote-test
+
 flow-storm-dbg.jar:
 	clj -T:build jar-dbg
 
