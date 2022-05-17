@@ -1,6 +1,7 @@
 (ns flow-storm.json-serializer
   (:require [cognitect.transit :as transit]
-            [flow-storm.utils :refer [log-error]])
+            [flow-storm.utils :refer [log-error]]
+            [flow-storm.trace-types])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.util.regex Pattern]
            [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
@@ -22,12 +23,12 @@
                                                                          (fn [_] "object")
                                                                          pr-str)})
             _ (transit/write writer obj)
-            ser (.toString write-buffer)]    
+            ser (.toString write-buffer)]
         (.reset write-buffer)
         ser)
       (catch Exception e (log-error (format "Error serializing %s" obj) e) (throw e)))))
 
-(defn deserialize [^String s]  
+(defn deserialize [^String s]
   (try
     (let [^ByteArrayInputStream in (ByteArrayInputStream. (.getBytes s))
           reader (transit/reader in :json {:handlers (merge (transit/record-read-handlers FlowInitTrace
