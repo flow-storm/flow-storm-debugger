@@ -4,29 +4,6 @@
             [flow-storm.instrument.trace-types :as trace-types]
             [clojure.pprint :as pp]))
 
-(defn instrument-var
-  ([var-symb] (instrument-var var-symb {}))
-  ([var-symb config]
-   ))
-
-(defn uninstrument-var [var-symb]
-  )
-
-(defn- instrument-fn-command [{:keys [fn-symb]}]
-  )
-
-(defn uninstrument-fns-command [{:keys [vars-symbs]}]
-  )
-
-(defn eval-forms-command [{:keys [forms]}]
-  )
-
-(defn instrument-forms-command [{:keys [forms config]}]
-  )
-
-(defn re-run-flow-command [{:keys [flow-id execution-expr]}]
-  )
-
 (defn- get-remote-value-command [{:keys [vid print-length print-level pprint? nth-elem]}]
   (let [value (trace-types/get-reference-value vid)
         print-fn (if pprint? pp/pprint print)]
@@ -39,11 +16,11 @@
 (defn run-command [method args-map]
   (try
     (let [f (case method
-             :instrument-fn        instrument-fn-command
-             :uninstrument-fns     uninstrument-fns-command
-             :eval-forms           eval-forms-command
-             :instrument-forms     instrument-forms-command
-             :re-run-flow          re-run-flow-command
+             :instrument-fn        (log "[WARNING] :instrument-fn isn't supported yet")
+             :uninstrument-fns     (log "[WARNING] :uninstrument-fns isn't supported yet")
+             :eval-forms           (log "[WARNING] :eval-forms isn't supported yet")
+             :instrument-forms     (log "[WARNING] :instrument-forms isn't supported yet")
+             :re-run-flow          (log "[WARNING] :re-run-flow isn't supported yet")
              :get-remote-value     get-remote-value-command)]
       (f args-map))
     (catch js/Error e (js/console.error (utils/format "Error running command %s %s" method args-map) e))))

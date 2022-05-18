@@ -480,13 +480,6 @@
   (or (dont-break-forms name)
       (contains-recur? form)))
 
-#_(defn cljs-multi-arity-defn? [[x1 & x2]]
-  (when (= x1 'do)
-    (let [[xdef & xset] (keep first x2)]
-      (and (= xdef 'def)
-           (pos? (count xset))
-           (every? #(= 'set! %) xset)))))
-
 (defn expanded-def-form? [form]
   (and (seq? form)
        (= (first form) 'def)))
@@ -531,6 +524,13 @@
        (= 'do (first form))
        (seq? (second form))
        (= 'clojure.core/extend (-> form second first))))
+
+(defn- expanded-cljs-multi-arity-defn? [[x1 & x2] _]
+  (when (= x1 'do)
+    (let [[xdef & xset] (keep first x2)]
+      (and (= xdef 'def)
+           (pos? (count xset))
+           (every? #(= 'set! %) (butlast xset))))))
 
 (defn expanded-form-type [form ctx]
   (when (seq? form)
@@ -581,7 +581,44 @@
                      (list etype inst-emap)))
         extensions (->> (partition 2 exts)
                         (mapcat inst-ext))]
-   `(clojure.core/extend ~ext-type ~@extensions)))
+    `(clojure.core/extend ~ext-type ~@extensions)))
+
+;; ClojureScript multi arity defn expansion is much more involved than
+;; a clojure one
+#_(do
+ (def
+  multi-arity-foo
+  (cljs.core/fn
+   [var_args]
+   (cljs.core/case
+    ...
+    )))
+
+ (set!
+  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$1)
+  (fn* ([a] (multi-arity-foo a 10))))
+
+ (set!
+  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$2)
+  (fn* ([a b] (+ a b))))
+
+ (set! (. multi-arity-foo -cljs$lang$maxFixedArity) 2)
+
+ nil)
+
+
+(defn- instrument-cljs-multi-arity-defn [[_ xdef & xsets] ctx]
+  (let [fn-name (second xdef)
+        inst-sets-forms (keep (fn [[_ xarity fn-body]]
+                           (when (and (seq? fn-body) (= (first fn-body) 'fn*))
+                             (let [inst-bodies (instrument
+                                                fn-body
+                                                (assoc ctx :fn-ctx {:trace-name fn-name
+                                                                    :kind :defn}))]
+                               (list 'set! xarity inst-bodies))))
+                              xsets)
+        inst-code `(do ~xdef ~@inst-sets-forms)]
+    inst-code))
 
 (defn- instrument-clojure-defmethod-form [[_ mname _ mdisp-val mfn] ctx]
   (let [inst-mfn (instrument mfn ctx)]
@@ -662,7 +699,8 @@
   "Like instrument but meant to be used around outer forms, not in recursions
   since it will do some checks that are only important in outer forms. "
 
-  [form ctx]
+  [form {:keys [compiler] :as ctx}]
+
   (cond
     (expanded-defmethod-form? form ctx)
     (instrument-clojure-defmethod-form form ctx)
@@ -672,6 +710,9 @@
 
     (expanded-extend-protocol-form? form ctx)
     `(do ~@(map (fn [ext-form] (instrument-core-extend-form ext-form ctx)) (rest form)))
+
+    (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? form ctx))
+    (instrument-cljs-multi-arity-defn form ctx)
 
     :else (instrument form ctx)))
 
@@ -727,44 +768,6 @@
      :excluding-fns     (or excluding-fns #{})
      :disable          (or disable #{}) ;; :expr :binding :anonymous-fn
      }))
-;; ClojureScript multi arity defn expansion is much more involved than
-;; a clojure one
-#_(do
- (def
-  multi-arity-foo
-  (cljs.core/fn
-   [var_args]
-   (cljs.core/case
-    ...
-    )))
-
- (set!
-  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$1)
-  (fn* ([a] (multi-arity-foo a 10))))
-
- (set!
-  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$2)
-  (fn* ([a b] (+ a b))))
-
- (set! (. multi-arity-foo -cljs$lang$maxFixedArity) 2)
-
- nil)
-
-#_(defn instrument-cljs-multi-arity-outer-form [[_ xdef & xsets] orig-form ctx]
-  (let [fn-name (second xdef)
-        inst-sets-forms (keep (fn [[_ xarity fn-body]]
-                           (when (and (seq? fn-body) (= (first fn-body) 'fn*))
-                             (let [inst-bodies (instrument-function-bodies
-                                                fn-body
-                                                (assoc ctx
-                                                       :orig-form orig-form
-                                                       :fn-name (str fn-name))
-
-                                                instrument-outer-form)]
-                               (list 'set! xarity inst-bodies))))
-                              xsets)
-        inst-code `(do ~xdef ~@inst-sets-forms)]
-    inst-code))
 
 (defn parse-defn-expansion [defn-expanded-form]
   ;; (def my-fn (fn* ([])))
@@ -777,5 +780,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
+
+
 
   )
