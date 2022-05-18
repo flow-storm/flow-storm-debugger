@@ -487,11 +487,11 @@
 (defn expanded-defmethod-form? [form {:keys [compiler]}]
   (and (seq? form)
        (or (and (= compiler :clj)
-            (= (count form) 5)
-            (= (nth form 2) 'clojure.core/addMethod))
-       (and (= compiler :cljs)
-            (= (count form) 4)
-            (= (first form) 'cljs.core/-add-method)))))
+                (= (count form) 5)
+                (= (nth form 2) 'clojure.core/addMethod))
+           (and (= compiler :cljs)
+                (= (count form) 4)
+                (= (first form) 'cljs.core/-add-method)))))
 
 (defn expanded-defn-form? [form]
   (and (= (count form) 3)
@@ -620,22 +620,27 @@
         inst-code `(do ~xdef ~@inst-sets-forms)]
     inst-code))
 
-(defn- instrument-clojure-defmethod-form [[_ mname _ mdisp-val mfn] ctx]
-  (let [inst-mfn (instrument mfn ctx)]
-    `(. ~mname clojure.core/addMethod ~mdisp-val ~inst-mfn)))
+(defn- instrument-defmethod-form [form {:keys [compiler] :as ctx}]
+  (case compiler
+    :clj (let [[_ mname _ mdisp-val mfn] form
+               inst-mfn (instrument mfn ctx)]
+           `(. ~mname clojure.core/addMethod ~mdisp-val ~inst-mfn))
+    :cljs (let [[_ mname mdisp-val mfn] form
+                inst-mfn (instrument mfn ctx)]
+            `(cljs.core/-add-method ~mname ~mdisp-val ~inst-mfn))))
 
 (defn- update-context-for-top-level-form
 
   "Set the context for instrumenting fn*s down the road."
 
-  [ctx form]
+  [{:keys [compiler] :as ctx} form]
 
   (cond-> (assoc ctx :orig-form (::original-form (meta form)))
 
     (expanded-defmethod-form? form ctx)
     (assoc :fn-ctx {:trace-name (nth form 1)
                     :kind :defmethod
-                    :dispatch-val (pr-str (nth form 3))})
+                    :dispatch-val (pr-str (nth form (case compiler :clj 3 :cljs 2)))})
 
     (expanded-extend-protocol-form? form ctx)
     (assoc :outer-form-kind :extend-protocol)
@@ -703,7 +708,7 @@
 
   (cond
     (expanded-defmethod-form? form ctx)
-    (instrument-clojure-defmethod-form form ctx)
+    (instrument-defmethod-form form ctx)
 
     (expanded-clojure-core-extend-form? form ctx)
     (instrument-core-extend-form form ctx)

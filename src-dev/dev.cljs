@@ -18,12 +18,12 @@
 
 (defmulti do-it #(.-name (type %)))
 
-;; tracing this throws
+#trace
 (defmethod do-it "Number"
   [l]
   (factorial l))
 
-;; tracing this throws
+#trace
 (defmethod do-it "String"
   [s]
   (count s))
@@ -74,6 +74,9 @@
   (fs-api/remote-connect)
   (fs-api/run {:ns "dev"}
     (js/console.log (boo [2 "hello" 8]))))
+
+;; (. bla clojure.core/addMethod :bla (clojure.core/fn [a] a))
+;; (cljs.core/-add-method bla :bla (cljs.core/fn [a] a))
 
 ;; (comment
 ;;   (def t (tt/->FnCallTrace 0 1 "foo" "foo-ns" 11 [42 41] 0))
