@@ -540,6 +540,15 @@
     (and (symbol? maybe-extend-type)
          (= "extend-type" (name maybe-extend-type)))))
 
+(defn- expanded-cljs-extend-protocol-form? [form ctx]
+  ;; This isn't used  the expanded form because it is hard to deduce cljs extend-protocol from (do (*js ...) (*js ...))
+  (let [maybe-extend-protocol (some-> ctx
+                                  :outer-orig-form
+                                  rest
+                                  ffirst)]
+    (and (symbol? maybe-extend-protocol)
+         (= "extend-protocol" (name maybe-extend-protocol)))))
+
 (defn expanded-form-type [form ctx]
   (when (seq? form)
     (cond
@@ -641,6 +650,10 @@
         inst-code `(do ~@inst-sets-forms)]
     inst-code))
 
+(defn- instrument-cljs-extend-protocol-form [[_ & extend-type-forms] ctx]
+  (let [inst-extend-type-forms (map #(instrument-cljs-extend-type-form % ctx) extend-type-forms)]
+    `(do ~@inst-extend-type-forms)))
+
 (defn- instrument-defmethod-form [form {:keys [compiler] :as ctx}]
   (case compiler
     :clj (let [[_ mname _ mdisp-val mfn] form
@@ -667,7 +680,8 @@
                       :kind :defmethod
                       :dispatch-val (pr-str (nth form (case compiler :clj 3 :cljs 2)))})
 
-      (expanded-extend-protocol-form? form ctx')
+      (or (expanded-extend-protocol-form? form ctx')
+          (and (= compiler :cljs) (expanded-cljs-extend-protocol-form? form ctx')))
       (assoc :outer-form-kind :extend-protocol)
 
       (or (expanded-clojure-core-extend-form? form ctx')
@@ -752,6 +766,9 @@
 
     (and (= compiler :cljs) (expanded-cljs-extend-type-form? form ctx))
     (instrument-cljs-extend-type-form form ctx)
+
+    (and (= compiler :cljs) (expanded-cljs-extend-protocol-form? form ctx))
+    (instrument-cljs-extend-protocol-form form ctx)
 
     :else (instrument form ctx)))
 

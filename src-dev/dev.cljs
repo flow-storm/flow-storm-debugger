@@ -40,7 +40,7 @@
 (defprotocol Suber
   (sub [x]))
 
-#trace ;; tracing this doesn't work
+#trace
 (extend-protocol Adder
 
   number
