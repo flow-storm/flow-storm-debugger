@@ -46,7 +46,7 @@
   number
   (add [l] (+ l 5)))
 
-#trace ;; tracing this doesn't work
+#trace
 (extend-type number
 
   Suber

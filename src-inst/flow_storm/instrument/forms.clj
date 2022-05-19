@@ -218,14 +218,13 @@
              s))
          (instrument-coll (rest (rest args)) ctx)))
 
-(defn instrument-special-def [orig-form args ctx]
+(defn instrument-special-def [args ctx]
   (let [[sym & rargs] args
         is-fn-def? (and (seq? (first rargs))
                         (= 'fn* (-> rargs first first)))
         ctx (cond-> ctx
               is-fn-def? (assoc :fn-ctx {:trace-name sym
-                                         :kind :defn}
-                                :orig-form orig-form))]
+                                         :kind :defn}))]
     (list* (utils/merge-meta sym
              ;; Instrument the metadata, because
              ;; that's where tests are stored.
@@ -262,17 +261,17 @@
              vec)
         (instrument-coll (rest args) ctx)))
 
-(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind orig-form form-id form-ns disable excluding-fns] :as ctx}]
+(defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns] :as ctx}]
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
         fn-form (cond
-                  (= outer-form-kind :extend-protocol) orig-form
-                  (= outer-form-kind :extend-type) orig-form
-                  (= outer-form-kind :defrecord) orig-form
-                  (= outer-form-kind :deftype) orig-form
-                  (= (:kind fn-ctx) :reify) orig-form
-                  (= (:kind fn-ctx) :defmethod) orig-form
-                  (= (:kind fn-ctx) :defn) orig-form
-                  (= (:kind fn-ctx) :anonymous) orig-form
+                  (= outer-form-kind :extend-protocol) outer-orig-form
+                  (= outer-form-kind :extend-type) outer-orig-form
+                  (= outer-form-kind :defrecord) outer-orig-form
+                  (= outer-form-kind :deftype) outer-orig-form
+                  (= (:kind fn-ctx) :reify) outer-orig-form
+                  (= (:kind fn-ctx) :defmethod) outer-orig-form
+                  (= (:kind fn-ctx) :defn) outer-orig-form
+                  (= (:kind fn-ctx) :anonymous) outer-orig-form
                   :else (let [err-msg (utils/format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind)]
                           (throw (Exception. err-msg))))
         outer-preamble (-> []
@@ -388,7 +387,7 @@
             '#{new} (cons (first args) (instrument-coll (rest args) ctx))
             '#{quote & var clojure.core/import*} args
             '#{.} (instrument-special-dot args ctx)
-            '#{def} (instrument-special-def (::original-form (meta form)) args ctx)
+            '#{def} (instrument-special-def args ctx)
             '#{set!} (list (first args)
                            (instrument (second args) ctx))
             '#{loop* let* letfn*} (instrument-special-loop*-like form ctx)
@@ -532,6 +531,15 @@
            (pos? (count xset))
            (every? #(= 'set! %) (butlast xset))))))
 
+(defn- expanded-cljs-extend-type-form? [form ctx]
+  ;; This isn't used  the expanded form because it is hard to deduce cljs extend-type from (do (*js ...) (*js ...))
+  (let [maybe-extend-type (some-> ctx
+                                  :outer-orig-form
+                                  rest
+                                  ffirst)]
+    (and (symbol? maybe-extend-type)
+         (= "extend-type" (name maybe-extend-type)))))
+
 (defn expanded-form-type [form ctx]
   (when (seq? form)
     (cond
@@ -620,6 +628,19 @@
         inst-code `(do ~xdef ~@inst-sets-forms)]
     inst-code))
 
+(defn- instrument-cljs-extend-type-form [[_ & js*-list] ctx]
+  (let [inst-sets-forms (map (fn [[_ _ _ _ x :as js*-form]]
+                               (let [fn-form? (and (seq? x) (= 'fn* (first x)))]
+                                 (if fn-form?
+                                   (let [[_ _ fn-name] js*-form]
+                                     (instrument js*-form
+                                                 (assoc ctx :fn-ctx {:trace-name (name fn-name)
+                                                                     :kind :extend-type})))
+                                   js*-form)))
+                             js*-list)
+        inst-code `(do ~@inst-sets-forms)]
+    inst-code))
+
 (defn- instrument-defmethod-form [form {:keys [compiler] :as ctx}]
   (case compiler
     :clj (let [[_ mname _ mdisp-val mfn] form
@@ -633,26 +654,33 @@
 
   "Set the context for instrumenting fn*s down the road."
 
-  [{:keys [compiler] :as ctx} form]
+  [{:keys [compiler outer-orig-form] :as ctx} form]
 
-  (cond-> (assoc ctx :orig-form (::original-form (meta form)))
+  ;; NOTE: we "pattern match" on expanded forms instead of ctx :outer-orig-form because
+  ;; :outer-orig-form can be like (somens/defmethod ...) (core/defmethod ...) etc
 
-    (expanded-defmethod-form? form ctx)
-    (assoc :fn-ctx {:trace-name (nth form 1)
-                    :kind :defmethod
-                    :dispatch-val (pr-str (nth form (case compiler :clj 3 :cljs 2)))})
+  (let [ctx' (assoc ctx :outer-orig-form (::original-form (meta form)))]
+    (cond-> ctx'
 
-    (expanded-extend-protocol-form? form ctx)
-    (assoc :outer-form-kind :extend-protocol)
+      (expanded-defmethod-form? form ctx')
+      (assoc :fn-ctx {:trace-name (nth form 1)
+                      :kind :defmethod
+                      :dispatch-val (pr-str (nth form (case compiler :clj 3 :cljs 2)))})
 
-    (expanded-clojure-core-extend-form? form ctx)
-    (assoc :outer-form-kind :extend-type)
+      (expanded-extend-protocol-form? form ctx')
+      (assoc :outer-form-kind :extend-protocol)
 
-    (expanded-deftype-form form ctx)
-    (assoc :outer-form-kind (expanded-deftype-form form ctx))))
+      (or (expanded-clojure-core-extend-form? form ctx')
+          (and (= compiler :cljs) (expanded-cljs-extend-type-form? form ctx')))
+      (assoc :outer-form-kind :extend-type)
+
+      (expanded-deftype-form form ctx')
+      (assoc :outer-form-kind (expanded-deftype-form form ctx')))))
 
 (defn- instrument-function-like-form
+
   "Instrument form representing a function call or special-form."
+
   [[name :as form] ctx]
   (if-not (symbol? name)
     ;; If the car is not a symbol, nothing fancy is going on and we
@@ -672,7 +700,9 @@
       (maybe-instrument (instrument-function-call form ctx) ctx))))
 
 (defn- instrument
+
   "Walk through form and return it instrumented with traces. "
+
   [form ctx]
   (condp #(%1 %2) form
     ;; Function call, macro call, or special form.
@@ -686,8 +716,10 @@
     form))
 
 (defn- strip-instrumentation-meta
+
   "Remove all tags in order to reduce java bytecode size and enjoy cleaner code
   printouts."
+
   [form]
   (utils/walk-indexed
    (fn [_ f]
@@ -705,7 +737,6 @@
   since it will do some checks that are only important in outer forms. "
 
   [form {:keys [compiler] :as ctx}]
-
   (cond
     (expanded-defmethod-form? form ctx)
     (instrument-defmethod-form form ctx)
@@ -718,6 +749,9 @@
 
     (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? form ctx))
     (instrument-cljs-multi-arity-defn form ctx)
+
+    (and (= compiler :cljs) (expanded-cljs-extend-type-form? form ctx))
+    (instrument-cljs-extend-type-form form ctx)
 
     :else (instrument form ctx)))
 
@@ -741,20 +775,18 @@
        ~@(-> preamble
              (into [(instrument-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 
-;;;;;;;;;;;;;;;;
-;; @@@ Hacky  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Normal `clojure.core/macroexpand-1` works differently when being called from clojure and clojurescript. ;;
-;; See: https://github.com/jpmonettas/clojurescript-macro-issue                                            ;;
-;; One solution is to use clojure.core/macroexpand-1 when we are in a clojure environment                  ;;
-;; and user cljs.analyzer/macroexpand-1 when we are in a clojurescript one.                                ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (defn instrument-all [form {:keys [compiler environment] :as ctx}]
+
+  ;; @@@ HACKY  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Normal `clojure.core/macroexpand-1` works differently when being called from clojure and clojurescript. ;;
+  ;; See: https://github.com/jpmonettas/clojurescript-macro-issue                                            ;;
+  ;; One solution is to use clojure.core/macroexpand-1 when we are in a clojure environment                  ;;
+  ;; and user cljs.analyzer/macroexpand-1 when we are in a clojurescript one.                                ;;
+
   (let [macroexpand-1-fn (case compiler
                            :cljs (partial ana/macroexpand-1 environment)
                            :clj  macroexpand-1)
-        form-with-meta (with-meta form {::original-form form})
+        form-with-meta (with-meta form {::original-form form}) ;; TODO: can't we remove this, since macroexpand-all should be already adding it
         tagged-form (utils/tag-form-recursively form-with-meta ::coor) ;; tag all forms adding ::i/coor
         macro-expanded-form (macroexpand-all macroexpand-1-fn tagged-form ::original-form) ;; Expand so we don't have to deal with macros.
         inst-code (instrument-tagged-code macro-expanded-form ctx)]
