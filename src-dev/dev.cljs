@@ -31,14 +31,14 @@
 (defprotocol Adder
   (add [x]))
 
-;; tracing this throws
+(defprotocol Suber
+  (sub [x]))
+
+#trace
 (defrecord ARecord [n]
 
   Adder
   (add [_] (+ n 1000)))
-
-(defprotocol Suber
-  (sub [x]))
 
 #trace
 (extend-protocol Adder
@@ -51,6 +51,12 @@
 
   Suber
   (sub [l] (- l 42)))
+
+#trace
+(extend-type ARecord
+
+  Suber
+  (sub [r] (+ 42 (* 2 32))))
 
 #trace
 (defn boo [xs]

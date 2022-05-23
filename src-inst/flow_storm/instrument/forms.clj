@@ -11,7 +11,8 @@
    [clojure.string :as str]
    [cljs.analyzer :as ana]
    [flow-storm.tracer :as tracer]
-   [flow-storm.utils :as utils]))
+   [flow-storm.utils :as utils]
+   [clojure.pprint :as pp]))
 
 
 (declare instrument-outer-form)
@@ -19,6 +20,7 @@
 (declare instrument-special-form)
 (declare instrument-function-call)
 (declare instrument-case-map)
+(declare instrument-cljs-extend-type-form-types)
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
@@ -58,7 +60,6 @@
   metadata) in the metadata of the expanded form under original-key."
 
   [macroexpand-1-fn form & [original-key]]
-
   (let [md (meta form)
         expanded (walk/walk #(macroexpand-all macroexpand-1-fn % original-key)
                             identity
@@ -69,18 +70,12 @@
                                      r)
                                    (catch ClassNotFoundException _ form))
                               form))]
-    (if md
-      ;; Macroexpand the metadata too, because sometimes metadata
-      ;; contains, for example, functions. This is the case for
-      ;; deftest forms.
-      (utils/merge-meta expanded
-        (macroexpand-all macroexpand-1-fn md)
-        (when original-key
-          ;; We have to quote this, or it will get evaluated by
-          ;; Clojure (even though it's inside meta).
-          {original-key (list 'quote (strip-meta form))}))
-
-      expanded)))
+    (utils/merge-meta expanded
+      md
+      (when original-key
+        ;; We have to quote this, or it will get evaluated by
+        ;; Clojure (even though it's inside meta).
+        {original-key (list 'quote (strip-meta form))}))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Instrumentation ;;
@@ -358,7 +353,7 @@
                                    `(~method-name ~args-vec ~inst-body)))))]
     `(~proto-or-interface-vec ~@inst-methods)))
 
-(defn instrument-special-deftype* [[a1 a2 a3 a4 a5 & methods] {:keys [outer-form-kind] :as ctx}]
+(defn instrument-special-deftype*-clj [[a1 a2 a3 a4 a5 & methods] {:keys [outer-form-kind] :as ctx}]
   (let [inst-methods (->> methods
                           (map (fn [[method-name args-vec & body :as form]]
                                  (if (and (= outer-form-kind :defrecord)
@@ -374,29 +369,47 @@
                                      `(~method-name ~args-vec ~inst-body))))))]
     `(~a1 ~a2 ~a3 ~a4 ~a5 ~@inst-methods)))
 
+(defn- instrument-special-js*-cljs [[js-form & js-form-args] ctx]
+  `(~js-form ~@(instrument-coll js-form-args ctx)))
+
+(defn- instrument-special-deftype*-cljs [[atype fields-vec x? extend-type-form] ctx]
+  (let [inst-extend-type-form (instrument-cljs-extend-type-form-types extend-type-form ctx)]
+    `(~atype ~fields-vec ~x? ~inst-extend-type-form)))
+
+(defn- instrument-special-defrecord*-cljs [[arecord fields-vec rmap extend-type-form] ctx]
+  (let [inst-extend-type-form (instrument-cljs-extend-type-form-types extend-type-form ctx)]
+    (list arecord fields-vec rmap inst-extend-type-form)))
+
 (definstrumenter instrument-special-form
   "Instrument form representing a macro call or special-form."
-  [[name & args :as form] {:keys [orig-outer-form form-id form-ns disable excluding-fns] :as ctx}]
+  [[name & args :as form] {:keys [compiler orig-outer-form form-id form-ns disable excluding-fns] :as ctx}]
   (cons name
         ;; We're dealing with some low level stuff here, and some of
         ;; these internal forms are completely undocumented, so let's
         ;; play it safe and use a `try`.
         (try
           (condp #(%1 %2) name
-            '#{do if recur throw finally try monitor-exit monitor-enter} (instrument-coll args ctx)
-            '#{new} (cons (first args) (instrument-coll (rest args) ctx))
-            '#{quote & var clojure.core/import*} args
-            '#{.} (instrument-special-dot args ctx)
-            '#{def} (instrument-special-def args ctx)
-            '#{set!} (list (first args)
-                           (instrument (second args) ctx))
-            '#{loop* let* letfn*} (instrument-special-loop*-like form ctx)
-            '#{deftype*} (instrument-special-deftype* args ctx)
-            '#{reify*} (instrument-special-reify* args ctx)
-            '#{fn*} (instrument-special-fn* form ctx)
-            '#{catch} `(~@(take 2 args)
-                        ~@(instrument-coll (drop 2 args) ctx))
-            '#{case*} (instrument-special-case* args ctx))
+                '#{do if recur throw finally try monitor-exit monitor-enter} (instrument-coll args ctx)
+                 '#{new} (cons (first args) (instrument-coll (rest args) ctx))
+                 '#{quote & var clojure.core/import*} args
+                 '#{.} (instrument-special-dot args ctx)
+                 '#{def} (instrument-special-def args ctx)
+                 '#{set!} (list (first args)
+                                (instrument (second args) ctx))
+                 '#{loop* let* letfn*} (instrument-special-loop*-like form ctx)
+                 '#{deftype*} (case compiler
+                                :clj  (instrument-special-deftype*-clj args ctx)
+                                :cljs (instrument-special-deftype*-cljs args ctx))
+                 '#{reify*} (instrument-special-reify* args ctx)
+                 '#{fn*} (instrument-special-fn* form ctx)
+                 '#{catch} `(~@(take 2 args)
+                             ~@(instrument-coll (drop 2 args) ctx))
+                 '#{case*} (instrument-special-case* args ctx)
+
+                 ;; ClojureScript special forms
+                 '#{defrecord*} (instrument-special-defrecord*-cljs args ctx)
+                 '#{js*} (instrument-special-js*-cljs args ctx)
+                 )
           (catch Exception e
             (binding [*out* *err*]
               (println "Failed to instrument" name args (pr-str form)
@@ -524,30 +537,50 @@
        (seq? (second form))
        (= 'clojure.core/extend (-> form second first))))
 
-(defn- expanded-cljs-multi-arity-defn? [[x1 & x2] _]
+(defn- expanded-cljs-multi-arity-defn? [[x1 & xs] _]
   (when (= x1 'do)
-    (let [[xdef & xset] (keep first x2)]
+    (let [[xdef & xset] (keep first xs)]
       (and (= xdef 'def)
            (pos? (count xset))
            (every? #(= 'set! %) (butlast xset))))))
 
-(defn- expanded-cljs-extend-type-form? [form ctx]
-  ;; This isn't used  the expanded form because it is hard to deduce cljs extend-type from (do (*js ...) (*js ...))
-  (let [maybe-extend-type (some-> ctx
-                                  :outer-orig-form
-                                  rest
-                                  ffirst)]
-    (and (symbol? maybe-extend-type)
-         (= "extend-type" (name maybe-extend-type)))))
+(defn- outer-form-symbol-name [ctx]
+  (let [maybe-symb (some-> ctx
+                           :outer-orig-form
+                           rest
+                           ffirst)]
+    (when (symbol? maybe-symb)
+      (name maybe-symb))))
 
-(defn- expanded-cljs-extend-protocol-form? [form ctx]
-  ;; This isn't used  the expanded form because it is hard to deduce cljs extend-protocol from (do (*js ...) (*js ...))
-  (let [maybe-extend-protocol (some-> ctx
-                                  :outer-orig-form
-                                  rest
-                                  ffirst)]
-    (and (symbol? maybe-extend-protocol)
-         (= "extend-protocol" (name maybe-extend-protocol)))))
+(defn- original-form-first-symb-name [form]
+  (when (seq? form)
+    (some-> form
+            meta
+            ::original-form
+            rest
+            ffirst
+            name)))
+
+(defn- cljs-extend-type-form-types? [form ctx]
+  (and (= "extend-type" (original-form-first-symb-name form))
+       (every? (fn [[a0]]
+                 (= 'set! a0))
+               (rest form))))
+
+(defn- cljs-extend-type-form-basic? [form ctx]
+  (and (= "extend-type" (original-form-first-symb-name form))
+       (every? (fn [[a0]]
+                 (= 'js* a0))
+               (rest form))))
+
+(defn- cljs-extend-protocol-form? [form ctx]
+  (= "extend-protocol" (original-form-first-symb-name form)))
+
+(defn- cljs-deftype-form? [form ctx]
+  (= "deftype" (original-form-first-symb-name form)))
+
+(defn- cljs-defrecord-form? [form ctx]
+  (= "defrecord" (original-form-first-symb-name form)))
 
 (defn expanded-form-type [form ctx]
   (when (seq? form)
@@ -559,6 +592,7 @@
           (expanded-deftype-form form ctx)) :extend-type
       (expanded-extend-protocol-form? form ctx) :extend-protocol
       (expanded-def-form? form) :def
+      ;; TODO: complete this
       ;; (and (= compiler :cljs)
       ;;      (cljs-multi-arity-defn? form))
       ;; :defn-cljs-multi-arity
@@ -600,29 +634,6 @@
                         (mapcat inst-ext))]
     `(clojure.core/extend ~ext-type ~@extensions)))
 
-;; ClojureScript multi arity defn expansion is much more involved than
-;; a clojure one
-#_(do
- (def
-  multi-arity-foo
-  (cljs.core/fn
-   [var_args]
-   (cljs.core/case
-    ...
-    )))
-
- (set!
-  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$1)
-  (fn* ([a] (multi-arity-foo a 10))))
-
- (set!
-  (. multi-arity-foo -cljs$core$IFn$_invoke$arity$2)
-  (fn* ([a b] (+ a b))))
-
- (set! (. multi-arity-foo -cljs$lang$maxFixedArity) 2)
-
- nil)
-
 
 (defn- instrument-cljs-multi-arity-defn [[_ xdef & xsets] ctx]
   (let [fn-name (second xdef)
@@ -637,22 +648,62 @@
         inst-code `(do ~xdef ~@inst-sets-forms)]
     inst-code))
 
-(defn- instrument-cljs-extend-type-form [[_ & js*-list] ctx]
+(defn- instrument-cljs-extend-type-form-basic [[_ & js*-list] ctx]
   (let [inst-sets-forms (map (fn [[_ _ _ _ x :as js*-form]]
                                (let [fn-form? (and (seq? x) (= 'fn* (first x)))]
                                  (if fn-form?
-                                   (let [[_ _ fn-name] js*-form]
-                                     (instrument js*-form
-                                                 (assoc ctx :fn-ctx {:trace-name (name fn-name)
-                                                                     :kind :extend-type})))
+                                   (let [[_ js-form fn-name type-str f-form] js*-form]
+                                     (list 'js* js-form fn-name type-str (instrument-special-form
+                                                                          f-form
+                                                                          (assoc ctx :fn-ctx {:trace-name (name fn-name)
+                                                                                              :kind :extend-type}))))
                                    js*-form)))
                              js*-list)
         inst-code `(do ~@inst-sets-forms)]
     inst-code))
 
-(defn- instrument-cljs-extend-protocol-form [[_ & extend-type-forms] ctx]
-  (let [inst-extend-type-forms (map #(instrument-cljs-extend-type-form % ctx) extend-type-forms)]
+(defn- instrument-cljs-extend-type-form-types [[_ & set!-list] ctx]
+
+  (let [inst-sets-forms (map (fn [[_ _ x :as set!-form]]
+
+                               (let [fn-form? (and (seq? x) (= 'fn* (first x)))]
+                                 (if fn-form?
+                                   (let [[_ set-field f-form] set!-form
+                                         [_ _ fn-name] set-field]
+                                     (if (str/starts-with? fn-name "-cljs$core")
+                                       ;; don't instrument record types like ILookup, IKVReduce, etc
+                                       set!-form
+
+                                       ;; TODO: adjust fn-name here, fn-name at this stage is "-dev$Suber$sub$arity$1"
+                                       (list 'set! set-field (instrument-special-form
+                                                               f-form
+                                                               (assoc ctx :fn-ctx {:trace-name (name fn-name)
+                                                                                   :kind :extend-type})))))
+                                   set!-form)))
+                             set!-list)
+        inst-code `(do ~@inst-sets-forms)]
+    inst-code))
+
+(defn- instrument-cljs-extend-protocol-form [[_ & extend-type-forms :as form] ctx]
+  (let [inst-extend-type-forms (map
+                                (fn [ex-type-form]
+                                  (let [instrument-cljs-extend-type-form (cond
+                                                                           (cljs-extend-type-form-basic? ex-type-form ctx)
+                                                                           instrument-cljs-extend-type-form-basic
+
+                                                                           (cljs-extend-type-form-types? ex-type-form ctx)
+                                                                           instrument-cljs-extend-type-form-types)]
+                                    (instrument-cljs-extend-type-form ex-type-form ctx)))
+                                    extend-type-forms)]
     `(do ~@inst-extend-type-forms)))
+
+(defn- instrument-cljs-deftype-form [[_ deftype-form & xs] ctx]
+  (let [inst-deftype-form (instrument deftype-form ctx)]
+    `(do ~inst-deftype-form ~@xs)))
+
+(defn- instrument-cljs-defrecord-form [[_ _ [_ defrecord-form] & x1s] ctx]
+  (let [inst-defrecord-form (instrument defrecord-form ctx)]
+    `(let* [] (do ~inst-defrecord-form) ~@x1s)))
 
 (defn- instrument-defmethod-form [form {:keys [compiler] :as ctx}]
   (case compiler
@@ -681,15 +732,22 @@
                       :dispatch-val (pr-str (nth form (case compiler :clj 3 :cljs 2)))})
 
       (or (expanded-extend-protocol-form? form ctx')
-          (and (= compiler :cljs) (expanded-cljs-extend-protocol-form? form ctx')))
+          (and (= compiler :cljs) (cljs-extend-protocol-form? form ctx')))
       (assoc :outer-form-kind :extend-protocol)
 
       (or (expanded-clojure-core-extend-form? form ctx')
-          (and (= compiler :cljs) (expanded-cljs-extend-type-form? form ctx')))
+          (and (= compiler :cljs) (or (cljs-extend-type-form-types? form ctx')
+                                      (cljs-extend-type-form-basic? form ctx'))))
       (assoc :outer-form-kind :extend-type)
 
       (expanded-deftype-form form ctx')
-      (assoc :outer-form-kind (expanded-deftype-form form ctx')))))
+      (assoc :outer-form-kind (expanded-deftype-form form ctx'))
+
+      (and (= compiler :cljs) (cljs-deftype-form? form ctx'))
+      (assoc :outer-form-kind :deftype)
+
+      (and (= compiler :cljs) (cljs-defrecord-form? form ctx'))
+      (assoc :outer-form-kind :defrecord))))
 
 (defn- instrument-function-like-form
 
@@ -703,9 +761,11 @@
 
     (cond
       ;; If special form, thread with care.
-      (special-symbol? name)
+      (or (special-symbol? name)
+          (#{'defrecord* 'js*} name)) ;; for cljs
       (if (dont-break? form)
         (instrument-special-form form ctx)
+
         (maybe-instrument (instrument-special-form form ctx) ctx))
 
       ;; Otherwise, probably just a function. Just leave the
@@ -718,6 +778,7 @@
   "Walk through form and return it instrumented with traces. "
 
   [form ctx]
+
   (condp #(%1 %2) form
     ;; Function call, macro call, or special form.
     seq? (doall (instrument-function-like-form form ctx))
@@ -764,11 +825,20 @@
     (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? form ctx))
     (instrument-cljs-multi-arity-defn form ctx)
 
-    (and (= compiler :cljs) (expanded-cljs-extend-type-form? form ctx))
-    (instrument-cljs-extend-type-form form ctx)
+    (and (= compiler :cljs) (cljs-extend-type-form-types? form ctx))
+    (instrument-cljs-extend-type-form-types form ctx)
 
-    (and (= compiler :cljs) (expanded-cljs-extend-protocol-form? form ctx))
+    (and (= compiler :cljs) (cljs-extend-type-form-basic? form ctx))
+    (instrument-cljs-extend-type-form-basic form ctx)
+
+    (and (= compiler :cljs) (cljs-extend-protocol-form? form ctx))
     (instrument-cljs-extend-protocol-form form ctx)
+
+    (and (= compiler :cljs) (cljs-deftype-form? form ctx))
+    (instrument-cljs-deftype-form form ctx)
+
+    (and (= compiler :cljs) (cljs-defrecord-form? form ctx))
+    (instrument-cljs-defrecord-form form ctx)
 
     :else (instrument form ctx)))
 
