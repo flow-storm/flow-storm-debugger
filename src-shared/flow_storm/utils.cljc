@@ -1,6 +1,11 @@
 (ns flow-storm.utils
   #?(:cljs (:require [goog.string :as gstr]
-                     [goog.string.format])))
+                     [goog.string.format])
+     :clj (:refer-clojure :exclude [format])))
+
+(defn format [& args]
+  #?(:clj (apply clojure.core/format args)
+     :cljs (apply gstr/format args)))
 
 #?(:clj
    (defn colored-string [s c]
@@ -48,10 +53,6 @@
 (defn get-current-thread-id []
   #?(:clj (.getId (Thread/currentThread))
      :cljs 0))
-
-(defn format [& args]
-  #?(:clj (apply clojure.core/format args)
-     :cljs (apply gstr/format args)))
 
 (defn merge-meta
 

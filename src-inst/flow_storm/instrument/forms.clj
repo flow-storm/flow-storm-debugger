@@ -11,8 +11,7 @@
    [clojure.string :as str]
    [cljs.analyzer :as ana]
    [flow-storm.tracer :as tracer]
-   [flow-storm.utils :as utils]
-   [clojure.pprint :as pp]))
+   [flow-storm.utils :as utils]))
 
 
 (declare instrument-outer-form)
@@ -544,14 +543,6 @@
            (pos? (count xset))
            (every? #(= 'set! %) (butlast xset))))))
 
-(defn- outer-form-symbol-name [ctx]
-  (let [maybe-symb (some-> ctx
-                           :outer-orig-form
-                           rest
-                           ffirst)]
-    (when (symbol? maybe-symb)
-      (name maybe-symb))))
-
 (defn- original-form-first-symb-name [form]
   (when (seq? form)
     (some-> form
@@ -561,25 +552,25 @@
             ffirst
             name)))
 
-(defn- cljs-extend-type-form-types? [form ctx]
+(defn- cljs-extend-type-form-types? [form _]
   (and (= "extend-type" (original-form-first-symb-name form))
        (every? (fn [[a0]]
                  (= 'set! a0))
                (rest form))))
 
-(defn- cljs-extend-type-form-basic? [form ctx]
+(defn- cljs-extend-type-form-basic? [form _]
   (and (= "extend-type" (original-form-first-symb-name form))
        (every? (fn [[a0]]
                  (= 'js* a0))
                (rest form))))
 
-(defn- cljs-extend-protocol-form? [form ctx]
+(defn- cljs-extend-protocol-form? [form _]
   (= "extend-protocol" (original-form-first-symb-name form)))
 
-(defn- cljs-deftype-form? [form ctx]
+(defn- cljs-deftype-form? [form _]
   (= "deftype" (original-form-first-symb-name form)))
 
-(defn- cljs-defrecord-form? [form ctx]
+(defn- cljs-defrecord-form? [form _]
   (= "defrecord" (original-form-first-symb-name form)))
 
 (defn expanded-form-type [form ctx]
@@ -684,7 +675,7 @@
         inst-code `(do ~@inst-sets-forms)]
     inst-code))
 
-(defn- instrument-cljs-extend-protocol-form [[_ & extend-type-forms :as form] ctx]
+(defn- instrument-cljs-extend-protocol-form [[_ & extend-type-forms] ctx]
   (let [inst-extend-type-forms (map
                                 (fn [ex-type-form]
                                   (let [instrument-cljs-extend-type-form (cond
@@ -718,7 +709,7 @@
 
   "Set the context for instrumenting fn*s down the road."
 
-  [{:keys [compiler outer-orig-form] :as ctx} form]
+  [{:keys [compiler] :as ctx} form]
 
   ;; NOTE: we "pattern match" on expanded forms instead of ctx :outer-orig-form because
   ;; :outer-orig-form can be like (somens/defmethod ...) (core/defmethod ...) etc

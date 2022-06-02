@@ -1,6 +1,5 @@
 (ns flow-storm.core
   (:require [flow-storm.utils :refer [log] :as utils]
-            [flow-storm.tracer :as tracer]
             [flow-storm.instrument.trace-types :as trace-types]
             [clojure.pprint :as pp]))
 

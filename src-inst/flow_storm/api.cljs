@@ -1,19 +1,30 @@
 (ns flow-storm.api
-  (:require [websocket :as websocket]
-            [flow-storm.instrument.trace-types :as inst-trace-types]
+  (:require [flow-storm.instrument.trace-types :as inst-trace-types]
             [flow-storm.utils :refer [log log-error] :as utils]
             [flow-storm.json-serializer :as serializer]
             [flow-storm.tracer :as tracer]
             [flow-storm.core :as fs-core])
   (:require-macros [flow-storm.api]))
 
-(def W3CWebSocket (.-w3cwebsocket websocket))
-
 (def remote-websocket-client nil)
 
 (defn close-remote-connection []
   (when remote-websocket-client
     (.close remote-websocket-client)))
+
+(defn web-socket-client-object [uri-str]
+  (let [WebSocket (if (and (= *target* "nodejs")
+                           (exists? js/require))
+
+                    (let [obj (try
+                                (js/require "websocket")
+                                (catch :default e
+                                  (js/console.error "websocket node dependency not installed. Please npm install websocket to use flowstorm with nodejs" e)))]
+                      (.-w3cwebsocket obj))
+
+                    js/window.WebSocket)
+        ws-client (WebSocket. uri-str)]
+    ws-client))
 
 (defn remote-connect
   "Connect to a remote debugger.
@@ -31,7 +42,7 @@
    (close-remote-connection) ;; if there is any active connection try to close it first
 
    (let [uri-str (utils/format "ws://%s:%s/ws" host port)
-         ws-client (W3CWebSocket. uri-str)
+         ws-client (web-socket-client-object uri-str)
          remote-dispatch-trace (fn remote-dispatch-trace [trace]
                                  (let [packet [:trace trace]
                                        ser (serializer/serialize packet)]

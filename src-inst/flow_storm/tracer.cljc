@@ -1,8 +1,7 @@
 (ns flow-storm.tracer
-  (:require [flow-storm.utils :refer [log log-error] :as utils]
+  (:require [flow-storm.utils :refer [log] :as utils]
             [flow-storm.trace-types :as trace-types]
-            [clojure.core.async :as async])    
-  #?(:clj (:import [java.util.concurrent ArrayBlockingQueue])))
+            [clojure.core.async :as async]))
 
 (def orphan-flow-id -1)
 
@@ -124,22 +123,21 @@
     (loop []
       (let [[v ch] (async/alts! [trace-chan send-thread-stop-chan])]
         (when-not (= ch send-thread-stop-chan)
-          (try
-            (let [trace v]
+          (let [trace v]
 
-              ;; Stats
-              (when (zero? (mod (:put @*stats) 50000))                  
-                (when verbose? (log-stats))
-                
-                (swap! *stats
-                       (fn [{:keys [sent] :as stats}]
-                         (assoc stats 
-                                :last-report-t (utils/get-monotonic-timestamp)
-                                :last-report-sent sent))))
+            ;; Stats
+            (when (zero? (mod (:put @*stats) 50000))                  
+              (when verbose? (log-stats))
               
-              (swap! *stats update :sent inc)
-              
-              (send-fn trace)))
+              (swap! *stats
+                     (fn [{:keys [sent] :as stats}]
+                       (assoc stats 
+                              :last-report-t (utils/get-monotonic-timestamp)
+                              :last-report-sent sent))))
+            
+            (swap! *stats update :sent inc)
+            
+            (send-fn trace))
           (recur))))
     (log "Thread interrupted. Dying..."))
   
