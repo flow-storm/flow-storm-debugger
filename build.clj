@@ -153,7 +153,7 @@
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
-        version (format "2.1.%s" (b/git-count-revs nil))
+        version (format "2.2.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:dbg]})
         jar-file (format "target/%s.jar" (name lib))
@@ -165,14 +165,15 @@
                   :src-dirs src-dirs})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
-    (re-write-dir-for-version class-dir version)
+    ;; This doesn't work anymore since we are using conditional reading
+    #_(re-write-dir-for-version class-dir version)
     (b/jar {:class-dir class-dir
             :jar-file jar-file})))
 
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "2.1.%s" (b/git-count-revs nil))
+        version (format "2.2.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:inst]})
         jar-file (format "target/%s.jar" (name lib))
@@ -184,7 +185,8 @@
                   :src-dirs src-dirs})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
-    (re-write-dir-for-version class-dir version)
+    ;; This doesn't work anymore since we are using conditional reading
+    ;; (re-write-dir-for-version class-dir version)
     (b/jar {:class-dir class-dir
             :jar-file jar-file})))
 

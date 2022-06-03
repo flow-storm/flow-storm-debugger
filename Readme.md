@@ -1,6 +1,6 @@
 # Flow-storm debugger
 
-A trace debugger for Clojure 
+A trace debugger for Clojure and ClojureScript
 
 ![demo](./docs/images/screenshot.png)
 
@@ -8,8 +8,8 @@ A trace debugger for Clojure
 
 	- jdk11+
     - clojure 1.10.0+
-	
-# Installing 
+
+# Artifacts
 
 Debugger GUI artifact :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
@@ -17,10 +17,12 @@ Debugger GUI artifact :
 Instrumentation artifact :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
-To check that it is working run a repl with both deps in your dependencies :
+# QuickStart (Clojure)
+
+To check that it is working you can run a repl with both deps in your dependencies :
 
 ```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'
 ```
 
 and then :
@@ -33,21 +35,49 @@ user> (fs-api/local-connect) ;; will run the debbuger GUI and get everything rea
 user> #rtrace (reduce + (map inc (range 10)))
 ```
 
+Calling `flow-storm.api/local-connect` will start the debugger UI under the same JVM your program is running. This is the recommended way of debugging Clojure applications since it is the fastest, 
+but this isn't always possible. If you need to run your debugger remotley check [remote debugging](/#) 
+
 # Documentation 
 
-This demo video is all the documentation so far.
+Documentation is still a work in progress ...
 
-- Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
+## Instrumenting code at the repl
 
-Proper manual coming...
+FlowStorm debugger is designed to be use at the repl
 
-# Notes
+```clojure
 
-Only Clojure local debugging is supported so far, but remote debugging and ClojureScript are planned.
+;; After connecting to the debugger you can 
+;; instrument any outer form by placing #trace before it
 
-# Some examples
+#trace
+(defn sum [a b]
+	(+ a b))
 
-### Debug the clojurescript compiler in one command
+(sum 4 5) ;; when any instrumented function gets called it will generate traces you can inspect in the debugger
+
+
+;; #rtrace (run traced) will instrument a form and run it. 
+;; Useful for working at the repl
+
+#rtrace
+(->> (range) (filter odd?) (take 10) (reduce +))
+```
+
+## Instrumenting entire codebases
+
+You can use `flow-storm.api/instrument-files-for-namespaces` to bulk instrument all namespaces forms like this :
+
+```clojure
+(fs-api/instrument-files-for-namespaces #{"clojure.string" "com.my-project"})
+
+;; Will instrument every form inside clojure.string and also every form under com.my-project including namespaces inside it
+```
+
+You can use `flow-storm.api/cli-run` to instrument and then run entire codebases from the command line.
+
+Lets say we want to instrument and run the entire clojurescript compilere codebase.
 
 Given you can compile and run a cljs file, like :
 
@@ -56,13 +86,27 @@ clj -Sdeps {:deps {org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
     -M -m cljs.main -t nodejs ./org/foo/myscript.cljs
 ```
 
-You can run the exact same command under de debugger and instrumenting the entire cljs codebase first using `flow-storm.api/cli-run`, like :
+You can run the exact same command but instrumenting the entire cljs codebase first like :
 
 ```bash
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}}}' \
+clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
 	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
                               :profile ':light'                     \
                               :require-before '#{"cljs.repl.node"}' \
                               :fn-symb 'cljs.main/-main'            \
                               :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
 ```
+
+
+## Using the debugger
+
+This demo video is all the documentation so far on using the debugger.
+
+- Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
+
+## ClojureScript
+
+FlowStorm ClojureScript support is still in its infancy, for instructions on how to use it check [here](./docs/ClojureScript.md)
+
+
+

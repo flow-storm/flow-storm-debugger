@@ -1,8 +1,18 @@
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.1.43"}}}' -X flow-storm.debugger.main/start-debugger
+## Clojure remote debugging
 
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-inst {:mvn/version "2.1.43"}}}' \
-        -X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
-                              :profile ':light'     :verbose? true                \
-                              :require-before '#{"cljs.repl.node"}' \
-                              :fn-symb 'cljs.main/-main' :host '"localhost"' :port 7722           \
-                              :fn-args '["-t" "nodejs" "/home/jmonetta/demo/org/foo/myscript.cljs"]';
+For cases where you need to run the debuggee and the debugger on different machines (like for debugging a phone application),  first start a debugger with :
+
+```
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
+```
+
+and then on your debuggee you can use `flow-storm.api/remote-connect` like this:
+
+
+```clojure
+(fs-api/remote-connect) ;; defaults to localhost:7722
+
+;; or
+
+(fs-api/remote-connect {:host "localhost" :port 7722})
+```

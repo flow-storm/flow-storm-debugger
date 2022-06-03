@@ -1,7 +1,7 @@
 (ns flow-storm.instrument.trace-types
   (:require [flow-storm.utils :as utils]
-   #?(:clj [flow-storm.trace-types]
-      :cljs [flow-storm.trace-types :refer [FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]] ))
+            #?(:clj [flow-storm.trace-types]
+               :cljs [flow-storm.trace-types :refer [FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]]))
   #?(:clj (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace])))
 
 (def *values-references (atom {}))
