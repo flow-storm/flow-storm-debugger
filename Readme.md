@@ -36,7 +36,7 @@ user> #rtrace (reduce + (map inc (range 10)))
 ```
 
 Calling `flow-storm.api/local-connect` will start the debugger UI under the same JVM your program is running. This is the recommended way of debugging Clojure applications since it is the fastest, 
-but this isn't always possible. If you need to run your debugger remotley check [remote debugging](/#) 
+but this isn't always possible. If you need to run your debugger remotley check [remote debugging](/docs/Remote_debugging.md) 
 
 # Documentation 
 
@@ -77,7 +77,7 @@ You can use `flow-storm.api/instrument-files-for-namespaces` to bulk instrument 
 
 You can use `flow-storm.api/cli-run` to instrument and then run entire codebases from the command line.
 
-Lets say we want to instrument and run the entire clojurescript compilere codebase.
+Lets say we want to instrument and run the entire clojurescript compiler codebase.
 
 Given you can compile and run a cljs file, like :
 
