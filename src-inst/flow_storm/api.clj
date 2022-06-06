@@ -164,10 +164,12 @@
   ([form] `(runi {} ~form))
   ([{:keys [ns flow-id] :as opts} form]
    `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
-          curr-ns# ~(or ns `(str (ns-name *ns*)))]
+          curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
       (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-        ((fs-core/instrument ~opts (fn* flowstorm-runi ([] ~form))))))))
+        ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
+        ;; doesn't work with fn* in clojurescript
+        ((fs-core/instrument ~opts (fn* ~'flowstorm-runi ([] ~form))))))))
 
 (defmacro runi
 

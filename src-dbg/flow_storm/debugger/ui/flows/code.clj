@@ -20,11 +20,11 @@
 
 (defn- maybe-unwrap-runi-tokens
 
-  "Unwrap and discard the (fn* flow-storm.api/flowstorm-runi ([] <EXPR>)) wrapping added so we just show <EXPR>"
+  "Unwrap and discard the (fn* flowstorm-runi ([] <EXPR>)) wrapping added so we just show <EXPR>"
 
   [print-tokens]
 
-  (if-let [runi-token-idx (some (fn [[i t]] (when (= "flow-storm.api/flowstorm-runi" (get t 0))
+  (if-let [runi-token-idx (some (fn [[i t]] (when (= "flowstorm-runi" (get t 0))
                                               i))
                                 (map vector (range) (take 10 print-tokens)))]
     (let [wrap-beg (case runi-token-idx

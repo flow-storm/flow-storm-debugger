@@ -77,9 +77,3 @@
                                        (js/console.error (str "Message type not handled" e)))))
 
      (set! remote-websocket-client ws-client))))
-
-(defn read-trace-tag [form]
-  `(fs-core/instrument ~form))
-
-(defn read-rtrace-tag [form]
-  `(runi ~form))
