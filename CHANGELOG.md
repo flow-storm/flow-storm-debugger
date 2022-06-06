@@ -4,8 +4,17 @@
 
 ## New Features
 
+### Changes
+    
+### Bugs fixed
+
+## 2.2.57 (06-06-2022)
+
+## New Features
+
+	* Add Clojurescript support
 	* Remote debugging via `flow-storm.api/remote-connect` and `flow-storm.api/cli-run`
-	
+    	
 ### Changes
 
 	* `flow-storm.api/cli-run` now accepts :host and :port
