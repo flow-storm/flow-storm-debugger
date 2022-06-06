@@ -66,7 +66,7 @@
   (when websocket-server
     (.stop websocket-server)))
 
-(defn start-websocket-server [{:keys [trace-dispatcher]}]
+(defn start-websocket-server [{:keys [trace-dispatcher show-error]}]
   (let [ws-server (create-ws-server
                    {:port 7722
                     :on-message (fn [conn msg]
@@ -74,7 +74,8 @@
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
                                       (case msg-kind
                                         :trace (trace-dispatcher conn msg-body)
-                                        :cmd-ret (process-command-response msg-body)))
+                                        :cmd-ret (process-command-response msg-body)
+                                        :cmd-err (show-error msg-body)))
                                     (catch Exception e
                                       (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
     (alter-var-root #'websocket-server (constantly ws-server))

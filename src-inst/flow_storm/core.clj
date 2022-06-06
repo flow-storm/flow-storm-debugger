@@ -101,7 +101,7 @@
         (print-fn (cond-> value
                     nth-elem (nth nth-elem)))))))
 
-(defn run-command [method args-map]
+(defn run-command [comm-id method args-map]
   (let [f (case method
             :instrument-fn        instrument-fn-command
             :uninstrument-fns     uninstrument-fns-command
@@ -109,4 +109,4 @@
             :instrument-forms     instrument-forms-command
             :re-run-flow          re-run-flow-command
             :get-remote-value     get-remote-value-command)]
-    (f args-map)))
+    [:cmd-ret [comm-id (f args-map)]]))

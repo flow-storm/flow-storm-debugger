@@ -7,13 +7,18 @@
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.scene.layout BorderPane]
-           [javafx.scene.control TabPane TabPane$TabClosingPolicy]
+           [javafx.scene.control Alert ButtonType Alert$AlertType TabPane TabPane$TabClosingPolicy]
            [javafx.geometry Side]
            [javafx.application Platform]))
 
 (defn bottom-box []
   (let [box (h-box [])]
     box))
+
+(defn show-error [msg]
+  (ui-utils/run-later
+   (let [err-dialog (Alert. Alert$AlertType/ERROR msg (into-array ButtonType [ButtonType/CLOSE]))]
+     (.show err-dialog))))
 
 (defn main-tabs-pane []
   (let [tabs-p (TabPane.)

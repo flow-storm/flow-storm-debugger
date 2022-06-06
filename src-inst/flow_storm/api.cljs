@@ -20,7 +20,7 @@
                                 (js/require "websocket")
                                 (catch :default e
                                   (js/console.error "websocket node dependency not installed. Please npm install websocket to use flowstorm with nodejs" e)))]
-                      (.-w3cwebsocket obj))
+                      (.-w3cwebsocket ^js obj))
 
                     js/window.WebSocket)
         ws-client (WebSocket. uri-str)]
@@ -70,8 +70,7 @@
                                      (if (= (.-type e) "message")
                                        (let [message (.-data e)
                                              [comm-id method args-map] (serializer/deserialize message)
-                                             resp-val (fs-core/run-command method args-map)
-                                             ret-packet [:cmd-ret [comm-id resp-val]]
+                                             ret-packet (fs-core/run-command comm-id method args-map)
                                              ret-packet-ser (serializer/serialize ret-packet)]
                                          (.send remote-websocket-client ret-packet-ser))
 

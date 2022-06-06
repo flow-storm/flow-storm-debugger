@@ -74,8 +74,7 @@
 
                                       (onMessage [^String message]
                                         (let [[comm-id method args-map] (serializer/deserialize message)
-                                              resp-val (fs-core/run-command method args-map)
-                                              ret-packet [:cmd-ret [comm-id resp-val]]
+                                              ret-packet (fs-core/run-command comm-id method args-map)
                                               ret-packet-ser (serializer/serialize ret-packet)]
                                           (.send remote-websocket-client ret-packet-ser)))
 

@@ -12,14 +12,14 @@
         (print-fn (cond-> value
                     nth-elem (nth nth-elem)))))))
 
-(defn run-command [method args-map]
+(defn run-command [comm-id method args-map]
   (try
-    (let [f (case method
-             :instrument-fn        (log "[WARNING] :instrument-fn isn't supported yet")
-             :uninstrument-fns     (log "[WARNING] :uninstrument-fns isn't supported yet")
-             :eval-forms           (log "[WARNING] :eval-forms isn't supported yet")
-             :instrument-forms     (log "[WARNING] :instrument-forms isn't supported yet")
-             :re-run-flow          (log "[WARNING] :re-run-flow isn't supported yet")
-             :get-remote-value     get-remote-value-command)]
-      (f args-map))
+    (case method
+      :instrument-fn        [:cmd-err "[WARNING] :instrument-fn isn't supported yet"]
+      :uninstrument-fns     [:cmd-err "[WARNING] :uninstrument-fns isn't supported yet"]
+      :eval-forms           [:cmd-err "[WARNING] :eval-forms isn't supported yet"]
+      :instrument-forms     [:cmd-err "[WARNING] :instrument-forms isn't supported yet"]
+      :re-run-flow          [:cmd-err "[WARNING] :re-run-flow isn't supported yet"]
+      :get-remote-value     [:cmd-ret [comm-id (get-remote-value-command args-map)]] )
+
     (catch js/Error e (js/console.error (utils/format "Error running command %s %s" method args-map) e))))

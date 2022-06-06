@@ -35,7 +35,8 @@
 
       (websocket/start-websocket-server
        (assoc config
-              :trace-dispatcher trace-processor/remote-dispatch-trace))
+              :trace-dispatcher trace-processor/remote-dispatch-trace
+              :show-error ui-main/show-error))
 
       (alter-var-root #'target-commands/run-command
                         (constantly
