@@ -29,7 +29,7 @@
                         (fn run-command-fn [_ method args-map]
                           ;; run the function on a different thread so we don't block the ui
                           ;; while running commands
-                          (.start (Thread. (fn [] (run-command method args-map))))))))
+                          (.start (Thread. (fn [] (run-command nil method args-map))))))))
 
     (do
 
