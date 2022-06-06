@@ -8,6 +8,16 @@
     
 ### Bugs fixed
 
+## 2.2.59 (06-06-2022)
+
+## New Features
+
+### Changes
+    
+### Bugs fixed
+
+	* Fix run-command for the local connection path
+
 ## 2.2.57 (06-06-2022)
 
 ## New Features
