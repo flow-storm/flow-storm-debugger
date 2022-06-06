@@ -1,7 +1,7 @@
 # ClojureScript
 
-FlowStorm ClojureScript is in its infancy and doesn't support every Clojure feature, take a look at [limitations](#limitations) for a full description.
-Said that you can instrument any ClojureScript form by using #rtrace and #trace.
+FlowStorm ClojureScript is in its infancy and doesn't support every feature, take a look at [limitations](#limitations) for a full description.
+Said that, you can instrument any ClojureScript form by using #rtrace and #trace.
 
 First run a standalone debugger :
 
@@ -11,7 +11,7 @@ clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"
 
 Then add [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst) to your ClojureScript project.
 
-Lets say you are using [shadow-cljs](https://clojurescript.org/tools/shadow-cljs) your shadow-cljs.edn should look like :
+Lets say you are using [shadow-cljs](https://clojurescript.org/tools/shadow-cljs), your shadow-cljs.edn should look like :
 
 ```bash
 $ cat shadow-cljs.edn
@@ -19,10 +19,10 @@ $ cat shadow-cljs.edn
 {...
  :dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]]}
  
-$ shadow-cljs browser-repl
+$ shadow-cljs browser-repl 
 ```
 
-Now on your clojurescript repl :
+Now on your ClojureScript repl :
 
 ```clojure
 cljs.user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
@@ -36,7 +36,7 @@ cljs.user> #rtrace (reduce + (map inc (range 10))) ;; you can use #trace and #rt
 
 ## NodeJs prerequisites 
 
-On nodejs you need to install `websocket` npm dependency.
+On nodejs you need to install `websocket` npm dependency, like this : 
 
 ```
 npm install websocket --save

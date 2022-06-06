@@ -67,10 +67,10 @@ FlowStorm debugger is designed to be use at the repl
 
 ## Instrumenting entire codebases
 
-You can use `flow-storm.api/instrument-files-for-namespaces` to bulk instrument all namespaces forms like this :
+You can use `flow-storm.api/instrument-forms-for-namespaces` to bulk instrument all namespaces forms like this :
 
 ```clojure
-(fs-api/instrument-files-for-namespaces #{"clojure.string" "com.my-project"})
+(fs-api/instrument-forms-for-namespaces #{"clojure.string" "com.my-project"} {})
 
 ;; Will instrument every form inside clojure.string and also every form under com.my-project including namespaces inside it
 ```
