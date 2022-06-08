@@ -119,12 +119,10 @@
    [{:keys [send-fn verbose?]}]
 
   ;; Initialize global vars
-  #?(:clj (do            
-            (alter-var-root #'trace-chan (constantly (async/chan 30000000)))
-            (alter-var-root #'send-thread-stop-chan (constantly (async/promise-chan))))
-     :cljs (do
-             (set! trace-chan (async/chan 30000000))
-             (set! send-thread-stop-chan (async/promise-chan))))
+  #?@(:clj [(alter-var-root #'trace-chan (constantly (async/chan 30000000)))
+            (alter-var-root #'send-thread-stop-chan (constantly (async/promise-chan)))]
+      :cljs [(set! trace-chan (async/chan 30000000))
+             (set! send-thread-stop-chan (async/promise-chan))])
   
   (async/go    
     (reset! *stats init-stats)

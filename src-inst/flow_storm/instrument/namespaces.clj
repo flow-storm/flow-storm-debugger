@@ -143,12 +143,9 @@
 
   ([ns form config retrying?]
 
-   (let [ctx (inst-forms/build-form-instrumentation-ctx config (str (ns-name ns)) form nil)
-
-         inst-form (try
-                     (-> form
-                         (inst-forms/instrument-all ctx)
-                         (inst-forms/maybe-unwrap-outer-form-instrumentation ctx))
+   (let [inst-form (try
+                     (inst-forms/instrument (assoc config :ns (str (ns-name ns)))
+                                            form)
                      (catch Exception _
                        (throw (ex-info "Error instrumenting form" {:type :unknown-error}))))]
 

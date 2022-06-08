@@ -4,6 +4,7 @@
             [flow-storm.api :as fs-api]
             [flow-storm.instrument.tester :as tester :refer [map->Circle map->Rectangle]]
             [flow-storm.tracer :as tracer]
+            [flow-storm.utils :as utils]
             [flow-storm.trace-types :refer [map->FlowInitTrace map->FormInitTrace map->FnCallTrace map->BindTrace map->ExecTrace]])
   (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]
            [flow_storm.instrument.tester Circle Rectangle]))
@@ -21,8 +22,8 @@
   (let [*sent-traces (atom [])
         res-before-inst (tester/do-all)]
     (with-redefs [tracer/enqueue-trace! (fn [trace] (swap! *sent-traces conj trace))
-                  tracer/get-timestamp (constantly 0)
-                  tracer/get-current-thread-id (constantly 0)]
+                  utils/get-timestamp (constantly 0)
+                  utils/get-current-thread-id (constantly 0)]
 
       (flow-storm.instrument.namespaces/instrument-files-for-namespaces #{"flow-storm.instrument.tester"} {})
 

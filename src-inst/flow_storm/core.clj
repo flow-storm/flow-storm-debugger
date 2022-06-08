@@ -7,28 +7,6 @@
             [clojure.repl :as clj.repl]
             [clojure.pprint :as pp]))
 
-(defmacro instrument
-
-  "Recursively instrument a form for tracing."
-
-  ([form] `(instrument {:disable #{}} ~form)) ;; need to do this so multiarity macros work
-  ([config form]
-   (let [form-ns (str (ns-name *ns*))
-         ctx (inst-forms/build-form-instrumentation-ctx config form-ns form &env)
-         inst-code (-> form
-                       (inst-forms/instrument-all ctx)
-                       (inst-forms/maybe-unwrap-outer-form-instrumentation ctx))]
-
-     ;; Uncomment to debug
-     ;; Printing on the *err* stream is important since
-     ;; printing on standard output messes  with clojurescript macroexpansion
-     #_(let [pprint-on-err (fn [x]
-                             (binding [*out* *err*] (pp/pprint x)))]
-         (pprint-on-err (inst-forms/macroexpand-all form))
-         (pprint-on-err inst-code))
-
-     inst-code)))
-
 (defmacro run-with-execution-ctx
   [{:keys [orig-form ns flow-id]} form]
   `(let [flow-id# ~(or flow-id 0)

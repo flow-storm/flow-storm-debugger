@@ -5,6 +5,7 @@
             [flow-storm.instrument.trace-types :as inst-trace-types]
             [flow-storm.utils :refer [log log-error]]
             [flow-storm.instrument.namespaces :as inst-ns]
+            [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
             [flow-storm.json-serializer :as serializer])
   (:import [org.java_websocket.client WebSocketClient]
@@ -160,16 +161,14 @@
 
   [& args] (apply run* args))
 
-(defn- runi*
-  ([form] `(runi {} ~form))
-  ([{:keys [ns flow-id] :as opts} form]
-   `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
-          curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
-      (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
-        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-        ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
-        ;; doesn't work with fn* in clojurescript
-        ((fs-core/instrument ~opts (fn* ~'flowstorm-runi ([] ~form))))))))
+(defn- runi* [{:keys [ns flow-id] :as opts} form]
+  `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
+         curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
+     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
+       (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
+       ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
+       ;; doesn't work with fn* in clojurescript
+       (~(inst-forms/instrument opts `(fn* ~'flowstorm-runi ([] ~form)))))))
 
 (defmacro runi
 
@@ -183,7 +182,9 @@
 
   `opts` is a map that support the same keys as `instrument-var`. "
 
-  [& args] (apply runi* args))
+  [opts form]
+
+  (runi* (assoc opts :env &env) form))
 
 (def instrument-forms-for-namespaces
 
@@ -257,8 +258,11 @@
     (log "Instrumentation done.")
     (eval (run* `(~fn-symb ~@fn-args)))))
 
+(defmacro instrument* [form]
+  (inst-forms/instrument {:env &env} form))
+
 (defn read-trace-tag [form]
-  `(fs-core/instrument ~form))
+  `(instrument* ~form))
 
 (defn read-rtrace-tag [form]
-  `(runi ~form))
+  `(runi {} ~form))
