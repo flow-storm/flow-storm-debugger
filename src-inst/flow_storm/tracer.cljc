@@ -5,8 +5,8 @@
 
 (def orphan-flow-id -1)
 
-(def trace-chan (async/chan 30000000))
-(def send-thread-stop-chan (async/promise-chan))
+(def trace-chan nil)
+(def send-thread-stop-chan nil)
 
 (def *stats (atom {}))
 
@@ -118,7 +118,15 @@
    
    [{:keys [send-fn verbose?]}]
 
-  (async/go
+  ;; Initialize global vars
+  #?(:clj (do            
+            (alter-var-root #'trace-chan (constantly (async/chan 30000000)))
+            (alter-var-root #'send-thread-stop-chan (constantly (async/promise-chan))))
+     :cljs (do
+             (set! trace-chan (async/chan 30000000))
+             (set! send-thread-stop-chan (async/promise-chan))))
+  
+  (async/go    
     (reset! *stats init-stats)
     (loop []
       (let [[v ch] (async/alts! [trace-chan send-thread-stop-chan])]
@@ -144,5 +152,6 @@
   nil)
 
 
-(defn stop-trace-sender []
-  (async/put! send-thread-stop-chan true))
+(defn stop-trace-sender []  
+  (when send-thread-stop-chan
+    (async/put! send-thread-stop-chan true)))

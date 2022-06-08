@@ -1,6 +1,5 @@
 (ns flow-storm.debugger.trace-types
-  (:require [flow-storm.debugger.trace-types :as dbg-trace-types]
-            [flow-storm.debugger.websocket :as websocket]
+  (:require [flow-storm.debugger.websocket :as websocket]
             [clojure.pprint :as pp])
   (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
 
