@@ -95,4 +95,23 @@
 (comment
   (self-instrument)
   (run-test-instrumented)
+
+  (fs-api/local-connect)
+
+  #trace
+  (defn some-calculation [a]
+    (+ a 10))
+
+  #ctrace
+  (defn boo []
+    (->> (range 10)
+         (map (fn sc [i]
+                ^{:trace/when (<= 2 i 4)}
+                (some-calculation i)))
+         (reduce +)))
+
+  (boo)
+
+
+
   )

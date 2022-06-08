@@ -735,22 +735,29 @@
       :else
       (maybe-instrument (instrument-function-call form ctx) ctx))))
 
+(defn- wrap-trace-when [form enable-clause]
+  `(binding [tracer/*runtime-ctx* (assoc tracer/*runtime-ctx* :tracing-disabled? (not ~enable-clause))]
+     ~form))
+
 (defn- instrument-form-recursively
 
   "Walk through form and return it instrumented with traces. "
 
   [form ctx]
 
-  (condp #(%1 %2) form
-    ;; Function call, macro call, or special form.
-    seq? (doall (instrument-function-like-form form ctx))
-    symbol? (maybe-instrument form ctx)
-    ;; Other coll types are safe, so we go inside them and only
-    ;; instrument what's interesting.
-    ;; Do we also need to check for seq?
-    coll? (doall (instrument-coll form ctx))
-    ;; Other things are uninteresting, literals or unreadable objects.
-    form))
+  (let [inst-form (condp #(%1 %2) form
+                    ;; Function call, macro call, or special form.
+                    seq? (doall (instrument-function-like-form form ctx))
+                    symbol? (maybe-instrument form ctx)
+                    ;; Other coll types are safe, so we go inside them and only
+                    ;; instrument what's interesting.
+                    ;; Do we also need to check for seq?
+                    coll? (doall (instrument-coll form ctx))
+                    ;; Other things are uninteresting, literals or unreadable objects.
+                    form)]
+    (if-let [enable-clause (-> form meta :trace/when)]
+      (wrap-trace-when inst-form enable-clause)
+      inst-form)))
 
 (defn- strip-instrumentation-meta
 
@@ -816,11 +823,13 @@
 (defn- instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
   [ctx forms preamble]
-  `(let [curr-ctx# tracer/*runtime-ctx*]
+  `(let [runtime-ctx# tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
 
-     (binding [tracer/*runtime-ctx* (or curr-ctx# (tracer/empty-runtime-ctx tracer/orphan-flow-id))]
+     (binding [tracer/*runtime-ctx* (if runtime-ctx#
+                                      (update runtime-ctx# :tracing-disabled? #(or % ~(:tracing-disabled? ctx)))
+                                      (tracer/empty-runtime-ctx tracer/orphan-flow-id ~(:tracing-disabled? ctx)))]
        ~@(-> preamble
              (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 
@@ -841,10 +850,11 @@
         inst-code (instrument-tagged-code macro-expanded-form ctx)]
     inst-code))
 
-(defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns]} form-ns form env]
+(defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled?]} form-ns form env]
   (let [form-id (hash form)]
     (assert (or (nil? disable) (set? disable)) ":disable configuration should be a set")
     {:environment      env
+     :tracing-disabled? tracing-disabled?
      :compiler         (if (contains? env :js-globals)
                          :cljs
                          :clj)

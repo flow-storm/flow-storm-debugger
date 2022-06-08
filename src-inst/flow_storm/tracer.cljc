@@ -21,8 +21,9 @@
 
 (def ^:dynamic *runtime-ctx* nil)
 
-(defn empty-runtime-ctx [flow-id]
-  {:flow-id flow-id 
+(defn empty-runtime-ctx [flow-id tracing-disabled?]
+  {:flow-id flow-id
+   :tracing-disabled? tracing-disabled?
    :init-traced-forms (atom #{})})
 
 (defn trace-flow-init-trace
@@ -60,7 +61,7 @@
   "Send expression execution trace."
   
   [result _ {:keys [coor outer-form? form-id]}]
-  (let [{:keys [flow-id]} *runtime-ctx*
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*
         trace (trace-types/map->ExecTrace {:flow-id flow-id
                                            :form-id form-id
                                            :coor coor
@@ -68,7 +69,10 @@
                                            :timestamp (utils/get-timestamp)
                                            :result result
                                            :outer-form? outer-form?})]
-    (enqueue-trace! trace)
+    
+    (when-not tracing-disabled?
+      (enqueue-trace! trace))
+    
     result))
 
 (defn trace-fn-call-trace
@@ -76,7 +80,7 @@
   "Send function call traces"
   
   [form-id ns fn-name args-vec]
-  (let [{:keys [flow-id]} *runtime-ctx*
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*        
         trace (trace-types/map->FnCallTrace {:flow-id flow-id
                                              :form-id form-id
                                              :fn-name fn-name
@@ -84,14 +88,15 @@
                                              :thread-id (utils/get-current-thread-id)
                                              :args-vec args-vec
                                              :timestamp (utils/get-timestamp)})]
-    (enqueue-trace! trace)))
+    (when-not tracing-disabled?
+      (enqueue-trace! trace))))
 
 (defn trace-bound-trace
   
   "Send bind trace."
   
   [symb val {:keys [coor form-id]}]
-  (let [{:keys [flow-id]} *runtime-ctx*
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*
         trace (trace-types/map->BindTrace {:flow-id flow-id
                                            :form-id form-id
                                            :coor (or coor [])
@@ -99,7 +104,8 @@
                                            :timestamp (utils/get-timestamp)
                                            :symbol (name symb)
                                            :value val})]
-    (enqueue-trace! trace)))
+    (when-not tracing-disabled?
+      (enqueue-trace! trace))))
 
 (defn log-stats []
   (let [{:keys [put sent last-report-sent last-report-t]} @*stats

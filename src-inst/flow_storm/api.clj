@@ -142,10 +142,10 @@
 ;; TODO: deduplicate code between `run` and `runi`
 (defn- run*
   ([form] `(run {} ~form))
-  ([{:keys [ns flow-id]} form]
+  ([{:keys [ns flow-id tracing-disabled?]} form]
    `(let [flow-id# ~(or flow-id 0)
           curr-ns# ~(or ns `(str (ns-name *ns*)))]
-      (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
+      (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id# ~tracing-disabled?)]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
         ~form))))
 
@@ -161,10 +161,10 @@
 
   [& args] (apply run* args))
 
-(defn- runi* [{:keys [ns flow-id] :as opts} form]
+(defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
   `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
          curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
-     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
+     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id# ~tracing-disabled?)]
        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
        ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
        ;; doesn't work with fn* in clojurescript
@@ -258,11 +258,14 @@
     (log "Instrumentation done.")
     (eval (run* `(~fn-symb ~@fn-args)))))
 
-(defmacro instrument* [form]
-  (inst-forms/instrument {:env &env} form))
+(defmacro instrument* [config form]
+  (inst-forms/instrument (assoc config :env &env) form))
 
 (defn read-trace-tag [form]
-  `(instrument* ~form))
+  `(instrument* {} ~form))
+
+(defn read-ctrace-tag [form]
+  `(instrument* {:tracing-disabled? true} ~form))
 
 (defn read-rtrace-tag [form]
   `(runi {} ~form))

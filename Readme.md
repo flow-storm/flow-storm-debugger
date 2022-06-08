@@ -44,12 +44,13 @@ Documentation is still a work in progress ...
 
 ## Instrumenting code at the repl
 
-FlowStorm debugger is designed to be use at the repl
+FlowStorm debugger is designed to be use at the repl, so whenever you need to trace what a piece of code is doing
+you can add `#trace` before its top level form and re-evaluate it.
 
 ```clojure
 
 ;; After connecting to the debugger you can 
-;; instrument any outer form by placing #trace before it
+;; instrument any top level form by placing #trace before it
 
 #trace
 (defn sum [a b]
@@ -63,6 +64,31 @@ FlowStorm debugger is designed to be use at the repl
 
 #rtrace
 (->> (range) (filter odd?) (take 10) (reduce +))
+```
+
+## Conditional tracing
+
+Lets say you are working on a game, and the function you want to trace is being called 60 times per second. 
+Tracing the function with `#trace` is impractical since it is going to flood the debugger with traces and you are probably 
+not interested in all of them.
+
+You can use `#ctrace` instead. It will instrument the entire form but disable traces until you enable them by adding `^{:trace/when ...}` meta 
+on the form you are interested in. For example :
+
+```clojure
+#trace ;; <- will trace only on the enabled cases
+(defn foo [a]
+   (+ a 10))
+
+#ctrace ;; <- will instrument but disable all tracing until it is enabled by :trace/when meta
+(defn boo []
+   (->> (range 10)
+        (map (fn sc [i]
+               ^{:trace/when (<= 2 i 4)} ;; <- will enable traces only when i is between 2 and 4
+               (foo i)))
+        (reduce +)))
+
+(boo)
 ```
 
 ## Instrumenting entire codebases

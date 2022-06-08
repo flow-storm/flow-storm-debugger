@@ -11,7 +11,7 @@
   [{:keys [orig-form ns flow-id]} form]
   `(let [flow-id# ~(or flow-id 0)
          curr-ns# ~(or ns `(str (ns-name *ns*)))]
-     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id#)]
+     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id# false)]
        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(or orig-form (list 'quote form)))
        ~form)))
 

@@ -3,7 +3,9 @@
 ## master (unreleased)
 
 ## New Features
-
+	
+	* Add conditional tracing via #ctrace and ^{:trace/when ...} meta
+	
 ### Changes
     
 ### Bugs fixed
