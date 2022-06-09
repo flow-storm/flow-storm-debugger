@@ -4,6 +4,14 @@
 
 ## New Features
 	
+### Changes
+    
+### Bugs fixed
+
+## 2.2.64 (09-06-2022)
+
+## New Features
+	
 	* Add conditional tracing via #ctrace and ^{:trace/when ...} meta
 	
 ### Changes
