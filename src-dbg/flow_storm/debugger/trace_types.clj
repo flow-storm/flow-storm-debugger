@@ -5,6 +5,9 @@
 
 (defrecord LocalImmValue [val])
 
+(defn local-imm-value? [x]
+  (instance? LocalImmValue x))
+
 (defprotocol LocalValueWrapper
   (wrap-local-values [trace]))
 
@@ -12,6 +15,9 @@
   (wrap-remote-values [trace conn]))
 
 (defrecord RemoteImmValue [vid])
+
+(defn remote-imm-value? [x]
+  (instance? RemoteImmValue x))
 
 (defn- wrap-remote-value [v conn]
   (with-meta (->RemoteImmValue v) {:ws-conn conn}))

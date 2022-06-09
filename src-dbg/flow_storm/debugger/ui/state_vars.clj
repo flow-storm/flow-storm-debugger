@@ -87,6 +87,9 @@
 (defn thread-pprint-text-area-id [thread-id pane-id]
   (format "pprint_text_area_%d_%s" thread-id pane-id))
 
+(defn thread-pprint-def-btn-id [thread-id pane-id]
+  (format "pprint_def_btn_id_%d_%s" thread-id pane-id))
+
 (defn thread-locals-list-id [thread-id]
   (format "locals_list_%d" thread-id))
 

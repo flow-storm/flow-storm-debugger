@@ -70,6 +70,15 @@
 (defn icon [icon-name]
   (FontIcon. icon-name))
 
+(defn button
+  ([lbl]
+   (button lbl nil))
+  ([lbl class]
+   (let [b (Button. lbl)]
+     (when class
+       (.add (.getStyleClass b) class))
+     b)))
+
 (defn icon-button
   ([icon-name]
    (icon-button icon-name nil))

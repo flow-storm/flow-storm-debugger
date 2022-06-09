@@ -79,6 +79,12 @@
         (print-fn (cond-> value
                     nth-elem (nth nth-elem)))))))
 
+(defn- def-value-command [{:keys [val val-name]}]
+  (intern 'user (symbol val-name) val))
+
+(defn- def-remote-value-command [{:keys [vid val-name]}]
+  (intern 'user (symbol val-name) (trace-types/get-reference-value vid)))
+
 (defn run-command [comm-id method args-map]
   (let [f (case method
             :instrument-fn        instrument-fn-command
@@ -86,5 +92,8 @@
             :eval-forms           eval-forms-command
             :instrument-forms     instrument-forms-command
             :re-run-flow          re-run-flow-command
-            :get-remote-value     get-remote-value-command)]
+            :get-remote-value     get-remote-value-command
+            :def-value            def-value-command
+            :def-remote-value     def-remote-value-command
+            )]
     [:cmd-ret [comm-id (f args-map)]]))

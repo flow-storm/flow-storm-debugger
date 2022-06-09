@@ -130,6 +130,14 @@ This demo video is all the documentation so far on using the debugger.
 
 - Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
 
+### Defining a value for working at the repl
+
+Every panel where FlowStorm pretty prints a value contains a `def` button. Clicking on it will ask you
+for a name and define that value under that name on your runtime, so you can work with it at the repl.
+
+Lets say you have named it `my-value` then on Clojure you can access it at the repl under `user/my-value`
+while in ClojureScript it is going to be under `js/my-value`.
+
 ## ClojureScript
 
 FlowStorm ClojureScript support is still in its infancy, for instructions on how to use it check [here](./docs/ClojureScript.md)

@@ -4,6 +4,8 @@
 
 ## New Features
 	
+	* Add def value button on every value panel to define the value so you can work with it at the repl
+	
 ### Changes
     
 ### Bugs fixed
