@@ -49,11 +49,11 @@
                                               "val0"
                                               txt))]
                              (cond
-                              (local-imm-value? val)
-                              (target-commands/run-command flow-id :def-value {:val (:val val)
-                                                                               :val-name val-name})
+                               (local-imm-value? val)
+                               (target-commands/run-command :def-value {:val (:val val)
+                                                                        :val-name val-name})
 
-                              (remote-imm-value? val)
-                              (target-commands/run-command flow-id :def-remote-value {:vid (:vid val)
-                                                                                      :val-name val-name})))))
+                               (remote-imm-value? val)
+                               (target-commands/run-command :def-remote-value {:vid (:vid val)
+                                                                               :val-name val-name})))))
     (.setText text-area val-str)))

@@ -55,6 +55,8 @@
                     :flows {}
                     :selected-flow-id nil})
 
+(def remote-connection (atom nil))
+
 ;;;;;;;;;;;
 ;; Utils ;;
 ;;;;;;;;;;;
@@ -70,12 +72,11 @@
       (doseq [key flow-keys]
         (.remove fn-call-stats-map key)))))
 
-(defn create-flow [conn flow-id exec-form-ns exec-form timestamp]
+(defn create-flow [flow-id exec-form-ns exec-form timestamp]
   ;; if a flow for `flow-id` already exist we discard it and
   ;; will be GCed
 
   (swap! *state assoc-in [:flows flow-id] {:flow/id flow-id
-                                           :flow/origin-connection conn
                                            :flow/threads {}
                                            :flow/execution-expr {:ns exec-form-ns
                                                                  :form exec-form}

@@ -23,7 +23,7 @@
 (extend-protocol ProcessTrace
   FlowInitTrace
   (process [{:keys [flow-id form-ns form timestamp] :as trace}]
-    (dbg-state/create-flow (-> trace meta :ws-conn) flow-id form-ns form timestamp)
+    (dbg-state/create-flow flow-id form-ns form timestamp)
     (ui-utils/run-now (flows-screen/remove-flow flow-id))
     (ui-utils/run-now (flows-screen/create-empty-flow flow-id)))
 
@@ -71,7 +71,7 @@
   (when (and (= (:flow-id trace) dbg-state/orphans-flow-id)
              (not (dbg-state/get-flow dbg-state/orphans-flow-id)))
     ;; whenever we receive a trace for dbg-state/orphans-flow-id and it is not there create-it
-    (dbg-state/create-flow (-> trace meta :ws-conn) dbg-state/orphans-flow-id nil nil 0)
+    (dbg-state/create-flow dbg-state/orphans-flow-id nil nil 0)
     (ui-utils/run-now (flows-screen/create-empty-flow dbg-state/orphans-flow-id)))
 
   (process trace)

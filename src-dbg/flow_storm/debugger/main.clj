@@ -26,21 +26,29 @@
       (alter-var-root #'target-commands/run-command
                        (constantly
                         ;; local command executor (just call command functions)
-                        (fn run-command-fn [_ method args-map]
+                        (fn run-command-fn [method args-map & [callback]]
                           ;; run the function on a different thread so we don't block the ui
                           ;; while running commands
-                          (.start (Thread. (fn [] (run-command nil method args-map))))))))
+                          (.start (Thread. (fn []
+                                             (let [[_ [_ ret-val]] (run-command nil method args-map)]
+                                               (when callback
+                                                 (callback ret-val))))))))))
 
     (do
 
       (websocket/start-websocket-server
        (assoc config
               :trace-dispatcher trace-processor/remote-dispatch-trace
-              :show-error ui-main/show-error))
+              :show-error ui-main/show-error
+              :on-connection-open (fn [conn] (reset! dbg-state/remote-connection conn))))
 
       (alter-var-root #'target-commands/run-command
                         (constantly
                          ;; remote command executor (via websockets)
-                         (fn run-command-fn [flow-id method args-map]
-                           (let [command-conn (:flow/origin-connection (dbg-state/get-flow flow-id))]
-                             (websocket/async-command-request command-conn method args-map (fn [_])))))))))
+                         (fn run-command-fn [method args-map & [callback]]
+                           (websocket/async-command-request @dbg-state/remote-connection
+                                                            method
+                                                            args-map
+                                                            (fn [ret-val]
+                                                              (when callback
+                                                                (callback ret-val))))))))))

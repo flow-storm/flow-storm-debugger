@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.main
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.state-vars :as ui-vars :refer [main-pane stage scene]]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io])
@@ -25,6 +26,9 @@
         tabs (.getTabs tabs-p)
         flows-tab (doto (ui-utils/tab "Flows" "vertical-tab")
                     (.setContent (flows-screen/main-pane)))
+        browser-tab (doto (ui-utils/tab "Browser" "vertical-tab")
+                      (.setContent (browser-screen/main-pane))
+                      (.setOnSelectionChanged (event-handler [_] (browser-screen/get-all-namespaces))))
         ;; refs-tab (doto (ui-utils/tab "Refs")
         ;;            (.setContent (Label. "Refs comming soon"))
         ;;            (.setDisable true))
@@ -34,9 +38,6 @@
         ;; timeline-tab (doto (ui-utils/tab "Timeline")
         ;;                (.setContent (Label. "Timeline comming soon"))
         ;;                (.setDisable true))
-        ;; browser-tab (doto (ui-utils/tab "Browser")
-        ;;               (.setContent (Label. "Browser comming soon"))
-        ;;               (.setDisable true))
         ;; docs-tab (doto (ui-utils/tab "Docs")
         ;;            (.setContent (Label. "Docs comming soon"))
         ;;            (.setDisable true))
@@ -47,8 +48,8 @@
       (.setRotateGraphic true)
       (.setSide (Side/LEFT)))
 
-    (.addAll tabs [flows-tab #_refs-tab #_taps-tab
-                   #_timeline-tab #_browser-tab #_docs-tab])
+    (.addAll tabs [flows-tab browser-tab #_refs-tab #_taps-tab
+                   #_timeline-tab  #_docs-tab])
 
     tabs-p))
 

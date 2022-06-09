@@ -85,15 +85,36 @@
 (defn- def-remote-value-command [{:keys [vid val-name]}]
   (intern 'user (symbol val-name) (trace-types/get-reference-value vid)))
 
+(defn- get-all-namespaces-command [_]
+  (map (comp name ns-name) (all-ns)))
+
+(defn- get-all-vars-for-ns-command [{:keys [ns-name]}]
+  (->> (find-ns (symbol ns-name))
+       ns-interns
+       vals
+       (map (fn [v]
+              (let [{:keys [name ns]} (meta v)]
+                {:var-name (str name)
+                 :var-ns (str (clojure.core/ns-name ns))})))))
+
+(defn- get-var-meta-command [{:keys [var-name var-ns]}]
+  (-> (find-var (symbol var-ns var-name))
+      meta
+      (update :ns (comp str ns-name))
+      (update :name str)))
+
 (defn run-command [comm-id method args-map]
   (let [f (case method
-            :instrument-fn        instrument-fn-command
-            :uninstrument-fns     uninstrument-fns-command
-            :eval-forms           eval-forms-command
-            :instrument-forms     instrument-forms-command
-            :re-run-flow          re-run-flow-command
-            :get-remote-value     get-remote-value-command
-            :def-value            def-value-command
-            :def-remote-value     def-remote-value-command
+            :instrument-fn       instrument-fn-command
+            :uninstrument-fns    uninstrument-fns-command
+            :eval-forms          eval-forms-command
+            :instrument-forms    instrument-forms-command
+            :re-run-flow         re-run-flow-command
+            :get-remote-value    get-remote-value-command
+            :def-value           def-value-command
+            :def-remote-value    def-remote-value-command
+            :get-all-namespaces  get-all-namespaces-command
+            :get-all-vars-for-ns get-all-vars-for-ns-command
+            :get-var-meta        get-var-meta-command
             )]
     [:cmd-ret [comm-id (f args-map)]]))

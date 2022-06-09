@@ -128,10 +128,10 @@
                                          (let [curr-trace-idx (state/current-trace-idx flow-id thread-id)
                                                curr-fn-call-trace-idx (indexer/callstack-frame-call-trace-idx indexer curr-trace-idx)
                                                {:keys [fn-name]} (indexer/get-trace indexer curr-fn-call-trace-idx)]
-                                           (target-commands/run-command flow-id :instrument-fn {:fn-symb (symbol (:form/ns form) fn-name)}))
+                                           (target-commands/run-command :instrument-fn {:fn-symb (symbol (:form/ns form) fn-name)}))
 
-                                         (target-commands/run-command flow-id :instrument-forms {:forms [{:form-ns (:form/ns form)
-                                                                                                              :form (:form/form form)}]})))}]
+                                         (target-commands/run-command :instrument-forms {:forms [{:form-ns (:form/ns form)
+                                                                                                  :form (:form/form form)}]})))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 
     (.setOnMouseClicked form-pane

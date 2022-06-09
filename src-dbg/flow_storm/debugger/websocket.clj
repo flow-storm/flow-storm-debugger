@@ -29,19 +29,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn async-command-request [conn method args callback]
-  (try
-    (let [comm-id (UUID/randomUUID)
-          packet-str (serializer/serialize [comm-id method args])]
-      (.send conn packet-str)
-      (swap! *pending-commands-callbacks assoc comm-id callback))
-    (catch Exception e
-      (log-error "Error sending async command" e))))
+  (if (nil? conn)
+    (log-error "No process connected.")
+    (try
+      (let [comm-id (UUID/randomUUID)
+            packet-str (serializer/serialize [comm-id method args])]
+        (.send conn packet-str)
+        (swap! *pending-commands-callbacks assoc comm-id callback))
+      (catch Exception e
+        (log-error "Error sending async command" e)))))
 
 (defn process-command-response [[comm-id resp]]
   (let [callback (get @*pending-commands-callbacks comm-id)]
     (callback resp)))
 
-(defn- create-ws-server [{:keys [port on-message]}]
+(defn- create-ws-server [{:keys [port on-message on-connection-open]}]
   (proxy
       [WebSocketServer]
       [(InetSocketAddress. port)]
@@ -50,6 +52,8 @@
       (log (format "WebSocket server started, listening on %s" port)))
 
     (onOpen [^WebSocket conn ^ClientHandshake handshake-data]
+      (when on-connection-open
+        (on-connection-open conn))
       (log "Got a connection"))
 
     (onMessage [conn ^String message]
@@ -66,9 +70,10 @@
   (when websocket-server
     (.stop websocket-server)))
 
-(defn start-websocket-server [{:keys [trace-dispatcher show-error]}]
+(defn start-websocket-server [{:keys [trace-dispatcher show-error on-connection-open]}]
   (let [ws-server (create-ws-server
                    {:port 7722
+                    :on-connection-open on-connection-open
                     :on-message (fn [conn msg]
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]

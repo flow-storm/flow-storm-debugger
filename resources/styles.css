@@ -103,3 +103,34 @@
 .trace-position-box {
 	-fx-alignment: center;
 }
+
+/*****************/
+/* Browser stuff */
+/*****************/
+
+.label.browser-fn-fq-name {
+	-fx-font-weight: bold;
+	-fx-font-size: 15;
+	-fx-text-fill: #336699;
+	-fx-padding: 10;
+}
+
+.browser-fn-args-box {
+	-fx-padding: 10;
+}
+
+.label.browser-fn-attr {
+	-fx-padding: 10;
+}
+
+.button.browser-instrument-btn {
+	-fx-background-color: #336699;
+    -fx-text-fill: white;
+	-fx-font-size: 10;
+	-fx-display: none;
+	visibility: hidden;
+}
+
+.button.browser-instrument-btn.enable {
+	visibility: visible;
+}

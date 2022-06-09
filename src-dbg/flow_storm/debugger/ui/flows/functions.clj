@@ -48,14 +48,14 @@
                                                                          (map (fn [{:keys [fn-name fn-ns]}]
                                                                                 (symbol fn-ns fn-name))))]
                                                      (when (seq vars-symbs)
-                                                       (target-commands/run-command flow-id :uninstrument-fns {:vars-symbs vars-symbs})))
+                                                       (target-commands/run-command :uninstrument-fns {:vars-symbs vars-symbs})))
 
                                                    (let [forms (->> (:forms groups)
                                                                     (map (fn [{:keys [fn-ns form]}]
                                                                            {:form-ns fn-ns
                                                                             :form form})))]
                                                      (when (seq forms)
-                                                       (target-commands/run-command flow-id :eval-forms {:forms forms})))))}
+                                                       (target-commands/run-command :eval-forms {:forms forms})))))}
         ctx-menu-show-similar-fn-call-item {:text "Show function calls"
                                             :on-click (fn []
                                                         (let [indexer (state/thread-trace-indexer flow-id thread-id)
