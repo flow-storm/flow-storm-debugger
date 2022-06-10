@@ -81,7 +81,9 @@
 	-fx-fill: #0b0d2e;
 }
 .code-token.executing {
-    -fx-stroke: #459e11;
+    -fx-stroke: #60d61b;
+	-fx-font-size: 15;
+	-fx-fill: #60d61b;
 	-fx-stroke-width: 1;
 }
 
@@ -102,6 +104,10 @@
 
 .trace-position-box {
 	-fx-alignment: center;
+}
+
+.button.def-btn {
+	-fx-font-size: 10;
 }
 
 /*****************/
@@ -133,4 +139,15 @@
 
 .button.browser-instrument-btn.enable {
 	visibility: visible;
+}
+
+.browser-instr-del-btn {
+	-fx-background-color: #336699;
+    -fx-text-fill: white;
+	-fx-font-size: 10;
+}
+
+.button {
+	-fx-background-color: #336699;
+    -fx-text-fill: white;    
 }

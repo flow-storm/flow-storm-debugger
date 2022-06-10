@@ -4,7 +4,7 @@
             [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon button add-class]]
             [clojure.string :as str])
-  (:import [javafx.scene.control Button Label ListView SplitPane TextField]
+  (:import [javafx.scene.control Button CheckBox Label ListView SplitPane TextField]
            [javafx.scene Node]
            [ javafx.beans.value ChangeListener]
            [javafx.collections FXCollections ObservableList]
@@ -12,6 +12,18 @@
            [javafx.scene.layout HBox Priority VBox]
            [javafx.geometry Orientation Pos]
            [java.util.function Predicate]))
+
+(defn- instrument-function [var-ns var-name add?]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+    (target-commands/run-command :instrument-fn {:fn-symb (symbol var-ns var-name)})
+    (when add?
+      (.addAll observable-instrumentations-list (into-array Object [{:var-name var-name :var-ns var-ns}])))))
+
+(defn- uninstrument-function [inst-var remove?]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+    (target-commands/run-command :uninstrument-fns {:vars-symbs [(symbol (:var-ns inst-var) (:var-name inst-var))]})
+    (when remove?
+      (.removeAll observable-instrumentations-list (into-array Object [inst-var])))))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
@@ -25,11 +37,7 @@
         args-lists-labels (map (fn [al] (label (str al))) arglists)]
 
     (add-class browser-instrument-button "enable")
-    (.setOnAction browser-instrument-button
-                  (event-handler
-                   [_]
-                   (target-commands/run-command :instrument-fn
-                                                {:fn-symb (symbol ns name)})))
+    (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name true)))
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
       (.setText selected-fn-added-label (format "Added: %s" added)))
@@ -156,19 +164,63 @@
 
     selected-fn-detail-pane))
 
+(defn- create-instrumentations-pane []
+  (let [observable-instrumentations-list (FXCollections/observableArrayList)
+        instrumentations-cell-factory (proxy [javafx.util.Callback] []
+                                        (call [lv]
+                                          (ui-utils/create-list-cell-factory
+                                           (fn [list-cell {:keys [var-name var-ns] :as inst-var}]
+                                             (let [inst-lbl (label (format "%s/%s" var-ns var-name) "browser-instr-label")
+                                                   inst-chk (doto (CheckBox.)
+                                                              (.setSelected true))
+                                                   _ (.setOnAction inst-chk
+                                                                   (event-handler
+                                                                    [_]
+                                                                    (if (.isSelected inst-chk)
+                                                                      (instrument-function var-ns var-name false)
+                                                                      (uninstrument-function inst-var false))))
+                                                   inst-del-btn (doto (button "del" "browser-instr-del-btn")
+                                                                  (.setOnAction (event-handler
+                                                                                 [_]
+                                                                                 (uninstrument-function inst-var true))))
+                                                   inst-box (doto (h-box [inst-lbl inst-chk inst-del-btn])
+                                                              (.setSpacing 10)
+                                                              (.setAlignment Pos/CENTER_LEFT))]
+
+                                               (.setGraphic ^Node list-cell inst-box))))))
+        instrumentations-list (doto (ListView. observable-instrumentations-list)
+                                (.setCellFactory instrumentations-cell-factory)
+                                (.setEditable false))
+        pane (v-box [(label "Instrumentations")
+                     instrumentations-list])]
+
+    (store-obj "browser-observable-instrumentations-list" observable-instrumentations-list)
+
+    pane))
+
 (defn main-pane []
   (let [namespaces-pane (create-namespaces-pane)
         vars-pane (create-vars-pane)
         selected-fn-detail-pane (create-fn-details-pane)
-        split-pane (doto (SplitPane.)
-                     (.setOrientation (Orientation/HORIZONTAL)))]
+        inst-pane (create-instrumentations-pane)
+        top-split-pane (doto (SplitPane.)
+                         (.setOrientation (Orientation/HORIZONTAL)))
+        top-bottom-split-pane (doto (SplitPane.)
+                                (.setOrientation (Orientation/VERTICAL)))]
 
-    (-> split-pane
+    (-> top-split-pane
         .getItems
         (.addAll [namespaces-pane vars-pane selected-fn-detail-pane]))
 
-    (.setDividerPosition split-pane 0 0.3)
-    (.setDividerPosition split-pane 1 0.6)
+    (-> top-bottom-split-pane
+        .getItems
+        (.addAll [top-split-pane
+                  inst-pane]))
 
-    split-pane
+    (.setDividerPosition top-split-pane 0 0.3)
+    (.setDividerPosition top-split-pane 1 0.6)
+
+    (.setDividerPosition top-bottom-split-pane 0 0.7)
+
+    top-bottom-split-pane
     ))
