@@ -126,9 +126,14 @@ clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github
 
 ## Using the debugger
 
-This demo video is all the documentation so far on using the debugger.
+This videos are all the documentation so far on using the debugger.
 
 - Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
+- Instrumenting libraries https://youtu.be/YnpQMrkj4v8?t=332
+- Debugging the ClojureScript compiler https://youtu.be/YnpQMrkj4v8?t=533
+- Browser https://www.youtube.com/watch?v=cnLwRzxrKDk
+- Def button https://youtu.be/cnLwRzxrKDk?t=103
+- Conditional tracing https://youtu.be/cnLwRzxrKDk?t=133
 
 ### Defining a value for working at the repl
 
