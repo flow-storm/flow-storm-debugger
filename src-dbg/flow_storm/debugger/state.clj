@@ -107,6 +107,9 @@
 (defn thread-trace-indexer [flow-id thread-id]
   (:thread/trace-indexer (get-thread flow-id thread-id)))
 
+(defn thread-trace-count [flow-id thread-id]
+  (indexer/thread-exec-count (thread-trace-indexer flow-id thread-id)))
+
 (defn current-trace-idx [flow-id thread-id]
   (:thread/curr-trace-idx (get-thread flow-id thread-id)))
 

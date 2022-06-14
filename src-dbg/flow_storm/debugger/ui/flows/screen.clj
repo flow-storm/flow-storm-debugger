@@ -44,7 +44,9 @@
         (.addAll [flow-tab]))))
 
 (defn- create-thread-controls-pane [flow-id thread-id]
-  (let [prev-btn (doto (ui-utils/icon-button "mdi-chevron-left")
+  (let [first-btn (doto (ui-utils/icon-button "mdi-page-first")
+                   (.setOnAction (event-handler [ev] (flow-code/jump-to-coord flow-id thread-id 0))))
+        prev-btn (doto (ui-utils/icon-button "mdi-chevron-left")
                    (.setOnAction (event-handler
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
@@ -61,6 +63,12 @@
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
                                                  (inc (dbg-state/current-trace-idx flow-id thread-id))))))
+        last-btn (doto (ui-utils/icon-button "mdi-page-last")
+                   (.setOnAction (event-handler
+                                  [ev]
+                                  (flow-code/jump-to-coord flow-id
+                                                           thread-id
+                                                           (dec (dbg-state/thread-trace-count flow-id thread-id))))))
         re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
                           (.setOnAction (event-handler
                                          [_]
@@ -69,7 +77,7 @@
                                              (target-commands/run-command :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))))
         trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
-        controls-box (doto (h-box [prev-btn next-btn re-run-flow-btn])
+        controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
                        (.setSpacing 2.0))]
 
     (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")

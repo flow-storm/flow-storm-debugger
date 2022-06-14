@@ -3,7 +3,9 @@
 ## master (unreleased)
 
 ## New Features
-	
+
+	* Add jump to first and last traces on thread controls
+    
 ### Changes
     
 ### Bugs fixed
