@@ -90,6 +90,12 @@
 (defn thread-pprint-def-btn-id [thread-id pane-id]
   (format "pprint_def_btn_id_%d_%s" thread-id pane-id))
 
+(defn thread-pprint-level-txt-id [thread-id pane-id]
+  (format "pprint_level_txt_id_%d_%s" thread-id pane-id))
+
+(defn thread-pprint-meta-chk-id [thread-id pane-id]
+  (format "pprint_meta_chk_id_%d_%s" thread-id pane-id))
+
 (defn thread-locals-list-id [thread-id]
   (format "locals_list_%d" thread-id))
 

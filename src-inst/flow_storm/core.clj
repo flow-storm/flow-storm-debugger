@@ -70,11 +70,12 @@
         :orig-form form}
        (eval form)))))
 
-(defn- get-remote-value-command [{:keys [vid print-length print-level pprint? nth-elem]}]
+(defn- get-remote-value-command [{:keys [vid print-length print-level print-meta? pprint? nth-elem]}]
   (let [value (trace-types/get-reference-value vid)
         print-fn (if pprint? pp/pprint print)]
     (with-out-str
       (binding [*print-level* print-level
+                *print-meta* print-meta?
                 *print-length* print-length]
         (print-fn (cond-> value
                     nth-elem (nth nth-elem)))))))

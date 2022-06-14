@@ -22,7 +22,7 @@
 
 (extend-protocol ProcessTrace
   FlowInitTrace
-  (process [{:keys [flow-id form-ns form timestamp] :as trace}]
+  (process [{:keys [flow-id form-ns form timestamp]}]
     (dbg-state/create-flow flow-id form-ns form timestamp)
     (ui-utils/run-now (flows-screen/remove-flow flow-id))
     (ui-utils/run-now (flows-screen/create-empty-flow flow-id)))

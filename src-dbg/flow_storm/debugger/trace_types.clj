@@ -28,21 +28,23 @@
 (extend-type LocalImmValue
 
   PDeref
-  (deref-ser [this {:keys [print-length print-level pprint? nth-elem]}]
+  (deref-ser [this {:keys [print-length print-level print-meta? pprint? nth-elem]}]
     (let [print-fn (if pprint? pp/pprint print)]
       (with-out-str
         (binding [*print-level* print-level
+                  *print-meta* print-meta?
                   *print-length* print-length]
           (print-fn (cond-> (:val this)
                       nth-elem (nth nth-elem))))))))
 
 (def get-remote-value-sync
   (memoize
-   (fn [conn vid {:keys [print-length print-level pprint? nth-elem]}]
+   (fn [conn vid {:keys [print-length print-level print-meta? pprint? nth-elem]}]
      (let [p (promise)]
        (websocket/async-command-request conn
                                         :get-remote-value
                                         {:vid vid
+                                         :print-meta? print-meta?
                                          :print-length print-length
                                          :print-level print-level
                                          :pprint? pprint?

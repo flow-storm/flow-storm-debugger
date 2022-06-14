@@ -1,13 +1,12 @@
 (ns flow-storm.debugger.ui.browser.screen
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon button add-class]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon button add-class]]
             [clojure.string :as str])
-  (:import [javafx.scene.control Button CheckBox Label ListView SplitPane TextField]
+  (:import [javafx.scene.control CheckBox Label ListView SplitPane TextField]
            [javafx.scene Node]
            [ javafx.beans.value ChangeListener]
-           [javafx.collections FXCollections ObservableList]
+           [javafx.collections FXCollections]
            [javafx.collections.transformation FilteredList]
            [javafx.scene.layout HBox Priority VBox]
            [javafx.geometry Orientation Pos]
@@ -113,7 +112,7 @@
         vars-cell-factory (proxy [javafx.util.Callback] []
                             (call [lv]
                               (ui-utils/create-list-cell-factory
-                               (fn [list-cell {:keys [var-name var-ns]}]
+                               (fn [list-cell {:keys [var-name]}]
                                  (.setGraphic ^Node list-cell (label var-name))))))
         vars-list-view (doto (ListView. observable-vars-filtered-list)
                          (.setCellFactory vars-cell-factory)

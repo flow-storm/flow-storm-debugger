@@ -46,6 +46,8 @@
 (defn boo [xs]
   (let [a 25
         b (dummy-sum-macro a 4)
+        m ^{:meta1 true :meta2 "nice-meta-value"} {:a 5 :b ^:interesting-vector [1 2 3]}
+        mm (assoc m :c 10)
         c (+ a b 7)
         d (add (->ARecord 5))
         j (loop [i 100

@@ -5,6 +5,7 @@
 ## New Features
 
 	* Add jump to first and last traces on thread controls
+	* Add print-level and print-meta controls on pprint value panels
     
 ### Changes
     
