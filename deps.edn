@@ -39,7 +39,9 @@
                                ;; works with cljs too
                                org.clojure/core.async {:mvn/version "1.5.648"}
                                com.cognitect/transit-cljs {:mvn/version "0.8.269"}
-                               org.clojure/clojurescript {:mvn/version "1.11.54"}
+                               org.clojure/clojurescript {:mvn/version "1.11.57"
+                                                          ;;:local/root "/home/jmonetta/my-projects/clojurescript"
+                                                          }
                                }}
 
            :dev {:extra-paths ["src-dev"]
@@ -48,7 +50,9 @@
                               com.github.jpmonettas/flow-storm-dbg {:mvn/version "2.0.38"}
                               com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}
                               }
-                 :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}
+                 :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
+                            ;;"-Xmx18500m" ;; for instrumenting big codebases
+                            ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
                                 rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}}

@@ -145,7 +145,8 @@
   ([{:keys [ns flow-id tracing-disabled?]} form]
    `(let [flow-id# ~(or flow-id 0)
           curr-ns# ~(or ns `(str (ns-name *ns*)))]
-      (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id# ~tracing-disabled?)]
+      (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
+                                                                :tracing-disabled? ~tracing-disabled?})]
         (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
         ~form))))
 
@@ -164,7 +165,8 @@
 (defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
   `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
          curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
-     (binding [tracer/*runtime-ctx* (tracer/empty-runtime-ctx flow-id# ~tracing-disabled?)]
+     (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
+                                                               :tracing-disabled? ~tracing-disabled?})]
        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
        ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
        ;; doesn't work with fn* in clojurescript
@@ -256,7 +258,10 @@
     (log (format "Instrumenting namespaces %s" ns-to-instrument))
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")
-    (eval (run* `(~fn-symb ~@fn-args)))))
+    (eval (run* {}
+            `(try
+               (~fn-symb ~@fn-args)
+               (catch Exception e# (.printStackTrace e#)))))))
 
 (defmacro instrument* [config form]
   (inst-forms/instrument (assoc config :env &env) form))

@@ -108,17 +108,18 @@ Lets say we want to instrument and run the entire clojurescript compiler codebas
 Given you can compile and run a cljs file, like :
 
 ```bash
-clj -Sdeps {:deps {org.clojure/clojurescript {:mvn/version "1.11.4"}}} \
+clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"}}}' \
     -M -m cljs.main -t nodejs ./org/foo/myscript.cljs
 ```
 
 You can run the exact same command but instrumenting the entire cljs codebase first like :
 
 ```bash
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.4"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
+clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
 	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
                               :profile ':light'                     \
                               :require-before '#{"cljs.repl.node"}' \
+							  :excluding-ns '#{"cljs.vendor.cognitect.transit"}' \
                               :fn-symb 'cljs.main/-main'            \
                               :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
 ```

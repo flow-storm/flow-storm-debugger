@@ -21,7 +21,7 @@
 
 (def ^:dynamic *runtime-ctx* nil)
 
-(defn empty-runtime-ctx [flow-id tracing-disabled?]
+(defn build-runtime-ctx [{:keys [flow-id tracing-disabled? fn-call-threshold]}]
   {:flow-id flow-id
    :tracing-disabled? tracing-disabled?
    :init-traced-forms (atom #{})})
@@ -61,17 +61,16 @@
   "Send expression execution trace."
   
   [result _ {:keys [coor outer-form? form-id]}]
-  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*
-        trace (trace-types/map->ExecTrace {:flow-id flow-id
-                                           :form-id form-id
-                                           :coor coor
-                                           :thread-id (utils/get-current-thread-id)
-                                           :timestamp (utils/get-timestamp)
-                                           :result result
-                                           :outer-form? outer-form?})]
-    
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (enqueue-trace! trace))
+      (let [trace (trace-types/map->ExecTrace {:flow-id flow-id
+                                               :form-id form-id
+                                               :coor coor
+                                               :thread-id (utils/get-current-thread-id)
+                                               :timestamp (utils/get-timestamp)
+                                               :result result
+                                               :outer-form? outer-form?})]
+        (enqueue-trace! trace)))
     
     result))
 
@@ -80,32 +79,31 @@
   "Send function call traces"
   
   [form-id ns fn-name args-vec]
-  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*        
-        trace (trace-types/map->FnCallTrace {:flow-id flow-id
-                                             :form-id form-id
-                                             :fn-name fn-name
-                                             :fn-ns ns
-                                             :thread-id (utils/get-current-thread-id)
-                                             :args-vec args-vec
-                                             :timestamp (utils/get-timestamp)})]
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (enqueue-trace! trace))))
+      (let [trace (trace-types/map->FnCallTrace {:flow-id flow-id
+                                                 :form-id form-id
+                                                 :fn-name fn-name
+                                                 :fn-ns ns
+                                                 :thread-id (utils/get-current-thread-id)
+                                                 :args-vec  args-vec
+                                                 :timestamp (utils/get-timestamp)})]
+        (enqueue-trace! trace)))))
 
 (defn trace-bound-trace
   
   "Send bind trace."
   
   [symb val {:keys [coor form-id]}]
-  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*
-        trace (trace-types/map->BindTrace {:flow-id flow-id
-                                           :form-id form-id
-                                           :coor (or coor [])
-                                           :thread-id (utils/get-current-thread-id)
-                                           :timestamp (utils/get-timestamp)
-                                           :symbol (name symb)
-                                           :value val})]
+  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (enqueue-trace! trace))))
+      (let [trace (trace-types/map->BindTrace {:flow-id flow-id                                               
+                                               :coor (or coor [])
+                                               :thread-id (utils/get-current-thread-id)
+                                               :timestamp (utils/get-timestamp)
+                                               :symbol (name symb)
+                                               :value val})]
+        (enqueue-trace! trace)))))
 
 (defn log-stats []
   (let [{:keys [put sent last-report-sent last-report-t]} @*stats
@@ -138,18 +136,18 @@
           (let [trace v]
 
             ;; Stats
-            (when (zero? (mod (:put @*stats) 50000))                  
-              (when verbose? (log-stats))
-              
-              (swap! *stats
-                     (fn [{:keys [sent] :as stats}]
-                       (assoc stats 
-                              :last-report-t (utils/get-monotonic-timestamp)
-                              :last-report-sent sent))))
+            (let [{:keys [sent]} @*stats]
+              (when (and verbose? (zero? (mod sent 50000)))
+                (log-stats)
+                (swap! *stats
+                       (fn [{:keys [sent] :as stats}]
+                         (assoc stats 
+                                :last-report-t (utils/get-monotonic-timestamp)
+                                :last-report-sent sent)))))
+                                    
+            (send-fn trace)
             
-            (swap! *stats update :sent inc)
-            
-            (send-fn trace))
+            (swap! *stats update :sent inc))
           (recur))))
     (log "Thread interrupted. Dying..."))
   

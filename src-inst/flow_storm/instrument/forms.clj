@@ -304,7 +304,9 @@
 
                                (instrument-outer-form ctx'
                                                       (instrument-coll arity-body-forms ctx')
-                                                      outer-preamble))]
+                                                      outer-preamble
+                                                      form-ns
+                                                      (str fn-trace-name)))]
     (-> `(~arity-args-vec ~inst-arity-body-form)
         (utils/merge-meta (meta arity)))))
 
@@ -822,14 +824,16 @@
 
 (defn- instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
-  [ctx forms preamble]
+  [ctx forms preamble fn-ns fn-name]
   `(let [runtime-ctx# tracer/*runtime-ctx*]
      ;; @@@ Speed rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
 
-     (binding [tracer/*runtime-ctx* (if runtime-ctx#
-                                      (update runtime-ctx# :tracing-disabled? #(or % ~(:tracing-disabled? ctx)))
-                                      (tracer/empty-runtime-ctx tracer/orphan-flow-id ~(:tracing-disabled? ctx)))]
+     (binding [tracer/*runtime-ctx* (cond-> (if runtime-ctx#
+                                              (update runtime-ctx# :tracing-disabled? #(or % ~(:tracing-disabled? ctx)))
+                                              (tracer/build-runtime-ctx {:flow-id tracer/orphan-flow-id
+                                                                         :tracing-disabled? ~(:tracing-disabled? ctx)}))
+                                      ~fn-name (assoc :fn-ns ~fn-ns :fn-name ~fn-name))]
        ~@(-> preamble
              (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
 

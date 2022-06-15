@@ -64,9 +64,10 @@
     (locking this
       (let [{:keys [timestamp]} (.get traces trace-idx)
            bind-traces (callstack-tree/bind-traces-for-trace callstack-tree trace-idx)
-           applicable-binds (keep (fn [bt]
-                                    (when (<= (:timestamp bt) timestamp)
-                                      [(:symbol bt) (:value bt)]))
+            applicable-binds (keep (fn [bt]
+                                     ;; TODO: this should also need to take into account bt coord
+                                     (when (<= (:timestamp bt) timestamp)
+                                       [(:symbol bt) (:value bt)]))
                                   bind-traces)]
        (into {} applicable-binds))))
 
@@ -85,7 +86,16 @@
 
   (callstack-node-frame [this node]
     (locking this
-      (callstack-tree/get-node-info node)))
+      (let [{:keys [call-trace-idx ret]} (callstack-tree/get-node-info node)]
+        (when call-trace-idx
+          (let [{:keys [form-id fn-name fn-ns args-vec timestamp]} (.get traces call-trace-idx)]
+            {:fn-name fn-name
+             :fn-ns fn-ns
+             :call-trace-idx call-trace-idx
+             :args args-vec
+             :timestamp timestamp
+             :form-id form-id
+             :ret ret})))))
 
   (callstack-tree-childs [this node]
     (locking this

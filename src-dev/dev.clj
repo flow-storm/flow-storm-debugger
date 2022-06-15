@@ -40,7 +40,6 @@
   (refresh :after 'dev/start-and-add-data))
 
 
-
 (Thread/setDefaultUncaughtExceptionHandler
    (reify
      Thread$UncaughtExceptionHandler
@@ -113,5 +112,23 @@
   (boo)
 
 
+  (.start
+   (Thread. (fn []
+              (fs-api/cli-run
+               {:instrument-ns #{"cljs."}
+                :profile :light
+                :verbose? :true
+                :require-before #{"cljs.repl.node"}
+                :excluding-ns #{"cljs.util" "cljs.vendor.cognitect.transit"}
+                :fn-symb 'cljs.main/-main
+                :fn-args ["-t" "nodejs" "/home/jmonetta/demo/org/foo/myscript.cljs"]}))))
+
+
+
+  (doseq [t (take 50 (flow-storm.debugger.trace-indexer.protos/print-traces (get-in @flow-storm.debugger.state/*state [:flows 0 :flow/threads 16 :thread/trace-indexer])
+                                                                            50))]
+       (if (instance? flow_storm.trace_types.ExecTrace t)
+         (println "ExecTrace" (:outer-form? t))
+         (println "FnCallTrace")))
 
   )

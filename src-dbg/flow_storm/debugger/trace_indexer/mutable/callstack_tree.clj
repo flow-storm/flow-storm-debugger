@@ -8,20 +8,10 @@
   (get-bindings [_])
   (get-min-trace-idx [_])
   (get-max-trace-idx [_])
-  (get-fn-name [_])
-  (get-fn-ns [_])
   (get-call-trace-idx [_])
-  (get-args [_])
-  (get-timestamp [_])
-  (get-form-id [_])
   (get-ret [_]))
 
-(deftype CallStackFrame [fn-name
-                         fn-ns
-                         call-trace-idx
-                         args
-                         timestamp
-                         form-id
+(deftype CallStackFrame [call-trace-idx
                          ^ArrayList bindings
                          ^:unsynchronized-mutable ret
                          ^:unsynchronized-mutable min-trace-idx
@@ -42,21 +32,11 @@
   (get-bindings [_] bindings)
   (get-min-trace-idx [_] min-trace-idx)
   (get-max-trace-idx [_] max-trace-idx)
-  (get-fn-name [_] fn-name)
-  (get-fn-ns [_] fn-ns)
   (get-call-trace-idx [_] call-trace-idx)
-  (get-args [_] args)
-  (get-timestamp [_] timestamp)
-  (get-form-id [_] form-id)
   (get-ret [_] ret))
 
-(defn make-callstack-frame [{:keys [fn-name fn-ns args-vec timestamp form-id]} trace-idx]
-  (->CallStackFrame fn-name
-                    fn-ns
-                    trace-idx
-                    args-vec
-                    timestamp
-                    form-id
+(defn make-callstack-frame [trace-idx]
+  (->CallStackFrame trace-idx
                     (ArrayList.)
                     nil
                     Long/MAX_VALUE
@@ -74,12 +54,7 @@
   TreeNode
 
   (get-node-info [_]
-    {:fn-name (get-fn-name node-frame)
-     :fn-ns (get-fn-ns node-frame)
-     :call-trace-idx (get-call-trace-idx node-frame)
-     :args (get-args node-frame)
-     :timestamp (get-timestamp node-frame)
-     :form-id (get-form-id node-frame)
+    {:call-trace-idx (get-call-trace-idx node-frame)
      :ret (get-ret node-frame)})
 
   (get-node-frame [_]
@@ -115,7 +90,7 @@
     root-node)
 
   (process-fn-call-trace [_ trace-idx fn-call-trace]
-    (let [new-frame (make-callstack-frame fn-call-trace trace-idx)
+    (let [new-frame (make-callstack-frame trace-idx)
           new-node (make-callstack-tree-node new-frame)
           curr-frame (.peek node-stack)]
 
@@ -151,7 +126,7 @@
       (get-call-trace-idx trace-frame))))
 
 (defn make-callstack-tree []
-  (let [first-frame (make-callstack-frame {} nil) ;; nil frame as a root frame
+  (let [first-frame (make-callstack-frame nil) ;; nil frame as a root frame
         first-node (make-callstack-tree-node first-frame)
         stack (ArrayDeque.)
         trace->frame (HashMap.)] ;; Keys on this map are Integers, don't search for longs
