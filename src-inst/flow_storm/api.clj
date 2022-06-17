@@ -226,7 +226,8 @@
                           :full {}
                           :light {:disable #{:expr :binding :anonymous-fn}}
                           {})
-                        (assoc :excluding-ns excluding-ns))
+                        (assoc :excluding-ns excluding-ns
+                               :verbose? verbose?))
           fn-ns-name (namespace fn-symb)
           _ (require (symbol fn-ns-name))
           _ (resolve fn-symb)

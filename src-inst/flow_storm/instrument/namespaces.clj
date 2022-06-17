@@ -179,7 +179,7 @@
 
   "Instrument and evaluates all forms in `file-url`"
 
-  [ns-symb file-url config]
+  [ns-symb file-url {:keys [verbose?] :as config}]
   ;; this is IMPORTANT, once we have `ns-symb` all the instrumentation work
   ;; should be done as if we where in `ns-symb`
   (binding [*ns* (find-ns ns-symb)]
@@ -201,14 +201,19 @@
                 (print "I")))
 
             (catch clojure.lang.ExceptionInfo ei
-              (let [ex-type (:type (ex-data ei))]
-                ;; Enable for debugging unknown errors
-                (when (= ex-type :unknown-error)
-                    (log (ex-message ei))
-                    #_(System/exit 1))
-                (case ex-type
-                  :known-error   (print (utils/colored-string "X" :yellow))
-                  :unknown-error (print (utils/colored-string "X" :red)))))))
+              (let [e-data (ex-data ei)
+                    ex-type (:type e-data)
+                    ex-type-color (case ex-type
+                                    :known-error   :yellow
+                                    :unknown-error :red)]
+                (if verbose?
+                  (do
+                    (println)
+                    (print (utils/colored-string e-data ex-type-color))
+                    (println))
+
+                  ;; else, quiet mode
+                  (print (utils/colored-string "X" ex-type-color)))))))
         (println)))))
 
 (defn instrument-files-for-namespaces
