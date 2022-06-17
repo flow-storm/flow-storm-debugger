@@ -54,6 +54,9 @@
   #?(:clj (.getId (Thread/currentThread))
      :cljs 0))
 
+(defn contains-only? [m ks]
+  (empty? (apply dissoc m ks)))
+
 (defn merge-meta
 
   "Non-throwing version of (vary-meta obj merge metamap-1 metamap-2 ...).

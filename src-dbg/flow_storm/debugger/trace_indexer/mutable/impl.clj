@@ -36,9 +36,9 @@
     (locking this
       (let [next-idx (.size traces)]
 
-       (callstack-tree/process-fn-call-trace callstack-tree next-idx trace)
+        (callstack-tree/process-fn-call-trace callstack-tree next-idx)
 
-       (.add traces trace))))
+        (.add traces trace))))
 
   (add-exec-trace [this {:keys [form-id]:as trace}]
     (locking this

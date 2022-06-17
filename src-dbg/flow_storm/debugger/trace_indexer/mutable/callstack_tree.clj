@@ -75,7 +75,7 @@
 
 (defprotocol CallStackTreeProto
   (get-tree-root [_])
-  (process-fn-call-trace [_ trace-idx fn-call-trace])
+  (process-fn-call-trace [_ trace-idx])
   (process-exec-trace [_ trace-idx exec-trace])
   (process-bind-trace [_ bind-trace])
   (bind-traces-for-trace [_ trace-idx])

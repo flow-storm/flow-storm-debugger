@@ -3,7 +3,7 @@
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.instrument.trace-types :as inst-trace-types]
-            [flow-storm.utils :refer [log log-error]]
+            [flow-storm.utils :refer [log log-error] :as utils]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
@@ -211,36 +211,40 @@
   "
 
   [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles
-           host port]}]
-  (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
-  (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
-  (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
-  (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
-  (assert (vector? fn-args) "fn-args should be a vector")
-  (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
-  (let [inst-opts (-> (case profile
-                        :full {}
-                        :light {:disable #{:expr :binding :anonymous-fn}}
-                        {})
-                      (assoc :excluding-ns excluding-ns))
-        fn-ns-name (namespace fn-symb)
-        _ (require (symbol fn-ns-name))
-        _ (resolve fn-symb)
-        ns-to-instrument (into #{fn-ns-name} instrument-ns)]
+           host port] :as opts}]
+  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :host :port}]
 
-    (when (seq require-before)
-      (doseq [ns-name require-before]
-        (log (format "Requiring ns %s" ns-name))
-        (require (symbol ns-name))))
+    (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
+    (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
+    (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
+    (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
+    (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
+    (assert (vector? fn-args) "fn-args should be a vector")
+    (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
 
-    (if (or host port)
-      (remote-connect {:host host :port port :verbose? verbose? :styles styles})
-      (local-connect {:verbose? verbose? :styles styles}))
-    (log (format "Instrumenting namespaces %s" ns-to-instrument))
-    (instrument-forms-for-namespaces ns-to-instrument inst-opts)
-    (log "Instrumentation done.")
-    (eval (runi* {}
-            `(~fn-symb ~@fn-args)))))
+    (let [inst-opts (-> (case profile
+                          :full {}
+                          :light {:disable #{:expr :binding :anonymous-fn}}
+                          {})
+                        (assoc :excluding-ns excluding-ns))
+          fn-ns-name (namespace fn-symb)
+          _ (require (symbol fn-ns-name))
+          _ (resolve fn-symb)
+          ns-to-instrument (into #{fn-ns-name} instrument-ns)]
+
+      (when (seq require-before)
+        (doseq [ns-name require-before]
+          (log (format "Requiring ns %s" ns-name))
+          (require (symbol ns-name))))
+
+      (if (or host port)
+        (remote-connect {:host host :port port :verbose? verbose? :styles styles})
+        (local-connect {:verbose? verbose? :styles styles}))
+      (log (format "Instrumenting namespaces %s" ns-to-instrument))
+      (instrument-forms-for-namespaces ns-to-instrument inst-opts)
+      (log "Instrumentation done.")
+      (eval (runi* {}
+                   `(~fn-symb ~@fn-args))))))
 
 (defmacro instrument* [config form]
   (inst-forms/instrument (assoc config :env &env) form))
