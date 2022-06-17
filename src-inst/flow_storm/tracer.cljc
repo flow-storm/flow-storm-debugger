@@ -21,7 +21,7 @@
 
 (def ^:dynamic *runtime-ctx* nil)
 
-(defn build-runtime-ctx [{:keys [flow-id tracing-disabled? fn-call-threshold]}]
+(defn build-runtime-ctx [{:keys [flow-id tracing-disabled?]}]
   {:flow-id flow-id
    :tracing-disabled? tracing-disabled?
    :init-traced-forms (atom #{})})
@@ -94,7 +94,7 @@
   
   "Send bind trace."
   
-  [symb val {:keys [coor form-id]}]
+  [symb val {:keys [coor]}]
   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
       (let [trace (trace-types/map->BindTrace {:flow-id flow-id                                               

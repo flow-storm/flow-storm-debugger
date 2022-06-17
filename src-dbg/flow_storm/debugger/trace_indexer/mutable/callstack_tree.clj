@@ -89,7 +89,7 @@
   (get-tree-root [_]
     root-node)
 
-  (process-fn-call-trace [_ trace-idx fn-call-trace]
+  (process-fn-call-trace [_ trace-idx]
     (let [new-frame (make-callstack-frame trace-idx)
           new-node (make-callstack-tree-node new-frame)
           curr-frame (.peek node-stack)]

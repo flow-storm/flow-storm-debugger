@@ -1,7 +1,7 @@
 (ns flow-storm.core
   (:require [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.instrument.namespaces :as inst-ns]
-            [flow-storm.utils :refer [log]]
+            [flow-storm.utils :refer [log-error log]]
             [flow-storm.tracer :as tracer]
             [flow-storm.instrument.trace-types :as trace-types]
             [clojure.repl :as clj.repl]
@@ -64,12 +64,15 @@
       (inst-ns/instrument-and-eval-form (find-ns (symbol form-ns)) form config))))
 
 (defn re-run-flow-command [{:keys [flow-id execution-expr]}]
-  (let [{:keys [ns form]} execution-expr]
-    (binding [*ns* (find-ns (symbol ns))]
-      (run-with-execution-ctx
-       {:flow-id flow-id
-        :orig-form form}
-       (eval form)))))
+  (try
+    (let [{:keys [ns form]} execution-expr]
+     (binding [*ns* (find-ns (symbol ns))]
+       (run-with-execution-ctx
+        {:flow-id flow-id
+         :orig-form form}
+        (eval form))))
+    (catch Exception e
+      (log-error (format "re-run-flow-command couldn't re run execution-expr %s" execution-expr) e))))
 
 (defn- get-remote-value-command [{:keys [vid print-length print-level print-meta? pprint? nth-elem]}]
   (let [value (trace-types/get-reference-value vid)

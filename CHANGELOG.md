@@ -6,11 +6,16 @@
 
 	* Add jump to first and last traces on thread controls
 	* Add print-level and print-meta controls on pprint value panels
-    
+    * Improve re-run flow UX
+	
 ### Changes
     
+	* Remove flow-storm.api/run since #rtrace(runi) is enough
+	
 ### Bugs fixed
-
+	
+	* Fix re run flow for #rtrace case
+	
 ## 2.2.68 (10-06-2022)
 
 ## New Features

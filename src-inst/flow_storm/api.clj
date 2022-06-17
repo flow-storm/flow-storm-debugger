@@ -139,38 +139,19 @@
 
   fs-core/uninstrument-var)
 
-;; TODO: deduplicate code between `run` and `runi`
-(defn- run*
-  ([form] `(run {} ~form))
-  ([{:keys [ns flow-id tracing-disabled?]} form]
-   `(let [flow-id# ~(or flow-id 0)
-          curr-ns# ~(or ns `(str (ns-name *ns*)))]
-      (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
-                                                                :tracing-disabled? ~tracing-disabled?})]
-        (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-        ~form))))
-
-(defmacro run
-
-  "Start a flow and run form for tracing.
-  Will setup the execution context so all instrumented functions tracing
-  derived from running `form` will end under the same flow.
-
-  (run opts form)
-
-  `opts` is a map that support the same keys as `instrument-var`."
-
-  [& args] (apply run* args))
-
 (defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
-  `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
-         curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))]
-     (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
-                                                               :tracing-disabled? ~tracing-disabled?})]
-       (tracer/trace-flow-init-trace flow-id# curr-ns# ~(list 'quote form))
-       ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
-       ;; doesn't work with fn* in clojurescript
-       (~(inst-forms/instrument opts `(fn* ~'flowstorm-runi ([] ~form)))))))
+  ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
+  ;; doesn't work with fn* in clojurescript
+  (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))]
+    `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
+           curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))
+
+           ]
+       (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
+                                                                 :tracing-disabled? ~tracing-disabled?})]
+         (tracer/trace-flow-init-trace flow-id# curr-ns# (quote (runi ~opts ~form)))
+
+         (~(inst-forms/instrument opts wrapped-form))))))
 
 (defmacro runi
 
@@ -258,10 +239,8 @@
     (log (format "Instrumenting namespaces %s" ns-to-instrument))
     (instrument-forms-for-namespaces ns-to-instrument inst-opts)
     (log "Instrumentation done.")
-    (eval (run* {}
-            `(try
-               (~fn-symb ~@fn-args)
-               (catch Exception e# (.printStackTrace e#)))))))
+    (eval (runi* {}
+            `(~fn-symb ~@fn-args)))))
 
 (defmacro instrument* [config form]
   (inst-forms/instrument (assoc config :env &env) form))

@@ -57,6 +57,9 @@
         thread-trace-count-lbl (label "-")
         _ (store-obj flow-id (ui-vars/thread-curr-trace-lbl-id thread-id) curr-trace-lbl)
         _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
+        {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
+        execution-expression? (and (:ns execution-expr)
+                                   (:form execution-expr))
         next-btn (doto (ui-utils/icon-button "mdi-chevron-right")
                    (.setOnAction (event-handler
                                   [ev]
@@ -72,9 +75,9 @@
         re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
                           (.setOnAction (event-handler
                                          [_]
-                                         (let [{:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)]
-                                           (when execution-expr
-                                             (target-commands/run-command :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))))
+                                         (when execution-expression?
+                                           (target-commands/run-command :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))
+                          (.setDisable (not execution-expression?)))
         trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
         controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
