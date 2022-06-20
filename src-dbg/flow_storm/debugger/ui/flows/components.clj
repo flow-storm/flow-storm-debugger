@@ -56,7 +56,8 @@
     (.setOnAction def-btn (event-handler
                            [_]
                            (let [tdiag (doto (TextInputDialog.)
-                                         (.setHeaderText "Var name?"))
+                                         (.setHeaderText "Def var with name (in Clojure under user/ namespace and in ClojureScript under js/) ")
+                                         (.setContentText "Var name :"))
                                  _ (.showAndWait tdiag)
                                  val-name (let [txt (-> tdiag .getEditor .getText)]
                                             (if (str/blank? txt)
