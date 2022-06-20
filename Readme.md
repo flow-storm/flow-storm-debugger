@@ -148,5 +148,8 @@ while in ClojureScript it is going to be under `js/my-value`.
 
 FlowStorm ClojureScript support is still in its infancy, for instructions on how to use it check [here](./docs/ClojureScript.md)
 
+## What to do when things don't work?
+
+Please create a issue if you think you found a bug. If you are not sure you can ask in [#flow-storm slack channel](https://clojurians.slack.com/archives/C03KZ3XT0CF)
 
 
