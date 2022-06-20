@@ -85,8 +85,23 @@
                               (.setGraphic ^Node list-cell hbox))))))
         locals-list-view (doto (ListView. observable-bindings-list)
                            (.setEditable false)
-                           (.setCellFactory cell-factory))]
+                           (.setCellFactory cell-factory))
+        locals-list-selection (.getSelectionModel locals-list-view)]
     (store-obj flow-id (ui-vars/thread-locals-list-id thread-id) observable-bindings-list)
+
+    (.setOnMouseClicked locals-list-view
+                        (event-handler
+                         [mev]
+                         (when (= MouseButton/SECONDARY (.getButton mev))
+                           (let [[_ val] (-> (.getSelectedItems locals-list-selection)
+                                               first)
+                                 ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
+                                                                        :on-click (fn []
+                                                                                    (flow-cmp/def-val val))}])]
+                             (.show ctx-menu
+                                    locals-list-view
+                                    (.getScreenX mev)
+                                    (.getScreenY mev))))))
     locals-list-view))
 
 (defn- update-locals-pane [flow-id thread-id bindings]

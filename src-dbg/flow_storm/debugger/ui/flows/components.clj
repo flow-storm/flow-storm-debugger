@@ -44,6 +44,24 @@
 (defn create-result-tree-pane [_ _]
   (label "TREE"))
 
+(defn def-val [val]
+  (let [tdiag (doto (TextInputDialog.)
+                (.setHeaderText "Def var with name (in Clojure under user/ namespace and in ClojureScript under js/) ")
+                (.setContentText "Var name :"))
+        _ (.showAndWait tdiag)
+        val-name (let [txt (-> tdiag .getEditor .getText)]
+                   (if (str/blank? txt)
+                     "val0"
+                     txt))]
+    (cond
+      (local-imm-value? val)
+      (target-commands/run-command :def-value {:val (:val val)
+                                               :val-name val-name})
+
+      (remote-imm-value? val)
+      (target-commands/run-command :def-remote-value {:vid (:vid val)
+                                                      :val-name val-name}))))
+
 (defn update-pprint-pane [flow-id thread-id pane-id val]
   (let [[^TextArea text-area] (obj-lookup flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id))
         [print-level-txt] (obj-lookup flow-id (ui-vars/thread-pprint-level-txt-id thread-id pane-id))
@@ -53,22 +71,5 @@
                                           :print-level (Integer/parseInt (.getText print-level-txt))
                                           :print-meta? (.isSelected print-meta-chk)
                                           :pprint? true}))]
-    (.setOnAction def-btn (event-handler
-                           [_]
-                           (let [tdiag (doto (TextInputDialog.)
-                                         (.setHeaderText "Def var with name (in Clojure under user/ namespace and in ClojureScript under js/) ")
-                                         (.setContentText "Var name :"))
-                                 _ (.showAndWait tdiag)
-                                 val-name (let [txt (-> tdiag .getEditor .getText)]
-                                            (if (str/blank? txt)
-                                              "val0"
-                                              txt))]
-                             (cond
-                               (local-imm-value? val)
-                               (target-commands/run-command :def-value {:val (:val val)
-                                                                        :val-name val-name})
-
-                               (remote-imm-value? val)
-                               (target-commands/run-command :def-remote-value {:vid (:vid val)
-                                                                               :val-name val-name})))))
+    (.setOnAction def-btn (event-handler [_] (def-val val)))
     (.setText text-area val-str)))
