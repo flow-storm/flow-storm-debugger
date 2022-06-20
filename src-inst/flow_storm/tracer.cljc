@@ -34,7 +34,7 @@
   (let [trace (trace-types/map->FlowInitTrace {:flow-id flow-id
                                                :form-ns form-ns
                                                :form form
-                                               :timestamp (utils/get-timestamp)})]    
+                                               :timestamp (utils/get-monotonic-timestamp)})]
     (enqueue-trace! trace)))
 
 (defn trace-form-init-trace
@@ -52,7 +52,7 @@
                                                    :ns ns
                                                    :def-kind def-kind
                                                    :mm-dispatch-val dispatch-val
-                                                   :timestamp (utils/get-timestamp)})]
+                                                   :timestamp (utils/get-monotonic-timestamp)})]
         (enqueue-trace! trace)
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
@@ -67,7 +67,7 @@
                                                :form-id form-id
                                                :coor coor
                                                :thread-id (utils/get-current-thread-id)
-                                               :timestamp (utils/get-timestamp)
+                                               :timestamp (utils/get-monotonic-timestamp)
                                                :result result
                                                :outer-form? outer-form?})]
         (enqueue-trace! trace)))
@@ -87,7 +87,7 @@
                                                  :fn-ns ns
                                                  :thread-id (utils/get-current-thread-id)
                                                  :args-vec  args-vec
-                                                 :timestamp (utils/get-timestamp)})]
+                                                 :timestamp (utils/get-monotonic-timestamp)})]
         (enqueue-trace! trace)))))
 
 (defn trace-bound-trace
@@ -100,7 +100,7 @@
       (let [trace (trace-types/map->BindTrace {:flow-id flow-id                                               
                                                :coor (or coor [])
                                                :thread-id (utils/get-current-thread-id)
-                                               :timestamp (utils/get-timestamp)
+                                               :timestamp (utils/get-monotonic-timestamp)
                                                :symbol (name symb)
                                                :value val})]
         (enqueue-trace! trace)))))

@@ -17,6 +17,7 @@
 ### Bugs fixed
 	
 	* Fix re run flow for #rtrace case
+	* Fix local binding instrumentation and debugging
 	
 ## 2.2.68 (10-06-2022)
 

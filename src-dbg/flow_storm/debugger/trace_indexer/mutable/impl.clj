@@ -62,13 +62,18 @@
 
   (bindings-for-trace [this trace-idx]
     (locking this
-      (let [{:keys [timestamp]} (.get traces trace-idx)
-           bind-traces (callstack-tree/bind-traces-for-trace callstack-tree trace-idx)
+      (let [coor-in-scope? (fn [scope-coor current-coor]
+                             (if (empty? scope-coor)
+                               true
+                               (and (every? true? (map = scope-coor current-coor))
+                                    (> (count current-coor) (count scope-coor)))))
+            curr-trace (.get traces trace-idx)
+            bind-traces (callstack-tree/bind-traces-for-trace callstack-tree trace-idx)
             applicable-binds (keep (fn [bt]
-                                     ;; TODO: this should also need to take into account bt coord
-                                     (when (<= (:timestamp bt) timestamp)
+                                     (when (and (coor-in-scope? (:coor bt) (:coor curr-trace))
+                                                (<= (:timestamp bt) (:timestamp curr-trace)))
                                        [(:symbol bt) (:value bt)]))
-                                  bind-traces)]
+                                   bind-traces)]
        (into {} applicable-binds))))
 
   (interesting-expr-traces [this form-id trace-idx]

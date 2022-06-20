@@ -234,26 +234,39 @@
 
   [[name & args :as form] {:keys [disable] :as ctx}]
 
-  (cons (->> (first args)
-             (partition 2)
-             (mapcat (fn [[symb x]]
-                       (if (or (uninteresting-symb? symb)
-                               (#{'loop*} name))
-                         [symb (instrument-form-recursively x ctx)]
+  (let [bindings (->> (first args)
+                      (partition 2))
+        inst-bindings-vec (if (or (disable :binding)
+                                  (#{'loop* 'letfn*} name))
+                            ;; don't mess with the bindings for loop* and letfn*
+                            ;; letfn* doesn't make sense since all the bindings are fns and
+                            ;; there is nothing to see there.
+                            ;; If it is a loop* we are going to break the recur call
+                            (first args)
 
-                         ;; if it is not a loop add more _ bindings
-                         ;; that just trace the bound values
-                         ;; like [a (+ 1 2)] will became
-                         ;; [a (+ 1 2)
-                         ;;  _ (bound-trace a ...)]
-                         (cond-> [symb (instrument-form-recursively x ctx)]
-                           ;; doesn't make sense to trace the bind if its a letfn* since
-                           ;; they are just fns
-                           (and (not (disable :binding))
-                                (not= 'letfn* name))
-                           (into ['_ (bind-tracer symb (-> form meta ::coor) ctx)])))))
-             vec)
-        (instrument-coll (rest args) ctx)))
+                            ;; else it is a let* so we can add binding traces after each binding
+                            (->> bindings
+                                 (mapcat (fn [[symb x]]
+                                           ;; like [a (+ 1 2)] will became
+                                           ;; [a (+ 1 2)
+                                           ;;  _ (bind-tracer a ...)]
+                                           (-> [symb (instrument-form-recursively x ctx)]
+                                               (into ['_ (bind-tracer symb (-> form meta ::coor) ctx)]))))
+                                 vec))
+        inst-body (if (and (= name 'loop*)
+                           (not (disable :bindings)))
+                    ;; if it is a loop* form we can still add bind traces to the body
+                    (let [loop-binding-traces (->> bindings
+                                                   (map (fn [[symb _]]
+                                                          (bind-tracer symb (-> form meta ::coor) ctx))))]
+                      `(~@loop-binding-traces
+                        ~@(instrument-coll (rest args) ctx)))
+
+                    ;; else just instrument the body recursively
+                    (instrument-coll (rest args) ctx))]
+
+    (cons inst-bindings-vec
+          inst-body)))
 
 (defn- instrument-fn-arity-body [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns] :as ctx}]
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))

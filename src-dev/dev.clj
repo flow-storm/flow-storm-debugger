@@ -16,9 +16,9 @@
 (javafx.embed.swing.JFXPanel.)
 
 (defn run [& _]
-  (fs-api/run
-    {:flow-id 0}
-    (dev-tester/boo [2 "hello" 8])))
+  #_(fs-api/runi
+   {:flow-id 0}
+   (dev-tester/boo [2 "hello" 8])))
 
 (defn start-and-add-data [& _]
 
