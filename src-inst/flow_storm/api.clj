@@ -187,6 +187,13 @@
 
   inst-ns/instrument-files-for-namespaces)
 
+(def uninstrument-forms-for-namespaces
+
+  "Undo instrumentation made by `flow-storm.api/instrument-forms-for-namespaces`"
+
+  inst-ns/uninstrument-files-for-namespaces)
+
+
 (defn cli-run
 
   "Require `fn-symb` ns, instrument `ns-set` (excluding `excluding-ns`) and then call (apply `fn-symb` `fn-args`).

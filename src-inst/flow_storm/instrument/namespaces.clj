@@ -216,6 +216,26 @@
                   (print (utils/colored-string "X" ex-type-color)))))))
         (println)))))
 
+(defn- re-eval-file-forms [ns-symb file-url]
+  (binding [*ns* (find-ns ns-symb)]
+    (let [file-forms (read-string {:read-cond :allow}
+                                  (format "[%s]" (slurp file-url)))]
+      (log (format "\nUN-Instrumenting namespace: %s Forms (%d) (%s)" ns-symb (count file-forms) (.getFile file-url)))
+
+      (doseq [form file-forms]
+        (try
+          (eval form)
+          (catch Exception e
+            (println)
+            (println (utils/colored-string
+                      (format "Error uninstrumenting form %s" form)
+                      :red))
+            (println (utils/colored-string
+                      (.getMessage e)
+                      :red))
+            (println))))
+      (println))))
+
 (defn instrument-files-for-namespaces
 
   "Instrument and evaluates all forms of all loaded namespaces matching
@@ -259,11 +279,23 @@
         all-files-set (into #{} (map (fn [[ns-name {:keys [file]}]] [ns-name file]) all-ns-info))
         independent-files (set/difference all-files-set
                                           (into #{} dependent-files-vec))
+
+        ;; vector of all files to be instrumented, sorted in dependency topological order
         to-instrument-vec (into dependent-files-vec independent-files)]
 
     #_(log (format "Dependent files in order : %s" dependent-files-vec))
     #_(log (format "Independent files : %s" independent-files))
     #_(log (format "To instrument : %s" to-instrument-vec))
 
-    (doseq [[ns-symb file] to-instrument-vec]
-      (instrument-and-eval-file-forms ns-symb file config))))
+    (if (:uninstrument? config)
+
+      ;; uninstrument - re evaluate all file forms in reverse order
+      (doseq [[ns-symb file] (reverse to-instrument-vec)]
+        (re-eval-file-forms ns-symb file))
+
+      ;; instrument - evaluate all file instrumented forms
+      (doseq [[ns-symb file] to-instrument-vec]
+        (instrument-and-eval-file-forms ns-symb file config)))))
+
+(defn uninstrument-files-for-namespaces [prefixes]
+  (instrument-files-for-namespaces prefixes {:uninstrument? true}))
