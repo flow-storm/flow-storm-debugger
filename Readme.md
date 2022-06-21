@@ -150,6 +150,10 @@ FlowStorm ClojureScript support is still in its infancy, for instructions on how
 
 ## What to do when things don't work?
 
-Please create a issue if you think you found a bug. If you are not sure you can ask in [#flow-storm slack channel](https://clojurians.slack.com/archives/C03KZ3XT0CF)
+Please create a [issue](https://github.com/jpmonettas/flow-storm-debugger/issues) if you think you found a bug.
+
+If you are not sure you can ask in :
+ - [#flow-storm slack channel](https://clojurians.slack.com/archives/C03KZ3XT0CF)
+ - [github discussions](https://github.com/jpmonettas/flow-storm-debugger/discussions)
 
 
