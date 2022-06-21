@@ -52,9 +52,9 @@
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
                                                  (dec (dbg-state/current-trace-idx flow-id thread-id))))))
-        curr-trace-lbl (label "0")
+        curr-trace-lbl (label "1")
         separator-lbl (label "/")
-        thread-trace-count-lbl (label "-")
+        thread-trace-count-lbl (label "?")
         _ (store-obj flow-id (ui-vars/thread-curr-trace-lbl-id thread-id) curr-trace-lbl)
         _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)

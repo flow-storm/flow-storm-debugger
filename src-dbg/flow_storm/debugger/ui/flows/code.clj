@@ -206,7 +206,7 @@
             changing-form? (not= curr-form-id next-form-id)]
 
         ;; update thread current trace label and total traces
-        (.setText curr_trace_lbl (str next-trace-idx))
+        (.setText curr_trace_lbl (str (inc next-trace-idx)))
         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
         (when changing-form?
