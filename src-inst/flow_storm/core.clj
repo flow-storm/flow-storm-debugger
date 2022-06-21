@@ -7,6 +7,12 @@
             [clojure.repl :as clj.repl]
             [clojure.pprint :as pp]))
 
+(defn disable-from-profile [profile]
+  (case profile
+    :full {}
+    :light {:disable #{:expr :binding :anonymous-fn}}
+    {}))
+
 (defmacro run-with-execution-ctx
   [{:keys [orig-form ns flow-id]} form]
   `(let [flow-id# ~(or flow-id 0)
@@ -108,18 +114,27 @@
       (update :ns (comp str ns-name))
       (update :name str)))
 
+(defn- instrument-namespaces-command [{:keys [ns-names profile]}]
+  (inst-ns/instrument-files-for-namespaces ns-names (assoc (disable-from-profile profile)
+                                                           :prefixes? false)))
+
+(defn- uninstrument-namespaces-command [{:keys [ns-names]}]
+  (inst-ns/uninstrument-files-for-namespaces ns-names {:prefixes? false}))
+
 (defn run-command [comm-id method args-map]
   (let [f (case method
-            :instrument-fn       instrument-fn-command
-            :uninstrument-fns    uninstrument-fns-command
-            :eval-forms          eval-forms-command
-            :instrument-forms    instrument-forms-command
-            :re-run-flow         re-run-flow-command
-            :get-remote-value    get-remote-value-command
-            :def-value           def-value-command
-            :def-remote-value    def-remote-value-command
-            :get-all-namespaces  get-all-namespaces-command
-            :get-all-vars-for-ns get-all-vars-for-ns-command
-            :get-var-meta        get-var-meta-command
+            :instrument-fn         instrument-fn-command
+            :uninstrument-fns      uninstrument-fns-command
+            :eval-forms            eval-forms-command
+            :instrument-forms      instrument-forms-command
+            :re-run-flow           re-run-flow-command
+            :get-remote-value      get-remote-value-command
+            :def-value             def-value-command
+            :def-remote-value      def-remote-value-command
+            :get-all-namespaces    get-all-namespaces-command
+            :get-all-vars-for-ns   get-all-vars-for-ns-command
+            :get-var-meta          get-var-meta-command
+            :instrument-namespaces   instrument-namespaces-command
+            :uninstrument-namespaces uninstrument-namespaces-command
             )]
     [:cmd-ret [comm-id (f args-map)]]))

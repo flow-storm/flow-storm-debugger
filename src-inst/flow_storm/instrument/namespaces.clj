@@ -10,21 +10,24 @@
 
 (def flow-storm-ns-tag "FLOWNS")
 
-(defn all-ns-with-prefixes
+(defn all-namespaces
 
-  "Return all loaded namespaces that start with `prefixes` but
-  excluding `excluding-ns`."
+  "Return all loaded namespaces that match with `ns-strs` but
+  excluding `excluding-ns`. If `prefixes?` is true, `ns-strs`
+  will be used as prefixes, else a exact match will be required."
 
-  [prefixes {:keys [excluding-ns]}]
+  [ns-strs {:keys [excluding-ns prefixes?]}]
   (->> (all-ns)
        (keep (fn [ns]
                (let [nsname (str (ns-name ns))]
                  (when (and (not (excluding-ns nsname))
                             (not (str/includes? nsname flow-storm-ns-tag))
-                            (some (fn [prefix]
-                                    (str/starts-with? nsname prefix))
-                                  prefixes))
-                  ns))))))
+                            (some (fn [ns-str]
+                                    (if prefixes?
+                                      (str/starts-with? nsname ns-str)
+                                      (= nsname ns-str)))
+                                  ns-strs))
+                   ns))))))
 
 (defn ns-vars
 
@@ -239,26 +242,30 @@
 (defn instrument-files-for-namespaces
 
   "Instrument and evaluates all forms of all loaded namespaces matching
-  the `prefixes` set."
+  `ns-strs`.
+  If `prefixes?` is true, `ns-strs` will be used as prefixes, else a exact match will be required."
 
-  [prefixes config]
+  [ns-strs {:keys [prefixes?] :as config}]
 
   (let [{:keys [excluding-ns] :as config} (-> config
                                               (update :excluding-ns #(or % #{}))
                                               (update :disable #(or % #{})))
-        ns-set (all-ns-with-prefixes prefixes config)
+        ns-set (all-namespaces ns-strs config)
+
         files-set (interesting-files-for-namespaces ns-set)
-        prefixes-p (fn [nsname]
-                     (and (not (excluding-ns nsname))
-                          (some (fn [prefix]
-                                  (str/starts-with? nsname prefix))
-                                prefixes)))
+        ns-pred (fn [nsname]
+                  (and (not (excluding-ns nsname))
+                       (some (fn [ns-str]
+                               (if prefixes?
+                                 (str/starts-with? nsname ns-str)
+                                 (= nsname ns-str)))
+                             ns-strs)))
         all-ns-info (reduce (fn [r f]
                               (let [ns-decl-form (read-file-ns-decl f)
                                     ns-name (tools-ns-parse/name-from-ns-decl ns-decl-form)
                                     deps (tools-ns-parse/deps-from-ns-decl ns-decl-form)]
                                 (if ns-name
-                                  (assoc r ns-name {:file f :deps (filter prefixes-p deps)})
+                                  (assoc r ns-name {:file f :deps (filter ns-pred deps)})
                                   r)))
                             {}
                             files-set)
@@ -297,5 +304,5 @@
       (doseq [[ns-symb file] to-instrument-vec]
         (instrument-and-eval-file-forms ns-symb file config)))))
 
-(defn uninstrument-files-for-namespaces [prefixes]
-  (instrument-files-for-namespaces prefixes {:uninstrument? true}))
+(defn uninstrument-files-for-namespaces [ns-strs config]
+  (instrument-files-for-namespaces ns-strs (assoc config :uninstrument? true)))

@@ -10,6 +10,7 @@
 	* Namespace instrumentation now accepts :verbose? to log known and unknown instrumentation errors details
 	* Add flow-storm.api/uninstrument-forms-for-namespaces to undo instrument-form-for-namespaces instrumentation
 	* Add ctx menu on locals to define vars from values
+	* Add browser namespaces instrumentation/uninstrumentation
 	
 ### Changes
     

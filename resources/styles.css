@@ -147,6 +147,10 @@
 	-fx-font-size: 10;
 }
 
+.browser-instr-type-lbl {
+	-fx-text-fill: #91919;
+}
+
 .button {
 	-fx-background-color: #336699;
     -fx-text-fill: white;    

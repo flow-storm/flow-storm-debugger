@@ -169,7 +169,7 @@
 
   (runi* (assoc opts :env &env) form))
 
-(def instrument-forms-for-namespaces
+(defn instrument-forms-for-namespaces
 
   "Instrument all forms, in all namespaces that matches `prefixes`.
 
@@ -183,15 +183,17 @@
                   useful for disabling unnecesary traces in code that generate too many traces
   "
 
+  [prefixes opts]
 
+  (inst-ns/instrument-files-for-namespaces prefixes (assoc opts :prefixes? true)))
 
-  inst-ns/instrument-files-for-namespaces)
-
-(def uninstrument-forms-for-namespaces
+(defn uninstrument-forms-for-namespaces
 
   "Undo instrumentation made by `flow-storm.api/instrument-forms-for-namespaces`"
 
-  inst-ns/uninstrument-files-for-namespaces)
+  [prefixes]
+
+  (inst-ns/uninstrument-files-for-namespaces prefixes {:prefixes? true}))
 
 
 (defn cli-run
@@ -229,10 +231,7 @@
     (assert (vector? fn-args) "fn-args should be a vector")
     (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
 
-    (let [inst-opts (-> (case profile
-                          :full {}
-                          :light {:disable #{:expr :binding :anonymous-fn}}
-                          {})
+    (let [inst-opts (-> (fs-core/disable-from-profile profile)
                         (assoc :excluding-ns excluding-ns
                                :verbose? verbose?))
           fn-ns-name (namespace fn-symb)
