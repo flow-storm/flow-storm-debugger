@@ -12,6 +12,12 @@
            [java.net URI]
            [org.java_websocket.handshake ServerHandshake]))
 
+;; TODO: build script
+;; Maybe we can figure out this ns names by scanning (all-ns) so
+;; we don't need to list them here
+;; Also maybe just finding main is enough, we can add to it a fn
+;; that returns the rest of the functions we need
+(def debugger-events-processor-ns 'flow-storm.debugger.events-processor)
 (def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
 (def debugger-main-ns 'flow-storm.debugger.main)
 
@@ -43,6 +49,9 @@
                             (log-error "Exception dispatching trace " e)))))))))
 
 (def remote-websocket-client nil)
+
+(defn remote-connected? []
+  (boolean remote-websocket-client))
 
 (defn close-remote-connection []
   (when remote-websocket-client
@@ -86,16 +95,18 @@
                                       (onError [^Exception e]
                                         (log-error (format "WebSocket error connection %s" uri-str) e)))
 
+         _ (alter-var-root #'remote-websocket-client (constantly ws-client))
+
          remote-dispatch-trace (fn remote-dispatch-trace [trace]
                                  (let [packet [:trace trace]
                                        ser (serializer/serialize packet)]
                                    ;; websocket library isn't clear about thread safty of send
                                    ;; lets synchronize just in case
-                                   (locking ws-client
-                                     (.send ^WebSocketClient ws-client ^String ser))))]
+                                   (locking remote-websocket-client
+                                     (.send ^WebSocketClient remote-websocket-client ^String ser))))]
 
-     (.setConnectionLostTimeout ws-client 0)
-     (.connect ws-client)
+     (.setConnectionLostTimeout remote-websocket-client 0)
+     (.connect remote-websocket-client)
 
      (tracer/start-trace-sender
       (assoc config
@@ -105,11 +116,25 @@
                               inst-trace-types/ref-values!
                               remote-dispatch-trace)
                           (catch Exception e
-                            (log-error "Exception dispatching trace " e))))))
+                            (log-error "Exception dispatching trace " e)))))))))
 
-     (alter-var-root #'remote-websocket-client (constantly ws-client)))))
+(defn send-event-to-debugger [ev]
 
-(def instrument-var
+  (let [packet [:event ev]]
+    (if (remote-connected?)
+
+      ;; send remote
+      (let [ser-packet (serializer/serialize packet)]
+        ;; websocket library isn't clear about thread safty of send
+        ;; lets synchronize just in case
+        (locking remote-websocket-client
+          (.send remote-websocket-client ser-packet)))
+
+      ;; "send" locally (just call a function)
+      (let [local-process-event (resolve (symbol (name debugger-events-processor-ns) "process-event"))]
+        (local-process-event ev)))))
+
+(defn instrument-var
 
   "Instruments any var.
 
@@ -128,16 +153,26 @@
 
   `opts` is a map that support :flow-id and :disable
   See `instrument-forms-for-namespaces` for :disable"
+  ([var-symb] (instrument-var var-symb {}))
+  ([var-symb config]
 
-  fs-core/instrument-var)
+   (fs-core/instrument-var var-symb config)
 
-(def uninstrument-var
+   (send-event-to-debugger [:var-instrumented {:var-name (name var-symb)
+                                               :var-ns (namespace var-symb)}])))
+
+(defn uninstrument-var
 
   "Remove instrumentation given a var symbol.
 
   (uninstrument-var var-symb)"
 
-  fs-core/uninstrument-var)
+  [var-symb]
+
+  (fs-core/uninstrument-var var-symb)
+
+  (send-event-to-debugger [:var-uninstrumented {:var-name (name var-symb)
+                                                :var-ns (namespace var-symb)}]))
 
 (defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
@@ -183,9 +218,13 @@
                   useful for disabling unnecesary traces in code that generate too many traces
   "
 
-  [prefixes opts]
+  ([prefixes] (instrument-forms-for-namespaces prefixes {}))
+  ([prefixes opts]
 
-  (inst-ns/instrument-files-for-namespaces prefixes (assoc opts :prefixes? true)))
+   (let [inst-namespaces (inst-ns/instrument-files-for-namespaces prefixes (assoc opts
+                                                                                  :prefixes? true))]
+     (doseq [ns-symb inst-namespaces]
+       (send-event-to-debugger [:namespace-instrumented {:ns-name (str ns-symb)}])))))
 
 (defn uninstrument-forms-for-namespaces
 
@@ -193,7 +232,10 @@
 
   [prefixes]
 
-  (inst-ns/uninstrument-files-for-namespaces prefixes {:prefixes? true}))
+  (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces prefixes {:prefixes? true
+                                                                             :uninstrument? true})]
+    (doseq [ns-symb uninst-namespaces]
+      (send-event-to-debugger [:namespace-uninstrumented {:ns-name (str ns-symb)}]))))
 
 
 (defn cli-run

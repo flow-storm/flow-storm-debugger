@@ -70,7 +70,7 @@
   (when websocket-server
     (.stop websocket-server)))
 
-(defn start-websocket-server [{:keys [trace-dispatcher show-error on-connection-open]}]
+(defn start-websocket-server [{:keys [event-dispatcher trace-dispatcher show-error on-connection-open]}]
   (let [ws-server (create-ws-server
                    {:port 7722
                     :on-connection-open on-connection-open
@@ -78,6 +78,7 @@
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
                                       (case msg-kind
+                                        :event (event-dispatcher msg-body)
                                         :trace (trace-dispatcher conn msg-body)
                                         :cmd-ret (process-command-response msg-body)
                                         :cmd-err (show-error msg-body)))

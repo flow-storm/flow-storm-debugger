@@ -119,7 +119,8 @@
                                                            :prefixes? false)))
 
 (defn- uninstrument-namespaces-command [{:keys [ns-names]}]
-  (inst-ns/uninstrument-files-for-namespaces ns-names {:prefixes? false}))
+  (inst-ns/instrument-files-for-namespaces ns-names {:prefixes? false
+                                                     :uninstrument? true}))
 
 (defn run-command [comm-id method args-map]
   (let [f (case method

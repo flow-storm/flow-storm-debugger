@@ -13,17 +13,61 @@
            [java.util.function Predicate]
            [javafx.scene.input MouseButton]))
 
-(defn- instrument-function [var-ns var-name add?]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (target-commands/run-command :instrument-fn {:fn-symb (symbol var-ns var-name)})
-    (when add?
-      (.addAll observable-instrumentations-list (into-array Object [{:inst-type :var :var-name var-name :var-ns var-ns}])))))
+(defn make-inst-var [var-ns var-name]
+  {:inst-type :var
+   :var-ns var-ns
+   :var-name var-name})
 
-(defn- uninstrument-function [inst-var remove?]
+(defn make-inst-ns [ns-name]
+  {:inst-type :ns
+   :ns-name ns-name})
+
+(defn add-to-var-instrumented-list [var-ns var-name]
   (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (target-commands/run-command :uninstrument-fns {:vars-symbs [(symbol (:var-ns inst-var) (:var-name inst-var))]})
-    (when remove?
-      (.removeAll observable-instrumentations-list (into-array Object [inst-var])))))
+    (.addAll observable-instrumentations-list (into-array Object [(make-inst-var var-ns var-name)]))))
+
+(defn remove-from-var-instrumented-list [var-ns var-name]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+    (.removeAll observable-instrumentations-list (into-array Object [(make-inst-var var-ns var-name)]))))
+
+(defn- instrument-function [var-ns var-name add?]
+
+  (target-commands/run-command :instrument-fn {:fn-symb (symbol var-ns var-name)})
+
+  (when add?
+    (add-to-var-instrumented-list var-ns var-name)))
+
+(defn- uninstrument-function [var-ns var-name remove?]
+
+  (target-commands/run-command :uninstrument-fns {:vars-symbs [(symbol var-ns var-name)]})
+
+  (when remove?
+    (remove-from-var-instrumented-list var-ns var-name)))
+
+(defn add-to-namespace-instrumented-list [ns-names]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+    (.addAll observable-instrumentations-list (into-array Object (map make-inst-ns ns-names)))))
+
+(defn remove-from-namespace-instrumented-list [ns-name]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+    (.removeAll observable-instrumentations-list (into-array Object [(make-inst-ns ns-name)]))))
+
+(defn- instrument-namespaces [ns-names profile]
+  (target-commands/run-command
+   :instrument-namespaces
+   {:ns-names ns-names
+    :profile profile})
+
+  (add-to-namespace-instrumented-list ns-names))
+
+(defn- uninstrument-namespaces [inst-ns]
+  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+
+    (target-commands/run-command
+     :uninstrument-namespaces
+     {:ns-names [(:ns-name inst-ns)]})
+
+    (remove-from-namespace-instrumented-list (:ns-name inst-ns))))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
@@ -77,28 +121,6 @@
                                {}
                                (fn [all-namespaces]
                                  (ui-utils/run-later (update-namespaces-pane all-namespaces)))))
-
-(defn- instrument-namespaces [ns-names profile]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-
-    (target-commands/run-command
-     :instrument-namespaces
-     {:ns-names ns-names
-      :profile profile})
-
-    (.addAll observable-instrumentations-list (into-array Object (->> ns-names
-                                                                      (map (fn [ns-name]
-                                                                             {:inst-type :ns
-                                                                              :ns-name ns-name})))))))
-
-(defn- uninstrument-namespaces [inst-ns]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-
-    (target-commands/run-command
-     :uninstrument-namespaces
-     {:ns-names [(:ns-name inst-ns)]})
-
-    (.removeAll observable-instrumentations-list (into-array Object [inst-ns]))))
 
 (defn create-namespaces-pane []
   (let [observable-namespaces-list (FXCollections/observableArrayList)
@@ -231,11 +253,11 @@
                                                             [_]
                                                             (if (.isSelected inst-chk)
                                                               (instrument-function var-ns var-name false)
-                                                              (uninstrument-function inst-var false))))
+                                                              (uninstrument-function var-ns var-name false))))
                                            inst-del-btn (doto (button "del" "browser-instr-del-btn")
                                                           (.setOnAction (event-handler
                                                                          [_]
-                                                                         (uninstrument-function inst-var true))))]
+                                                                         (uninstrument-function var-ns var-name true))))]
                                        (doto (h-box [inst-lbl inst-chk inst-del-btn])
                                          (.setSpacing 10)
                                          (.setAlignment Pos/CENTER_LEFT)))

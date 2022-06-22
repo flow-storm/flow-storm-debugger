@@ -3,6 +3,7 @@
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.websocket :as websocket]
+            [flow-storm.debugger.events-processor :as events-processor]
             [flow-storm.debugger.trace-processor :as trace-processor]
             [flow-storm.debugger.trace-types]
             [flow-storm.debugger.target-commands :as target-commands]))
@@ -38,6 +39,7 @@
 
       (websocket/start-websocket-server
        (assoc config
+              :event-dispatcher events-processor/process-event
               :trace-dispatcher trace-processor/remote-dispatch-trace
               :show-error ui-main/show-error
               :on-connection-open (fn [conn] (reset! dbg-state/remote-connection conn))))

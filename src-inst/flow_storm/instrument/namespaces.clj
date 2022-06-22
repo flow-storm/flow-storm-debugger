@@ -173,8 +173,9 @@
          (let [{:keys [msg retry-disabling] :as error-data} (eval-form-error-data inst-form e)]
            (if (and (not retrying?) retry-disabling)
              (do
-               (log (utils/colored-string (format "\n\nKnown error %s, retrying disabling %s for this form\n\n" msg retry-disabling)
-                                          :yellow))
+               (when (:verbose? config)
+                 (log (utils/colored-string (format "\n\nKnown error %s, retrying disabling %s for this form\n\n" msg retry-disabling)
+                                            :yellow)))
                (instrument-and-eval-form ns form (assoc config :disable retry-disabling) true))
              (throw (ex-info "Error evaluating form" error-data)))))))))
 
@@ -288,7 +289,8 @@
                                           (into #{} dependent-files-vec))
 
         ;; vector of all files to be instrumented, sorted in dependency topological order
-        to-instrument-vec (into dependent-files-vec independent-files)]
+        to-instrument-vec (into dependent-files-vec independent-files)
+        affected-namespaces (->> to-instrument-vec (map first) (into #{}))]
 
     #_(log (format "Dependent files in order : %s" dependent-files-vec))
     #_(log (format "Independent files : %s" independent-files))
@@ -302,7 +304,6 @@
 
       ;; instrument - evaluate all file instrumented forms
       (doseq [[ns-symb file] to-instrument-vec]
-        (instrument-and-eval-file-forms ns-symb file config)))))
+        (instrument-and-eval-file-forms ns-symb file config)))
 
-(defn uninstrument-files-for-namespaces [ns-strs config]
-  (instrument-files-for-namespaces ns-strs (assoc config :uninstrument? true)))
+    affected-namespaces))

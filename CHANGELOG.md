@@ -11,6 +11,7 @@
 	* Add flow-storm.api/uninstrument-forms-for-namespaces to undo instrument-form-for-namespaces instrumentation
 	* Add ctx menu on locals to define vars from values
 	* Add browser namespaces instrumentation/uninstrumentation
+	* Add browser instrumentation synchronization (for everything but #trace)
 	
 ### Changes
     
