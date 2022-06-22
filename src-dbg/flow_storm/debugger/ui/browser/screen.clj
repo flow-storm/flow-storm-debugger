@@ -61,13 +61,11 @@
   (add-to-namespace-instrumented-list ns-names))
 
 (defn- uninstrument-namespaces [inst-ns]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
+  (target-commands/run-command
+   :uninstrument-namespaces
+   {:ns-names [(:ns-name inst-ns)]})
 
-    (target-commands/run-command
-     :uninstrument-namespaces
-     {:ns-names [(:ns-name inst-ns)]})
-
-    (remove-from-namespace-instrumented-list (:ns-name inst-ns))))
+  (remove-from-namespace-instrumented-list (:ns-name inst-ns)))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
@@ -242,7 +240,7 @@
             (ui-utils/create-list-cell-factory
              (fn [list-cell {:keys [inst-type] :as inst}]
                (let [inst-box (case inst-type
-                                :var (let [{:keys [var-name var-ns] :as inst-var} inst
+                                :var (let [{:keys [var-name var-ns]} inst
                                            inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
                                                                   (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
                                                       (.setSpacing 10))
