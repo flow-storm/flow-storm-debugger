@@ -228,7 +228,16 @@
 
       (doseq [form file-forms]
         (try
-          (eval form)
+          (let [mexpanded-form (inst-forms/macroexpand-all macroexpand-1 form)]
+
+            (if (inst-forms/expanded-defn-form? mexpanded-form)
+
+              ;; if it is a defn, we swap the var fn*, so we keep the original meta
+              (let [[v vval] (expanded-defn-parse (str (ns-name ns-symb)) mexpanded-form)]
+                (alter-var-root v (fn [_] (eval vval))))
+
+              ;; else just eval the form
+              (eval form)))
           (catch Exception e
             (println)
             (println (utils/colored-string
