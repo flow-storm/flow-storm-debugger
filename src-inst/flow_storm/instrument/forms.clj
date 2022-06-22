@@ -162,7 +162,7 @@
 
   (when-not (or (disable :binding)
                 (uninteresting-symb? symb))
-    `(tracer/trace-bound-trace
+    `(tracer/trace-bind
       (quote ~symb)
       ~symb
       ~{:coor coor
@@ -282,18 +282,18 @@
                   :else (let [err-msg (utils/format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind)]
                           (throw (Exception. err-msg))))
         outer-preamble (-> []
-                           (into [`(tracer/trace-form-init-trace {:form-id ~form-id
-                                                                  :ns ~form-ns
-                                                                  :def-kind ~(cond
-                                                                               (= outer-form-kind :extend-protocol) :extend-protocol
-                                                                               (= outer-form-kind :extend-type) :extend-type
-                                                                               (= outer-form-kind :defrecord) :extend-type
-                                                                               (= outer-form-kind :deftype) :extend-type
-                                                                               (= (:kind fn-ctx) :defmethod) :defmethod
-                                                                               (= (:kind fn-ctx) :defn) :defn)
-                                                                  :dispatch-val ~(:dispatch-val fn-ctx)}
+                           (into [`(tracer/trace-form-init {:form-id ~form-id
+                                                            :ns ~form-ns
+                                                            :def-kind ~(cond
+                                                                         (= outer-form-kind :extend-protocol) :extend-protocol
+                                                                         (= outer-form-kind :extend-type) :extend-type
+                                                                         (= outer-form-kind :defrecord) :extend-type
+                                                                         (= outer-form-kind :deftype) :extend-type
+                                                                         (= (:kind fn-ctx) :defmethod) :defmethod
+                                                                         (= (:kind fn-ctx) :defn) :defn)
+                                                            :dispatch-val ~(:dispatch-val fn-ctx)}
                                                                  ~fn-form)])
-                           (into [`(tracer/trace-fn-call-trace ~form-id ~form-ns ~(str fn-trace-name) ~(clear-fn-args-vec arity-args-vec))])
+                           (into [`(tracer/trace-fn-call ~form-id ~form-ns ~(str fn-trace-name) ~(clear-fn-args-vec arity-args-vec))])
                            (into (args-bind-tracers arity-args-vec form-coor ctx)))
 
         ctx' (-> ctx
@@ -455,7 +455,7 @@
 
     (let [trace-data (cond-> {:coor coor, :form-id form-id}
                        outer-form? (assoc :outer-form? outer-form?))]
-      `(tracer/trace-expr-exec-trace ~form nil ~trace-data))))
+      `(tracer/trace-expr-exec ~form ~trace-data))))
 
 (defn- maybe-instrument
   "If the form has been tagged with ::coor on its meta, then instrument it
@@ -580,9 +580,9 @@
 (defn- maybe-unwrap-outer-form-instrumentation [inst-form _]
   (if (and (seq? inst-form)
            (symbol? (first inst-form))
-           (= "trace-expr-exec-trace" (-> inst-form first name)))
+           (= "trace-expr-exec" (-> inst-form first name)))
 
-    ;; discard the flow-storm.tracer/trace-expr-exec-trace
+    ;; discard the flow-storm.tracer/trace-expr-exec
     (second inst-form)
 
     ;; else do nothing

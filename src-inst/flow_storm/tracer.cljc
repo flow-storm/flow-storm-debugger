@@ -37,7 +37,7 @@
                                                :timestamp (utils/get-monotonic-timestamp)})]
     (enqueue-trace! trace)))
 
-(defn trace-form-init-trace
+(defn trace-form-init
 
   "Send form initialization trace only once for each thread."
   
@@ -56,11 +56,11 @@
         (enqueue-trace! trace)
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
-(defn trace-expr-exec-trace
+(defn trace-expr-exec
   
   "Send expression execution trace."
   
-  [result _ {:keys [coor outer-form? form-id]}]
+  [result {:keys [coor outer-form? form-id]}]
   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
       (let [trace (trace-types/map->ExecTrace {:flow-id flow-id
@@ -74,7 +74,7 @@
     
     result))
 
-(defn trace-fn-call-trace
+(defn trace-fn-call
 
   "Send function call traces"
   
@@ -90,7 +90,7 @@
                                                  :timestamp (utils/get-monotonic-timestamp)})]
         (enqueue-trace! trace)))))
 
-(defn trace-bound-trace
+(defn trace-bind
   
   "Send bind trace."
   
