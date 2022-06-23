@@ -12,6 +12,7 @@
 	* Add ctx menu on locals to define vars from values
 	* Add browser namespaces instrumentation/uninstrumentation
 	* Add browser instrumentation synchronization (for everything but #trace)
+	* Add #rtrace0 ... #rtrace5, like #rtrace but with different flow-ids
 	
 ### Changes
     

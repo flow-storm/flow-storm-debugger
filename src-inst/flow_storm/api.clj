@@ -304,5 +304,10 @@
 (defn read-ctrace-tag [form]
   `(instrument* {:tracing-disabled? true} ~form))
 
-(defn read-rtrace-tag [form]
-  `(runi {} ~form))
+(defn read-rtrace-tag [form]  `(runi {:flow-id 0} ~form))
+(defn read-rtrace0-tag [form] `(runi {:flow-id 0} ~form))
+(defn read-rtrace1-tag [form] `(runi {:flow-id 1} ~form))
+(defn read-rtrace2-tag [form] `(runi {:flow-id 2} ~form))
+(defn read-rtrace3-tag [form] `(runi {:flow-id 3} ~form))
+(defn read-rtrace4-tag [form] `(runi {:flow-id 4} ~form))
+(defn read-rtrace5-tag [form] `(runi {:flow-id 5} ~form))
