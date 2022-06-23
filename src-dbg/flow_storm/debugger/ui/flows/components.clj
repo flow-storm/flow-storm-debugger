@@ -5,6 +5,7 @@
             [flow-storm.debugger.trace-types :refer [deref-ser local-imm-value? remote-imm-value?]]
             [clojure.string :as str])
   (:import [javafx.scene.control CheckBox TextField TextArea TextInputDialog]
+           [javafx.scene.layout VBox Priority]
            [javafx.geometry Pos]))
 
 (defn def-kind-colored-label [text kind]
@@ -35,6 +36,7 @@
                     (.setAlignment Pos/CENTER_RIGHT)
                     (.setSpacing 3.0))
         box (v-box [tools-box result-text-area])]
+    (VBox/setVgrow result-text-area Priority/ALWAYS)
     (store-obj flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id) result-text-area)
     (store-obj flow-id (ui-vars/thread-pprint-level-txt-id thread-id pane-id) print-level-txt)
     (store-obj flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id) print-meta-chk)
