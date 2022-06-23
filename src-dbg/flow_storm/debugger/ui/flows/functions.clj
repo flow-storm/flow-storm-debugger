@@ -11,7 +11,7 @@
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.collections FXCollections ObservableList]
            [javafx.scene Node]
-           [javafx.scene.control ComboBox ListView SelectionMode]
+           [javafx.scene.control CheckBox ListView SelectionMode]
            [javafx.scene.input MouseButton]))
 
 (defn- create-fns-list-pane [flow-id thread-id]
@@ -56,20 +56,26 @@
                                                                             :form form})))]
                                                      (when (seq forms)
                                                        (target-commands/run-command :eval-forms {:forms forms})))))}
+        show-function-calls (fn []
+                              (let [indexer (state/thread-trace-indexer flow-id thread-id)
+                                    {:keys [form-id fn-ns fn-name]} (first (.getSelectedItems fns-list-selection))
+                                    [observable-fn-calls-list] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-id thread-id))
+                                    fn-call-traces (indexer/find-fn-calls indexer fn-ns fn-name form-id)]
+                                (doto observable-fn-calls-list
+                                  .clear
+                                  (.addAll (into-array Object fn-call-traces)))))
         ctx-menu-show-similar-fn-call-item {:text "Show function calls"
-                                            :on-click (fn []
-                                                        (let [indexer (state/thread-trace-indexer flow-id thread-id)
-                                                              {:keys [form-id fn-ns fn-name]} (first (.getSelectedItems fns-list-selection))
-                                                              [observable-fn-calls-list] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-id thread-id))
-                                                              fn-call-traces (indexer/find-fn-calls indexer fn-ns fn-name form-id)]
-                                                          (doto observable-fn-calls-list
-                                                            .clear
-                                                            (.addAll (into-array Object fn-call-traces)))))}]
+                                            :on-click show-function-calls}]
 
     (.setOnMouseClicked fns-list-view
                         (event-handler
                          [mev]
-                         (when (= MouseButton/SECONDARY (.getButton mev))
+                         (cond
+                           (and (= MouseButton/PRIMARY (.getButton mev))
+                                (= 2 (.getClickCount mev)))
+                           (show-function-calls)
+
+                           (= MouseButton/SECONDARY (.getButton mev))
                            (let [sel-cnt (count (.getSelectedItems fns-list-selection))
                                  ctx-menu (if (= 1 sel-cnt)
                                             (ui-utils/make-context-menu [ctx-menu-un-instrument-item ctx-menu-show-similar-fn-call-item])
@@ -85,55 +91,35 @@
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
   (let [observable-fn-calls-list (FXCollections/observableArrayList)
+        max-args 9
+        args-checks (repeatedly max-args (fn [] (doto (CheckBox.)
+                                                  (.setSelected true))))
+        selected-args (fn []
+                        (->> args-checks
+                             (keep-indexed (fn [idx ^CheckBox cb]
+                                             (when (.isSelected cb) idx)))))
         list-cell-factory (proxy [javafx.util.Callback] []
                             (call [lv]
                               (ui-utils/create-list-cell-factory
                                (fn [list-cell {:keys [args-vec]}]
-                                 (let [[args-print-type-combo] (obj-lookup flow-id (ui-vars/thread-fn-args-print-combo thread-id))
-                                       pargs (.getSelectedItem (.getSelectionModel args-print-type-combo))
-                                       arg-n (cond
-                                               (= pargs "Print all args")   :all
-                                               (= pargs "Print only arg 0") 0
-                                               (= pargs "Print only arg 1") 1
-                                               (= pargs "Print only arg 2") 2
-                                               (= pargs "Print only arg 3") 3
-                                               (= pargs "Print only arg 4") 4
-                                               (= pargs "Print only arg 5") 5
-                                               (= pargs "Print only arg 6") 6
-                                               (= pargs "Print only arg 7") 7
-                                               (= pargs "Print only arg 8") 8
-                                               (= pargs "Print only arg 9") 9)
-                                       args-vec-str (if (= :all arg-n)
+                                 (let [sel-args (selected-args)
+                                       args-vec-str (if (= (count sel-args) max-args)
                                                       (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false})
-                                                      (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elem arg-n}))
+                                                      (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
                                        args-lbl (label args-vec-str)]
                                    (.setGraphic ^Node list-cell args-lbl))))))
-        combo-cell-factory (proxy [javafx.util.Callback] []
-                             (call [lv]
-                               (ui-utils/create-list-cell-factory
-                                (fn [cell text]
-                                  (.setText cell text)))))
-        args-print-type-combo (doto (ComboBox.)
-                                (.setItems (doto (FXCollections/observableArrayList)
-                                             (.addAll (into-array String ["Print all args"
-                                                                          "Print only arg 0"
-                                                                          "Print only arg 1"
-                                                                          "Print only arg 2"
-                                                                          "Print only arg 3"
-                                                                          "Print only arg 4"
-                                                                          "Print only arg 5"
-                                                                          "Print only arg 6"
-                                                                          "Print only arg 7"
-                                                                          "Print only arg 8"
-                                                                          "Print only arg 9"]))))
-                                (.setCellFactory combo-cell-factory))
-        _ (.selectFirst (.getSelectionModel args-print-type-combo))
-        _ (store-obj flow-id (ui-vars/thread-fn-args-print-combo thread-id) args-print-type-combo)
+
         fn-call-list-view (doto (ListView. observable-fn-calls-list)
                             (.setEditable false)
                             (.setCellFactory list-cell-factory))
         fn-call-list-selection (.getSelectionModel fn-call-list-view)
-        fn-call-list-pane (v-box [args-print-type-combo fn-call-list-view])]
+        args-print-type-checks (doto (->> args-checks
+                                          (map-indexed (fn [idx cb]
+                                                         (h-box [(label (format "a%d" (inc idx))) cb])))
+                                          (into [])
+                                          h-box)
+                                 (.setSpacing 5))
+        fn-call-list-pane (v-box [args-print-type-checks fn-call-list-view])]
 
     (VBox/setVgrow fn-call-list-view Priority/ALWAYS)
 

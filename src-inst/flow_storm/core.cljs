@@ -1,17 +1,9 @@
 (ns flow-storm.core
   (:require [flow-storm.utils :as utils]
             [flow-storm.instrument.trace-types :as trace-types]
-            [clojure.pprint :as pp]
             [goog.object :as gobj]))
 
-(defn- get-remote-value-command [{:keys [vid print-length print-level pprint? nth-elem]}]
-  (let [value (trace-types/get-reference-value vid)
-        print-fn (if pprint? pp/pprint print)]
-    (with-out-str
-      (binding [*print-level* print-level
-                *print-length* print-length]
-        (print-fn (cond-> value
-                    nth-elem (nth nth-elem)))))))
+(declare get-remote-value-command) ;; this is on core.cljc
 
 (defn- def-remote-value-command [{:keys [vid val-name]}]
   (gobj/set (if (= *target* "nodejs") js/global js/window)

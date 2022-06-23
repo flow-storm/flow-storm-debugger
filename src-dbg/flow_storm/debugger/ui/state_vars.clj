@@ -110,6 +110,3 @@
 
 (defn thread-callstack-tree-cell [thread-id trace-idx]
   (format "callstack_tree_cell_%d_%d" thread-id trace-idx))
-
-(defn thread-fn-args-print-combo [thread-id]
-  (format "thread_fn_args_print_combo_%d" thread-id))

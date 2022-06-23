@@ -28,18 +28,26 @@
 (extend-type LocalImmValue
 
   PDeref
-  (deref-ser [this {:keys [print-length print-level print-meta? pprint? nth-elem]}]
-    (let [print-fn (if pprint? pp/pprint print)]
+  (deref-ser [this {:keys [print-length print-level print-meta? pprint? nth-elems]}]
+    (let [print-fn (if pprint? pp/pprint print)
+          v (:val this)]
       (with-out-str
         (binding [*print-level* print-level
                   *print-meta* print-meta?
                   *print-length* print-length]
-          (print-fn (cond-> (:val this)
-                      nth-elem (nth nth-elem))))))))
+          (if nth-elems
+
+            (let [max-idx (dec (count v))
+                  nth-valid-elems (filter #(<= % max-idx) nth-elems)]
+              (doseq [n nth-valid-elems]
+               (print-fn (nth v n))
+               (print " ")))
+
+            (print-fn v)))))))
 
 (def get-remote-value-sync
   (memoize
-   (fn [conn vid {:keys [print-length print-level print-meta? pprint? nth-elem]}]
+   (fn [conn vid {:keys [print-length print-level print-meta? pprint? nth-elems]}]
      (let [p (promise)]
        (websocket/async-command-request conn
                                         :get-remote-value
@@ -48,7 +56,7 @@
                                          :print-length print-length
                                          :print-level print-level
                                          :pprint? pprint?
-                                         :nth-elem nth-elem}
+                                         :nth-elems nth-elems}
                                         (fn [val]
                                           (deliver p val)))
        ;; This is to avoid blocking the UI forever if something on the

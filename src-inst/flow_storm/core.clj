@@ -4,8 +4,9 @@
             [flow-storm.utils :refer [log-error log]]
             [flow-storm.tracer :as tracer]
             [flow-storm.instrument.trace-types :as trace-types]
-            [clojure.repl :as clj.repl]
-            [clojure.pprint :as pp]))
+            [clojure.repl :as clj.repl]))
+
+(declare get-remote-value-command) ;; this is on core.cljc
 
 (defn disable-from-profile [profile]
   (case profile
@@ -79,16 +80,6 @@
         (eval form))))
     (catch Exception e
       (log-error (format "re-run-flow-command couldn't re run execution-expr %s" execution-expr) e))))
-
-(defn- get-remote-value-command [{:keys [vid print-length print-level print-meta? pprint? nth-elem]}]
-  (let [value (trace-types/get-reference-value vid)
-        print-fn (if pprint? pp/pprint print)]
-    (with-out-str
-      (binding [*print-level* print-level
-                *print-meta* print-meta?
-                *print-length* print-length]
-        (print-fn (cond-> value
-                    nth-elem (nth nth-elem)))))))
 
 (defn- def-value-command [{:keys [val val-name]}]
   (intern 'user (symbol val-name) val))

@@ -4,7 +4,7 @@
 
 ## New Features
 
-	* Add jump to first and last traces on thread controls
+	* Add jump to first and last traces on thread controls (useful for exceptions debugging)
 	* Add print-level and print-meta controls on pprint value panels
     * Improve re-run flow UX
 	* Namespace instrumentation now accepts :verbose? to log known and unknown instrumentation errors details
@@ -13,10 +13,12 @@
 	* Add browser namespaces instrumentation/uninstrumentation
 	* Add browser instrumentation synchronization (for everything but #trace)
 	* Add #rtrace0 ... #rtrace5, like #rtrace but with different flow-ids
+	* Add double clicking on flows functions window executes show function calls
 	
 ### Changes
     
 	* Remove flow-storm.api/run since #rtrace(runi) is enough
+	* Flows functions window now have checkboxes for selecting fncall arguments to print
 	
 ### Bugs fixed
 	
