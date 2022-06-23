@@ -116,9 +116,9 @@
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]
                                                          (h-box [(label (format "a%d" (inc idx))) cb])))
-                                          (into [])
+                                          (into [(label "Print args:")])
                                           h-box)
-                                 (.setSpacing 5))
+                                 (.setSpacing 8))
         fn-call-list-pane (v-box [args-print-type-checks fn-call-list-view])]
 
     (VBox/setVgrow fn-call-list-view Priority/ALWAYS)
