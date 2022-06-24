@@ -4,8 +4,9 @@
 
 (defn get-remote-value-command [{:keys [vid print-length print-level print-meta? pprint? nth-elems]}]
   (let [v (trace-types/get-reference-value vid)
-        print-fn (if pprint? pp/pprint print)]
-    
+        print-fn #?(:clj (if pprint? pp/pprint print)
+                    :cljs (if (and pprint? (not print-meta?)) pp/pprint print)) ;; ClojureScript pprint doesn't support *print-meta*
+        ]
     (with-out-str
       (binding [*print-level* print-level
                 *print-length* print-length
