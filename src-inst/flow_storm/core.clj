@@ -26,13 +26,15 @@
 (defn instrument-var
   ([var-symb] (instrument-var var-symb {}))
   ([var-symb config]
+
    (let [form (some->> (clj.repl/source-fn var-symb)
                        (read-string {:read-cond :allow}))
          form-ns (find-ns (symbol (namespace var-symb)))]
      (if form
 
        (binding [*ns* form-ns]
-         (inst-ns/instrument-and-eval-form form-ns form config))
+         (inst-ns/instrument-and-eval-form form-ns form config)
+         (log (format "Instrumented %s" var-symb)))
 
        (log (format "Couldn't find source for %s" var-symb))))))
 
@@ -47,7 +49,7 @@
           (if (inst-forms/expanded-def-form? expanded-form)
             (let [[v vval] (inst-ns/expanded-defn-parse ns-name expanded-form)]
               (alter-var-root v (fn [_] (eval vval)))
-              (log (format "Untraced %s" v)))
+              (log (format "Uninstrumented %s" v)))
 
             (log (format "Don't know howto untrace %s" (pr-str expanded-form))))
 

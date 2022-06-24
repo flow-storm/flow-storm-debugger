@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.browser.screen
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon button add-class]]
+            [flow-storm.utils :refer [log-error]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.target-commands :as target-commands]
             [clojure.string :as str])
@@ -18,9 +19,12 @@
    :var-ns var-ns
    :var-name var-name})
 
-(defn make-inst-ns [ns-name]
-  {:inst-type :ns
-   :ns-name ns-name})
+(defn make-inst-ns
+  ([ns-name] (make-inst-ns ns-name nil))
+  ([ns-name profile]
+   {:inst-type :ns
+    :profile profile
+    :ns-name ns-name}))
 
 (defn add-to-var-instrumented-list [var-ns var-name]
   (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
@@ -44,28 +48,30 @@
   (when remove?
     (remove-from-var-instrumented-list var-ns var-name)))
 
-(defn add-to-namespace-instrumented-list [ns-names]
+(defn add-to-namespace-instrumented-list [ns-maps]
   (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.addAll observable-instrumentations-list (into-array Object (map make-inst-ns ns-names)))))
+    (.addAll observable-instrumentations-list (into-array Object ns-maps))))
 
-(defn remove-from-namespace-instrumented-list [ns-name]
+(defn remove-from-namespace-instrumented-list [ns-maps]
   (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.removeAll observable-instrumentations-list (into-array Object [(make-inst-ns ns-name)]))))
+    (.removeAll observable-instrumentations-list (into-array Object ns-maps))))
 
-(defn- instrument-namespaces [ns-names profile]
+(defn- instrument-namespaces [inst-namespaces add?]
   (target-commands/run-command
    :instrument-namespaces
-   {:ns-names ns-names
-    :profile profile})
+   {:ns-names (map :ns-name inst-namespaces)
+    :profile (:profile (first inst-namespaces))})
 
-  (add-to-namespace-instrumented-list ns-names))
+  (when add?
+    (add-to-namespace-instrumented-list inst-namespaces)))
 
-(defn- uninstrument-namespaces [inst-ns]
+(defn- uninstrument-namespaces [inst-namespaces remove?]
   (target-commands/run-command
    :uninstrument-namespaces
-   {:ns-names [(:ns-name inst-ns)]})
+   {:ns-names (map :ns-name inst-namespaces)})
 
-  (remove-from-namespace-instrumented-list (:ns-name inst-ns)))
+  (when remove?
+    (remove-from-namespace-instrumented-list inst-namespaces)))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
@@ -158,10 +164,10 @@
                                (let [sel-items (.getSelectedItems namespaces-list-selection)
                                      ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
                                                                    :on-click (fn []
-                                                                               (instrument-namespaces sel-items :light))}
+                                                                               (instrument-namespaces (map #(make-inst-ns % :light) sel-items) true))}
                                      ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
                                                                   :on-click (fn []
-                                                                              (instrument-namespaces sel-items :full))}
+                                                                              (instrument-namespaces (map #(make-inst-ns % :full) sel-items) true))}
                                      ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
                                                                            ctx-menu-instrument-ns-full])]
 
@@ -239,42 +245,71 @@
           (call [lv]
             (ui-utils/create-list-cell-factory
              (fn [list-cell {:keys [inst-type] :as inst}]
-               (let [inst-box (case inst-type
-                                :var (let [{:keys [var-name var-ns]} inst
-                                           inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
-                                                                  (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
+               (try
+                 (let [inst-box (case inst-type
+                                 :var (let [{:keys [var-name var-ns]} inst
+                                            inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
+                                                                   (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
+                                                       (.setSpacing 10))
+                                            inst-del-btn (doto (button "del" "browser-instr-del-btn")
+                                                           (.setOnAction (event-handler
+                                                                          [_]
+                                                                          (uninstrument-function var-ns var-name true))))]
+                                        (doto (h-box [inst-lbl inst-del-btn])
+                                          (.setSpacing 10)
+                                          (.setAlignment Pos/CENTER_LEFT)))
+                                 :ns (let [{:keys [ns-name profile] :as inst-ns} inst
+                                           inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
+                                                                  (label ns-name "browser-instr-label")])
                                                       (.setSpacing 10))
-                                           inst-chk (doto (CheckBox.)
-                                                      (.setSelected true))
-                                           _ (.setOnAction inst-chk
-                                                           (event-handler
-                                                            [_]
-                                                            (if (.isSelected inst-chk)
-                                                              (instrument-function var-ns var-name false)
-                                                              (uninstrument-function var-ns var-name false))))
                                            inst-del-btn (doto (button "del" "browser-instr-del-btn")
                                                           (.setOnAction (event-handler
                                                                          [_]
-                                                                         (uninstrument-function var-ns var-name true))))]
-                                       (doto (h-box [inst-lbl inst-chk inst-del-btn])
+                                                                         (uninstrument-namespaces [inst-ns] true))))]
+                                       (doto (h-box [inst-lbl inst-del-btn])
                                          (.setSpacing 10)
-                                         (.setAlignment Pos/CENTER_LEFT)))
-                                :ns (let [{:keys [ns-name] :as inst-ns} inst
-                                          inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
-                                                                 (label ns-name "browser-instr-label")])
-                                                     (.setSpacing 10))
-                                          inst-del-btn (doto (button "del" "browser-instr-del-btn")
-                                                         (.setOnAction (event-handler
-                                                                        [_]
-                                                                        (uninstrument-namespaces inst-ns))))]
-                                      (doto (h-box [inst-lbl inst-del-btn])
-                                        (.setSpacing 10)
-                                        (.setAlignment Pos/CENTER_LEFT))))]
-                 (.setGraphic ^Node list-cell inst-box))))))
+                                         (.setAlignment Pos/CENTER_LEFT))))]
+                   (.setGraphic ^Node list-cell inst-box))
+                 (catch Exception e (log-error e)))))))
         instrumentations-list (doto (ListView. observable-instrumentations-list)
                                 (.setCellFactory instrumentations-cell-factory)
                                 (.setEditable false))
+        delete-all-btn (doto (button "Delete all")
+                         (.setOnAction (event-handler
+                                        [_]
+                                        (let [type-groups (group-by :inst-type observable-instrumentations-list)
+                                              del-namespaces   (:ns type-groups)
+                                              del-vars (:var type-groups)]
+
+                                          (uninstrument-namespaces del-namespaces true)
+
+                                          (doseq [v del-vars]
+                                            (uninstrument-function (:var-ns v) (:var-name v) true))))))
+        en-dis-chk (doto (CheckBox.)
+                     (.setSelected true))
+        _ (.setOnAction en-dis-chk
+                        (event-handler
+                         [_]
+                         (let [type-groups (group-by :inst-type observable-instrumentations-list)
+                               change-namespaces   (:ns type-groups)
+                               change-vars (:var type-groups)]
+
+                           (if (.isSelected en-dis-chk)
+                             (instrument-namespaces change-namespaces false)
+                             (uninstrument-namespaces change-namespaces false))
+
+                           (doseq [v change-vars]
+                             (if (.isSelected en-dis-chk)
+                               (instrument-function (:var-ns v) (:var-name v) false)
+                               (uninstrument-function (:var-ns v) (:var-name v) false))))))
+        instrumentations-tools (doto (h-box [(label "Enable all")
+                                             en-dis-chk
+                                             delete-all-btn]
+                                            "browser-instr-tools-box")
+                                 (.setSpacing 10)
+                                 (.setAlignment Pos/CENTER_LEFT))
         pane (v-box [(label "Instrumentations")
+                     instrumentations-tools
                      instrumentations-list])]
 
     (store-obj "browser-observable-instrumentations-list" observable-instrumentations-list)

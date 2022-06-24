@@ -16,11 +16,11 @@
 
 (defn namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/add-to-namespace-instrumented-list [ns-name])))
+   (browser-screen/add-to-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])))
 
 (defn namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/remove-from-namespace-instrumented-list ns-name)))
+   (browser-screen/remove-from-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])))
 
 (defn process-event [[ev-type ev-args-map]]
   (case ev-type

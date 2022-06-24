@@ -224,7 +224,7 @@
   (binding [*ns* (find-ns ns-symb)]
     (let [file-forms (read-string {:read-cond :allow}
                                   (format "[%s]" (slurp file-url)))]
-      (log (format "\nUN-Instrumenting namespace: %s Forms (%d) (%s)" ns-symb (count file-forms) (.getFile file-url)))
+      (log (format "\nUninstrumenting namespace: %s Forms (%d) (%s)" ns-symb (count file-forms) (.getFile file-url)))
 
       (doseq [form file-forms]
         (try
@@ -237,6 +237,7 @@
                 (alter-var-root v (fn [_] (eval vval))))
 
               ;; else just eval the form
+
               (eval form)))
           (catch Exception e
             (println)

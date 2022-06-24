@@ -151,6 +151,10 @@
 	-fx-text-fill: #919191;
 }
 
+.browser-instr-tools-box {
+	-fx-padding: 10;
+}
+
 .button {
 	-fx-background-color: #336699;
     -fx-text-fill: white;    
