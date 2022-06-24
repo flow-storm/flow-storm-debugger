@@ -1,9 +1,8 @@
 (ns flow-storm.core
   (:require [flow-storm.utils :as utils]
             [flow-storm.instrument.trace-types :as trace-types]
+            [flow-storm.core-multi :refer [get-remote-value-command]]
             [goog.object :as gobj]))
-
-(declare get-remote-value-command) ;; this is on core.cljc
 
 (defn- def-remote-value-command [{:keys [vid val-name]}]
   (gobj/set (if (= *target* "nodejs") js/global js/window)

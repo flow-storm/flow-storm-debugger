@@ -77,9 +77,9 @@
          (+ c d j))))
 
 (defn -main [& args]
-  (fs-api/remote-connect)
-  (fs-api/run {:ns "dev"}
-    (js/console.log (boo [2 "hello" 8]))))
+  (fs-api/remote-connect {:on-connected (fn []
+                                          (js/console.log "Connected!!")
+                                          #rtrace (js/console.log (boo [2 "hello" 8])))}))
 
 ;; (. bla clojure.core/addMethod :bla (clojure.core/fn [a] a))
 ;; (cljs.core/-add-method bla :bla (cljs.core/fn [a] a))

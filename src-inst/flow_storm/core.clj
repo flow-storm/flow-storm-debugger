@@ -2,11 +2,10 @@
   (:require [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.utils :refer [log-error log]]
+            [flow-storm.core-multi :refer [get-remote-value-command]]
             [flow-storm.tracer :as tracer]
             [flow-storm.instrument.trace-types :as trace-types]
             [clojure.repl :as clj.repl]))
-
-(declare get-remote-value-command) ;; this is on core.cljc
 
 (defn disable-from-profile [profile]
   (case profile

@@ -53,8 +53,6 @@
      (set! (.-onopen ws-client) (fn []
                                   (log (utils/format "Connection opened to %s" uri-str))
 
-                                  (when on-connected (on-connected))
-
                                   (tracer/start-trace-sender
                                    (assoc config
                                           :send-fn (fn remote-send [trace]
@@ -63,7 +61,9 @@
                                                            inst-trace-types/ref-values!
                                                            remote-dispatch-trace)
                                                        (catch js/Error e
-                                                         (log-error "Exception dispatching trace " e))))))))
+                                                         (log-error "Exception dispatching trace " e))))))
+
+                                  (when on-connected (on-connected))))
      (set! (.-onclose ws-client) (fn []
                                    (log (utils/format "Connection with %s closed." uri-str))))
      (set! (.-onmessage ws-client) (fn [e]

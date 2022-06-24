@@ -1,4 +1,4 @@
-(ns flow-storm.core
+(ns flow-storm.core-multi
   (:require [flow-storm.instrument.trace-types :as trace-types]
             [clojure.pprint :as pp]))
 
