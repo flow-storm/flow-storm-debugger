@@ -11,7 +11,7 @@
 
 (defrecord FormInitTrace [flow-id thread-id form-id form ns def-kind mm-dispatch-val timestamp])
 
-(defrecord ExecTrace [flow-id thread-id form-id coor result outer-form?])
+(defrecord ExecTrace [flow-id thread-id form-id coor result outer-form? timestamp])
 
 (defrecord FnCallTrace [flow-id thread-id form-id fn-name fn-ns args-vec timestamp])
 
