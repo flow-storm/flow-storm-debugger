@@ -12,9 +12,6 @@
 (defprotocol ProcessTrace
   (process [_]))
 
-(defn increment-trace-counter []
-  (dbg-state/increment-trace-counter))
-
 (defn first-exec-trace-init [flow-id thread-id form-id]
   (dbg-state/set-trace-idx flow-id thread-id 0)
   (ui-utils/run-now
@@ -74,8 +71,7 @@
     (dbg-state/create-flow dbg-state/orphans-flow-id nil nil 0)
     (ui-utils/run-now (flows-screen/create-empty-flow dbg-state/orphans-flow-id)))
 
-  (process trace)
-  (increment-trace-counter))
+  (process trace))
 
 (defn local-dispatch-trace [trace]
   (-> trace

@@ -51,8 +51,7 @@
 (def *state nil)
 (def ^HashMap fn-call-stats-map nil)
 
-(def initial-state {:trace-counter 0
-                    :flows {}
+(def initial-state {:flows {}
                     :selected-flow-id nil})
 
 (def remote-connection (atom nil))
@@ -145,9 +144,6 @@
 (defn callstack-tree-hidden? [flow-id thread-id fn-name fn-ns]
   (let [hidden-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
     (contains? hidden-set {:name fn-name :ns fn-ns})))
-
-(defn increment-trace-counter []
-  (swap! *state update :trace-counter inc))
 
 (defn callstack-tree-item-expanded? [flow-id thread-id fn-call-trace-idx]
   (let [expanded-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces])]
