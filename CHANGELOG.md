@@ -4,6 +4,14 @@
 
 ## New Features
 
+### Changes
+	
+### Bugs fixed
+
+## 2.2.68 (10-06-2022)
+
+## New Features
+
 	* Add jump to first and last traces on thread controls (useful for exceptions debugging)
 	* Add print-level and print-meta controls on pprint value panels
     * Improve re-run flow UX
