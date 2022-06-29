@@ -10,8 +10,9 @@
             [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.collections FXCollections ObservableList]
+           [javafx.geometry Orientation]
            [javafx.scene Node]
-           [javafx.scene.control CheckBox ListView SelectionMode]
+           [javafx.scene.control CheckBox ListView SelectionMode SplitPane]
            [javafx.scene.input MouseButton]))
 
 (defn- create-fns-list-pane [flow-id thread-id]
@@ -26,7 +27,7 @@
                                                  :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                                                  (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))
-                                           (.setPrefWidth 500))
+                                           (.setPrefWidth 450))
                                   cnt-lbl (doto (label (str cnt))
                                             (.setPrefWidth 100))
                                   hbox (h-box [fn-lbl cnt-lbl])]
@@ -146,10 +147,15 @@
 
 (defn create-functions-pane [flow-id thread-id]
   (let [fns-list-pane (create-fns-list-pane flow-id thread-id)
-        fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)]
-    (HBox/setHgrow fns-list-pane Priority/ALWAYS)
+        fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
+        split-pane (doto (SplitPane.)
+                     (.setOrientation (Orientation/HORIZONTAL)))]
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
-    (h-box [fns-list-pane fn-calls-list-pane])))
+
+    (-> split-pane
+        .getItems
+        (.addAll [fns-list-pane fn-calls-list-pane]))
+    split-pane))
 
 (defn update-functions-pane [flow-id thread-id]
   (let [fn-call-stats (->> (state/fn-call-stats flow-id thread-id)

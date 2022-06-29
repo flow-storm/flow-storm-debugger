@@ -258,7 +258,7 @@
                                         (doto (h-box [inst-lbl inst-del-btn])
                                           (.setSpacing 10)
                                           (.setAlignment Pos/CENTER_LEFT)))
-                                 :ns (let [{:keys [ns-name profile] :as inst-ns} inst
+                                 :ns (let [{:keys [ns-name] :as inst-ns} inst
                                            inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
                                                                   (label ns-name "browser-instr-label")])
                                                       (.setSpacing 10))
