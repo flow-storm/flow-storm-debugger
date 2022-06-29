@@ -42,15 +42,17 @@
 
   (add-exec-trace [this {:keys [form-id]:as trace}]
     (locking this
-      (let [next-idx (.size traces)]
-       (callstack-tree/process-exec-trace callstack-tree next-idx trace)
-       (.add traces trace)
+      (let [next-idx (.size traces)
+            trace (with-meta trace {:trace-idx next-idx})]
 
-       (when-not (.get forms-hot-traces form-id)
-         (.put forms-hot-traces form-id (ArrayList.)))
+        (callstack-tree/process-exec-trace callstack-tree next-idx trace)
+        (.add traces trace)
 
-       (.add ^ArrayList (.get forms-hot-traces form-id)
-             (with-meta trace {:trace-idx next-idx})))))
+        (when-not (.get forms-hot-traces form-id)
+          (.put forms-hot-traces form-id (ArrayList.)))
+
+        (.add ^ArrayList (.get forms-hot-traces form-id)
+              trace))))
 
   (add-bind-trace [this trace]
     (locking this
