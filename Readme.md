@@ -3,6 +3,9 @@
 A trace debugger for Clojure and ClojureScript
 
 ![demo](./docs/images/screenshot.png)
+![demo](./docs/images/calltree.png)
+![demo](./docs/images/browser.png)
+
 
 # Prerequisites
 
