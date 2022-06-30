@@ -2,50 +2,6 @@
   (:require [flow-storm.debugger.trace-indexer.protos :as indexer])
   (:import [java.util HashMap Map$Entry]))
 
-
-;; (s/def :thread/form (s/keys :req [:form/id
-;;                                   :form/ns
-;;                                   :form/form]))
-;; (s/def :thread/forms (s/map-of :form/id :thread/form))
-
-;; (s/def :thread/exec-trace (s/or :fn-call ::fn-call-trace :expr ::exec-trace))
-
-;; (s/def :thread/traces (s/coll-of :thread/exec-trace :kind vector?))
-
-;; (s/def :thread/curr-trace-idx (s/nilable number?))
-
-;; (s/def :thread/execution (s/keys :req [:thread/traces
-;;                                        :thread/curr-trace-idx]))
-
-;; (s/def :thread/bind-traces (s/coll-of ::bind-trace :kind vector?))
-
-;; (s/def :thread/callstack-tree any?) ;; TODO: finish this
-
-;; (s/def :thread/forms-hot-traces (s/map-of :form/id (s/coll-of ::exec-trace :kind vector?)))
-
-;; (s/def :callstack-tree/hidden-fn (s/keys :req-un [:fn/name :fn/ns]))
-;; (s/def :thread/callstack-tree-hidden-fns (s/coll-of :callstack-tree/hidden-fn :kind set?))
-;; (s/def ::thread (s/keys :req [:thread/id
-;;                               :thread/forms
-;;                               :thread/execution
-;;                               :thread/callstack-tree
-;;                               :thread/callstack-tree-hidden-fns
-;;                               :thread/forms-hot-traces]))
-
-;; (s/def :flow/threads (s/map-of :thread/id ::thread))
-
-;; (s/def ::flow (s/keys :req [:flow/id
-;;                             :flow/threads]
-;;                       :req-un [::timestamp]))
-
-;; (s/def :state/flows (s/map-of :flow/id ::flow))
-;; (s/def :state/selected-flow-id (s/nilable :flow/id))
-;; (s/def :state/trace-counter number?)
-
-;; (s/def ::state (s/keys :req-un [:state/flows
-;;                                 :state/selected-flow-id
-;;                                  :state/trace-counter]))
-
 (def orphans-flow-id -1)
 
 (def *state nil)
@@ -94,10 +50,10 @@
                (swap! *state assoc-in [:flows flow-id :flow/threads thread-id]
                       {:thread/id thread-id
                        :thread/trace-indexer trace-indexer
-                       :thread/curr-trace-idx nil
+                       :thread/curr-idx nil
                        :thread/callstack-tree-hidden-fns #{}
                        :thread/callstack-expanded-traces #{}
-                       :thread/callstack-selected-trace-idx nil
+                       :thread/callstack-selected-idx nil
                        :thread/fn-call-stats {}}))
 
 (defn get-thread [flow-id thread-id]
@@ -107,13 +63,13 @@
   (:thread/trace-indexer (get-thread flow-id thread-id)))
 
 (defn thread-trace-count [flow-id thread-id]
-  (indexer/thread-exec-count (thread-trace-indexer flow-id thread-id)))
+  (indexer/thread-timeline-count (thread-trace-indexer flow-id thread-id)))
 
-(defn current-trace-idx [flow-id thread-id]
-  (:thread/curr-trace-idx (get-thread flow-id thread-id)))
+(defn current-idx [flow-id thread-id]
+  (:thread/curr-idx (get-thread flow-id thread-id)))
 
-(defn set-trace-idx [flow-id thread-id idx]
-  (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/curr-trace-idx] idx))
+(defn set-idx [flow-id thread-id idx]
+  (swap! *state assoc-in [:flows flow-id :flow/threads thread-id :thread/curr-idx] idx))
 
 (defn update-fn-call-stats [flow-id thread-id {:keys [fn-ns fn-name form-id]}]
   (locking fn-call-stats-map
@@ -145,9 +101,9 @@
   (let [hidden-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
     (contains? hidden-set {:name fn-name :ns fn-ns})))
 
-(defn callstack-tree-item-expanded? [flow-id thread-id fn-call-trace-idx]
+(defn callstack-tree-item-expanded? [flow-id thread-id frame-idx]
   (let [expanded-set (get-in @*state [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces])]
-    (contains? expanded-set fn-call-trace-idx)))
+    (contains? expanded-set frame-idx)))
 
 (defn callstack-tree-expand-calls [flow-id thread-id fn-call-trace-indexes]
   (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] into fn-call-trace-indexes))
@@ -158,7 +114,7 @@
            (fn [thread]
              (-> thread
                  (assoc :thread/callstack-expanded-traces (into #{} parents-ids))
-                 (assoc :thread/callstack-selected-trace-idx target-id))))))
+                 (assoc :thread/callstack-selected-idx target-id))))))
 
 (defn callstack-tree-collapse-calls [flow-id thread-id fn-call-trace-indexes]
   (swap! *state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] (fn [traces] (apply disj traces fn-call-trace-indexes))))

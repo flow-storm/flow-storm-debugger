@@ -5,7 +5,8 @@
             [flow-storm.debugger.trace-types :as dbg-trace-types]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
-            [flow-storm.debugger.trace-indexer.mutable.impl :as mut-trace-indexer]
+            #_[flow-storm.debugger.trace-indexer.mutable.impl :as trace-indexer]
+            [flow-storm.debugger.trace-indexer.mutable-frame-tree.impl :as trace-indexer]
             [flow-storm.trace-types])
   (:import [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
 
@@ -13,7 +14,7 @@
   (process [_]))
 
 (defn first-exec-trace-init [flow-id thread-id form-id]
-  (dbg-state/set-trace-idx flow-id thread-id 0)
+  (dbg-state/set-idx flow-id thread-id 0)
   (ui-utils/run-now
    (flow-code/highlight-form flow-id thread-id form-id)))
 
@@ -29,7 +30,7 @@
 
     ;; if thread doesn't exist, create one
     (when-not (dbg-state/get-thread flow-id thread-id)
-      (dbg-state/create-thread flow-id thread-id (mut-trace-indexer/make-indexer))
+      (dbg-state/create-thread flow-id thread-id (trace-indexer/make-indexer))
       (flows-screen/create-empty-thread flow-id thread-id))
 
     ;; add the form
@@ -44,7 +45,7 @@
   (process [{:keys [flow-id thread-id form-id] :as trace}]
     (let [indexer (dbg-state/thread-trace-indexer flow-id thread-id)]
 
-      (when (zero? (indexer/thread-exec-count indexer))
+      (when (zero? (indexer/thread-timeline-count indexer))
         (first-exec-trace-init flow-id thread-id form-id))
 
       (indexer/add-exec-trace indexer trace)))
@@ -54,7 +55,7 @@
     (let [indexer (dbg-state/thread-trace-indexer flow-id thread-id)]
       (dbg-state/update-fn-call-stats flow-id thread-id trace)
 
-      (when (zero? (indexer/thread-exec-count indexer))
+      (when (zero? (indexer/thread-timeline-count indexer))
         (first-exec-trace-init flow-id thread-id form-id))
 
       (indexer/add-fn-call-trace indexer trace)))

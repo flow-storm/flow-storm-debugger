@@ -61,7 +61,7 @@
                               (let [indexer (state/thread-trace-indexer flow-id thread-id)
                                     {:keys [form-id fn-ns fn-name]} (first (.getSelectedItems fns-list-selection))
                                     [observable-fn-calls-list] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-id thread-id))
-                                    fn-call-traces (indexer/find-fn-calls indexer fn-ns fn-name form-id)]
+                                    fn-call-traces (indexer/find-fn-frames indexer fn-ns fn-name form-id)]
                                 (doto observable-fn-calls-list
                                   .clear
                                   (.addAll (into-array Object fn-call-traces)))))
@@ -128,14 +128,13 @@
                         (event-handler
                          [mev]
                          (when (= MouseButton/SECONDARY (.getButton mev))
-                           (let [trace-idx (-> (.getSelectedItems fn-call-list-selection)
-                                               first
-                                               meta
-                                               :trace-idx)
-                                 ctx-menu (ui-utils/make-context-menu [{:text (format "Goto trace %d" trace-idx)
+                           (let [idx (-> (.getSelectedItems fn-call-list-selection)
+                                         first
+                                         :frame-idx)
+                                 ctx-menu (ui-utils/make-context-menu [{:text (format "Goto %d" idx)
                                                                         :on-click (fn []
                                                                                     (ui-flows-gral/select-tool-tab flow-id thread-id :code)
-                                                                                    (flows-code/jump-to-coord flow-id thread-id trace-idx))}])]
+                                                                                    (flows-code/jump-to-coord flow-id thread-id idx))}])]
                              (.show ctx-menu
                                     fn-call-list-view
                                     (.getScreenX mev)

@@ -51,7 +51,7 @@
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
-                                                 (dec (dbg-state/current-trace-idx flow-id thread-id))))))
+                                                 (dec (dbg-state/current-idx flow-id thread-id))))))
         curr-trace-lbl (label "1")
         separator-lbl (label "/")
         thread-trace-count-lbl (label "?")
@@ -65,7 +65,7 @@
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
-                                                 (inc (dbg-state/current-trace-idx flow-id thread-id))))))
+                                                 (inc (dbg-state/current-idx flow-id thread-id))))))
         last-btn (doto (ui-utils/icon-button "mdi-page-last")
                    (.setOnAction (event-handler
                                   [ev]

@@ -7,7 +7,6 @@
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.trace-types :as trace-types]
             [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.scene.control Label ListView ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.collections FXCollections ObservableList]
@@ -140,9 +139,8 @@
 
                                        (if (= :defn (:form/def-kind form))
 
-                                         (let [curr-trace-idx (state/current-trace-idx flow-id thread-id)
-                                               curr-fn-call-trace-idx (indexer/callstack-frame-call-trace-idx indexer curr-trace-idx)
-                                               {:keys [fn-name]} (indexer/get-trace indexer curr-fn-call-trace-idx)]
+                                         (let [curr-idx (state/current-idx flow-id thread-id)
+                                               {:keys [fn-name]} (indexer/frame-data-for-idx indexer curr-idx)]
                                            (target-commands/run-command :instrument-fn {:fn-symb (symbol (:form/ns form) fn-name)}))
 
                                          (target-commands/run-command :instrument-forms {:forms [{:form-ns (:form/ns form)
@@ -167,56 +165,75 @@
   (ui-utils/rm-class token-text "executing")
   (.setOnMouseClicked token-text (event-handler [_])))
 
-(defn- arm-interesting [^Text token-text traces]
-  (let [{:keys [flow-id thread-id]} (first traces)]
-
-    (if (> (count traces) 1)
-      (let [ctx-menu-options (->> traces
-                              (map (fn [t]
-                                     (let [tidx (-> t meta :trace-idx)]
-                                       {:text (format "%s" (flow-cmp/elide-string (deref-ser (:result t) {:print-length 3 :print-level 3 :pprint? false}) 80))
-                                        :on-click #(jump-to-coord flow-id thread-id tidx)}))))
-            ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
-        (.setOnMouseClicked token-text (event-handler
-                                        [^MouseEvent ev]
-                                        (.show ctx-menu
-                                               token-text
-                                               (.getScreenX ev)
-                                               (.getScreenY ev)))))
-
+(defn- arm-interesting [flow-id thread-id ^Text token-text traces]
+  (if (> (count traces) 1)
+    (let [ctx-menu-options (->> traces
+                                (map (fn [{:keys [idx result]}]
+                                       {:text (format "%s" (flow-cmp/elide-string (deref-ser result {:print-length 3 :print-level 3 :pprint? false}) 80))
+                                        :on-click #(jump-to-coord flow-id thread-id idx)})))
+          ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler
-                                      [ev]
-                                      (jump-to-coord flow-id thread-id (-> traces first meta :trace-idx)))))))
+                                      [^MouseEvent ev]
+                                      (.show ctx-menu
+                                             token-text
+                                             (.getScreenX ev)
+                                             (.getScreenY ev)))))
 
-(defn jump-to-coord [flow-id thread-id next-trace-idx]
+    (.setOnMouseClicked token-text (event-handler
+                                    [ev]
+                                    (jump-to-coord flow-id thread-id (-> traces first :idx))))))
+
+(defn- coor-in-scope? [scope-coor current-coor]
+  (if (empty? scope-coor)
+    true
+    (and (every? true? (map = scope-coor current-coor))
+         (> (count current-coor) (count scope-coor)))))
+
+(defn- bindings-for-idx [indexer idx]
+  (let [thing (indexer/timeline-entry indexer idx)]
+    (cond
+      (= :frame (:timeline/type thing))
+      []
+
+      (= :expr (:timeline/type thing))
+      (let [expr thing
+            {:keys [bindings]} (indexer/frame-data-for-idx indexer idx)]
+        (->> bindings
+             (keep (fn [bind]
+                     (when (and (coor-in-scope? (:coor bind) (:coor expr))
+                                (<= (:timestamp bind) (:timestamp expr)))
+                       [(:symbol bind) (:value bind)])))
+             (into {}))))))
+
+(defn jump-to-coord [flow-id thread-id next-idx]
   (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        trace-count (indexer/thread-exec-count indexer)]
-    (when (<= 0 next-trace-idx (dec trace-count))
-      (let [curr-idx (state/current-trace-idx flow-id thread-id)
-            curr-trace (indexer/get-trace indexer curr-idx)
-            curr-form-id (:form-id curr-trace)
-            next-trace (indexer/get-trace indexer next-trace-idx)
-            next-form-id (:form-id next-trace)
+        trace-count (indexer/thread-timeline-count indexer)]
+    (when (<= 0 next-idx (dec trace-count))
+      (let [curr-idx (state/current-idx flow-id thread-id)
+            curr-tentry (indexer/timeline-entry indexer curr-idx)
+            curr-form-id (:form-id curr-tentry)
+            next-tentry (indexer/timeline-entry indexer next-idx)
+            next-form-id (:form-id next-tentry)
             [^Label curr_trace_lbl] (obj-lookup flow-id (ui-vars/thread-curr-trace-lbl-id thread-id))
             ;; because how frames are cached by trace, their pointers can't be compared
-            ;; so a content comparision is needed. Comparing :call-trace-idx is enough since it is
+            ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
             ;; a frame
-            changing-frame? (not= (indexer/callstack-frame-call-trace-idx indexer curr-idx)
-                                  (indexer/callstack-frame-call-trace-idx indexer next-trace-idx))
+            changing-frame? (not= (:frame-idx (indexer/frame-data-for-idx indexer curr-idx))
+                                  (:frame-idx (indexer/frame-data-for-idx indexer next-idx)))
             changing-form? (not= curr-form-id next-form-id)]
 
         ;; update thread current trace label and total traces
-        (.setText curr_trace_lbl (str (inc next-trace-idx)))
+        (.setText curr_trace_lbl (str (inc next-idx)))
         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
         (when changing-form?
           ;; we are leaving a form with this jump, so unhighlight all curr-form interesting tokens
-          (let [curr-form-interesting-expr-traces (indexer/interesting-expr-traces indexer curr-form-id curr-idx)]
+          (let [{:keys [expr-executions]} (indexer/frame-data-for-idx indexer curr-idx)]
 
             (unhighlight-form flow-id thread-id curr-form-id)
             (highlight-form flow-id thread-id next-form-id)
 
-            (doseq [{:keys [coor]} curr-form-interesting-expr-traces]
+            (doseq [{:keys [coor]} expr-executions]
               (let [token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id curr-form-id coor))]
                 (doseq [text token-texts]
                   (un-highlight text))))))
@@ -225,41 +242,43 @@
                   (zero? curr-idx))
           ;; we are leaving a frame with this jump, or its the first trace
           ;; highlight all interesting tokens for the form we are currently in
-          (let [interesting-expr-traces-grps (->> (indexer/interesting-expr-traces indexer next-form-id next-trace-idx)
-                                                  (group-by :coor))]
+          (let [{:keys [expr-executions]} (indexer/frame-data-for-idx indexer next-idx)
+                next-exec-expr (->> expr-executions
+                                    (group-by :coor))]
 
-            (doseq [[coor traces] interesting-expr-traces-grps]
+            (doseq [[coor traces] next-exec-expr]
               (let [token-id (ui-vars/form-token-id thread-id next-form-id coor)
                     token-texts (obj-lookup flow-id token-id)]
                 (doseq [text token-texts]
-                  (arm-interesting text traces)
+                  (arm-interesting flow-id thread-id text traces)
                   (highlight-interesting text))))))
 
         ;; "unhighlight" prev executing tokens
-        (when (trace-types/exec-trace? curr-trace)
-          (let [curr-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
-                                                                            (:form-id curr-trace)
-                                                                            (:coor curr-trace)))]
-            (doseq [text curr-token-texts]
-              (if (= curr-form-id next-form-id)
-                (highlight-interesting text)
-                (un-highlight text)))))
+
+        (when (= :expr (:timeline/type curr-tentry))
+            (let [curr-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
+                                                                              (:form-id curr-tentry)
+                                                                              (:coor curr-tentry)))]
+           (doseq [text curr-token-texts]
+             (if (= curr-form-id next-form-id)
+               (highlight-interesting text)
+               (un-highlight text)))))
 
         ;; highlight executing tokens
-        (when (trace-types/exec-trace? next-trace)
+        (when (= :expr (:timeline/type next-tentry))
           (let [next-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
-                                                                            (:form-id next-trace)
-                                                                            (:coor next-trace)))]
+                                                                            (:form-id next-tentry)
+                                                                            (:coor next-tentry)))]
             (doseq [text next-token-texts]
               (highlight-executing text))))
 
         ;; update reusult panel
-        (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-trace))
+        (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
 
         ;; update locals panel
-        (update-locals-pane flow-id thread-id (indexer/bindings-for-trace indexer next-trace-idx))
+        (update-locals-pane flow-id thread-id (bindings-for-idx indexer next-idx))
 
-        (state/set-trace-idx flow-id thread-id next-trace-idx)))))
+        (state/set-idx flow-id thread-id next-idx)))))
 
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])
