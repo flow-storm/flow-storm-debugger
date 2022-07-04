@@ -2,19 +2,36 @@
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
-            [flow-storm.debugger.ui.state-vars :as ui-vars :refer [main-pane stage scene]]
+            [flow-storm.debugger.ui.state-vars :as ui-vars :refer [main-pane stage scene obj-lookup store-obj]]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.scene.layout BorderPane]
-           [javafx.scene.control Alert ButtonType Alert$AlertType TabPane TabPane$TabClosingPolicy]
-           [javafx.geometry Side]
+           [javafx.scene.control Alert ButtonType Alert$AlertType ProgressIndicator TabPane TabPane$TabClosingPolicy]
+           [javafx.geometry Side Pos]
            [javafx.application Platform]))
 
 (defn bottom-box []
-  (let [box (h-box [])]
+  (let [box (doto (h-box [] "main-bottom-bar-box")
+              (.setAlignment Pos/CENTER_RIGHT)
+              (.setPrefHeight 20))]
+    (store-obj "main-bottom-bar-box" box)
     box))
+
+(defn set-in-progress [in-progress?]
+  (ui-utils/run-later
+   (let [[box] (obj-lookup "main-bottom-bar-box")]
+     (if in-progress?
+
+       (let [prog-ind (doto (ProgressIndicator.)
+                        (.setPrefSize 20 20))]
+         ;; @HACK this is super hacky, you can't use the bottom bar for anything
+         ;; more than this progress-indicator
+         (-> box .getChildren .clear)
+         (.addAll (.getChildren box) [prog-ind]))
+
+       (-> box .getChildren .clear)))))
 
 (defn show-error [msg]
   (ui-utils/run-later
@@ -85,14 +102,16 @@
                             [kev]
                             (let [key-name (.getName (.getCode kev))]
                               (cond
+
                                 (and (.isControlDown kev)
                                      (= key-name "G"))
                                 (do
                                   (log "Interrupting long running task")
                                   (.interrupt @ui-vars/long-running-task-thread))
 
-                                :else
-                                (log (format "Unhandled keypress %s" key-name)))))))
+                                ;; :else
+                                ;; (log (format "Unhandled keypress %s" key-name))
+                                )))))
 
 
        (.add stylesheets (str (io/resource "styles.css")))

@@ -31,7 +31,9 @@
                           ;; run the function on a different thread so we don't block the ui
                           ;; while running commands
                           (.start (Thread. (fn []
+                                             (ui-main/set-in-progress true)
                                              (let [[_ [_ ret-val]] (run-command nil method args-map)]
+                                               (ui-main/set-in-progress false)
                                                (when callback
                                                  (callback ret-val))))))))))
 
@@ -48,9 +50,11 @@
                         (constantly
                          ;; remote command executor (via websockets)
                          (fn run-command-fn [method args-map & [callback]]
+                           (ui-main/set-in-progress true)
                            (websocket/async-command-request @dbg-state/remote-connection
                                                             method
                                                             args-map
                                                             (fn [ret-val]
+                                                              (ui-main/set-in-progress false)
                                                               (when callback
                                                                 (callback ret-val))))))))))

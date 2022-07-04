@@ -159,3 +159,7 @@
 	-fx-background-color: #336699;
     -fx-text-fill: white;    
 }
+
+.main-bottom-bar-box {
+	-fx-background-color: #ddd;
+}

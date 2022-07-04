@@ -83,6 +83,8 @@
                                         (when on-connected (on-connected)))
 
                                       (onMessage [^String message]
+                                        ;; this is sketchy since it assumes the only messages
+                                        ;; we receive are commands
                                         (let [[comm-id method args-map] (serializer/deserialize message)
                                               ret-packet (fs-core/run-command comm-id method args-map)
                                               ret-packet-ser (serializer/serialize ret-packet)]

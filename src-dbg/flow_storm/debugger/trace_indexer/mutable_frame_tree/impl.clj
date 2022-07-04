@@ -78,9 +78,7 @@
         frame-data (get-immutable-frame curr-frame)
         node-fn-ns (:fn-ns frame-data)
         node-fn-name (:fn-name frame-data)
-        node-fn-args-vec (:args-vec frame-data)
-        node-fn-form-id (:form-id frame-data)
-        node-frame-idx (:frame-idx frame-data)]
+        node-fn-form-id (:form-id frame-data)]
 
     (cond-> (->> (get-childs node)
                  (mapcat #(collect-frames % fn-ns fn-name form-id))

@@ -130,4 +130,8 @@
             :instrument-namespaces   instrument-namespaces-command
             :uninstrument-namespaces uninstrument-namespaces-command
             )]
-    [:cmd-ret [comm-id (f args-map)]]))
+    (try
+      (let [comm-result (f args-map)]
+        [:cmd-ret [comm-id comm-result]])
+      (catch Exception _
+        [:cmd-ret :error]))))

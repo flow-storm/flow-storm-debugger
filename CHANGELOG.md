@@ -4,6 +4,8 @@
 
 ## New Features
 
+	* Add bottom bar progress indicator when running commands
+	
 ### Changes
 	
 ### Bugs fixed
