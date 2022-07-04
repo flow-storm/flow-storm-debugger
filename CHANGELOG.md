@@ -5,6 +5,7 @@
 ## New Features
 
 	* Add bottom bar progress indicator when running commands
+	* Add reload tree button on callstack tree tabs
 	
 ### Changes
 	

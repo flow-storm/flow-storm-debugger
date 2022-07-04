@@ -163,3 +163,7 @@
 .main-bottom-bar-box {
 	-fx-background-color: #ddd;
 }
+
+.button.reload-tree-btn {
+	-fx-background-color: #919191;
+}

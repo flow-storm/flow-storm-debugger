@@ -6,7 +6,7 @@
             [flow-storm.utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button]]
             [flow-storm.debugger.trace-types :refer [deref-ser]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
@@ -173,51 +173,66 @@
       (.setAlignment Pos/CENTER_RIGHT)
       (.setPadding (Insets. 4.0)))))
 
+(defn dummy-root-frame? [frame]
+  (nil? (:frame-idx frame)))
+
+(defn- build-tree-cell-factory [flow-id thread-id indexer]
+  (proxy [javafx.util.Callback] []
+    (call [tv]
+      (proxy [TreeCell] []
+        (updateItem [tree-node empty?]
+          (proxy-super updateItem tree-node empty?)
+          (if empty?
+
+            (doto this
+              (.setGraphic nil)
+              (.setText nil))
+
+            (let [frame (indexer/callstack-node-frame indexer tree-node)
+                  frame-idx (:frame-idx frame)
+                  expanded? (or (nil? frame-idx)
+                                (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
+                  tree-item (.getTreeItem this)
+                  update-tree-btn (doto (icon-button "mdi-reload" "reload-tree-btn")
+                                    (.setOnAction (event-handler
+                                                   [_]
+                                                   (update-call-stack-tree-pane flow-id thread-id))))]
+
+              (if (dummy-root-frame? frame)
+
+                ;; it's the root dummy node, put update-tree-btn
+                (doto this
+                  (.setGraphic update-tree-btn)
+                  (.setText nil))
+
+                ;; else, put the frame
+                (doto this
+                  (.setGraphic nil)
+                  (.setText (create-call-stack-tree-text-node frame flow-id thread-id))))
+
+              (store-obj flow-id (ui-vars/thread-callstack-tree-cell thread-id frame-idx) this)
+
+              (doto tree-item
+                (.addEventHandler (TreeItem/branchCollapsedEvent)
+                                  (event-handler
+                                   [ev]
+                                   (when (= (.getTreeItem ev) tree-item)
+                                     (state/callstack-tree-collapse-calls flow-id thread-id #{frame-idx}))))
+                (.addEventHandler (TreeItem/branchExpandedEvent)
+                                  (event-handler
+                                   [ev]
+                                   (when (= (.getTreeItem ev) tree-item)
+                                     (state/callstack-tree-expand-calls flow-id thread-id #{frame-idx}))))
+                (.setExpanded expanded?)))))))))
+
 (defn create-call-stack-tree-pane [flow-id thread-id]
   (let [indexer (state/thread-trace-indexer flow-id thread-id)
 
-        cell-factory (proxy [javafx.util.Callback] []
-                       (call [tv]
-                         (proxy [TreeCell] []
-                           (updateItem [tree-node empty?]
-                             (proxy-super updateItem tree-node empty?)
-                             (if empty?
-
-                               (doto this
-                                 (.setGraphic nil)
-                                 (.setText nil))
-
-                               (let [frame (indexer/callstack-node-frame indexer tree-node)
-                                     frame-idx (:frame-idx frame)
-                                     expanded? (or (nil? frame-idx)
-                                                   (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
-                                     tree-item (.getTreeItem this)]
-
-                                 (doto this
-                                   #_(.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id))
-                                   (.setGraphic nil)
-                                   (.setText (create-call-stack-tree-text-node frame flow-id thread-id))
-
-                                   #_(.setTooltip (Tooltip. (format "Idx : %d" frame-idx))))
-
-                                 (store-obj flow-id (ui-vars/thread-callstack-tree-cell thread-id frame-idx) this)
-
-                                 (doto tree-item
-                                   (.addEventHandler (TreeItem/branchCollapsedEvent)
-                                                     (event-handler
-                                                      [ev]
-                                                      (when (= (.getTreeItem ev) tree-item)
-                                                        (state/callstack-tree-collapse-calls flow-id thread-id #{frame-idx}))))
-                                   (.addEventHandler (TreeItem/branchExpandedEvent)
-                                                     (event-handler
-                                                      [ev]
-                                                      (when (= (.getTreeItem ev) tree-item)
-                                                        (state/callstack-tree-expand-calls flow-id thread-id #{frame-idx}))))
-                                   (.setExpanded expanded?))))))))
+        tree-cell-factory (build-tree-cell-factory flow-id thread-id indexer)
         search-pane (create-tree-search-pane flow-id thread-id)
         tree-view (doto (TreeView.)
                     (.setEditable false)
-                    (.setCellFactory cell-factory))
+                    (.setCellFactory tree-cell-factory))
         tree-view-sel-model (.getSelectionModel tree-view)
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
