@@ -136,7 +136,7 @@
       (binding [*print-meta* true]
         #_(utils/log-error (format "Evaluating form %s Msg: %s Cause : %s" (pr-str inst-form) (.getMessage ex) (.getMessage (.getCause ex))) ex)
         #_(System/exit 1)
-        {:type :unknown-error}))))
+        {:type :unknown-error :msg e-msg}))))
 
 (defn instrument-and-eval-form
 
@@ -149,8 +149,9 @@
    (let [inst-form (try
                      (inst-forms/instrument (assoc config :ns (str (ns-name ns)))
                                             form)
-                     (catch Exception _
-                       (throw (ex-info "Error instrumenting form" {:type :unknown-error}))))]
+                     (catch Exception e
+                       (throw (ex-info "Error instrumenting form" {:type :unknown-error
+                                                                   :msg (.getMessage e)}))))]
 
      (try
        (cond
