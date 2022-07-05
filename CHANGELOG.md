@@ -10,6 +10,7 @@
 ### Changes
 
 	* Automatically deref all reference values in traces
+	* Automatically change to flow tab on new flow
 	
 ### Bugs fixed
 

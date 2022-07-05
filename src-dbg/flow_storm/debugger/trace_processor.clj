@@ -5,6 +5,7 @@
             [flow-storm.debugger.trace-types :as dbg-trace-types]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
+            [flow-storm.debugger.ui.main :as ui-main]
             #_[flow-storm.debugger.trace-indexer.mutable.impl :as trace-indexer]
             [flow-storm.debugger.trace-indexer.mutable-frame-tree.impl :as trace-indexer]
             [flow-storm.trace-types])
@@ -23,7 +24,8 @@
   (process [{:keys [flow-id form-ns form timestamp]}]
     (dbg-state/create-flow flow-id form-ns form timestamp)
     (ui-utils/run-now (flows-screen/remove-flow flow-id))
-    (ui-utils/run-now (flows-screen/create-empty-flow flow-id)))
+    (ui-utils/run-now (flows-screen/create-empty-flow flow-id))
+    (ui-utils/run-now (ui-main/select-main-tools-tab :flows)))
 
   FormInitTrace
   (process [{:keys [flow-id form-id thread-id form ns def-kind mm-dispatch-val]}]

@@ -38,8 +38,16 @@
    (let [err-dialog (Alert. Alert$AlertType/ERROR msg (into-array ButtonType [ButtonType/CLOSE]))]
      (.show err-dialog))))
 
+(defn select-main-tools-tab [tool]
+  (let [[main-tools-tab] (obj-lookup "main-tools-tab")
+        sel-model (.getSelectionModel main-tools-tab)]
+    (case tool
+      :flows (.select sel-model 0)
+      :browser (.select sel-model 1))))
+
 (defn main-tabs-pane []
   (let [tabs-p (TabPane.)
+        _ (store-obj "main-tools-tab" tabs-p)
         tabs (.getTabs tabs-p)
         flows-tab (doto (ui-utils/tab "Flows" "vertical-tab")
                     (.setContent (flows-screen/main-pane)))

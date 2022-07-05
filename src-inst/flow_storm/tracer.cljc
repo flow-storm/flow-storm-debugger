@@ -1,7 +1,8 @@
 (ns flow-storm.tracer
   (:require [flow-storm.utils :refer [log] :as utils]
             [flow-storm.trace-types :as trace-types]
-            [clojure.core.async :as async]))
+            [clojure.core.async :as async])
+  (:import [clojure.lang IDeref]))
 
 (def orphan-flow-id -1)
 
@@ -57,7 +58,7 @@
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
 (defn- snapshot-reference [x]  
-  (if (instance? clojure.lang.IDeref x)
+  (if (instance? IDeref x)
     {:ref/snapshot (deref x)
      :ref/type (type x)}
     x))
