@@ -129,7 +129,7 @@
 
       (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Method code too large!"))
       {:type :known-error
-       :msg "Instrumented expresion is too large for the clojure compiler"
+       :msg "Instrumented expression is too large for the clojure compiler"
        :retry-disabling #{:expr}}
 
       :else

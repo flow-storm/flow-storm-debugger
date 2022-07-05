@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="author" content="By Juan Monetta">
+<title>FlowStorm debugger User&#8217;s Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment the following line when using as a custom stylesheet */
+/* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+html{font-family:sans-serif;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+b,strong{font-weight:bold}
+abbr{font-size:.9em}
+abbr[title]{cursor:help;border-bottom:1px dotted #dddddf;text-decoration:none}
+dfn{font-style:italic}
+hr{height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type=checkbox],input[type=radio]{padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,::before,::after{box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;line-height:1;position:relative;cursor:auto;-moz-tab-size:4;-o-tab-size:4;tab-size:4;word-wrap:anywhere;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:1px solid #dedede;word-wrap:normal}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre).nobreak{word-wrap:normal}
+:not(pre).nowrap{white-space:nowrap}
+:not(pre).pre-wrap{white-space:pre-wrap}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.2),inset 0 0 0 .1em #fff;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin:0 auto;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:flex;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border:1px solid #e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:none;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:hsla(0,0%,100%,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details{margin-left:1.25rem}
+details>summary{cursor:pointer;display:block;position:relative;line-height:1.6;margin-bottom:.625rem;outline:none;-webkit-tap-highlight-color:transparent}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";border:solid transparent;border-left:solid;border-width:.3em 0 .3em .5em;position:absolute;top:.5em;left:-1.25rem;transform:translateX(15%)}
+details[open]>summary::before{border:solid transparent;border-top:solid;border-width:.5em .3em 0;transform:translateY(15%)}
+details>summary::after{content:"";width:1.25rem;height:1em;position:absolute;top:.3em;left:-1.25rem}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class=paragraph]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6);word-wrap:anywhere}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border:1px solid #e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border:1px solid #dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{border-radius:4px;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos,pre.pygments .linenos{border-right:1px solid;opacity:.35;padding-right:.5em;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+pre.pygments span.linenos{display:inline-block;margin-right:.75em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans-serif;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;font-size:.85rem;text-align:left;margin-right:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content{margin-bottom:1.25em;word-wrap:anywhere}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>*>tr>*{border-width:1px}
+table.grid-cols>*>tr>*{border-width:0 1px}
+table.grid-rows>*>tr>*{border-width:1px 0}
+table.frame-all{border-width:1px}
+table.frame-ends{border-width:1px 0}
+table.frame-sides{border-width:0 1px}
+table.frame-none>colgroup+*>:first-child>*,table.frame-sides>colgroup+*>:first-child>*{border-top-width:0}
+table.frame-none>:last-child>:last-child>*,table.frame-sides>:last-child>:last-child>*{border-bottom-width:0}
+table.frame-none>*>tr>:first-child,table.frame-ends>*>tr>:first-child{border-left-width:0}
+table.frame-none>*>tr>:last-child,table.frame-ends>*>tr>:last-child{border-right-width:0}
+table.stripes-all>*>tr,table.stripes-odd>*>tr:nth-of-type(odd),table.stripes-even>*>tr:nth-of-type(even),table.stripes-hover>*>tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+li>p:empty:only-child::before{content:"";display:inline-block}
+ul.checklist>li>p:first-child{margin-left:-1em}
+ul.checklist>li>p:first-child>.fa-square-o:first-child,ul.checklist>li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist>li>p:first-child>input[type=checkbox]:first-child{margin-right:.25em}
+ul.inline{display:flex;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+td.hdlist2{word-wrap:anywhere}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:4px solid #fff;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);border-radius:50%;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt,summary{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,span.alt,summary{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]{border-bottom:1px dotted}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#header,#content,#footnotes,#footer{max-width:none}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media amzn-kf8,print{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<h1>FlowStorm debugger User&#8217;s Guide</h1>
+<div class="details">
+<span id="author" class="author">By Juan Monetta</span><br>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel2">
+<li><a href="#_quick_start">1. Quick start</a>
+<ul class="sectlevel3">
+<li><a href="#_clojure">1.1. Clojure</a></li>
+<li><a href="#_clojurescript">1.2. ClojureScript</a></li>
+</ul>
+</li>
+<li><a href="#_starting_the_debugger">2. Starting the debugger</a>
+<ul class="sectlevel3">
+<li><a href="#_local_debugging">2.1. Local debugging</a></li>
+<li><a href="#_remote_debugging">2.2. Remote debugging</a></li>
+</ul>
+</li>
+<li><a href="#_instrument_code">3. Instrument code</a>
+<ul class="sectlevel3">
+<li><a href="#_instrument_from_the_repl">3.1. Instrument from the repl</a>
+<ul class="sectlevel4">
+<li><a href="#_instrument_any_form_with_trace">Instrument any form with #trace</a></li>
+<li><a href="#_run_code_with_rtrace">Run code with #rtrace</a></li>
+<li><a href="#_conditional_tracing_with_ctrace">Conditional tracing with #ctrace</a></li>
+<li><a href="#_instrument_namespaces">Instrument namespaces</a></li>
+<li><a href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></li>
+<li><a href="#_un_instrument_code">Un-instrument code</a></li>
+</ul>
+</li>
+<li><a href="#_instrument_with_the_browser">3.2. Instrument with the browser</a>
+<ul class="sectlevel4">
+<li><a href="#_instrument_vars">Instrument vars</a></li>
+<li><a href="#_instrument_namespaces_2">Instrument namespaces</a></li>
+<li><a href="#_un_instrument_code_2">Un-instrument code</a></li>
+</ul>
+</li>
+<li><a href="#_fully_instrument_a_form_from_the_code_view">3.3. Fully instrument a form from the code view</a></li>
+</ul>
+</li>
+<li><a href="#_flows_tool">4. Flows tool</a>
+<ul class="sectlevel3">
+<li><a href="#_code_tool">4.1. Code tool</a>
+<ul class="sectlevel4">
+<li><a href="#_code_stepping">Code stepping</a></li>
+<li><a href="#_exception_debugging">Exception debugging</a></li>
+<li><a href="#_locals">Locals</a></li>
+<li><a href="#_value_inspectors">Value inspectors</a></li>
+<li><a href="#_re_running_a_flow">Re running a flow</a></li>
+</ul>
+</li>
+<li><a href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a>
+<ul class="sectlevel4">
+<li><a href="#_searching">Searching</a></li>
+</ul>
+</li>
+<li><a href="#_functions_tool">4.3. Functions tool</a>
+<ul class="sectlevel4">
+<li><a href="#_show_function_calls">Show function calls</a></li>
+<li><a href="#_un_instrumenting_functions">Un-instrumenting functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_browser_tool">5. Browser tool</a></li>
+<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">6. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
+<li><a href="#_styling_and_theming">7. Styling and theming</a></li>
+<li><a href="#_key_bindings">8. Key bindings</a></li>
+<li><a href="#_tutorials_and_demos">9. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">10. Troubleshooting</a>
+<ul class="sectlevel3">
+<li><a href="#_instrument_verbose">10.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">10.2. Run verbose</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">11. Internals, diagrams and documentation</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>FlowStorm is a tracing debugger for Clojure and ClojureScript.</p>
+</div>
+<div class="paragraph">
+<p>It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_quick_start"><a class="anchor" href="#_quick_start"></a><a class="link" href="#_quick_start">1. Quick start</a></h3>
+<div class="paragraph">
+<p>Before you start check FlowStorm minimum requirements.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Minimum requirements</div>
+<div class="ulist">
+<ul>
+<li>
+<p>jdk &gt;= 11</p>
+</li>
+<li>
+<p>Clojure &gt;= 1.9.0</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_clojure"><a class="anchor" href="#_clojure"></a><a class="link" href="#_clojure">1.1. Clojure</a></h4>
+<div class="paragraph">
+<p>If you use <a href="https://clojure.org/guides/deps_and_cli">clojure cli</a> you can start a repl with FlowStorm dependencies loaded like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you are a <a href="https://leiningen.org/">lein</a> user add both dependencies to your project.clj <code>:dependencies</code> and run <code>lein repl</code>.</p>
+</div>
+<div class="paragraph">
+<p>Then require the api namespace and start the debugger :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w"> </span><span class="c1">;; the only namespace you need to require</span><span class="w">
+
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span><span class="w"> </span><span class="c1">;; will run the debugger GUI and get everything ready</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should now see a empty debugger window.</p>
+</div>
+<div class="paragraph">
+<p>Lets debug something :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; #rtrace will instrument and run some code</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/quick_start.png" alt="quick start">
+</div>
+</div>
+<div class="paragraph">
+<p>After running it, you should get the return value of the expression (as if #rtrace wasn&#8217;t there) and the debugger
+should show the executed form. You can go ahead and use the stepping controls to step over the code.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h4>
+<div class="paragraph">
+<p>Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the the debugger
+will run in a separate process, and the debuggee will connect to it throuhg a socket.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureScript limitations</div>
+<div class="paragraph">
+<p>ClojureScript support is still limited.
+Unsupported features :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>No browser</p>
+</li>
+<li>
+<p>No namespaces or library var instrumentation</p>
+</li>
+<li>
+<p>No re run flow</p>
+</li>
+</ul>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To start the debugger you run :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should now see a empty debugger window.</p>
+</div>
+<div class="paragraph">
+<p>On your ClojureScript project you need to add only <code>com.github.jpmonettas/flow-storm-inst</code> dependency.</p>
+</div>
+<div class="paragraph">
+<p>The next example will use shadow-cljs but a similar approach will work with any cljs build tool.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span><span class="nb">cat </span>shadow-cljs.edn
+
+<span class="o">{</span>:dependencies <span class="o">[</span>... <span class="o">[</span>com.github.jpmonettas/flow-storm-inst <span class="s2">"RELEASE"</span><span class="o">]]</span> ...<span class="o">}</span></code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">NodeJs</div>
+<div class="paragraph">
+<p>On NodeJs you need to install the <code>websocket</code> library.
+Do this by running <code>npm install websocket --save</code></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If you then run <code>shadow-cljs browser-repl</code>, a ClojureScript browser repl starts, where you can then :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w"> </span><span class="c1">;; the only namespace you need to require</span><span class="w">
+
+</span><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="p">)</span><span class="w"> </span><span class="c1">;; will connect your JS runtime to the debugger via a websocket</span><span class="w">
+
+</span><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; you can use #trace and #rtrace like in Clojure</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_starting_the_debugger"><a class="anchor" href="#_starting_the_debugger"></a><a class="link" href="#_starting_the_debugger">2. Starting the debugger</a></h3>
+<div class="paragraph">
+<p>FlowStorm can run in local or remote mode. Running in local mode will start the debugger
+in the same process (which is faster), while running in remote mode means running the debugger in a separate
+process and connect to it from the debuggee via sockets.</p>
+</div>
+<div class="sect3">
+<h4 id="_local_debugging"><a class="anchor" href="#_local_debugging"></a><a class="link" href="#_local_debugging">2.1. Local debugging</a></h4>
+<div class="paragraph">
+<p>For running FlowStorm locally you need both dependencies in your project :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>com.github.jpmonettas/flow-storm-inst</p>
+</li>
+<li>
+<p>com.github.jpmonettas/flow-storm-dbg</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can then start it from your repl like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w">
+
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">2.2. Remote debugging</a></h4>
+<div class="paragraph">
+<p>For running FlowStorm remoteley you first need to run a standalone debugger :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then on your Clojure or ClojureScript project :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w">
+
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default <code>remote-connect</code> will connect to <code>localhost</code> on port <code>7722</code>. You can change this by providing
+a host and a port like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:host</span><span class="w"> </span><span class="s">"192.1681.7"</span><span class="w"> </span><span class="no">:port</span><span class="w"> </span><span class="mi">1234</span><span class="p">})</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_instrument_code"><a class="anchor" href="#_instrument_code"></a><a class="link" href="#_instrument_code">3. Instrument code</a></h3>
+<div class="paragraph">
+<p>Code instrumentation in FlowStorm is done by rewriting your code in a way that doesn&#8217;t change its behavior
+but when executed it will trace everything the code is doing.</p>
+</div>
+<div class="paragraph">
+<p>You can instrument code from the <a href="#_browser_tool">browser tool</a> or the repl.</p>
+</div>
+<div class="sect3">
+<h4 id="_instrument_from_the_repl"><a class="anchor" href="#_instrument_from_the_repl"></a><a class="link" href="#_instrument_from_the_repl">3.1. Instrument from the repl</a></h4>
+<div class="sect4">
+<h5 id="_instrument_any_form_with_trace"><a class="anchor" href="#_instrument_any_form_with_trace"></a><a class="link" href="#_instrument_any_form_with_trace">Instrument any form with #trace</a></h5>
+<div class="paragraph">
+<p>You can instrument any top level form at the repl by writing <code>#trace</code> before it, like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">trace</span><span class="w">
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then evaluating the form.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">important</dt>
+<dd>
+<p><code>#trace</code> is meant to be used with forms that don&#8217;t run immediately, like: defn, defmethod, extend-type, etc.
+Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (range 10))</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_run_code_with_rtrace"><a class="anchor" href="#_run_code_with_rtrace"></a><a class="link" href="#_run_code_with_rtrace">Run code with #rtrace</a></h5>
+<div class="paragraph">
+<p><code>#rtrace</code> is useful in two situations :</p>
+</div>
+<div class="paragraph">
+<p>First, when instrumenting and running a simple form at the repl, like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">filter</span><span class="w"> </span><span class="n">odd?</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="p">))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Second, when you want to run a form with a certain flow id (see <a href="#_flows_tool">flows</a>).</p>
+</div>
+<div class="paragraph">
+<p><code>#rtrace</code> by default will instrument and run the form with flow id 0, but you can use
+<code>#rtrace0</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, <code>#rtrace3</code>, <code>#rtrace4</code>, <code>#rtrace5</code> to trace with flows ids [0..5].</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_conditional_tracing_with_ctrace"><a class="anchor" href="#_conditional_tracing_with_ctrace"></a><a class="link" href="#_conditional_tracing_with_ctrace">Conditional tracing with #ctrace</a></h5>
+<div class="paragraph">
+<p>Some times you need to debug a function that is being constantly called many times per second, like in a game loop.</p>
+</div>
+<div class="paragraph">
+<p>Adding a <code>#trace</code> on this functions will make it generate too many traces and everything will get slow.</p>
+</div>
+<div class="paragraph">
+<p>In most of this cases you probably don&#8217;t want to trace absolutely everything, but are probably interested in executions under
+certain conditions. This is what <code>#ctrace</code> is for.</p>
+</div>
+<div class="paragraph">
+<p><code>#ctrace</code> is exactly like <code>#trace</code> but with the difference that you can control when tracing will be disable/enable
+by the use of <code>^{trace:/when &#8230;&#8203;}</code> meta.</p>
+</div>
+<div class="paragraph">
+<p>For example :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">trace</span><span class="w">
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">called-many-times</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="mi">10</span><span class="p">))</span><span class="w">
+
+</span><span class="o">#</span><span class="n">ctrace</span><span class="w">
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="p">[]</span><span class="w">
+  </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10000</span><span class="p">)</span><span class="w">
+       </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="n">sc</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w">
+              </span><span class="o">^</span><span class="p">{</span><span class="no">:trace/when</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">4</span><span class="p">)}</span><span class="w">
+              </span><span class="p">(</span><span class="nf">called-many-times</span><span class="w"> </span><span class="n">i</span><span class="p">)))</span><span class="w">
+       </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="p">)))</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">foo</span><span class="p">)</span><span class="w"> </span><span class="c1">;; =&gt; 50095000</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you take a look at the <a href="#_call_stack_tree_tool">call stack tree</a> you will see :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/ctrace_example.png" alt="ctrace example">
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that we only added <code>#ctrace</code> to the function that needs to control trace disabling, the rest of the
+functions can be instrumented normally.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">Instrument namespaces</a></h5>
+<div class="paragraph">
+<p>FlowStorm allows you to instrument entire namespaces by providing <code>flow-strom.api/instrument-forms-for-namespaces</code>.</p>
+</div>
+<div class="paragraph">
+<p>You call it like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">instrument-forms-for-namespaces</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">"org.my-app.core"</span><span class="w"> </span><span class="s">"cljs."</span><span class="p">}</span><span class="w"> </span><span class="p">{})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first argument is a set of namespaces prefixes to instrument. In the previous example it means
+instrument all namespaces starting with <code>org.my-app.core</code>, and all starting with <code>cljs.</code></p>
+</div>
+<div class="paragraph">
+<p>The second argument is a map supporting the following options :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>:excluding-ns</code> a set of strings with namespaces that should be excluded</p>
+</li>
+<li>
+<p><code>:disable</code> a set containing any of #{<code>:expr</code> <code>:binding</code> <code>:anonymous-fn</code>} useful for disabling unnecessary traces in code that generate too many</p>
+</li>
+<li>
+<p><code>:verbose?</code> when true show more logging</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></h5>
+<div class="paragraph">
+<p>This are some limitations when instrumenting forms :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Very big forms can&#8217;t be fully instrumented. The Clojure compiler has a limit on the size of the form it can process, and instrumentation adds a lot of code.
+When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying <code>Instrumented expression is too large for the Clojure compiler</code>
+and FlowStorm automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
+</li>
+<li>
+<p>Functions that call recur without a loop</p>
+</li>
+<li>
+<p>Functions that return recursive lazy sequences. Like <code>(fn foo [] (lazy-seq (&#8230;&#8203; (foo))))</code></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_un_instrument_code"><a class="anchor" href="#_un_instrument_code"></a><a class="link" href="#_un_instrument_code">Un-instrument code</a></h5>
+<div class="paragraph">
+<p>Un-instrumenting code that has been instrumented with <code>#trace</code> or <code>#ctrace</code> is straight forward, just remove the tag and re evaluate the form.</p>
+</div>
+<div class="paragraph">
+<p>To un-instrument entire namespaces you can use <code>flow-storm.api/uninstrument-forms-for-namespaces</code> which accept a set of namespaces prefixes.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_instrument_with_the_browser"><a class="anchor" href="#_instrument_with_the_browser"></a><a class="link" href="#_instrument_with_the_browser">3.2. Instrument with the browser</a></h4>
+<div class="paragraph">
+<p>Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
+and weren&#8217;t loaded from a file.</p>
+</div>
+<div class="sect4">
+<h5 id="_instrument_vars"><a class="anchor" href="#_instrument_vars"></a><a class="link" href="#_instrument_vars">Instrument vars</a></h5>
+<div class="paragraph">
+<p>Using the browser you can navigate to the var you are interested in and then use the instrument button to instrument it.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_var_instrumentation.png" alt="browser var instrumentation">
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_instrument_namespaces_2"><a class="anchor" href="#_instrument_namespaces_2"></a><a class="link" href="#_instrument_namespaces_2">Instrument namespaces</a></h5>
+<div class="paragraph">
+<p>Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in
+and then a right click should show you a menu with two instrumentation commands.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_ns_instrumentation.png" alt="browser ns instrumentation">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Instrument namespace :light</code> (disables expressions, bindings, and anonymous functions instrumentation)</p>
+</li>
+<li>
+<p><code>Instrument namespace :full</code> fully instrument everything</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Light instrumentation is useful when you know the functions generate too many traces, so you can opt to trace just functions
+calls and returns. You can then <a href="#_fully_instrument_a_form_from_the_code_view">fully instrument</a> whatever functions you are interested in.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_un_instrument_code_2"><a class="anchor" href="#_un_instrument_code_2"></a><a class="link" href="#_un_instrument_code_2">Un-instrument code</a></h5>
+<div class="paragraph">
+<p>The bottom panel shows all instrumented vars and namespaces.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_uninstrument.png" alt="browser uninstrument">
+</div>
+</div>
+<div class="paragraph">
+<p>You can un-instrument them temporarily with the enable/disable checkbox or
+permanently with the del button.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_fully_instrument_a_form_from_the_code_view"><a class="anchor" href="#_fully_instrument_a_form_from_the_code_view"></a><a class="link" href="#_fully_instrument_a_form_from_the_code_view">3.3. Fully instrument a form from the code view</a></h4>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/fully_instrument_form.png" alt="fully instrument form">
+</div>
+</div>
+<div class="paragraph">
+<p>If you have instrumented a form with the <a href="#_instrument_namespaces_2">:light profile</a> you can fully instrument it by right clicking on the current form
+and then clicking <code>Fully instrument this form</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_flows_tool"><a class="anchor" href="#_flows_tool"></a><a class="link" href="#_flows_tool">4. Flows tool</a></h3>
+<div class="paragraph">
+<p>The <code>Flows</code> tab contains a bunch of tools for analyzing all traced executions flows.</p>
+</div>
+<div class="paragraph">
+<p>Flows are identified by a flow-id and can be started by running a form with <code>#rtrace</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, etc,.
+If you run a flow twice with the same flow id, the first one is going to be replaced.</p>
+</div>
+<div class="paragraph">
+<p>A flow will happen in one or more threads. A separate tab will show for each thread.</p>
+</div>
+<div class="paragraph">
+<p>For example if we trace a form that spawns multiple threads :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">pmap</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">5</span><span class="p">)))</span></code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/thread_outer_form.png" alt="thread outer form">
+</div>
+</div>
+<div class="paragraph">
+<p>there will be one thread for the <code>(&#8594; (pmap &#8230;&#8203; (range 5)))</code> form,</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/thread_inner_form.png" alt="thread inner form">
+</div>
+</div>
+<div class="paragraph">
+<p>and probably one thread for each <code>(fn [i] (* i i))</code>.</p>
+</div>
+<div class="paragraph">
+<p>Since <code>clojure.core/pmap</code> is backed by a thread pool, can happen that less than 5 threads are shown, in which case they will accumulate inside the same thread tab.</p>
+</div>
+<div class="paragraph">
+<p>Anything instrumented that isn&#8217;t run under #rtrace will end up in the funnel flow, which accumulates all traces that don&#8217;t contain any flow-id.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/funnel_flow.png" alt="funnel flow">
+</div>
+</div>
+<div class="sect3">
+<h4 id="_code_tool"><a class="anchor" href="#_code_tool"></a><a class="link" href="#_code_tool">4.1. Code tool</a></h4>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/code_tool_tab.png" alt="code tool tab">
+</div>
+</div>
+<div class="paragraph">
+<p>The code tool is the first of the <code>Flows</code> tab. It provides most of the functionality found in a traditional debugger.
+You can use it to step over each expression, visualize values, locals and more.</p>
+</div>
+<div class="sect4">
+<h5 id="_code_stepping"><a class="anchor" href="#_code_stepping"></a><a class="link" href="#_code_stepping">Code stepping</a></h5>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/controls.png" alt="controls">
+</div>
+</div>
+<div class="paragraph">
+<p>The numbers at the end show <code>current_trace_index / total_traces</code>.</p>
+</div>
+<div class="paragraph">
+<p>The code tool allows you to step and "travel thought time" in two ways:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can use the controls at the top to move one step at a time.</p>
+</li>
+<li>
+<p>Or you can click on the highlighted forms to position the debugger at that point in time.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Only the forms that were executed at least once for the flow and thread will be highlighted.</p>
+</div>
+<div class="paragraph">
+<p>When clicking on a highlighted form two things can happen :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the form was executed only once for the current frame, the debugger will immediately jump to it.</p>
+</li>
+<li>
+<p>Else if the form was executed multiple times, a context menu will show all the values that form evaluated to, sorted by time,
+and clicking on them will make the debugger jump to that specific point in time. This is useful for debugging loops.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/loops.png" alt="loops">
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_exception_debugging"><a class="anchor" href="#_exception_debugging"></a><a class="link" href="#_exception_debugging">Exception debugging</a></h5>
+<div class="paragraph">
+<p>Lets say you just run a instrumented piece of code and an exception bubbled up. One thing you can do to locate the source of the exception
+is to click the last trace button, it will move the debugger to the last trace captured for the thread, which almost always point to the expression evaluated before the exception was thrown.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_locals"><a class="anchor" href="#_locals"></a><a class="link" href="#_locals">Locals</a></h5>
+<div class="paragraph">
+<p>The locals panel will always show the locals bounded for the current point in time.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/locals.png" alt="locals">
+</div>
+</div>
+<div class="paragraph">
+<p>Right clicking on them will show a menu where you can define the value with a name, so you can use it at the repl.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_value_inspectors"><a class="anchor" href="#_value_inspectors"></a><a class="link" href="#_value_inspectors">Value inspectors</a></h5>
+<div class="paragraph">
+<p>Value inspectors show in many places in FlowStorm.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/value_inspector.png" alt="value inspector">
+</div>
+</div>
+<div class="paragraph">
+<p>The value inspector in the code tool always display a pretty print of the current expression value.</p>
+</div>
+<div class="paragraph">
+<p>You can configure the print-level and print-meta for the pretty printing by using the controls at the top.</p>
+</div>
+<div class="sect5">
+<h6 id="_define_value_for_repl"><a class="anchor" href="#_define_value_for_repl"></a><a class="link" href="#_define_value_for_repl">Define value for repl</a></h6>
+<div class="paragraph">
+<p>Use the <code>def</code> button to define a var pointing to the current inspector value.</p>
+</div>
+<div class="paragraph">
+<p>Choose a name for the var in the dialog that pops up and it will be created under the <code>user</code> namespace in Clojure and under <code>js</code> globals in ClojureScript.</p>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_re_running_a_flow"><a class="anchor" href="#_re_running_a_flow"></a><a class="link" href="#_re_running_a_flow">Re running a flow</a></h5>
+<div class="paragraph">
+<p>Every time you run a form with #rtrace FlowStorm keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
+since it allows you to re run the form with a single click.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_call_stack_tree_tool"><a class="anchor" href="#_call_stack_tree_tool"></a><a class="link" href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a></h4>
+<div class="paragraph">
+<p>The call stack tree tool is the second one of the <code>Flows</code> tab. It allows you to see the execution flow by expanding its call stack tree.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/callstack_tool_tab.png" alt="callstack tool tab">
+</div>
+</div>
+<div class="paragraph">
+<p>The call stack tree is useful for a high level overview of a complex execution and also as a tool for quickly moving through time.
+You can jump to any point in time by right clicking on any node and then clicking in <code>Goto trace</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/callstack_tree.png" alt="callstack tree">
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Tree refreshing</div>
+<div class="paragraph">
+<p>If FlowStorm keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
+You can use the refresh button at the root to update it.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>There are also two <a href="#_value_inspectors">value inspectors</a> at the bottom that show the arguments and return value for the currently selected function call.</p>
+</div>
+<div class="sect4">
+<h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
+<div class="paragraph">
+<p>You can search over function names and a string serialization of the arguments using the search tool at the top.</p>
+</div>
+<div class="paragraph">
+<p><code><strong>print-level</strong></code> controls how deeply it will serialize the arguments it will search over.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>From index</code> if you don&#8217;t want to search from the beginning. It will be automatically set after each match so it is easy to keep searching forward.</p>
+</div>
+<div class="paragraph">
+<p>If the search is taking too long you can always cancel it by hitting <code>Ctrl-g</code> on the keyboard. You can always make your search faster by choosing a
+lower value for <code><strong>print-level</strong></code> or by <a href="#_un_instrument_code_2">un-instrumenting</a> unnecessary code so you have less information to search over.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/search_match.png" alt="search match">
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have a search match the tree will auto expand but not auto scroll. If the expansion is big you will have to manually
+scroll down and use the blue link at the top to help you locate the match.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_functions_tool"><a class="anchor" href="#_functions_tool"></a><a class="link" href="#_functions_tool">4.3. Functions tool</a></h4>
+<div class="paragraph">
+<p>The functions tool is the third one of the <code>Flows</code> tab.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/functions_tool_tab.png" alt="functions tool tab">
+</div>
+</div>
+<div class="paragraph">
+<p>It shows a list of all traced functions sort by how many times the have been called.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/functions.png" alt="functions">
+</div>
+</div>
+<div class="paragraph">
+<p>Normal functions will be colored black, multimethods magenta and types/records protocols/interfaces implementations in green.</p>
+</div>
+<div class="paragraph">
+<p>Together with the <a href="#_call_stack_tree_tool">call stack tree</a> provide a high level overview of a flow thread execution and allows you to
+jump through time much quicker than single stepping.</p>
+</div>
+<div class="paragraph">
+<p>You can search over the functions list by using the bar at the top.</p>
+</div>
+<div class="sect4">
+<h5 id="_show_function_calls"><a class="anchor" href="#_show_function_calls"></a><a class="link" href="#_show_function_calls">Show function calls</a></h5>
+<div class="paragraph">
+<p>Double clicking on any function will display all function calls on the right sorted by time. Each line will show the arguments vector
+for each call, and you can use the check boxes at the top to hide some of them.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/function_calls.png" alt="function calls">
+</div>
+</div>
+<div class="paragraph">
+<p>Double clicking on any item in the functions call list will move the debugger to that specific point in time.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_un_instrumenting_functions"><a class="anchor" href="#_un_instrumenting_functions"></a><a class="link" href="#_un_instrumenting_functions">Un-instrumenting functions</a></h5>
+<div class="paragraph">
+<p>Since the functions tool shows all the functions sorted by how many time they have been called it is a good tool to
+see where most of your traces are coming from. If you want to reduce the number of traces, to make lets say, search faster,
+you can right click on any function to un instrument it. You will have to <a href="#_re_running_a_flow">re run the flow</a> after.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_browser_tool"><a class="anchor" href="#_browser_tool"></a><a class="link" href="#_browser_tool">5. Browser tool</a></h3>
+<div class="paragraph">
+<p>The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and also instrument/un-instrument them.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser.png" alt="browser">
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="#_instrument_with_the_browser">instrument with the browser</a> for more info.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">6. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
+<div class="paragraph">
+<p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
+you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
+run you original command.</p>
+</div>
+<div class="paragraph">
+<p>As an example, lets say you are compiling ClojureScript code like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"}}}'</span> <span class="se">\</span>
+    <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-t</span> nodejs ./org/foo/myscript.cljs</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you can then run and debug the execution of the same command like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="se">\</span>
+	<span class="nt">-X</span> flow-storm.api/cli-run :instrument-ns <span class="s1">'#{"cljs."}'</span>           <span class="se">\</span>
+                              :profile <span class="s1">':light'</span>                     <span class="se">\</span>
+                              :require-before <span class="s1">'#{"cljs.repl.node"}'</span> <span class="se">\</span>
+							  :excluding-ns <span class="s1">'#{"cljs.vendor.cognitect.transit"}'</span> <span class="se">\</span>
+                              :fn-symb <span class="s1">'cljs.main/-main'</span>            <span class="se">\</span>
+                              :fn-args <span class="s1">'["-t" "nodejs" "./org/foo/myscript.cljs"]'</span><span class="p">;</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">7. Styling and theming</a></h3>
+<div class="paragraph">
+<p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
+with the <code>:styles</code> keyword. If it points to a css file it will be used to overwrite the default styles, in case you want to change
+colors, make your fonts bigger, etc.</p>
+</div>
+<div class="paragraph">
+<p>Like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">local-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:styles</span><span class="w"> </span><span class="s">"~/.flow-storm/big-fonts.css"</span><span class="p">})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can overwrite all the styles defined here <a href="https://github.com/jpmonettas/flow-storm-debugger/blob/master/resources/styles.css" class="bare">https://github.com/jpmonettas/flow-storm-debugger/blob/master/resources/styles.css</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">8. Key bindings</a></h3>
+<div class="paragraph">
+<p><code>Ctrl-g</code> Cancel any long running task (only search supported yet)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">9. Tutorials and demos</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Flows basics <a href="https://www.youtube.com/watch?v=YnpQMrkj4v8" class="bare">https://www.youtube.com/watch?v=YnpQMrkj4v8</a></p>
+</li>
+<li>
+<p>Instrumenting libraries <a href="https://youtu.be/YnpQMrkj4v8?t=332" class="bare">https://youtu.be/YnpQMrkj4v8?t=332</a></p>
+</li>
+<li>
+<p>Debugging the ClojureScript compiler <a href="https://youtu.be/YnpQMrkj4v8?t=533" class="bare">https://youtu.be/YnpQMrkj4v8?t=533</a></p>
+</li>
+<li>
+<p>Browser <a href="https://www.youtube.com/watch?v=cnLwRzxrKDk" class="bare">https://www.youtube.com/watch?v=cnLwRzxrKDk</a></p>
+</li>
+<li>
+<p>Def button <a href="https://youtu.be/cnLwRzxrKDk?t=103" class="bare">https://youtu.be/cnLwRzxrKDk?t=103</a></p>
+</li>
+<li>
+<p>Conditional tracing <a href="https://youtu.be/cnLwRzxrKDk?t=133" class="bare">https://youtu.be/cnLwRzxrKDk?t=133</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">10. Troubleshooting</a></h3>
+<div class="sect3">
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">10.1. Instrument verbose</a></h4>
+<div class="paragraph">
+<p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
+by providing <code>:verbose? true</code> to the options map.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">10.2. Run verbose</a></h4>
+<div class="paragraph">
+<p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
+</div>
+<div class="paragraph">
+<p>The first argument is a options map, which accepts <code>:verbose? :true</code>, in which case FlowStorm will print to the console tracing stats.</p>
+</div>
+<div class="paragraph">
+<p>Is useful when you have instrumented a big application and wish to see tracing progress while running.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">11. Internals, diagrams and documentation</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/high_level_diagram.pdf" class="bare">https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/high_level_diagram.pdf</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/form_instrumentation.pdf" class="bare">https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/form_instrumentation.pdf</a></p>
+</li>
+<li>
+<p><a href="https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/data_structures.pdf" class="bare">https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/data_structures.pdf</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-07-13 14:30:19 -0300
+</div>
+</div>
+</body>
+</html>

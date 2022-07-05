@@ -1,5 +1,7 @@
-.PHONY: clean test lint-dbg lint-inst install-dbg install-inst deploy-dbg deploy-inst
+.PHONY: clean docs test lint-dbg lint-inst install-dbg install-inst deploy-dbg deploy-inst
 
+docs: docs/user_guide.adoc
+	asciidoctorj -b html5 -o docs/user_guide.html docs/user_guide.adoc
 clean:
 	clj -T:build clean
 

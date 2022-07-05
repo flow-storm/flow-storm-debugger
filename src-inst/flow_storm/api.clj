@@ -216,8 +216,9 @@
 
   `opts` is a map containing :
        - :excluding-ns  a set of strings with namespaces that should be excluded
-       - :disable is a set containing any of #{:expr :binding :anonymous-fn}
+       - :disable a set containing any of #{:expr :binding :anonymous-fn}
                   useful for disabling unnecesary traces in code that generate too many traces
+       - :verbose? when true show more logging
   "
 
   ([prefixes] (instrument-forms-for-namespaces prefixes {}))
