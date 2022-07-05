@@ -8,6 +8,8 @@
 	* Add reload tree button on callstack tree tabs
 	
 ### Changes
+
+	* Automatically deref all reference values in traces
 	
 ### Bugs fixed
 

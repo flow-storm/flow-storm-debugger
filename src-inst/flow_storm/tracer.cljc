@@ -56,6 +56,12 @@
         (enqueue-trace! trace)
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
+(defn- snapshot-reference [x]  
+  (if (instance? clojure.lang.IDeref x)
+    {:ref/snapshot (deref x)
+     :ref/type (type x)}
+    x))
+
 (defn trace-expr-exec
   
   "Send expression execution trace."
@@ -68,7 +74,7 @@
                                                :coor coor
                                                :thread-id (utils/get-current-thread-id)
                                                :timestamp (utils/get-monotonic-timestamp)
-                                               :result result
+                                               :result (snapshot-reference result)
                                                :outer-form? outer-form?})]
         (enqueue-trace! trace)))
     
@@ -102,7 +108,7 @@
                                                :thread-id (utils/get-current-thread-id)
                                                :timestamp (utils/get-monotonic-timestamp)
                                                :symbol (name symb)
-                                               :value val})]
+                                               :value (snapshot-reference val)})]
         (enqueue-trace! trace)))))
 
 (defn log-stats []

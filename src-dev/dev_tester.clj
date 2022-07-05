@@ -45,6 +45,9 @@
 
 (defn boo [xs]
   (let [a 25
+        *a (atom 10)
+        _ (swap! *a inc)
+        xx @*a
         b (dummy-sum-macro a 4)
         m ^{:meta1 true :meta2 "nice-meta-value"} {:a 5 :b ^:interesting-vector [1 2 3]}
         mm (assoc m :c 10)
