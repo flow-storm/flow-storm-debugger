@@ -93,7 +93,7 @@
                                                  :fn-name fn-name
                                                  :fn-ns ns
                                                  :thread-id (utils/get-current-thread-id)
-                                                 :args-vec  args-vec
+                                                 :args-vec  (mapv snapshot-reference args-vec)
                                                  :timestamp (utils/get-monotonic-timestamp)})]
         (enqueue-trace! trace)))))
 
