@@ -3,13 +3,12 @@
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.debugger.trace-types :refer [deref-ser]])
-  (:import [javafx.scene.control Label ListView ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
-           [javafx.collections FXCollections ObservableList]
+  (:import [javafx.scene.control Label ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.scene Node]
            [javafx.geometry Orientation Pos]
            [javafx.scene.text TextFlow Text Font]
@@ -71,42 +70,42 @@
 
     form-pane))
 
-(defn- create-locals-pane [flow-id thread-id]
-  (let [observable-bindings-list (FXCollections/observableArrayList)
-        cell-factory (proxy [javafx.util.Callback] []
-                       (call [lv]
-                         (ui-utils/create-list-cell-factory
-                          (fn [list-cell symb-val]
-                            (let [symb-lbl (doto (label (first symb-val))
-                                             (.setPrefWidth 100))
-                                  val-lbl (label  (flow-cmp/elide-string (deref-ser (second symb-val) {:print-length 3 :print-level 3 :pprint? false}) 80))
-                                  hbox (h-box [symb-lbl val-lbl])]
-                              (.setGraphic ^Node list-cell hbox))))))
-        locals-list-view (doto (ListView. observable-bindings-list)
-                           (.setEditable false)
-                           (.setCellFactory cell-factory))
-        locals-list-selection (.getSelectionModel locals-list-view)]
-    (store-obj flow-id (ui-vars/thread-locals-list-id thread-id) observable-bindings-list)
+(defn- locals-list-cell-factory [list-cell symb-val]
+  (let [symb-lbl (doto (label (first symb-val))
+                   (.setPrefWidth 100))
+        val-lbl (label  (flow-cmp/elide-string (deref-ser (second symb-val)
+                                                          {:print-length 3
+                                                           :print-level 3
+                                                           :pprint? false})
+                                               80))
+        hbox (h-box [symb-lbl val-lbl])]
+    (.setGraphic ^Node list-cell hbox)))
 
-    (.setOnMouseClicked locals-list-view
-                        (event-handler
-                         [mev]
-                         (when (= MouseButton/SECONDARY (.getButton mev))
-                           (let [[_ val] (-> (.getSelectedItems locals-list-selection)
-                                               first)
-                                 ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
-                                                                        :on-click (fn []
-                                                                                    (flow-cmp/def-val val))}])]
-                             (.show ctx-menu
-                                    locals-list-view
-                                    (.getScreenX mev)
-                                    (.getScreenY mev))))))
-    locals-list-view))
+(defn- on-locals-list-item-click [mev selected-items {:keys [list-view-pane]}]
+  (when (= MouseButton/SECONDARY (.getButton mev))
+    (let [[_ val] (first selected-items)
+          ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
+                                                 :on-click (fn []
+                                                             (flow-cmp/def-val val))}])]
+      (.show ctx-menu
+             list-view-pane
+             (.getScreenX mev)
+             (.getScreenY mev)))))
+
+(defn- create-locals-pane [flow-id thread-id]
+  (let [{:keys [list-view-pane] :as lv-data}
+        (list-view {:editable? false
+                    :selection-mode :single
+                    :cell-factory-fn locals-list-cell-factory
+                    :on-click on-locals-list-item-click})]
+    (store-obj flow-id (ui-vars/thread-locals-list-view-data thread-id) lv-data)
+
+    list-view-pane))
 
 (defn- update-locals-pane [flow-id thread-id bindings]
-  (let [[^ObservableList observable-bindings-list] (obj-lookup flow-id (ui-vars/thread-locals-list-id thread-id))]
-    (.clear observable-bindings-list)
-    (.addAll observable-bindings-list (into-array Object bindings))))
+  (let [[{:keys [clear add-all]}] (obj-lookup flow-id (ui-vars/thread-locals-list-view-data thread-id))]
+    (clear)
+    (add-all bindings)))
 
 (defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
   (let [[^Label lbl] (obj-lookup flow-id (ui-vars/thread-trace-count-lbl-id thread-id))]

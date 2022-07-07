@@ -1,17 +1,12 @@
 (ns flow-storm.debugger.ui.browser.screen
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon button add-class]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
             [flow-storm.utils :refer [log-error]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.target-commands :as target-commands]
             [clojure.string :as str])
-  (:import [javafx.scene.control CheckBox Label ListView SplitPane TextField SelectionMode]
+  (:import [javafx.scene.control CheckBox SplitPane]
            [javafx.scene Node]
-           [ javafx.beans.value ChangeListener]
-           [javafx.collections FXCollections]
-           [javafx.collections.transformation FilteredList]
-           [javafx.scene.layout HBox Priority VBox]
            [javafx.geometry Orientation Pos]
-           [java.util.function Predicate]
            [javafx.scene.input MouseButton]))
 
 (defn make-inst-var [var-ns var-name]
@@ -27,12 +22,12 @@
     :ns-name ns-name}))
 
 (defn add-to-var-instrumented-list [var-ns var-name]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.addAll observable-instrumentations-list (into-array Object [(make-inst-var var-ns var-name)]))))
+  (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
+    (add-all [(make-inst-var var-ns var-name)])))
 
 (defn remove-from-var-instrumented-list [var-ns var-name]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.removeAll observable-instrumentations-list (into-array Object [(make-inst-var var-ns var-name)]))))
+  (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
+    (remove-all [(make-inst-var var-ns var-name)])))
 
 (defn- instrument-function [var-ns var-name add?]
 
@@ -49,12 +44,12 @@
     (remove-from-var-instrumented-list var-ns var-name)))
 
 (defn add-to-namespace-instrumented-list [ns-maps]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.addAll observable-instrumentations-list (into-array Object ns-maps))))
+  (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
+    (add-all ns-maps)))
 
 (defn remove-from-namespace-instrumented-list [ns-maps]
-  (let [[observable-instrumentations-list] (obj-lookup "browser-observable-instrumentations-list")]
-    (.removeAll observable-instrumentations-list (into-array Object ns-maps))))
+  (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
+    (remove-all ns-maps)))
 
 (defn- instrument-namespaces [inst-namespaces add?]
   (target-commands/run-command
@@ -98,14 +93,14 @@
     (.setText selected-fn-doc-label doc)))
 
 (defn- update-vars-pane [vars]
-  (let [[observable-vars-list] (obj-lookup "browser-observable-vars-list")]
-    (.clear observable-vars-list)
-    (.addAll observable-vars-list (into-array Object (sort-by :var-name vars)))))
+  (let [[{:keys [clear add-all]}] (obj-lookup "browser-observable-vars-list-data")]
+    (clear)
+    (add-all (sort-by :var-name vars))))
 
 (defn- update-namespaces-pane [namespaces]
-  (let [[observable-namespaces-list] (obj-lookup "browser-observable-namespaces-list")]
-    (.clear observable-namespaces-list)
-    (.addAll observable-namespaces-list (into-array String (sort namespaces)))))
+  (let [[{:keys [clear add-all]}] (obj-lookup "browser-observable-namespaces-list-data")]
+    (clear)
+    (add-all (sort namespaces))))
 
 (defn get-var-meta [{:keys [var-name var-ns]}]
   (target-commands/run-command :get-var-meta
@@ -127,91 +122,56 @@
                                  (ui-utils/run-later (update-namespaces-pane all-namespaces)))))
 
 (defn create-namespaces-pane []
-  (let [observable-namespaces-list (FXCollections/observableArrayList)
-        search-field (TextField.)
-        observable-namespaces-filtered-list (FilteredList. observable-namespaces-list)
-        search-bar (h-box [search-field (doto (Label.)
-                                          (.setGraphic (icon "mdi-magnify")))])
-        namespaces-list-view (doto (ListView. observable-namespaces-filtered-list)
-                               (.setEditable false))
-        namespaces-list-selection (.getSelectionModel namespaces-list-view)
-        _ (.setSelectionMode namespaces-list-selection SelectionMode/MULTIPLE)
-        pane (v-box [search-bar namespaces-list-view])
+  (let [{:keys [list-view-pane] :as lv-data}
+        (list-view {:editable? false
+                    :cell-factory-fn (fn [list-cell ns-name]
+                                       (.setText list-cell nil)
+                                       (.setGraphic list-cell (label ns-name)))
+                    :on-click (fn [mev sel-items {:keys [list-view-pane]}]
+                                (cond (= MouseButton/PRIMARY (.getButton mev))
+                                      (let [sel-cnt (count sel-items)]
+                                        (when (= 1 sel-cnt)
+                                          (get-all-vars-for-ns (first sel-items))))
 
-        ]
+                                      (= MouseButton/SECONDARY (.getButton mev))
+                                      (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
+                                                                          :on-click (fn []
+                                                                                      (instrument-namespaces (map #(make-inst-ns % :light) sel-items) true))}
+                                            ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
+                                                                         :on-click (fn []
+                                                                                     (instrument-namespaces (map #(make-inst-ns % :full) sel-items) true))}
+                                            ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
+                                                                                  ctx-menu-instrument-ns-full])]
 
-    (HBox/setHgrow search-field Priority/ALWAYS)
-    (VBox/setVgrow namespaces-list-view Priority/ALWAYS)
+                                        (.show ctx-menu
+                                               list-view-pane
+                                               (.getScreenX mev)
+                                               (.getScreenY mev)))))
+                    :selection-mode :multiple
+                    :search-predicate (fn [ns-name search-str]
+                                        (str/starts-with? ns-name search-str))})]
 
-    (.addListener (.textProperty search-field)
-                  (proxy [ChangeListener] []
-                    (changed [_ _ new-val]
-                      (.setPredicate observable-namespaces-filtered-list
-                                     (proxy [Predicate] []
-                                       (test [ns-name]
-                                         (str/includes? ns-name new-val)))))))
+    (store-obj "browser-observable-namespaces-list-data" lv-data)
 
-    (.setOnMouseClicked namespaces-list-view
-                        (event-handler
-                         [mev]
-                         (cond (= MouseButton/PRIMARY (.getButton mev))
-                               (let [sel-items (.getSelectedItems namespaces-list-selection)
-                                     sel-cnt (count sel-items)]
-                                 (when (= 1 sel-cnt)
-                                   (get-all-vars-for-ns (first sel-items))))
-
-                               (= MouseButton/SECONDARY (.getButton mev))
-                               (let [sel-items (.getSelectedItems namespaces-list-selection)
-                                     ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
-                                                                   :on-click (fn []
-                                                                               (instrument-namespaces (map #(make-inst-ns % :light) sel-items) true))}
-                                     ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
-                                                                  :on-click (fn []
-                                                                              (instrument-namespaces (map #(make-inst-ns % :full) sel-items) true))}
-                                     ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
-                                                                           ctx-menu-instrument-ns-full])]
-
-                                 (.show ctx-menu
-                                        namespaces-list-view
-                                        (.getScreenX mev)
-                                        (.getScreenY mev))))))
-
-    (store-obj "browser-observable-namespaces-list" observable-namespaces-list)
-
-    pane))
+    list-view-pane))
 
 (defn create-vars-pane []
-  (let [observable-vars-list (FXCollections/observableArrayList)
-        search-field (TextField.)
-        observable-vars-filtered-list (FilteredList. observable-vars-list)
-        vars-cell-factory (proxy [javafx.util.Callback] []
-                            (call [lv]
-                              (ui-utils/create-list-cell-factory
-                               (fn [list-cell {:keys [var-name]}]
-                                 (.setGraphic ^Node list-cell (label var-name))))))
-        vars-list-view (doto (ListView. observable-vars-filtered-list)
-                         (.setCellFactory vars-cell-factory)
-                         (.setEditable false))
-        search-bar (h-box [search-field (doto (Label.)
-                                          (.setGraphic (icon "mdi-magnify")))])
-        pane (v-box [search-bar vars-list-view])]
-    (HBox/setHgrow search-field Priority/ALWAYS)
-    (VBox/setVgrow vars-list-view Priority/ALWAYS)
+  (let [{:keys [list-view-pane] :as lv-data}
+        (list-view {:editable? false
+                    :cell-factory-fn (fn [list-cell {:keys [var-name]}]
+                                       (.setText list-cell nil)
+                                       (.setGraphic list-cell (label var-name)))
+                    :on-click (fn [mev sel-items _]
+                                (cond (= MouseButton/PRIMARY (.getButton mev))
+                                      (let [sel-cnt (count sel-items)]
+                                        (when (= 1 sel-cnt)
+                                          (get-var-meta (first sel-items))))))
+                    :selection-mode :single
+                    :search-predicate (fn [{:keys [var-name]} search-str]
+                                        (str/starts-with? var-name search-str))})]
 
-    (.addListener (.textProperty search-field)
-                  (proxy [ChangeListener] []
-                    (changed [_ _ new-val]
-                      (.setPredicate observable-vars-filtered-list
-                                     (proxy [Predicate] []
-                                       (test [{:keys [var-name]}]
-                                         (str/includes? var-name new-val)))))))
-    (.addListener (-> vars-list-view .getSelectionModel .selectedItemProperty)
-                  (proxy [ChangeListener] []
-                    (changed [changed old-val new-val]
-                      (when new-val
-                        (get-var-meta new-val)))))
-    (store-obj "browser-observable-vars-list" observable-vars-list)
-    pane))
+    (store-obj "browser-observable-vars-list-data" lv-data)
+    list-view-pane))
 
 (defn create-fn-details-pane []
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
@@ -238,46 +198,42 @@
 
     selected-fn-detail-pane))
 
+(defn- instrumentations-cell-factory [list-cell {:keys [inst-type] :as inst}]
+  (try
+    (let [inst-box (case inst-type
+                     :var (let [{:keys [var-name var-ns]} inst
+                                inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
+                                                       (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
+                                           (.setSpacing 10))
+                                inst-del-btn (doto (button "del" "browser-instr-del-btn")
+                                               (.setOnAction (event-handler
+                                                              [_]
+                                                              (uninstrument-function var-ns var-name true))))]
+                            (doto (h-box [inst-lbl inst-del-btn])
+                              (.setSpacing 10)
+                              (.setAlignment Pos/CENTER_LEFT)))
+                     :ns (let [{:keys [ns-name] :as inst-ns} inst
+                               inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
+                                                      (label ns-name "browser-instr-label")])
+                                          (.setSpacing 10))
+                               inst-del-btn (doto (button "del" "browser-instr-del-btn")
+                                              (.setOnAction (event-handler
+                                                             [_]
+                                                             (uninstrument-namespaces [inst-ns] true))))]
+                           (doto (h-box [inst-lbl inst-del-btn])
+                             (.setSpacing 10)
+                             (.setAlignment Pos/CENTER_LEFT))))]
+      (.setGraphic ^Node list-cell inst-box))
+    (catch Exception e (log-error e))))
+
 (defn- create-instrumentations-pane []
-  (let [observable-instrumentations-list (FXCollections/observableArrayList)
-        instrumentations-cell-factory
-        (proxy [javafx.util.Callback] []
-          (call [lv]
-            (ui-utils/create-list-cell-factory
-             (fn [list-cell {:keys [inst-type] :as inst}]
-               (try
-                 (let [inst-box (case inst-type
-                                 :var (let [{:keys [var-name var-ns]} inst
-                                            inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
-                                                                   (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
-                                                       (.setSpacing 10))
-                                            inst-del-btn (doto (button "del" "browser-instr-del-btn")
-                                                           (.setOnAction (event-handler
-                                                                          [_]
-                                                                          (uninstrument-function var-ns var-name true))))]
-                                        (doto (h-box [inst-lbl inst-del-btn])
-                                          (.setSpacing 10)
-                                          (.setAlignment Pos/CENTER_LEFT)))
-                                 :ns (let [{:keys [ns-name] :as inst-ns} inst
-                                           inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
-                                                                  (label ns-name "browser-instr-label")])
-                                                      (.setSpacing 10))
-                                           inst-del-btn (doto (button "del" "browser-instr-del-btn")
-                                                          (.setOnAction (event-handler
-                                                                         [_]
-                                                                         (uninstrument-namespaces [inst-ns] true))))]
-                                       (doto (h-box [inst-lbl inst-del-btn])
-                                         (.setSpacing 10)
-                                         (.setAlignment Pos/CENTER_LEFT))))]
-                   (.setGraphic ^Node list-cell inst-box))
-                 (catch Exception e (log-error e)))))))
-        instrumentations-list (doto (ListView. observable-instrumentations-list)
-                                (.setCellFactory instrumentations-cell-factory)
-                                (.setEditable false))
+  (let [{:keys [list-view-pane get-all-items] :as lv-data} (list-view {:editable? false
+                                                                      :selection-mode :single
+                                                                      :cell-factory-fn instrumentations-cell-factory})
         delete-all-btn (doto (button "Delete all")
                          (.setOnAction (event-handler
                                         [_]
-                                        (let [type-groups (group-by :inst-type observable-instrumentations-list)
+                                        (let [type-groups (group-by :inst-type (get-all-items))
                                               del-namespaces   (:ns type-groups)
                                               del-vars (:var type-groups)]
 
@@ -290,7 +246,7 @@
         _ (.setOnAction en-dis-chk
                         (event-handler
                          [_]
-                         (let [type-groups (group-by :inst-type observable-instrumentations-list)
+                         (let [type-groups (group-by :inst-type (get-all-items))
                                change-namespaces   (:ns type-groups)
                                change-vars (:var type-groups)]
 
@@ -310,9 +266,9 @@
                                  (.setAlignment Pos/CENTER_LEFT))
         pane (v-box [(label "Instrumentations")
                      instrumentations-tools
-                     instrumentations-list])]
+                     list-view-pane])]
 
-    (store-obj "browser-observable-instrumentations-list" observable-instrumentations-list)
+    (store-obj "browser-observable-instrumentations-list-data" lv-data)
 
     pane))
 

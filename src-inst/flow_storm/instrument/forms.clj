@@ -510,7 +510,7 @@
 
   "Instrument all Clojure and ClojureScript special forms. Dispatcher function."
 
-  [[name & args :as form] {:keys [compiler orig-outer-form form-id form-ns disable excluding-fns] :as ctx}]
+  [[name & args :as form] {:keys [compiler] :as ctx}]
   (let [inst-args (try
                     (condp #(%1 %2) name
                       '#{do if recur throw finally try monitor-exit monitor-enter} (instrument-coll args ctx)

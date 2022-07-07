@@ -6,6 +6,7 @@
 
 	* Add bottom bar progress indicator when running commands
 	* Add reload tree button on callstack tree tabs
+	* Add search bar to functions list
 	
 ### Changes
 

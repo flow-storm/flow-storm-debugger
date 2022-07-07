@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.ui.main
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.state-vars :as ui-vars :refer [main-pane stage scene obj-lookup store-obj]]
@@ -7,9 +7,7 @@
             [clojure.java.io :as io])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
-           [javafx.scene.layout BorderPane]
-           [javafx.scene.control Alert ButtonType Alert$AlertType ProgressIndicator TabPane TabPane$TabClosingPolicy]
-           [javafx.geometry Side Pos]
+           [javafx.geometry Pos]
            [javafx.application Platform]))
 
 (defn bottom-box []
@@ -24,8 +22,7 @@
    (let [[box] (obj-lookup "main-bottom-bar-box")]
      (if in-progress?
 
-       (let [prog-ind (doto (ProgressIndicator.)
-                        (.setPrefSize 20 20))]
+       (let [prog-ind (progress-indicator 20)]
          ;; @HACK this is super hacky, you can't use the bottom bar for anything
          ;; more than this progress-indicator
          (-> box .getChildren .clear)
@@ -35,7 +32,9 @@
 
 (defn show-error [msg]
   (ui-utils/run-later
-   (let [err-dialog (Alert. Alert$AlertType/ERROR msg (into-array ButtonType [ButtonType/CLOSE]))]
+   (let [err-dialog (alert-dialog {:type :error
+                                   :message msg
+                                   :buttons [:close]})]
      (.show err-dialog))))
 
 (defn select-main-tools-tab [tool]
@@ -46,35 +45,20 @@
       :browser (.select sel-model 1))))
 
 (defn main-tabs-pane []
-  (let [tabs-p (TabPane.)
-        _ (store-obj "main-tools-tab" tabs-p)
-        tabs (.getTabs tabs-p)
-        flows-tab (doto (ui-utils/tab "Flows" "vertical-tab")
-                    (.setContent (flows-screen/main-pane)))
-        browser-tab (doto (ui-utils/tab "Browser" "vertical-tab")
-                      (.setContent (browser-screen/main-pane))
-                      (.setOnSelectionChanged (event-handler [_] (browser-screen/get-all-namespaces))))
-        ;; refs-tab (doto (ui-utils/tab "Refs")
-        ;;            (.setContent (Label. "Refs comming soon"))
-        ;;            (.setDisable true))
-        ;; taps-tab (doto (ui-utils/tab "Taps")
-        ;;            (.setContent (Label. "Taps comming soon"))
-        ;;            (.setDisable true))
-        ;; timeline-tab (doto (ui-utils/tab "Timeline")
-        ;;                (.setContent (Label. "Timeline comming soon"))
-        ;;                (.setDisable true))
-        ;; docs-tab (doto (ui-utils/tab "Docs")
-        ;;            (.setContent (Label. "Docs comming soon"))
-        ;;            (.setDisable true))
-        ]
-    (doto tabs-p
-      (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE)
-
-      (.setRotateGraphic true)
-      (.setSide (Side/LEFT)))
-
-    (.addAll tabs [flows-tab browser-tab #_refs-tab #_taps-tab
-                   #_timeline-tab  #_docs-tab])
+  (let [flows-tab (tab {:text "Flows"
+                        :class "vertical-tab"
+                        :content (flows-screen/main-pane)})
+        browser-tab (tab {:text "Browser"
+                          :class "vertical-tab"
+                          :content (browser-screen/main-pane)
+                          :on-selection-changed (event-handler
+                                                 [_]
+                                                 (browser-screen/get-all-namespaces))})
+        tabs-p (tab-pane {:tabs [flows-tab browser-tab]
+                          :rotate? true
+                          :closing-policy :unavailable
+                          :side :left})
+        _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
 
@@ -84,9 +68,8 @@
      (.close stage))))
 
 (defn build-main-pane []
-  (let [mp (doto (BorderPane.)
-             (.setCenter (main-tabs-pane))
-             (.setBottom (bottom-box)))]
+  (let [mp (border-pane {:center (main-tabs-pane)
+                         :bottom (bottom-box)})]
     (ui-utils/add-class mp "main-pane")
     mp))
 
