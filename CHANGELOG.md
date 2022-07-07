@@ -3,10 +3,19 @@
 ## master (unreleased)
 
 ## New Features
+	
+### Changes
+	
+### Bugs fixed
+
+## 2.2.114 (07-07-2022)
+
+## New Features
 
 	* Add bottom bar progress indicator when running commands
 	* Add reload tree button on callstack tree tabs
 	* Add search bar to functions list
+	* This release also contains big internal refactors	to make the codebase cleaner and more efficient
 	
 ### Changes
 
@@ -15,7 +24,7 @@
 	
 ### Bugs fixed
 
-## 2.2.68 (10-06-2022)
+## 2.2.99 (10-06-2022)
 
 ## New Features
 
