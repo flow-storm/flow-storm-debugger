@@ -149,7 +149,7 @@
                                                (.getScreenY mev)))))
                     :selection-mode :multiple
                     :search-predicate (fn [ns-name search-str]
-                                        (str/starts-with? ns-name search-str))})]
+                                        (str/includes? ns-name search-str))})]
 
     (store-obj "browser-observable-namespaces-list-data" lv-data)
 
@@ -168,7 +168,7 @@
                                           (get-var-meta (first sel-items))))))
                     :selection-mode :single
                     :search-predicate (fn [{:keys [var-name]} search-str]
-                                        (str/starts-with? var-name search-str))})]
+                                        (str/includes? var-name search-str))})]
 
     (store-obj "browser-observable-vars-list-data" lv-data)
     list-view-pane))
