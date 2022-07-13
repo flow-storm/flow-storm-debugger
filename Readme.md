@@ -1,6 +1,6 @@
 # Flow-storm debugger
 
-A traceing debugger for Clojure and ClojureScript
+A tracing debugger for Clojure and ClojureScript
 
 ![demo](./docs/images/screenshot.png)
 
@@ -19,7 +19,7 @@ Instrumentation artifact :
 
 # Documentation
 
-Please refer to the ![user guide]()
+Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html)
 
 # QuickStart (Clojure)
 
@@ -41,11 +41,11 @@ user> #rtrace (reduce + (map inc (range 10)))
 
 Calling `flow-storm.api/local-connect` will start the debugger UI under the same JVM your program is running. This is the recommended way of debugging Clojure applications since it is the fastest, 
 but this isn't always possible. 
-If you need to run your debugger remotley check ![user guide]()
+If you need to run your debugger remotley check [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html)
 
 # QuickStart (ClojureScript)
 
-FlowStorm ClojureScript is in its infancy and doesn't support every feature, take a look at the ![user guide]() for more info.
+FlowStorm ClojureScript is in its infancy and doesn't support every feature, take a look at the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for more info.
 
 First run a standalone debugger :
 
