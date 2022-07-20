@@ -78,6 +78,7 @@ cljs.user> #rtrace (reduce + (map inc (range 10))) ;; you can use #trace and #rt
 
 ## Some demo videos
 
+- Presentation at London Clojurians https://www.youtube.com/watch?v=A3AzlqNwUXc
 - Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
 - Instrumenting libraries https://youtu.be/YnpQMrkj4v8?t=332
 - Debugging the ClojureScript compiler https://youtu.be/YnpQMrkj4v8?t=533
