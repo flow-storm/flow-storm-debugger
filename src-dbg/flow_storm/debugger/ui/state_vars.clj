@@ -5,6 +5,7 @@
 (defonce ctx-menu nil)
 (defonce stage nil)
 (defonce scene nil)
+(defonce dark-listener nil)
 
 (def long-running-task-thread (atom nil))
 

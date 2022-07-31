@@ -521,14 +521,14 @@ clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.githu
 == Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map
-with the `:styles` keyword. If it points to a css file it will be used to overwrite the default styles, in case you want to change
-colors, make your fonts bigger, etc.
+with the `:styles` and `:theme` keywords. If `:styles` points to a css file it will be used to overwrite the default styles, in case you 
+want to change colors, make your fonts bigger, etc. `:theme` could be one of `:auto` (default), `:light`, `:dark`.
 
 Like this :
 
 [,clojure]
 ----
-user> (local-connect {:styles "~/.flow-storm/big-fonts.css"})
+user> (local-connect {:styles "~/.flow-storm/big-fonts.css" :theme :dark})
 ----
 
 You can overwrite all the styles defined here https://github.com/jpmonettas/flow-storm-debugger/blob/master/resources/styles.css

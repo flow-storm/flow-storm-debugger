@@ -1,4 +1,5 @@
 {:paths ["src-inst" "src-dbg" "src-shared" "resources" ]
+ :mvn/repos {"jitpack" {:url "https://jitpack.io"}}
  :deps {
         ;; Remote debugging
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.2"}
@@ -29,7 +30,11 @@
 
                               ;; Icon fonts
                               org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
-                              org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}}}
+                              org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
+                              
+                              ;; Dark mode
+                              com.github.Dansoftowner/jSystemThemeDetector {:mvn/version "3.8"}}}
+
 
            :inst {:extra-paths ["src-inst" "src-shared"]
                   :extra-deps {;; Namespaces instrumentation

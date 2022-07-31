@@ -1,11 +1,16 @@
 (ns flow-storm.debugger.ui.main
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
+  (:require [flow-storm.debugger.ui.utils
+             :as ui-utils
+             :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
-            [flow-storm.debugger.ui.state-vars :as ui-vars :refer [main-pane stage scene obj-lookup store-obj]]
+            [flow-storm.debugger.ui.state-vars
+             :as ui-vars
+             :refer [main-pane stage scene obj-lookup store-obj dark-listener]]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io])
-  (:import [javafx.scene Scene]
+  (:import [com.jthemedetecor OsThemeDetector]
+           [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.geometry Pos]
            [javafx.application Platform]))
@@ -73,20 +78,53 @@
     (ui-utils/add-class mp "main-pane")
     mp))
 
+(defn update-styles [^Scene scene dark? styles]
+  (let [stylesheets (.getStylesheets scene)
+        default-styles (if dark? "styles_dark.css" "styles.css")]
+    (.clear stylesheets)
+    (.add stylesheets (str (io/resource default-styles)))
+    (when styles (.add stylesheets (str (io/as-url (io/file styles)))))))
+
+(comment
+  (Platform/runLater #(update-styles scene true "styles_dark.css")))
+
+(defn reset-styles
+  "Get current scene and a map config, containing (optionally)
+  `:styles` — string path to a css file with styles;
+  `:theme` — one of #{:light :dark :auto}, :auto by default
+
+  Sets default style, overrides with extention `:styles` if provided.
+  Tries to remove a dark-listener. Sets new one if `:theme` is `:auto`."
+  [^Scene scene {:keys [styles theme] :or {theme :auto}}]
+  (let [detector (OsThemeDetector/getDetector)]
+    (when dark-listener (.removeListener detector dark-listener))
+    (case theme
+      :auto (let [detector (OsThemeDetector/getDetector)
+                  dark? (.isDark detector)
+                  _ (update-styles scene dark? styles)
+                  listener (reify java.util.function.Consumer
+                             (accept [_ dark?]
+                               (Platform/runLater
+                                 #(update-styles scene dark? styles))))]
+              (alter-var-root #'dark-listener (constantly listener))
+              (.registerListener detector listener))
+      :light (update-styles scene false styles)
+      :dark (update-styles scene true styles)
+      (log-error "wrong `:theme`, should be one of: #{:light :dark :auto}"))))
+
 (defn reset-scene-main-pane []
   (let [mp (build-main-pane)]
     (alter-var-root #'main-pane (constantly mp))
     (.setRoot scene mp)))
 
-(defn start-ui [{:keys [styles]}]
+(defn start-ui [config]
   ;; Initialize the JavaFX toolkit
   (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
 
   (ui-utils/run-now
    (try
-     (let [scene (Scene. (build-main-pane) 1024 768)
-           stylesheets (.getStylesheets scene)]
+     (let [scene (Scene. (build-main-pane) 1024 768)]
 
        (doto scene
          (.setOnKeyPressed (event-handler
@@ -104,9 +142,7 @@
                                 ;; (log (format "Unhandled keypress %s" key-name))
                                 )))))
 
-
-       (.add stylesheets (str (io/resource "styles.css")))
-       (when styles (.add stylesheets (str (io/as-url (io/file styles)))))
+       (reset-styles scene config)
 
        (alter-var-root #'scene (constantly scene))
        (alter-var-root #'stage (constantly (doto (Stage.)

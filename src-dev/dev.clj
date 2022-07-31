@@ -95,7 +95,7 @@
   (self-instrument)
   (run-test-instrumented)
 
-  (fs-api/local-connect)
+  (fs-api/local-connect {:theme :light})
 
   #trace
   (defn some-calculation [a]
