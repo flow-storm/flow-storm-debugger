@@ -7,10 +7,8 @@
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
-            [flow-storm.json-serializer :as serializer])
-  (:import [org.java_websocket.client WebSocketClient]
-           [java.net URI]
-           [org.java_websocket.handshake ServerHandshake]))
+            [flow-storm.json-serializer :as serializer]
+            [flow-storm.remote-websocket-client :as remote-websocket-client]))
 
 ;; TODO: build script
 ;; Maybe we can figure out this ns names by scanning (all-ns) so
@@ -18,8 +16,23 @@
 ;; Also maybe just finding main is enough, we can add to it a fn
 ;; that returns the rest of the functions we need
 (def debugger-events-processor-ns 'flow-storm.debugger.events-processor)
-(def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
 (def debugger-main-ns 'flow-storm.debugger.main)
+(def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
+
+(defn stop []
+  (let [stop-debugger (try
+                        (resolve (symbol (name debugger-main-ns) "stop-debugger"))
+                        (catch Exception _ nil))]
+
+    ;; if we are running in local mode and running a debugger stop it
+    (when stop-debugger
+      (stop-debugger))
+
+    ;; always stop the tracer
+    (tracer/stop-tracer)
+
+    ;; stop remote websocket client if needed
+    (remote-websocket-client/stop-remote-websocket-client)))
 
 (defn local-connect
 
@@ -29,7 +42,13 @@
   generates a lot of data since data doesn't need to serialize/deserialize it like
   in a remote debugging session case.
 
-  `config` should be a map containing: `:verbose?`"
+  `config` should be a map containing :
+
+       - `:verbose?` to log more stuff for debugging the debugger
+       - `:theme` can be one of `:light`, `:dark` or `:auto`
+       - `:styles` a string path to a css file if you want to override some started debugger styles
+
+  Use `flow-storm.api/stop` to shutdown the system nicely."
 
   ([] (local-connect {}))
 
@@ -39,8 +58,12 @@
    (let [config (assoc config :local? true)
          local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "local-dispatch-trace"))
          start-debugger       (resolve (symbol (name debugger-main-ns) "start-debugger"))]
+
+     ;; start the debugger UI
      (start-debugger config)
-     (tracer/start-trace-sender
+
+     ;; start the tracer
+     (tracer/start-tracer
       (assoc config
              :send-fn (fn local-send [trace]
                         (try
@@ -48,89 +71,41 @@
                           (catch Exception e
                             (log-error "Exception dispatching trace " e)))))))))
 
-(def remote-websocket-client nil)
-
-(defn remote-connected? []
-  (boolean remote-websocket-client))
-
-(defn close-remote-connection []
-  (when remote-websocket-client
-    (.close remote-websocket-client)))
-
 (defn remote-connect
 
   "Connect to a remote debugger.
   Without arguments connects to localhost:7722.
 
-  `config` is a map with `:host`, `:port`"
+  `config` is a map with `:host`, `:port`
+
+  Use `flow-storm.api/stop` to shutdown the system nicely."
 
   ([] (remote-connect {:host "localhost" :port 7722}))
 
-  ([{:keys [host port on-connected]
-     :or {host "localhost"
-          port 7722}
-     :as config}]
+  ([config]
 
-   (close-remote-connection) ;; if there is any active connection try to close it first
+   ;; connect to the remote websocket
+   (remote-websocket-client/start-remote-websocket-client
+    (assoc config :run-command fs-core/run-command))
 
-   (let [uri-str (format "ws://%s:%s/ws" host port)
-         ^WebSocketClient ws-client (proxy
-                                        [WebSocketClient]
-                                        [(URI. uri-str)]
-
-                                      (onOpen [^ServerHandshake handshake-data]
-                                        (log (format "Connection opened to %s" uri-str))
-                                        (when on-connected (on-connected)))
-
-                                      (onMessage [^String message]
-                                        ;; this is sketchy since it assumes the only messages
-                                        ;; we receive are commands
-                                        (let [[comm-id method args-map] (serializer/deserialize message)
-                                              ret-packet (fs-core/run-command comm-id method args-map)
-                                              ret-packet-ser (serializer/serialize ret-packet)]
-                                          (.send remote-websocket-client ret-packet-ser)))
-
-                                      (onClose [code reason remote?]
-                                        (log (format "Connection with %s closed. code=%s reson=%s remote?=%s"
-                                                     uri-str code reason remote?)))
-
-                                      (onError [^Exception e]
-                                        (log-error (format "WebSocket error connection %s" uri-str) e)))
-
-         _ (alter-var-root #'remote-websocket-client (constantly ws-client))
-
-         remote-dispatch-trace (fn remote-dispatch-trace [trace]
-                                 (let [packet [:trace trace]
-                                       ser (serializer/serialize packet)]
-                                   ;; websocket library isn't clear about thread safty of send
-                                   ;; lets synchronize just in case
-                                   (locking remote-websocket-client
-                                     (.send ^WebSocketClient remote-websocket-client ^String ser))))]
-
-     (.setConnectionLostTimeout remote-websocket-client 0)
-     (.connect remote-websocket-client)
-
-     (tracer/start-trace-sender
-      (assoc config
-             :send-fn (fn remote-send [trace]
-                        (try
-                          (-> trace
-                              inst-trace-types/ref-values!
-                              remote-dispatch-trace)
-                          (catch Exception e
-                            (log-error "Exception dispatching trace " e)))))))))
+   ;; start the tracer
+   (tracer/start-tracer
+    (assoc config
+           :send-fn (fn local-send [trace]
+                      (try
+                        (let [packet [:trace (inst-trace-types/ref-values! trace)]
+                              ser (serializer/serialize packet)]
+                          (remote-websocket-client/send ser))
+                        (catch Exception e
+                          (log-error "Exception dispatching trace " e))))))))
 
 (defn send-event-to-debugger [ev]
 
   (let [packet [:event ev]]
-    (if (remote-connected?)
+    (if (remote-websocket-client/remote-connected?)
 
-      ;; send remote
-      (let [ser-packet (serializer/serialize packet)]
-        ;; websocket library isn't clear about thread safty of send
-        ;; lets synchronize just in case
-        (locking remote-websocket-client
-          (.send remote-websocket-client ser-packet)))
+      ;; send the packet remotely
+      (remote-websocket-client/send-event-to-debugger packet)
 
       ;; "send" locally (just call a function)
       (let [local-process-event (resolve (symbol (name debugger-events-processor-ns) "process-event"))]

@@ -31,9 +31,11 @@
                               ;; Icon fonts
                               org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
                               org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
-                              
+
                               ;; Dark mode
-                              com.github.Dansoftowner/jSystemThemeDetector {:mvn/version "3.8"}}}
+                              com.github.Dansoftowner/jSystemThemeDetector {:mvn/version "3.8"}
+
+                              mount/mount {:mvn/version "0.1.16"}}}
 
 
            :inst {:extra-paths ["src-inst" "src-shared"]

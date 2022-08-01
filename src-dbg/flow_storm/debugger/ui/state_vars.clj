@@ -1,29 +1,38 @@
 (ns flow-storm.debugger.ui.state-vars
-  (:require [flow-storm.utils :refer [log]]))
+  (:require [flow-storm.utils :refer [log]]
+            [mount.core :as mount :refer [defstate]]))
 
-(defonce main-pane nil)
-(defonce ctx-menu nil)
-(defonce stage nil)
-(defonce scene nil)
-(defonce dark-listener nil)
+;; so the linter doesn't complain
+(declare long-running-task-thread)
+(declare ui-objs)
+(declare flows-ui-objs)
 
-(def long-running-task-thread (atom nil))
+(defn interrupt-long-running-task-thread []
+  (when-let [thread @long-running-task-thread]
+    (.interrupt thread)))
+
+(defstate long-running-task-thread
+  :start (atom nil)
+  :stop  (interrupt-long-running-task-thread))
+
+(defn set-long-running-task-thread [thread]
+  (reset! long-running-task-thread thread))
 
 ;; Because scene.lookup doesn't work if you lookup before a layout pass
 ;; So adding a node and looking it up quickly sometimes it doesn't work
 
 ;; ui objects references with a static application lifetime
 ;; objects stored here will not be collected ever
-(defonce ui-objs (atom {}))
+(defstate ui-objs
+  :start (atom {})
+  :stop nil)
 
 ;; ui objects with a flow lifetime
 ;; when a flow is discarded all this objects should be collected after
 ;; `clean-flow-objs` is called
-(defonce flows-ui-objs (atom {}))
-
-(defn reset-state! []
-  (reset! ui-objs {})
-  (reset! flows-ui-objs {}))
+(defstate flows-ui-objs
+  :start (atom {})
+  :stop nil)
 
 (defn store-obj
 

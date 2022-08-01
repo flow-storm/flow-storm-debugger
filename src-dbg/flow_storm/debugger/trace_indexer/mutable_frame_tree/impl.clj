@@ -205,7 +205,7 @@
                                 (when (.isInterrupted (Thread/currentThread))
                                   (log "Search stopped"))
                                 (on-result-cb match-stack))))]
-         (reset! ui-vars/long-running-task-thread search-thread)
+         (ui-vars/set-long-running-task-thread search-thread)
          (.start search-thread))))
 
   FormStoreP

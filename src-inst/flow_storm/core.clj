@@ -133,5 +133,6 @@
     (try
       (let [comm-result (f args-map)]
         [:cmd-ret [comm-id comm-result]])
-      (catch Exception _
+      (catch Exception e
+        (log-error (format "Error runng command %s %s" method args-map) e)
         [:cmd-ret :error]))))

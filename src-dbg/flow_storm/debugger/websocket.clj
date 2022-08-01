@@ -1,15 +1,20 @@
 (ns flow-storm.debugger.websocket
   (:require [flow-storm.utils :refer [log log-error]]
-            [flow-storm.json-serializer :as serializer])
+            [flow-storm.json-serializer :as serializer]
+            [mount.core :as mount :refer [defstate]])
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
            [java.net InetSocketAddress]
            [java.util UUID]))
 
-(def websocket-server nil)
+(declare start-websocket-server)
+(declare stop-websocket-server)
+(declare websocket-server)
 
-(def *pending-commands-callbacks (atom {}))
+(defstate websocket-server
+  :start (start-websocket-server (mount/args))
+  :stop  (stop-websocket-server))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; WebSocket Packets ;;
@@ -28,19 +33,20 @@
 ;;                                                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn async-command-request [conn method args callback]
-  (if (nil? conn)
-    (log-error "No process connected.")
-    (try
-      (let [comm-id (UUID/randomUUID)
-            packet-str (serializer/serialize [comm-id method args])]
-        (.send conn packet-str)
-        (swap! *pending-commands-callbacks assoc comm-id callback))
-      (catch Exception e
-        (log-error "Error sending async command" e)))))
+(defn async-command-request [method args callback]
+  (let [conn @(:remote-connection websocket-server)]
+    (if (nil? conn)
+     (log-error "No process connected.")
+     (try
+       (let [comm-id (UUID/randomUUID)
+             packet-str (serializer/serialize [comm-id method args])]
+         (.send conn packet-str)
+         (swap! (:pending-commands-callbacks websocket-server) assoc comm-id callback))
+       (catch Exception e
+         (log-error "Error sending async command" e))))))
 
 (defn process-command-response [[comm-id resp]]
-  (let [callback (get @*pending-commands-callbacks comm-id)]
+  (let [callback (get @(:pending-commands-callbacks websocket-server) comm-id)]
     (callback resp)))
 
 (defn- create-ws-server [{:keys [port on-message on-connection-open]}]
@@ -66,14 +72,17 @@
     (onError [conn ^Exception e]
       (log-error "WebSocket error" e))))
 
-(defn stop-websocket-servers []
-  (when websocket-server
-    (.stop websocket-server)))
+(defn stop-websocket-server []
+  (when-let [wss (:ws-server websocket-server)]
+    (.stop wss)))
 
 (defn start-websocket-server [{:keys [event-dispatcher trace-dispatcher show-error on-connection-open]}]
-  (let [ws-server (create-ws-server
+  (let [remote-connection (atom nil)
+        ws-server (create-ws-server
                    {:port 7722
-                    :on-connection-open on-connection-open
+                    :on-connection-open (fn [conn]
+                                          (reset! remote-connection conn)
+                                          (on-connection-open conn))
                     :on-message (fn [conn msg]
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
@@ -84,6 +93,8 @@
                                         :cmd-err (show-error msg-body)))
                                     (catch Exception e
                                       (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
-    (alter-var-root #'websocket-server (constantly ws-server))
 
-    (.start ws-server)))
+    (.start ws-server)
+    {:ws-server ws-server
+     :pending-commands-callbacks (atom {})
+     :remote-connection remote-connection}))

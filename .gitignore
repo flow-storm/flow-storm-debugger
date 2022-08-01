@@ -3,5 +3,7 @@ target
 .cpcache
 .nrepl-port
 .shadow-cljs
+.cljs_node_repl
+out/
 node_modules
 public/js/

@@ -47,10 +47,9 @@
 
 (def get-remote-value-sync
   (memoize
-   (fn [conn vid {:keys [print-length print-level print-meta? pprint? nth-elems]}]
+   (fn [_ vid {:keys [print-length print-level print-meta? pprint? nth-elems]}]
      (let [p (promise)]
-       (websocket/async-command-request conn
-                                        :get-remote-value
+       (websocket/async-command-request :get-remote-value
                                         {:vid vid
                                          :print-meta? print-meta?
                                          :print-length print-length

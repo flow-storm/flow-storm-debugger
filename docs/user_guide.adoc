@@ -138,6 +138,12 @@ user> (require '[flow-storm.api :as fs-api])
 user> (fs-api/local-connect) 
 ----
 
+[NOTE]
+.Shutdown
+====
+You can stop the debugger grecefully by calling `(fs-api/stop)`
+====
+
 === Remote debugging
 
 For running FlowStorm remoteley you first need to run a standalone debugger :

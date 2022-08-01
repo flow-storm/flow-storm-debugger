@@ -937,6 +937,21 @@ process and connect to it from the debuggee via sockets.</p>
 </span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span></code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Shutdown</div>
+<div class="paragraph">
+<p>You can stop the debugger grecefully by calling <code>(fs-api/stop)</code></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">2.2. Remote debugging</a></h4>
@@ -1537,15 +1552,15 @@ run you original command.</p>
 <h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">7. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
-with the <code>:styles</code>  and `:theme` keywords. If `:styles` points to a css file it will be used to overwrite the default styles, in case you 
-want to change colors, make your fonts bigger, etc. `:theme` could be one of `:auto` (default), `:light`, `:dark`.</p>
+with the <code>:styles</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
+want to change colors, make your fonts bigger, etc. <code>:theme</code> could be one of <code>:auto</code> (default), <code>:light</code>, <code>:dark</code>.</p>
 </div>
 <div class="paragraph">
 <p>Like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">local-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:styles</span><span class="w"> </span><span class="s">"~/.flow-storm/big-fonts.css"</span><span class="p">})</span></code></pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">local-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:styles</span><span class="w"> </span><span class="s">"~/.flow-storm/big-fonts.css"</span><span class="w"> </span><span class="no">:theme</span><span class="w"> </span><span class="no">:dark</span><span class="p">})</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1627,7 +1642,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-20 09:12:42 -0300
+Last updated 2022-08-02 14:50:22 -0300
 </div>
 </div>
 </body>

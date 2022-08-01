@@ -5,18 +5,23 @@
 
 (def orphan-flow-id -1)
 
+(declare start-tracer)
+(declare stop-tracer)
+
 (def trace-chan nil)
 (def send-thread-stop-chan nil)
 
-(def *stats (atom {}))
+(defn init-stats []
+  {:put 0
+   :sent 0
+   :last-report-t (utils/get-monotonic-timestamp)
+   :last-report-sent 0})
 
-(def init-stats {:put 0
-                 :sent 0
-                 :last-report-t (utils/get-monotonic-timestamp)
-                 :last-report-sent 0})
+(def tracer-stats (atom (init-stats)))
+
 
 (defn enqueue-trace! [trace]
-  (swap! *stats update :put inc)
+  (swap! tracer-stats update :put inc)
   (async/put! trace-chan trace))
 
 (def ^:dynamic *runtime-ctx* nil)
@@ -113,7 +118,7 @@
         (enqueue-trace! trace)))))
 
 (defn log-stats []
-  (let [{:keys [put sent last-report-sent last-report-t]} @*stats
+  (let [{:keys [put sent last-report-sent last-report-t]} @tracer-stats
         qsize (- put sent)]
     (log (utils/format "CNT: %d, Q_SIZE: %d, Speed: %.1f tps"
                        sent
@@ -122,12 +127,31 @@
                              (/ (double (- (utils/get-monotonic-timestamp) last-report-t))
                                 1000000000.0))))))
 
-(defn start-trace-sender
-   
-   "Creates and starts a thread that read traces from the global `trace-queue`
+#_(defn build-send-fn [{:keys [local?]}]
+  (if local?
+
+    ;; local send-fn
+    #?(:clj (fn [trace]
+              (require debugger-trace-processor-ns)
+              (let [local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "local-dispatch-trace"))]
+                (local-dispatch-trace trace)))
+       :cljs (fn [_]))
+
+    ;; remote send-fn
+    (fn [trace]
+      (try
+        (let [packet [:trace (inst-trace-types/ref-values! trace)]
+              ser-packet (serializer/serialize packet)]
+          (remote-websocket-client/send ser-packet))
+        #?(:clj (catch Exception e (log-error "Exception dispatching trace " e))
+           :cljs (catch js/Error e (log-error "Exception dispatching trace " e)))))))
+
+(defn start-tracer
+  
+  "Creates and starts a thread that read traces from the global `trace-queue`
   and send them using `send-fn`"
-   
-   [{:keys [send-fn verbose?]}]
+  
+  [{:keys [send-fn verbose?]}]
 
   ;; Initialize global vars
   #?@(:clj [(alter-var-root #'trace-chan (constantly (async/chan 30000000)))
@@ -135,32 +159,32 @@
       :cljs [(set! trace-chan (async/chan 30000000))
              (set! send-thread-stop-chan (async/promise-chan))])
   
-  (async/go    
-    (reset! *stats init-stats)
+  (async/go
+    (reset! tracer-stats (init-stats))
     (loop []
       (let [[v ch] (async/alts! [trace-chan send-thread-stop-chan])]
         (when-not (= ch send-thread-stop-chan)
           (let [trace v]
 
             ;; Stats
-            (let [{:keys [sent]} @*stats]
+            (let [{:keys [sent]} @tracer-stats]
               (when (and verbose? (zero? (mod sent 50000)))
                 (log-stats)
-                (swap! *stats
+                (swap! tracer-stats
                        (fn [{:keys [sent] :as stats}]
                          (assoc stats 
                                 :last-report-t (utils/get-monotonic-timestamp)
                                 :last-report-sent sent)))))
-                                    
+            
             (send-fn trace)
             
-            (swap! *stats update :sent inc))
+            (swap! tracer-stats update :sent inc))
           (recur))))
     (log "Thread interrupted. Dying..."))
   
-  nil)
+  {:trace-chan trace-chan
+   :send-thread-stop-chan send-thread-stop-chan})
 
-
-(defn stop-trace-sender []  
-  (when send-thread-stop-chan
+(defn stop-tracer []  
+  (when send-thread-stop-chan 
     (async/put! send-thread-stop-chan true)))

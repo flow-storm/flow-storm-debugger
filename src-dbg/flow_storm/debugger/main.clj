@@ -2,59 +2,60 @@
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.debugger.websocket :as websocket]
             [flow-storm.debugger.events-processor :as events-processor]
             [flow-storm.debugger.trace-processor :as trace-processor]
             [flow-storm.debugger.trace-types]
-            [flow-storm.debugger.target-commands :as target-commands]))
+            [flow-storm.debugger.websocket]
+            [mount.core :as mount]))
 
-(def flow-storm-core-ns 'flow-storm.core)
+(def local-debugger-mount-vars
+
+  "All defstate vars should be registered here.
+  This exists so `start-debugger`, `stop-debugger` don't mess with other
+  states when the debugger is used inside a application that uses mount."
+
+  [#'flow-storm.debugger.ui.state-vars/long-running-task-thread
+   #'flow-storm.debugger.ui.state-vars/ui-objs
+   #'flow-storm.debugger.ui.state-vars/flows-ui-objs
+   #'flow-storm.debugger.state/state
+   #'flow-storm.debugger.state/fn-call-stats-map
+   #'flow-storm.debugger.ui.main/ui])
+
+(def remote-debugger-mount-vars
+
+  "Same as `local-debugger-mount-vars` but for remote debugger"
+
+  (into local-debugger-mount-vars
+        [#'flow-storm.debugger.websocket/websocket-server]))
 
 (defn stop-debugger []
-  (websocket/stop-websocket-servers))
+  (-> (mount/only (into local-debugger-mount-vars remote-debugger-mount-vars))
+      (mount/stop)))
 
-(defn start-debugger [{:keys [local?] :as config}]
-  (dbg-state/init-state!)
-  (ui-vars/reset-state!)
-  (ui-main/start-ui config)
+(defn start-debugger
+
+  "Run a standalone debugger.
+
+   `config` should be a map containing :
+        - `:local?` when false will also start a websocket server and listen for connections
+        - `:theme` can be one of `:light`, `:dark` or `:auto`
+        - `:styles` a string path to a css file if you want to override some started debugger styles
+
+   When `:local?` is false you can also provide `:host` and `:port` for the web socket server."
+
+  [{:keys [local?] :as config}]
 
   (if local?
 
-    ;; set up the command-executor
+    ;; start components for local debugging
+    (-> (mount/with-args config)
+        (mount/only local-debugger-mount-vars)
+        (mount/start))
 
-    (let [_ (require [flow-storm-core-ns])
-          run-command (resolve (symbol (str flow-storm-core-ns) "run-command"))]
-      (alter-var-root #'target-commands/run-command
-                       (constantly
-                        ;; local command executor (just call command functions)
-                        (fn run-command-fn [method args-map & [callback]]
-                          ;; run the function on a different thread so we don't block the ui
-                          ;; while running commands
-                          (.start (Thread. (fn []
-                                             (ui-main/set-in-progress true)
-                                             (let [[_ [_ ret-val]] (run-command nil method args-map)]
-                                               (ui-main/set-in-progress false)
-                                               (when callback
-                                                 (callback ret-val))))))))))
-
-    (do
-
-      (websocket/start-websocket-server
-       (assoc config
-              :event-dispatcher events-processor/process-event
-              :trace-dispatcher trace-processor/remote-dispatch-trace
-              :show-error ui-main/show-error
-              :on-connection-open (fn [conn] (reset! dbg-state/remote-connection conn))))
-
-      (alter-var-root #'target-commands/run-command
-                        (constantly
-                         ;; remote command executor (via websockets)
-                         (fn run-command-fn [method args-map & [callback]]
-                           (ui-main/set-in-progress true)
-                           (websocket/async-command-request @dbg-state/remote-connection
-                                                            method
-                                                            args-map
-                                                            (fn [ret-val]
-                                                              (ui-main/set-in-progress false)
-                                                              (when callback
-                                                                (callback ret-val))))))))))
+    ;; else, start components for remote debugging
+    (-> (mount/with-args (assoc config
+                                :event-dispatcher events-processor/process-event
+                                :trace-dispatcher trace-processor/remote-dispatch-trace
+                                :show-error ui-main/show-error))
+        (mount/only remote-debugger-mount-vars)
+        (mount/start))))

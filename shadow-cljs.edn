@@ -9,6 +9,7 @@
   [cider/cider-nrepl"0.28.3"]
   [refactor-nrepl/refactor-nrepl"3.5.2"]
   [cider/piggieback"0.5.2"]
+  [mount/mount "0.1.16"]
 
   [org.java-websocket/Java-WebSocket "1.5.2"]
   [org.clojure/tools.namespace "1.2.0"]
