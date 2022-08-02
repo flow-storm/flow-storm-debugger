@@ -17,6 +17,7 @@
 ### Bugs fixed
 
     * Fix #28 - Callstack tree args and ret listviews should expand to the bottom
+	* Fix #34 - instrument-forms-for-namespaces not instrumenting (def foo (fn [...] ...))
 	
 ## 2.2.114 (07-07-2022)
 

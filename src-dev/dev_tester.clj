@@ -43,8 +43,13 @@
   Suber
   (sub [l] (- l 42)))
 
+(def other-function
+  (fn [a b]
+    (+ a b 10)))
+
 (defn boo [xs]
   (let [a 25
+        yy (other-function 4 5)
         *a (atom 10)
         _ (swap! *a inc)
         xx @*a

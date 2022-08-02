@@ -572,7 +572,8 @@
    (let [{coor ::coor} (meta form)]
 
      (cond
-       coor
+       (and coor
+            (not (and (seq? form) (= (first form) 'fn*)))) ;; skip wrapping instrumentation over (fn* ...)
        (instrument-expression-form form coor ctx)
 
        ;; If the form is a list and has no metadata, maybe it was
