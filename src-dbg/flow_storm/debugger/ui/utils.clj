@@ -2,7 +2,7 @@
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator TextField
-            TabPane$TabClosingPolicy TabPane]
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TabPane]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side]
            [javafx.collections.transformation FilteredList]
@@ -172,8 +172,9 @@
   (doto (ProgressIndicator.)
     (.setPrefSize size size)))
 
-(defn tab-pane [{:keys [tabs rotate? side closing-policy]
+(defn tab-pane [{:keys [tabs rotate? side closing-policy drag-policy]
                  :or {closing-policy :unavailable
+                      drag-policy :fixed
                       side :top
                       rotate? false}}]
   (let [tp (TabPane.)
@@ -189,7 +190,10 @@
       (.setTabClosingPolicy (get {:unavailable  TabPane$TabClosingPolicy/UNAVAILABLE
                                   :all-tabs     TabPane$TabClosingPolicy/ALL_TABS
                                   :selected-tab TabPane$TabClosingPolicy/SELECTED_TAB}
-                                 closing-policy)))
+                                 closing-policy))
+      (.setTabDragPolicy (get {:fixed   TabPane$TabDragPolicy/FIXED
+                               :reorder TabPane$TabDragPolicy/REORDER}
+                              drag-policy)))
 
     (when tabs
       (.addAll tabs-list tabs))

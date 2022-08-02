@@ -9,6 +9,7 @@
 	  When starting a standalone debugger with `flow-storm.debugger.main/start-debugger` you can shutdown with `flow-storm.debugger.main/stop-debugger`
 
     * Add support for light and dark themes, in selected or automatic mode. Checkout the user guide for more info. (thanks to Liverm0r!)
+	* Thread tabs can be closed and reordered
 	
 ### Changes
 

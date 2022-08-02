@@ -22,7 +22,8 @@
 
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
-        threads-tab-pane (tab-pane {:closing-policy :unavailable})
+        threads-tab-pane (tab-pane {:closing-policy :all-tabs
+                                    :drag-policy :reorder})
         flow-tab (if (= flow-id dbg-state/orphans-flow-id)
                          (tab {:graphic (icon "mdi-filter") :content threads-tab-pane})
                          (tab {:text (str "flow-" flow-id) :content threads-tab-pane}))]
