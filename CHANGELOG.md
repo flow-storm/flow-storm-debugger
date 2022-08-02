@@ -8,7 +8,7 @@
 	  When starting with `flow-storm.api/local-connect` or `flow-storm.api/remote-connect` you can shut it down with `flow-storm.api/stop` 
 	  When starting a standalone debugger with `flow-storm.debugger.main/start-debugger` you can shutdown with `flow-storm.debugger.main/stop-debugger`
 
-    * Add support for light and dark themes, in selected or automatic mode. Checkout the user guide for more info.
+    * Add support for light and dark themes, in selected or automatic mode. Checkout the user guide for more info. (thanks to Liverm0r!)
 	
 ### Changes
 
@@ -16,6 +16,8 @@
 	
 ### Bugs fixed
 
+    * Fix #28 - Callstack tree args and ret listviews should expand to the bottom
+	
 ## 2.2.114 (07-07-2022)
 
 ## New Features

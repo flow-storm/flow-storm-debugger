@@ -258,8 +258,12 @@
                            (.setOrientation (Orientation/VERTICAL))
                            (.setDividerPosition 0 0.75))]
     (.setContextMenu tree-view ctx-menu)
+
+    (VBox/setVgrow callstack-fn-args-pane Priority/ALWAYS)
+    (VBox/setVgrow callstack-fn-ret-pane Priority/ALWAYS)
     (HBox/setHgrow labeled-args-pane Priority/ALWAYS)
     (HBox/setHgrow labeled-ret-pane Priority/ALWAYS)
+
     (.addListener (.selectedItemProperty tree-view-sel-model)
                   (proxy [ChangeListener] []
                     (changed [changed old-val new-val]
