@@ -3,11 +3,11 @@
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
-            [flow-storm.utils :refer [log]]
+            [flow-storm.utils :as utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button]]
-            [flow-storm.debugger.trace-types :refer [deref-ser]])
+            [flow-storm.debugger.values :refer [val-pprint]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
            [javafx.scene.input KeyCode]
@@ -40,7 +40,7 @@
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
-  (let [step-1 (flow-cmp/elide-string (deref-ser args-vec {:print-length 3 :print-level 3 :pprint? false}) 80)]
+  (let [step-1 (utils/elide-string (val-pprint args-vec {:print-length 3 :print-level 3 :pprint? false}) 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
@@ -96,7 +96,7 @@
           {:keys [multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
 
       (if dispatch-val
-        (format "(%s/%s %s %s)" fn-ns fn-name (deref-ser dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
+        (format "(%s/%s %s %s)" fn-ns fn-name (val-pprint dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
         (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))))
 
 
@@ -120,7 +120,7 @@
         search-lvl-txt (doto (TextField. "2")
                          (.setPrefWidth 50)
                          (.setAlignment Pos/CENTER))
-        search-match-lbl (label "")
+        search-match-lbl (label "" "link-lbl")
         search-btn (ui-utils/icon-button "mdi-magnify" "tree-search")
         search (fn [] (log "Searching")
                  (.setDisable search-btn true)
@@ -145,7 +145,6 @@
                          (update-call-stack-tree-pane flow-id thread-id)
                          (doto search-match-lbl
                            (.setText  (format "Match idx %d" match-idx))
-                           (.setStyle "-fx-text-fill: blue; -fx-cursor: hand;")
                            (.setOnMouseClicked (event-handler
                                                 [ev]
                                                 (select-call-stack-tree-node flow-id thread-id match-idx))))

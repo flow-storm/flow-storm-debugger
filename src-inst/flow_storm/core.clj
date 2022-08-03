@@ -2,9 +2,9 @@
   (:require [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.utils :refer [log-error log]]
-            [flow-storm.core-multi :refer [get-remote-value-command]]
+            [flow-storm.core-multi :refer [remote-val-pprint-command remote-shallow-val-command]]
             [flow-storm.tracer :as tracer]
-            [flow-storm.instrument.trace-types :as trace-types]
+            [flow-storm.runtime.values :as rt-values]
             [clojure.repl :as clj.repl]))
 
 (defn disable-from-profile [profile]
@@ -86,7 +86,7 @@
   (intern 'user (symbol val-name) val))
 
 (defn- def-remote-value-command [{:keys [vid val-name]}]
-  (intern 'user (symbol val-name) (trace-types/get-reference-value vid)))
+  (intern 'user (symbol val-name) (rt-values/get-reference-value vid)))
 
 (defn- get-all-namespaces-command [_]
   (map (comp name ns-name) (all-ns)))
@@ -121,15 +121,15 @@
             :eval-forms            eval-forms-command
             :instrument-forms      instrument-forms-command
             :re-run-flow           re-run-flow-command
-            :get-remote-value      get-remote-value-command
+            :remote-val-pprint     remote-val-pprint-command
+            :remote-shallow-val    remote-shallow-val-command
             :def-value             def-value-command
             :def-remote-value      def-remote-value-command
             :get-all-namespaces    get-all-namespaces-command
             :get-all-vars-for-ns   get-all-vars-for-ns-command
             :get-var-meta          get-var-meta-command
             :instrument-namespaces   instrument-namespaces-command
-            :uninstrument-namespaces uninstrument-namespaces-command
-            )]
+            :uninstrument-namespaces uninstrument-namespaces-command)]
     (try
       (let [comm-result (f args-map)]
         [:cmd-ret [comm-id comm-result]])

@@ -497,6 +497,25 @@ image::user_guide_images/browser.png[]
 
 See <<#_instrument_with_the_browser, instrument with the browser>> for more info.
 
+== Value inspector
+
+Use the value inspector to explore any data.
+
+image::user_guide_images/value_inspector.png[]
+
+Use it to lazily and recursively navigate your data. It will render collections with links that allows you
+to dig deeper into the data.
+
+The top bar provides a way of navigating back.
+
+Use the `def` button to define the current value for the repl.
+
+[NOTE]
+.Datafy
+====
+Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore your objects also.
+====
+
 == Debug cmd line programs (clj -X, clj -m, etc)
 
 If you run any Clojure programs from the command line, by using `clj -X ...`, `clj -m ...` etc, 

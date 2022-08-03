@@ -4,12 +4,13 @@
 
 ## New Features
 
+    * Add a proper lazy and recursive value inspector
 	* New functions for shutting down the debugger and connections gracefully.
 	  When starting with `flow-storm.api/local-connect` or `flow-storm.api/remote-connect` you can shut it down with `flow-storm.api/stop` 
 	  When starting a standalone debugger with `flow-storm.debugger.main/start-debugger` you can shutdown with `flow-storm.debugger.main/stop-debugger`
 
     * Add support for light and dark themes, in selected or automatic mode. Checkout the user guide for more info. (thanks to Liverm0r!)
-	* Thread tabs can be closed and reordered
+	* Thread tabs can be closed and reordered    
 	
 ### Changes
 

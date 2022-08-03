@@ -1,0 +1,31 @@
+* {
+	-fx-theme-base1:                              #ddd;	
+	-fx-theme-base2:                              #eee;
+	-fx-theme-base3:                              #ebecff;
+
+	-fx-theme-separator:                          #919191;
+	-fx-theme-dim-text:                           #919191;
+    -fx-theme-button1-background:                 #336699;
+	-fx-theme-button1-text:                       white;
+    -fx-theme-button2-background:                 #919191;
+    -fx-theme-button2-text:                       #0b0d2e;
+	
+	-fx-theme-selected-main-tools-tab-background: #4743ba;
+	-fx-theme-selected-main-tools-tab-text:       white;	
+    
+    -fx-theme-flow-code-text:                     #0b0d2e;
+	-fx-theme-flow-code-executing-text:           #60d61b;
+	-fx-theme-flow-code-interesting-text:         #de00c0;
+	
+	-fx-theme-defmethod-text:                     #9c0084;
+	-fx-theme-defn-text:                          #222;
+	-fx-theme-extend-text:                        #369658;
+	-fx-theme-links:                              #9c0084;
+	-fx-theme-breadcrums:                         #9c0084;
+}
+
+.root {
+        -fx-base: -fx-theme-base1;
+        -fx-background: -fx-theme-base1;
+        -fx-control-inner-background:  -fx-theme-base1;
+}

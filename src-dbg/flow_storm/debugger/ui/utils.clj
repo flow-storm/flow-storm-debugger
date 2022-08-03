@@ -1,12 +1,13 @@
 (ns flow-storm.debugger.ui.utils
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
-            Alert ButtonType Alert$AlertType ProgressIndicator TextField
+            Alert ButtonType Alert$AlertType ProgressIndicator TextField TableView TableColumn TableCell
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TabPane]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
+           [javafx.beans.value ObservableValue]
            [javafx.scene Node]
            [javafx.scene.layout HBox Priority VBox]
            [java.util.function Predicate]
@@ -119,15 +120,20 @@
        (.add (.getStyleClass box) class))
      box)))
 
-(defn border-pane [{:keys [center bottom top left right]}]
-  (let [bp (BorderPane.)]
-    (when center (.setCenter bp center))
-    (when top (.setTop bp top))
-    (when bottom (.setBottom bp bottom))
-    (when left (.setLeft bp left))
-    (when right (.setRight bp right))
+(defn border-pane
+  ([params] (border-pane params nil))
+  ([{:keys [center bottom top left right]} class]
+   (let [bp (BorderPane.)]
+     (when center (.setCenter bp center))
+     (when top (.setTop bp top))
+     (when bottom (.setBottom bp bottom))
+     (when left (.setLeft bp left))
+     (when right (.setRight bp right))
 
-    bp))
+     (when class
+       (.add (.getStyleClass bp) class))
+
+     bp)))
 
 (defn label
   ([text] (label text nil))
@@ -200,6 +206,14 @@
 
     tp))
 
+(defn scroll-pane
+  ([] (scroll-pane nil))
+  ([class]
+   (let [sp (ScrollPane.)]
+     (when class
+       (add-class sp class))
+     sp)))
+
 (defn list-view [{:keys [editable? cell-factory-fn on-click selection-mode search-predicate]
                   :or {editable? false
                        selection-mode :multiple}}]
@@ -227,6 +241,7 @@
                         :remove-all remove-all}]
 
     (HBox/setHgrow search-field Priority/ALWAYS)
+    (HBox/setHgrow lv Priority/ALWAYS)
     (VBox/setVgrow lv Priority/ALWAYS)
 
     (when search-predicate
@@ -256,8 +271,57 @@
         [mev]
         (on-click mev (selected-items) list-view-data))))
 
-    list-view-data)
-  )
+    list-view-data))
+
+(defn table-view
+
+  "Create a TableView component.
+  `columns` should be a vector of strings with columns names.
+  `cell-factory-fn` a fn that gets called with each item (from `items`) and should return a Node for the cell.
+  `items` a collection of data items for the table. Each one should be a vector with the same amount "
+
+  [{:keys [columns cell-factory-fn items]}]
+
+  (assert (every? #(= (count %) (count columns)) items) "Every item should have the same amount of elements as columns")
+
+  (let [tv (TableView.)
+        make-column (fn [col-idx col-text]
+                      (doto (TableColumn. col-text)
+                        (.setCellValueFactory (proxy [javafx.util.Callback] []
+                                                (call [cell-val]
+                                                  (proxy [ObservableValue] []
+                                                    (addListener [_])
+                                                    (removeListener [_])
+                                                    (getValue []
+                                                      (get (.getValue cell-val) col-idx))))))
+                        (.setCellFactory (proxy [javafx.util.Callback] []
+                                           (call [tcol]
+                                             (proxy [TableCell] []
+                                               (updateItem [item empty?]
+
+                                                 (proxy-super updateItem item empty?)
+                                                 (if empty?
+
+                                                   (doto this
+                                                     (.setGraphic nil)
+                                                     (.setText nil))
+
+                                                   (let [cell-graphic (cell-factory-fn item)]
+                                                     (doto this
+                                                       (.setText nil)
+                                                       (.setGraphic cell-graphic)))))))))))
+        columns (map-indexed make-column columns)
+        items-array (FXCollections/observableArrayList (into-array Object items))]
+
+    (.clear (.getColumns tv))
+    (.addAll (.getColumns tv) columns)
+
+    (.setItems tv items-array)
+
+    (HBox/setHgrow tv Priority/ALWAYS)
+
+    tv))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOT USING ALL THIS NOW !!! just experiments

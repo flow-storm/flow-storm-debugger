@@ -4,8 +4,6 @@
              :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
-            [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.debugger.websocket :as websocket]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
              :refer [obj-lookup store-obj]]
@@ -21,8 +19,6 @@
 (declare start-ui)
 (declare stop-ui)
 (declare ui)
-
-(def flow-storm-core-ns 'flow-storm.core)
 
 (defstate ui
   :start (start-ui (mount/args))
@@ -62,7 +58,7 @@
       :flows (.select sel-model 0)
       :browser (.select sel-model 1))))
 
-(defn main-tabs-pane []
+(defn- main-tabs-pane []
   (let [flows-tab (tab {:text "Flows"
                         :class "vertical-tab"
                         :content (flows-screen/main-pane)})
@@ -80,84 +76,58 @@
 
     tabs-p))
 
-(defn build-main-pane []
+(defn- build-main-pane []
   (let [mp (border-pane {:center (main-tabs-pane)
                          :bottom (bottom-box)})]
     (ui-utils/add-class mp "main-pane")
     mp))
 
-(defn update-styles [^Scene scene dark? styles]
-  (let [stylesheets (.getStylesheets scene)
-        default-styles (if dark? "styles_dark.css" "styles.css")]
+(defn- calculate-styles [dark? styles]
+  (let [theme-base-styles (str (io/resource (if dark?
+                                              "theme_dark.css"
+                                              "theme_light.css")))
+
+        default-styles (str (io/resource "styles.css"))
+        extra-styles (when styles
+                       (str (io/as-url (io/file styles))))]
+    (cond-> [theme-base-styles
+             default-styles]
+      extra-styles (conj extra-styles))))
+
+(defn- update-scene-styles [scene styles]
+  (let [stylesheets (.getStylesheets scene)]
     (.clear stylesheets)
-    (.add stylesheets (str (io/resource default-styles)))
-    (when styles (.add stylesheets (str (io/as-url (io/file styles)))))
+    (.addAll stylesheets (into-array String styles))
     nil))
 
-(defn reset-styles
-  "Get current scene and a map config, containing (optionally)
-  `:styles` — string path to a css file with styles;
-  `:theme` — one of #{:light :dark :auto}, :auto by default
-
-  Sets default style, overrides with extention `:styles` if provided.
-  Tries to remove a theme-listener. Sets new one if `:theme` is `:auto`.
-
-  If `:auto` is true, returns theme-listener, `nil` otherwise."
-
-  [^Scene scene {:keys [styles theme] :or {theme :auto}}]
+(defn- start-theme-listener [update-scenes-theme]
   (let [detector (OsThemeDetector/getDetector)
-        theme-listener (:theme-listener ui)]
-    (when theme-listener (.removeListener detector theme-listener))
-    (case theme
-      :auto (let [detector (OsThemeDetector/getDetector)
-                  dark? (.isDark detector)
-                  _ (update-styles scene dark? styles)
-                  listener (reify java.util.function.Consumer
-                             (accept [_ dark?]
-                               (Platform/runLater
-                                #(update-styles scene dark? styles))))]
-              (.registerListener detector listener)
-              theme-listener)
-      :light (update-styles scene false styles)
-      :dark (update-styles scene true styles)
-      (log-error "wrong `:theme`, should be one of: #{:light :dark :auto}"))))
+        listener (reify java.util.function.Consumer
+                   (accept [_ dark?]
+                     (ui-utils/run-later
+                      (update-scenes-theme dark?))))]
+    (.registerListener detector listener)
+    listener))
 
-(defn setup-commands-executor [{:keys [local?]}]
-  (if local?
+(defn- start-theming-system [{:keys [theme styles]} stages]
+  (let [update-scene-with-current-theme (fn [scn]
+                                          (let [dark? (or (= :dark theme)
+                                                          (.isDark (OsThemeDetector/getDetector)))
+                                                new-styles (calculate-styles dark? styles)]
+                                            (update-scene-styles scn new-styles)))
 
-    ;; set up the local command-executor
-    (let [_ (require [flow-storm-core-ns])
-          run-command (resolve (symbol (str flow-storm-core-ns) "run-command"))]
-      (alter-var-root #'target-commands/run-command
-                      (constantly
-                       ;; local command executor (just call command functions)
-                       (fn run-command-fn [method args-map & [callback]]
-                         ;; run the function on a different thread so we don't block the ui
-                         ;; while running commands
-                         (.start (Thread. (fn []
-                                            (set-in-progress true)
-                                            (let [[_ cmd-res] (run-command nil method args-map)]
-                                              (set-in-progress false)
-                                              (if (= cmd-res :error)
+        theme-listener (when (= :auto theme)
+                         (start-theme-listener (fn [] (doseq [stg @stages] (update-scene-with-current-theme (.getScene stg))))))]
 
-                                                (log-error "Error running command")
+    (update-scene-with-current-theme (-> @stages first (.getScene)))
 
-                                                (let [[_ ret-val] cmd-res]
-                                                  (when callback
-                                                    (callback ret-val))))))))))))
-
-    ;; else, set up the remote command-executor
-    (alter-var-root #'target-commands/run-command
+    (alter-var-root #'ui-vars/register-and-init-stage!
                     (constantly
-                     ;; remote command executor (via websockets)
-                     (fn run-command-fn [method args-map & [callback]]
-                       (set-in-progress true)
-                       (websocket/async-command-request method
-                                                        args-map
-                                                        (fn [ret-val]
-                                                          (set-in-progress false)
-                                                          (when callback
-                                                            (callback ret-val)))))))))
+                     (fn [stg]
+                       (update-scene-with-current-theme (.getScene stg))
+                       (swap! stages conj stg))))
+
+    theme-listener))
 
 (defn start-ui [config]
   ;; Initialize the JavaFX toolkit
@@ -170,7 +140,10 @@
            stage (doto (Stage.)
                    (.setTitle "Flowstorm debugger")
                    (.setScene scene))
-           theme-listener (reset-styles scene config)]
+
+           stages (atom #{stage})
+
+           theme-listener (start-theming-system config stages)]
 
        (doto scene
          (.setOnKeyPressed (event-handler
@@ -189,19 +162,22 @@
                                 ))))
          (.setRoot (build-main-pane)))
 
-       (reset-styles scene config)
-
-       (setup-commands-executor config)
        (-> stage .show)
 
-       {:scene scene
-        :stage stage
+       {:stages stages
         :theme-listener theme-listener})
 
      (catch Exception e
        (log-error "UI Thread exception" e)))))
 
 (defn stop-ui []
-  (when-let [stage (:stage ui)]
+  (let [{:keys [stages theme-listener]} ui]
+
+    ;; remove the OS theme listener
+    (when theme-listener
+      (.removeListener (OsThemeDetector/getDetector) theme-listener))
+
+    ;; close all stages
     (ui-utils/run-now
-     (.close stage))))
+     (doseq [stage @stages]
+       (.close stage)))))

@@ -1,21 +1,17 @@
 (ns flow-storm.json-serializer
   (:require [cognitect.transit :as transit]
             [flow-storm.utils :refer [log-error]]
-            [flow-storm.trace-types])
+            [flow-storm.value-types])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.util.regex Pattern]
-           [flow_storm.trace_types FlowInitTrace FormInitTrace ExecTrace FnCallTrace BindTrace]))
+           [flow_storm.value_types LocalImmValue RemoteImmValue]))
 
 (def ^ByteArrayOutputStream write-buffer (ByteArrayOutputStream. (* 1024 1024))) ;; 1Mb buffer
 
 (defn serialize [obj]
   (locking write-buffer
     (try
-      (let [writer (transit/writer write-buffer :json {:handlers (merge (transit/record-write-handlers FlowInitTrace
-                                                                                                       FormInitTrace
-                                                                                                       ExecTrace
-                                                                                                       FnCallTrace
-                                                                                                       BindTrace)
+      (let [writer (transit/writer write-buffer :json {:handlers (merge (transit/record-write-handlers LocalImmValue RemoteImmValue)
                                                                         {Pattern (transit/write-handler
                                                                                   (fn [_] "regex")
                                                                                   str)})
@@ -31,11 +27,7 @@
 (defn deserialize [^String s]
   (try
     (let [^ByteArrayInputStream in (ByteArrayInputStream. (.getBytes s))
-          reader (transit/reader in :json {:handlers (merge (transit/record-read-handlers FlowInitTrace
-                                                                                          FormInitTrace
-                                                                                          ExecTrace
-                                                                                          FnCallTrace
-                                                                                          BindTrace)
+          reader (transit/reader in :json {:handlers (merge (transit/record-read-handlers LocalImmValue RemoteImmValue)
                                                             {"object" (transit/read-handler (fn [s] s))
                                                              "regex"  (transit/read-handler (fn [s] (re-pattern s)))})})]
       (transit/read reader))

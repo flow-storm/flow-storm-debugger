@@ -83,12 +83,12 @@
                     :on-connection-open (fn [conn]
                                           (reset! remote-connection conn)
                                           (on-connection-open conn))
-                    :on-message (fn [conn msg]
+                    :on-message (fn [_ msg]
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
                                       (case msg-kind
                                         :event (event-dispatcher msg-body)
-                                        :trace (trace-dispatcher conn msg-body)
+                                        :trace (trace-dispatcher msg-body)
                                         :cmd-ret (process-command-response msg-body)
                                         :cmd-err (show-error msg-body)))
                                     (catch Exception e

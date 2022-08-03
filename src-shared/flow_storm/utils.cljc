@@ -3,6 +3,11 @@
                      [goog.string.format])
      :clj (:refer-clojure :exclude [format])))
 
+(defn elide-string [s max-len]
+  (let [len (count s)]
+    (cond-> (subs s 0 (min max-len len))
+      (> len max-len) (str " ... "))))
+
 (defn format [& args]
   #?(:clj (apply clojure.core/format args)
      :cljs (apply gstr/format args)))

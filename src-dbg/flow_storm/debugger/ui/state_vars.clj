@@ -2,6 +2,13 @@
   (:require [flow-storm.utils :refer [log]]
             [mount.core :as mount :refer [defstate]]))
 
+(def register-and-init-stage!
+
+  "Globally available function, setup by `flow-storm.debugger.ui.main/start-theming-system`
+   to register stages so they are themed and listen to theme changes"
+
+  nil)
+
 ;; so the linter doesn't complain
 (declare long-running-task-thread)
 (declare ui-objs)
@@ -99,6 +106,9 @@
 
 (defn thread-pprint-def-btn-id [thread-id pane-id]
   (format "pprint_def_btn_id_%d_%s" thread-id pane-id))
+
+(defn thread-pprint-inspect-btn-id [thread-id pane-id]
+  (format "pprint_inspect_btn_id_%d_%s" thread-id pane-id))
 
 (defn thread-pprint-level-txt-id [thread-id pane-id]
   (format "pprint_level_txt_id_%d_%s" thread-id pane-id))

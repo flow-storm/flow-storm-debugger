@@ -7,7 +7,7 @@
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.code :as flows-code]
-            [flow-storm.debugger.trace-types :refer [deref-ser]]
+            [flow-storm.debugger.values :refer [val-pprint]]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.geometry Orientation]
@@ -17,7 +17,7 @@
 
 (defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
   (let [fn-lbl (doto (case form-def-kind
-                       :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (deref-ser dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
+                       :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (val-pprint dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
                        :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                        :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                        :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
@@ -93,8 +93,8 @@
 (defn- functions-calls-cell-factory [selected-args list-cell {:keys [args-vec]}]
   (let [sel-args (selected-args)
         args-vec-str (if (= (count sel-args) max-args)
-                       (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false})
-                       (deref-ser args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
+                       (val-pprint args-vec {:print-length 4 :print-level 4 :pprint? false})
+                       (val-pprint args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
         args-lbl (label args-vec-str)]
     (.setGraphic ^Node list-cell args-lbl)))
 

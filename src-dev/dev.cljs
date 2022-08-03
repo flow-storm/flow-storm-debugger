@@ -1,6 +1,5 @@
 (ns dev
   (:require [flow-storm.json-serializer :as ser]
-            [flow-storm.trace-types :as tt]
             [flow-storm.api :as fs-api]
             [flow-storm.core :as fs-core])
   (:require-macros [flow-storm.core]))

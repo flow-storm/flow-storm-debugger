@@ -20,6 +20,10 @@
   :start (HashMap.)
   :stop  nil)
 
+(defstate flow-thread-indexers
+  :start (atom {})
+  :stop nil)
+
 ;;;;;;;;;;;
 ;; Utils ;;
 ;;;;;;;;;;;
@@ -57,18 +61,18 @@
 (defn create-thread [flow-id thread-id trace-indexer]
   (swap! state assoc-in [:flows flow-id :flow/threads thread-id]
          {:thread/id thread-id
-          :thread/trace-indexer trace-indexer
           :thread/curr-idx nil
           :thread/callstack-tree-hidden-fns #{}
           :thread/callstack-expanded-traces #{}
           :thread/callstack-selected-idx nil
-          :thread/fn-call-stats {}}))
+          :thread/fn-call-stats {}})
+  (swap! flow-thread-indexers assoc [flow-id thread-id] trace-indexer))
 
 (defn get-thread [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id]))
 
 (defn thread-trace-indexer [flow-id thread-id]
-  (:thread/trace-indexer (get-thread flow-id thread-id)))
+  (get @flow-thread-indexers [flow-id thread-id]))
 
 (defn thread-trace-count [flow-id thread-id]
   (indexer/thread-timeline-count (thread-trace-indexer flow-id thread-id)))

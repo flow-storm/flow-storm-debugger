@@ -2,7 +2,7 @@
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
-            [flow-storm.instrument.trace-types :as inst-trace-types]
+            [flow-storm.runtime.values :as rt-values]
             [flow-storm.utils :refer [log log-error] :as utils]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.instrument.forms :as inst-forms]
@@ -56,8 +56,8 @@
    (require debugger-trace-processor-ns)
    (require debugger-main-ns)
    (let [config (assoc config :local? true)
-         local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "local-dispatch-trace"))
-         start-debugger       (resolve (symbol (name debugger-main-ns) "start-debugger"))]
+         dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "dispatch-trace"))
+         start-debugger (resolve (symbol (name debugger-main-ns) "start-debugger"))]
 
      ;; start the debugger UI
      (start-debugger config)
@@ -67,7 +67,7 @@
       (assoc config
              :send-fn (fn local-send [trace]
                         (try
-                          (local-dispatch-trace trace)
+                          (dispatch-trace (rt-values/wrap-trace-values! trace false))
                           (catch Exception e
                             (log-error "Exception dispatching trace " e)))))))))
 
@@ -93,7 +93,7 @@
     (assoc config
            :send-fn (fn local-send [trace]
                       (try
-                        (let [packet [:trace (inst-trace-types/ref-values! trace)]
+                        (let [packet [:trace (rt-values/wrap-trace-values! trace true)]
                               ser (serializer/serialize packet)]
                           (remote-websocket-client/send ser))
                         (catch Exception e
@@ -239,9 +239,9 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme
            host port] :as opts}]
-  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :host :port}]
+  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :host :port}]
 
     (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
     (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
@@ -265,8 +265,8 @@
           (require (symbol ns-name))))
 
       (if (or host port)
-        (remote-connect {:host host :port port :verbose? verbose? :styles styles})
-        (local-connect {:verbose? verbose? :styles styles}))
+        (remote-connect {:host host :port port :verbose? verbose? :styles styles :theme theme})
+        (local-connect {:verbose? verbose? :styles styles :theme theme}))
       (log (format "Instrumenting namespaces %s" ns-to-instrument))
       (instrument-forms-for-namespaces ns-to-instrument inst-opts)
       (log "Instrumentation done.")

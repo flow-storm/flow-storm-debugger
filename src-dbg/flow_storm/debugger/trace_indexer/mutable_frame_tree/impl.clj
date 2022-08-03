@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.trace-indexer.mutable-frame-tree.impl
   (:require [flow-storm.debugger.trace-indexer.protos :refer [TraceIndexP FormStoreP]]
-            [flow-storm.debugger.trace-types :refer [deref-ser]]
+            [flow-storm.debugger.values :refer [val-pprint]]
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.utils :as utils :refer [log]]
             [clojure.string :as str])
@@ -42,18 +42,18 @@
     (.get expr-executions idx))
 
   (add-binding [_ {:keys [coor symbol value timestamp]}]
-    (.add bindings (map->BindData {:coor coor
-                                   :symbol symbol
-                                   :value value
-                                   :timestamp timestamp})))
+    (.add bindings (->BindData coor
+                               symbol
+                               value
+                               timestamp)))
 
   (add-expr-exec [_ idx {:keys [coor form-id result outer-form? timestamp]}]
-    (.add expr-executions (map->ExprData {:idx idx
-                                          :form-id form-id
-                                          :coor coor
-                                          :result result
-                                          :outer-form? outer-form?
-                                          :timestamp timestamp}))
+    (.add expr-executions (->ExprData idx
+                                      form-id
+                                      coor
+                                      result
+                                      outer-form?
+                                      timestamp))
     (-> expr-executions .size dec)))
 
 (defprotocol TreeNodeP
@@ -190,7 +190,7 @@
                                                         (let [{:keys [fn-name args-vec]} curr-frame-data]
                                                           (if (and (> i from-idx)
                                                                    (or (str/includes? fn-name search-str)
-                                                                       (str/includes? (deref-ser args-vec {:print-length 10 :print-level print-level :pprint? false}) search-str)))
+                                                                       (str/includes? (val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) search-str)))
 
                                                             ;; if matches
                                                             (conj stack i)

@@ -4,11 +4,13 @@
             [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view]]
+            [flow-storm.debugger.ui.value-inspector :as value-inspector]
+            [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.debugger.trace-types :refer [deref-ser]])
-  (:import [javafx.scene.control Label ScrollPane Tab TabPane TabPane$TabClosingPolicy SplitPane]
+            [flow-storm.debugger.values :refer [val-pprint]])
+  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.scene Node]
            [javafx.geometry Orientation Pos]
            [javafx.scene.text TextFlow Text Font]
@@ -73,11 +75,11 @@
 (defn- locals-list-cell-factory [list-cell symb-val]
   (let [symb-lbl (doto (label (first symb-val))
                    (.setPrefWidth 100))
-        val-lbl (label  (flow-cmp/elide-string (deref-ser (second symb-val)
-                                                          {:print-length 3
-                                                           :print-level 3
-                                                           :pprint? false})
-                                               80))
+        val-lbl (label  (utils/elide-string (val-pprint (second symb-val)
+                                                        {:print-length 3
+                                                         :print-level 3
+                                                         :pprint? false})
+                                            80))
         hbox (h-box [symb-lbl val-lbl])]
     (.setGraphic ^Node list-cell hbox)))
 
@@ -86,7 +88,7 @@
     (let [[_ val] (first selected-items)
           ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
                                                  :on-click (fn []
-                                                             (flow-cmp/def-val val))}])]
+                                                             (value-inspector/def-val val))}])]
       (.show ctx-menu
              list-view-pane
              (.getScreenX mev)
@@ -168,7 +170,7 @@
   (if (> (count traces) 1)
     (let [ctx-menu-options (->> traces
                                 (map (fn [{:keys [idx result]}]
-                                       {:text (format "%s" (flow-cmp/elide-string (deref-ser result {:print-length 3 :print-level 3 :pprint? false}) 80))
+                                       {:text (format "%s" (utils/elide-string (val-pprint result {:print-length 3 :print-level 3 :pprint? false}) 80))
                                         :on-click #(jump-to-coord flow-id thread-id idx)})))
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler
@@ -282,7 +284,7 @@
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])
               (.setSpacing 5))
-        scroll-pane (ScrollPane.)]
+        scroll-pane (ui-utils/scroll-pane "forms-scroll-container")]
     (.setContent scroll-pane box)
     (store-obj flow-id (ui-vars/thread-forms-box-id thread-id) box)
     (store-obj flow-id (ui-vars/thread-forms-scroll-id thread-id) scroll-pane)

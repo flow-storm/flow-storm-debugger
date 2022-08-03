@@ -11,20 +11,37 @@
 	-fx-font-size: 12;
 }
 
+.separator-label {
+    -fx-text-fill: -fx-theme-separator;
+}
+
 .tab .ikonli-font-icon {
 	-fx-font-size: 15;
+	-fx-icon-color: -fx-theme-button2-text;
+	-fx-background-color: linear-gradient(to top, -fx-base, derive(-fx-base,30%));
 }
 
 .vertical-tab:selected {
-	-fx-background-color: #4743ba;
+	-fx-background-color: -fx-theme-selected-main-tools-tab-background;
 }
 
 .vertical-tab:selected .tab-label { 
-	-fx-text-fill: white;
+	-fx-text-fill: -fx-theme-selected-main-tools-tab-text;
 }
 
 .button {
-	-fx-background-color: #888;   
+	-fx-background-color: -fx-theme-button1-background;
+    -fx-text-fill: -fx-theme-button1-text;    
+}
+
+.link-lbl {
+	-fx-text-fill: -fx-theme-links;
+	-fx-cursor: hand;
+}
+
+.button:hover {
+        -fx-background-color: -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color;
+        -fx-color: -fx-hover-base;
 }
 
 .button:focused { /* this is so buttons doesn't look smaller when they are focused */
@@ -32,7 +49,11 @@
 }
 
 .button .ikonli-font-icon {
-	-fx-icon-color: white;
+	-fx-icon-color: -fx-theme-button1-text;
+}
+
+.text-field {
+    -fx-prompt-text-fill: -fx-theme-button2-text;
 }
 
 .tree-search {
@@ -40,65 +61,65 @@
 }
 
 .form-pane {
-	-fx-background-color: #eee;
+	-fx-background-color: -fx-theme-base2;
 }
 
 .form-pane.form-background-highlighted {
-	-fx-background-color: #ebecff;
+	-fx-background-color: -fx-theme-base3;
 }
 
 .label.defmethod {
-	-fx-text-fill: #9c0084;
+	-fx-text-fill: -fx-theme-defmethod-text;
 }
 
 .label.defn {
-	-fx-text-fill: #222;
+	-fx-text-fill: -fx-theme-defn-text;
 }
 
 .label.extend-type {
-	-fx-text-fill: #369658;
+	-fx-text-fill: -fx-theme-extend-text;
 }
 
 .label.extend-protocol {
-	-fx-text-fill: #369658;
+	-fx-text-fill: -fx-theme-extend-text;
 }
 
 .label.anonymous {
-	-fx-text-fill: #222;
+	-fx-text-fill: -fx-theme-defn-text;
 }
 
 .label.fn-ns {
-	-fx-text-fill: #999;
-}
-
-.label.fn-args {
-	-fx-text-fill: #777;
+	-fx-text-fill: -fx-theme-dim-text;
 }
 
 .code-token {
 	-fx-font-family: 'monospaced';
 	-fx-font-size: 13;
-	-fx-fill: #0b0d2e;
+	-fx-fill: -fx-theme-flow-code-text;
 }
 .code-token.executing {
-    -fx-stroke: #60d61b;
+    -fx-stroke: -fx-theme-flow-code-executing-text;
 	-fx-font-size: 15;
-	-fx-fill: #60d61b;
+	-fx-fill: -fx-theme-flow-code-executing-text;
 	-fx-stroke-width: 1;
 }
 
 .code-token.interesting {
-	-fx-fill: #de00c0;
+	-fx-fill: -fx-theme-flow-code-interesting-text;
 	-fx-cursor: hand;
 	-fx-font-weight: bold;
 }
 
+.forms-scroll-container {
+	-fx-padding: 10 0 0 0;
+}
+
 .form-pane {
-	-fx-padding: 10;
+	-fx-padding: 10;    
 }
 
 .thread-controls-pane {
-	-fx-background-color: #ddd;
+	-fx-background-color: -fx-theme-base2;
 	-fx-padding: 10;
 }
 
@@ -117,7 +138,7 @@
 .label.browser-fn-fq-name {
 	-fx-font-weight: bold;
 	-fx-font-size: 15;
-	-fx-text-fill: #336699;
+	-fx-text-fill: -fx-theme-button1-background;
 	-fx-padding: 10;
 }
 
@@ -130,9 +151,7 @@
 }
 
 .button.browser-instrument-btn {
-	-fx-background-color: #336699;
-    -fx-text-fill: white;
-	-fx-font-size: 10;
+    -fx-font-size: 10;
 	-fx-display: none;
 	visibility: hidden;
 }
@@ -142,28 +161,42 @@
 }
 
 .browser-instr-del-btn {
-	-fx-background-color: #336699;
-    -fx-text-fill: white;
-	-fx-font-size: 10;
+    -fx-font-size: 10;
 }
 
 .browser-instr-type-lbl {
-	-fx-text-fill: #919191;
+	-fx-text-fill: -fx-theme-base1;
 }
 
 .browser-instr-tools-box {
 	-fx-padding: 10;
 }
 
-.button {
-	-fx-background-color: #336699;
-    -fx-text-fill: white;    
-}
-
 .main-bottom-bar-box {
-	-fx-background-color: #ddd;
+	-fx-background-color: -fx-theme-base1;
 }
 
 .button.reload-tree-btn {
-	-fx-background-color: #919191;
+	-fx-background-color: -fx-theme-button2-background;
+}
+
+/*******************/
+/* Value inspector */
+/*******************/
+
+.value-inspector-main-pane {
+	-fx-padding: 10;
+}
+
+.value-inspector-header {
+	-fx-padding: 10;
+}
+
+.value-inspector-stack-pane {
+	-fx-padding: 10;
+	-fx-background-color: -fx-theme-base2;
+}
+
+.value-inspector-stack-pane .stack-bar-btn {
+	-fx-background-color: -fx-theme-breadcrums; 
 }

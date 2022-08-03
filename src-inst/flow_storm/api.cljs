@@ -2,7 +2,7 @@
   (:require [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.tracer :as tracer]
-            [flow-storm.instrument.trace-types :as inst-trace-types]
+            [flow-storm.runtime.values :as rt-values]
             [flow-storm.core :as fs-core]
             [flow-storm.utils :refer [log-error] :as utils])
   (:require-macros [flow-storm.api]))
@@ -27,9 +27,9 @@
    ;; start the tracer
    (tracer/start-tracer
     (assoc config
-           :send-fn (fn local-send [trace]
+           :send-fn (fn remote-send [trace]
                       (try
-                        (let [packet [:trace (inst-trace-types/ref-values! trace)]
+                        (let [packet [:trace (rt-values/wrap-trace-values! trace true)]
                               ser (serializer/serialize packet)]
                           (remote-websocket-client/send ser))
                         (catch js/Error e (log-error "Exception dispatching trace " e))))))))

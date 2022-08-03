@@ -1,6 +1,6 @@
 (ns flow-storm.tracer
   (:require [flow-storm.utils :refer [log] :as utils]
-            [flow-storm.trace-types :as trace-types]
+            [flow-storm.runtime.values :refer [snapshot-reference]]
             [clojure.core.async :as async]))
 
 (def orphan-flow-id -1)
@@ -9,7 +9,6 @@
 (declare stop-tracer)
 
 (def trace-chan nil)
-(def send-thread-stop-chan nil)
 
 (defn init-stats []
   {:put 0
@@ -36,10 +35,11 @@
   "Send flow initialization trace"
   
   [flow-id form-ns form]
-  (let [trace (trace-types/map->FlowInitTrace {:flow-id flow-id
-                                               :form-ns form-ns
-                                               :form form
-                                               :timestamp (utils/get-monotonic-timestamp)})]
+  (let [trace {:trace/type :flow-init
+               :flow-id flow-id
+               :form-ns form-ns
+               :form form
+               :timestamp (utils/get-monotonic-timestamp)}]
     (enqueue-trace! trace)))
 
 (defn trace-form-init
@@ -50,23 +50,17 @@
   (let [{:keys [flow-id init-traced-forms]} *runtime-ctx*        
         thread-id (utils/get-current-thread-id)]
     (when-not (contains? @init-traced-forms [flow-id thread-id form-id])
-      (let [trace (trace-types/map->FormInitTrace {:flow-id flow-id
-                                                   :form-id form-id
-                                                   :thread-id thread-id
-                                                   :form form
-                                                   :ns ns
-                                                   :def-kind def-kind
-                                                   :mm-dispatch-val dispatch-val
-                                                   :timestamp (utils/get-monotonic-timestamp)})]
+      (let [trace {:trace/type :form-init
+                   :flow-id flow-id
+                   :form-id form-id
+                   :thread-id thread-id
+                   :form form
+                   :ns ns
+                   :def-kind def-kind
+                   :mm-dispatch-val dispatch-val
+                   :timestamp (utils/get-monotonic-timestamp)}]
         (enqueue-trace! trace)
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
-
-(defn- snapshot-reference [x]  
-  (if #?(:clj  (instance? clojure.lang.IDeref x)
-         :cljs (instance? cljs.core.IDeref x))
-    {:ref/snapshot (deref x)
-     :ref/type (type x)}
-    x))
 
 (defn trace-expr-exec
   
@@ -75,13 +69,14 @@
   [result {:keys [coor outer-form? form-id]}]
   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (let [trace (trace-types/map->ExecTrace {:flow-id flow-id
-                                               :form-id form-id
-                                               :coor coor
-                                               :thread-id (utils/get-current-thread-id)
-                                               :timestamp (utils/get-monotonic-timestamp)
-                                               :result (snapshot-reference result)
-                                               :outer-form? outer-form?})]
+      (let [trace {:trace/type :expr-exec
+                   :flow-id flow-id
+                   :form-id form-id
+                   :coor coor
+                   :thread-id (utils/get-current-thread-id)
+                   :timestamp (utils/get-monotonic-timestamp)
+                   :result (snapshot-reference result)
+                   :outer-form? outer-form?}]
         (enqueue-trace! trace)))
     
     result))
@@ -93,13 +88,14 @@
   [form-id ns fn-name args-vec]
   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (let [trace (trace-types/map->FnCallTrace {:flow-id flow-id
-                                                 :form-id form-id
-                                                 :fn-name fn-name
-                                                 :fn-ns ns
-                                                 :thread-id (utils/get-current-thread-id)
-                                                 :args-vec  (mapv snapshot-reference args-vec)
-                                                 :timestamp (utils/get-monotonic-timestamp)})]
+      (let [trace {:trace/type :fn-call
+                   :flow-id flow-id
+                   :form-id form-id
+                   :fn-name fn-name
+                   :fn-ns ns
+                   :thread-id (utils/get-current-thread-id)
+                   :args-vec  (mapv snapshot-reference args-vec)
+                   :timestamp (utils/get-monotonic-timestamp)}]
         (enqueue-trace! trace)))))
 
 (defn trace-bind
@@ -109,12 +105,13 @@
   [symb val {:keys [coor]}]
   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
     (when-not tracing-disabled?
-      (let [trace (trace-types/map->BindTrace {:flow-id flow-id                                               
-                                               :coor (or coor [])
-                                               :thread-id (utils/get-current-thread-id)
-                                               :timestamp (utils/get-monotonic-timestamp)
-                                               :symbol (name symb)
-                                               :value (snapshot-reference val)})]
+      (let [trace {:trace/type :bind
+                   :flow-id flow-id                                               
+                   :coor (or coor [])
+                   :thread-id (utils/get-current-thread-id)
+                   :timestamp (utils/get-monotonic-timestamp)
+                   :symbol (name symb)
+                   :value (snapshot-reference val)}]
         (enqueue-trace! trace)))))
 
 (defn log-stats []
@@ -127,25 +124,6 @@
                              (/ (double (- (utils/get-monotonic-timestamp) last-report-t))
                                 1000000000.0))))))
 
-#_(defn build-send-fn [{:keys [local?]}]
-  (if local?
-
-    ;; local send-fn
-    #?(:clj (fn [trace]
-              (require debugger-trace-processor-ns)
-              (let [local-dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "local-dispatch-trace"))]
-                (local-dispatch-trace trace)))
-       :cljs (fn [_]))
-
-    ;; remote send-fn
-    (fn [trace]
-      (try
-        (let [packet [:trace (inst-trace-types/ref-values! trace)]
-              ser-packet (serializer/serialize packet)]
-          (remote-websocket-client/send ser-packet))
-        #?(:clj (catch Exception e (log-error "Exception dispatching trace " e))
-           :cljs (catch js/Error e (log-error "Exception dispatching trace " e)))))))
-
 (defn start-tracer
   
   "Creates and starts a thread that read traces from the global `trace-queue`
@@ -154,37 +132,31 @@
   [{:keys [send-fn verbose?]}]
 
   ;; Initialize global vars
-  #?@(:clj [(alter-var-root #'trace-chan (constantly (async/chan 30000000)))
-            (alter-var-root #'send-thread-stop-chan (constantly (async/promise-chan)))]
-      :cljs [(set! trace-chan (async/chan 30000000))
-             (set! send-thread-stop-chan (async/promise-chan))])
+  #?@(:clj [(alter-var-root #'trace-chan (constantly (async/chan 30000000)))]
+      :cljs [(set! trace-chan (async/chan 30000000))])
   
   (async/go
     (reset! tracer-stats (init-stats))
     (loop []
-      (let [[v ch] (async/alts! [trace-chan send-thread-stop-chan])]
-        (when-not (= ch send-thread-stop-chan)
-          (let [trace v]
-
-            ;; Stats
-            (let [{:keys [sent]} @tracer-stats]
-              (when (and verbose? (zero? (mod sent 50000)))
-                (log-stats)
-                (swap! tracer-stats
-                       (fn [{:keys [sent] :as stats}]
-                         (assoc stats 
-                                :last-report-t (utils/get-monotonic-timestamp)
-                                :last-report-sent sent)))))
-            
-            (send-fn trace)
-            
-            (swap! tracer-stats update :sent inc))
+      (let [trace (async/<! trace-chan)]
+        (when trace ;; no trace we asume the trace-chan was closed, so finish the thread
+          ;; Stats
+          (let [{:keys [sent]} @tracer-stats]
+            (when (and verbose? (zero? (mod sent 50000)))
+              (log-stats)
+              (swap! tracer-stats
+                     (fn [{:keys [sent] :as stats}]
+                       (assoc stats 
+                              :last-report-t (utils/get-monotonic-timestamp)
+                              :last-report-sent sent)))))
+          
+          (send-fn trace)
+          
+          (swap! tracer-stats update :sent inc)
           (recur))))
     (log "Thread interrupted. Dying..."))
   
-  {:trace-chan trace-chan
-   :send-thread-stop-chan send-thread-stop-chan})
+  nil)
 
-(defn stop-tracer []  
-  (when send-thread-stop-chan 
-    (async/put! send-thread-stop-chan true)))
+(defn stop-tracer []
+  (async/close! trace-chan))
