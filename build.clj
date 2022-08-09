@@ -173,7 +173,7 @@
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "2.2.%s" (b/git-count-revs nil))
+        version (format "2.3.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:inst]})
         jar-file (format "target/%s.jar" (name lib))

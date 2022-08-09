@@ -4,7 +4,8 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.core :as fs-core]
-            [flow-storm.utils :refer [log-error] :as utils])
+            [flow-storm.utils :refer [log-error] :as utils]
+            [flow-storm.events :as events])
   (:require-macros [flow-storm.api]))
 
 (defn remote-connect
@@ -24,6 +25,8 @@
    (remote-websocket-client/start-remote-websocket-client
     (assoc config :run-command fs-core/run-command))
 
+   (events/setup-tap! true)
+
    ;; start the tracer
    (tracer/start-tracer
     (assoc config
@@ -35,5 +38,6 @@
                         (catch js/Error e (log-error "Exception dispatching trace " e))))))))
 
 (defn stop []
+  (events/remove-tap!)
   (tracer/stop-tracer)
   (remote-websocket-client/stop-remote-websocket-client))

@@ -92,7 +92,7 @@
       (seq more-elems) (assoc :val/more (maybe-ref! more-elems remote?)))))
 
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
-#?(:cljs (defn map-like? [_] false))
+#?(:cljs (defn map-like? [x] (map? x)))
 
 #?(:clj (defn seq-like? [x] (instance? java.util.List x)))
 #?(:cljs (defn seq-like? [_] false))

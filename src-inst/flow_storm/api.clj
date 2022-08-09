@@ -8,6 +8,7 @@
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
             [flow-storm.json-serializer :as serializer]
+            [flow-storm.events :as events]
             [flow-storm.remote-websocket-client :as remote-websocket-client]))
 
 ;; TODO: build script
@@ -15,15 +16,8 @@
 ;; we don't need to list them here
 ;; Also maybe just finding main is enough, we can add to it a fn
 ;; that returns the rest of the functions we need
-(def debugger-events-processor-ns 'flow-storm.debugger.events-processor)
 (def debugger-main-ns 'flow-storm.debugger.main)
 (def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
-
-(def tap-fn
-
-  "Keep a reference to the added tap function so we can remove it"
-
-  (atom nil))
 
 (declare tap-value)
 
@@ -36,19 +30,13 @@
     (when stop-debugger
       (stop-debugger))
 
-    (when-let [tf @tap-fn]
-      (remove-tap tf))
+    (events/remove-tap!)
 
     ;; always stop the tracer
     (tracer/stop-tracer)
 
     ;; stop remote websocket client if needed
     (remote-websocket-client/stop-remote-websocket-client)))
-
-(defn- setup-tap! [remote?]
-  (let [new-tap-fn (bound-fn* (partial tap-value remote?))]
-    (add-tap new-tap-fn)
-    (reset! tap-fn new-tap-fn)))
 
 (defn local-connect
 
@@ -79,7 +67,7 @@
      (start-debugger config)
 
      ;; setup the tap system so we send tap> to the debugger
-     (setup-tap! false)
+     (events/setup-tap! false)
 
      ;; start the tracer
      (tracer/start-tracer
@@ -108,7 +96,7 @@
     (assoc config :run-command fs-core/run-command))
 
    ;; setup the tap system so we send tap> to the debugger
-   (setup-tap! true)
+   (events/setup-tap! true)
 
    ;; start the tracer
    (tracer/start-tracer
@@ -120,21 +108,6 @@
                           (remote-websocket-client/send ser))
                         (catch Exception e
                           (log-error "Exception dispatching trace " e))))))))
-
-(defn send-event-to-debugger [ev]
-
-  (let [packet [:event ev]]
-    (if (remote-websocket-client/remote-connected?)
-
-      ;; send the packet remotely
-      (remote-websocket-client/send-event-to-debugger packet)
-
-      ;; "send" locally (just call a function)
-      (let [local-process-event (resolve (symbol (name debugger-events-processor-ns) "process-event"))]
-        (local-process-event ev)))))
-
-(defn- tap-value [remote? v]
-  (send-event-to-debugger [:tap {:value (rt-values/make-value v remote?)}]))
 
 (defn instrument-var
 
@@ -160,7 +133,7 @@
 
    (fs-core/instrument-var var-symb config)
 
-   (send-event-to-debugger [:var-instrumented {:var-name (name var-symb)
+   (events/send-event-to-debugger [:var-instrumented {:var-name (name var-symb)
                                                :var-ns (namespace var-symb)}])))
 
 (defn uninstrument-var
@@ -173,7 +146,7 @@
 
   (fs-core/uninstrument-var var-symb)
 
-  (send-event-to-debugger [:var-uninstrumented {:var-name (name var-symb)
+  (events/send-event-to-debugger [:var-uninstrumented {:var-name (name var-symb)
                                                 :var-ns (namespace var-symb)}]))
 
 (defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
@@ -227,7 +200,7 @@
    (let [inst-namespaces (inst-ns/instrument-files-for-namespaces prefixes (assoc opts
                                                                                   :prefixes? true))]
      (doseq [ns-symb inst-namespaces]
-       (send-event-to-debugger [:namespace-instrumented {:ns-name (str ns-symb)}])))))
+       (events/send-event-to-debugger [:namespace-instrumented {:ns-name (str ns-symb)}])))))
 
 (defn uninstrument-forms-for-namespaces
 
@@ -238,7 +211,7 @@
   (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces prefixes {:prefixes? true
                                                                              :uninstrument? true})]
     (doseq [ns-symb uninst-namespaces]
-      (send-event-to-debugger [:namespace-uninstrumented {:ns-name (str ns-symb)}]))))
+      (events/send-event-to-debugger [:namespace-uninstrumented {:ns-name (str ns-symb)}]))))
 
 
 (defn cli-run

@@ -56,6 +56,6 @@
 (defn send [ser-packet]
   (.send remote-websocket-client ser-packet))
 
-(defn send-event-to-debugger [_]
-  ;; No events are supported for ClojureScript yet
-  )
+(defn send-event-to-debugger [ev-packet]
+  (let [ser-packet (serializer/serialize ev-packet)]
+    (send ser-packet)))
