@@ -19,6 +19,14 @@
 (def debugger-main-ns 'flow-storm.debugger.main)
 (def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
 
+(def tap-fn
+
+  "Keep a reference to the added tap function so we can remove it"
+
+  (atom nil))
+
+(declare tap-value)
+
 (defn stop []
   (let [stop-debugger (try
                         (resolve (symbol (name debugger-main-ns) "stop-debugger"))
@@ -28,11 +36,19 @@
     (when stop-debugger
       (stop-debugger))
 
+    (when-let [tf @tap-fn]
+      (remove-tap tf))
+
     ;; always stop the tracer
     (tracer/stop-tracer)
 
     ;; stop remote websocket client if needed
     (remote-websocket-client/stop-remote-websocket-client)))
+
+(defn- setup-tap! [remote?]
+  (let [new-tap-fn (bound-fn* (partial tap-value remote?))]
+    (add-tap new-tap-fn)
+    (reset! tap-fn new-tap-fn)))
 
 (defn local-connect
 
@@ -62,6 +78,9 @@
      ;; start the debugger UI
      (start-debugger config)
 
+     ;; setup the tap system so we send tap> to the debugger
+     (setup-tap! false)
+
      ;; start the tracer
      (tracer/start-tracer
       (assoc config
@@ -88,6 +107,9 @@
    (remote-websocket-client/start-remote-websocket-client
     (assoc config :run-command fs-core/run-command))
 
+   ;; setup the tap system so we send tap> to the debugger
+   (setup-tap! true)
+
    ;; start the tracer
    (tracer/start-tracer
     (assoc config
@@ -110,6 +132,9 @@
       ;; "send" locally (just call a function)
       (let [local-process-event (resolve (symbol (name debugger-events-processor-ns) "process-event"))]
         (local-process-event ev)))))
+
+(defn- tap-value [remote? v]
+  (send-event-to-debugger [:tap {:value (rt-values/make-value v remote?)}]))
 
 (defn instrument-var
 

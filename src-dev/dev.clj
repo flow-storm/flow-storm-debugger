@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (javafx.embed.swing.JFXPanel.)
-(add-tap (bound-fn* println))
+#_(add-tap (bound-fn* println))
 
 (defn start-dev-debugger []
   (fs-api/local-connect))

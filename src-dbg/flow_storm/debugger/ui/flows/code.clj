@@ -295,14 +295,10 @@
                          (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE))
         pprint-tab (doto (Tab.)
                      (.setGraphic (icon "mdi-code-braces"))
-                     (.setContent (flow-cmp/create-pprint-pane flow-id thread-id "expr_result")))
-        tree-tab (doto (Tab.)
-                   (.setGraphic (icon "mdi-file-tree"))
-                   (.setDisable true)
-                   (.setContent (flow-cmp/create-result-tree-pane flow-id thread-id)))]
+                     (.setContent (flow-cmp/create-pprint-pane flow-id thread-id "expr_result")))]
     (-> tools-tab-pane
         .getTabs
-        (.addAll [pprint-tab tree-tab]))
+        (.addAll [pprint-tab]))
 
     tools-tab-pane))
 

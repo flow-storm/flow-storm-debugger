@@ -720,18 +720,19 @@ pre.rouge {
 </ul>
 </li>
 <li><a href="#_browser_tool">5. Browser tool</a></li>
-<li><a href="#_value_inspector">6. Value inspector</a></li>
-<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">7. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
-<li><a href="#_styling_and_theming">8. Styling and theming</a></li>
-<li><a href="#_key_bindings">9. Key bindings</a></li>
-<li><a href="#_tutorials_and_demos">10. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">11. Troubleshooting</a>
+<li><a href="#_taps_tool">6. Taps tool</a></li>
+<li><a href="#_value_inspector">7. Value inspector</a></li>
+<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">8. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
+<li><a href="#_styling_and_theming">9. Styling and theming</a></li>
+<li><a href="#_key_bindings">10. Key bindings</a></li>
+<li><a href="#_tutorials_and_demos">11. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">12. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">11.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">11.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">12.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">12.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">12. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">13. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -765,7 +766,7 @@ pre.rouge {
 <p>jdk &gt;= 11</p>
 </li>
 <li>
-<p>Clojure &gt;= 1.9.0</p>
+<p>Clojure &gt;= 1.10.0</p>
 </li>
 </ul>
 </div>
@@ -1519,7 +1520,28 @@ you can right click on any function to un instrument it. You will have to <a hre
 </div>
 </div>
 <div class="sect2">
-<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">6. Value inspector</a></h3>
+<h3 id="_taps_tool"><a class="anchor" href="#_taps_tool"></a><a class="link" href="#_taps_tool">6. Taps tool</a></h3>
+<div class="paragraph">
+<p>Use the taps tool to visualize your <code>tap&gt;</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/taps.png" alt="taps">
+</div>
+</div>
+<div class="paragraph">
+<p>Every time you (local-connect) or (remote-connect) FlowStorm will add a tap, so whenever you <code>tap&gt;</code> something
+it show in the taps list.</p>
+</div>
+<div class="paragraph">
+<p>Double click on any value to start the value inspector for it.</p>
+</div>
+<div class="paragraph">
+<p>Use the <code>clear</code> button to clear the list.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">7. Value inspector</a></h3>
 <div class="paragraph">
 <p>Use the value inspector to explore any data.</p>
 </div>
@@ -1555,7 +1577,7 @@ to dig deeper into the data.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">7. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
+<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">8. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
 <div class="paragraph">
 <p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
 you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
@@ -1586,7 +1608,7 @@ run you original command.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">8. Styling and theming</a></h3>
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">9. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -1605,13 +1627,13 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">9. Key bindings</a></h3>
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">10. Key bindings</a></h3>
 <div class="paragraph">
 <p><code>Ctrl-g</code> Cancel any long running task (only search supported yet)</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">10. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">11. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1639,16 +1661,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">11. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">12. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">11.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">12.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">11.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">12.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -1661,7 +1683,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">12. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">13. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1679,7 +1701,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-09 06:14:39 -0300
+Last updated 2022-08-09 07:48:14 -0300
 </div>
 </div>
 </body>

@@ -10,10 +10,8 @@
             [flow-storm.debugger.target-commands :as target-commands])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
-
            [javafx.scene.layout HBox Priority]
-           [javafx.scene.control TextInputDialog]
-           [javafx.collections FXCollections]))
+           [javafx.scene.control TextInputDialog]))
 
 (declare create-shallow-frame-pane)
 
@@ -88,7 +86,7 @@
                                                               (.setText list-cell nil)
                                                               (.setGraphic list-cell (create-dig-node ctx elem)))})
         header-lbl (label (format "Count : %s" (if-let [cnt (:total-count shallow-v)] cnt "unknown")))
-        more-button (when-let [more-val (:val/more shallow-v)] (button "More.."))
+        more-button (when (:val/more shallow-v) (button "More.."))
         change-more-handler-for-shallow (fn change-more-handler-for-shallow [{:keys [val/more]}]
                                           (if more
                                             (doto more-button

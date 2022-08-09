@@ -5,6 +5,7 @@
 ## New Features
 
     * Add a proper lazy and recursive value inspector
+	* Add tap tool (support for tap>)
 	* New functions for shutting down the debugger and connections gracefully.
 	  When starting with `flow-storm.api/local-connect` or `flow-storm.api/remote-connect` you can shut it down with `flow-storm.api/stop` 
 	  When starting a standalone debugger with `flow-storm.debugger.main/start-debugger` you can shutdown with `flow-storm.debugger.main/stop-debugger`

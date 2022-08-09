@@ -15,7 +15,7 @@ Instrumentation artifact :
 # Prerequisites
 
 	- jdk11+
-    - clojure 1.9.0+
+    - clojure 1.10.0+
 
 # Documentation
 

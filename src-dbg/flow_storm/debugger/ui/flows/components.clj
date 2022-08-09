@@ -40,9 +40,6 @@
     (store-obj flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id) inspect-btn)
     box))
 
-(defn create-result-tree-pane [_ _]
-  (label "TREE"))
-
 (defn update-pprint-pane [flow-id thread-id pane-id val]
   (let [[^TextArea text-area] (obj-lookup flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id))
         [print-level-txt] (obj-lookup flow-id (ui-vars/thread-pprint-level-txt-id thread-id pane-id))

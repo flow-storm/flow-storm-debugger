@@ -56,7 +56,7 @@
 
           (print-fn val))))))
 
-(defn- make-value [x remote?]
+(defn make-value [x remote?]
   (if remote?
     (make-remote-immutable-value (reference-value! x))
     (make-local-immutable-value x)))

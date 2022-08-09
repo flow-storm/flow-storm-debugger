@@ -11,6 +11,7 @@
 ;; so linter doesn't complain
 (declare state)
 (declare fn-call-stats-map)
+(declare flow-thread-indexers)
 
 (defstate state
   :start (atom initial-state)

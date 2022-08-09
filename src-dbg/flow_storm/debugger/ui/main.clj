@@ -4,6 +4,7 @@
              :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
+            [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
              :refer [obj-lookup store-obj]]
@@ -68,7 +69,12 @@
                           :on-selection-changed (event-handler
                                                  [_]
                                                  (browser-screen/get-all-namespaces))})
-        tabs-p (tab-pane {:tabs [flows-tab browser-tab]
+        taps-tab (tab {:text "Taps"
+                      :class "vertical-tab"
+                      :content (taps-screen/main-pane)
+                      :on-selection-changed (event-handler [_])})
+
+        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab]
                           :rotate? true
                           :closing-policy :unavailable
                           :side :left})

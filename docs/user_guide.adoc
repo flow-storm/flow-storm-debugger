@@ -24,7 +24,7 @@ Before you start check FlowStorm minimum requirements.
 .Minimum requirements
 ====
 	- jdk >= 11
-	- Clojure >= 1.9.0
+	- Clojure >= 1.10.0
 ====
 
 === Clojure
@@ -496,6 +496,19 @@ The browser tool is pretty straight forward. It allows you to navigate your name
 image::user_guide_images/browser.png[]
 
 See <<#_instrument_with_the_browser, instrument with the browser>> for more info.
+
+== Taps tool
+
+Use the taps tool to visualize your `tap>`.
+
+image::user_guide_images/taps.png[]
+
+Every time you (local-connect) or (remote-connect) FlowStorm will add a tap, so whenever you `tap>` something
+it show in the taps list.
+
+Double click on any value to start the value inspector for it.
+
+Use the `clear` button to clear the list.
 
 == Value inspector
 
