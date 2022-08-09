@@ -131,7 +131,9 @@
     (alter-var-root #'ui-vars/register-and-init-stage!
                     (constantly
                      (fn [stg]
-                       (update-scene-with-current-theme (.getScene stg))
+                       (update-scene-with-current-theme (.getScene stg)
+                                                        (or (= :dark theme)
+                                                            (.isDark (OsThemeDetector/getDetector))))
                        (swap! stages conj stg))))
 
     theme-listener))
