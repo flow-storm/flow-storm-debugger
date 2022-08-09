@@ -1,0 +1,25 @@
+#!/home/jmonetta/bin/bb
+
+(ns gsettings)
+
+(require '[clojure.tools.cli :refer [parse-opts]])
+
+
+(let [[first-arg] *command-line-args*
+      get-theme (fn [] (slurp "/home/jmonetta/.flow-storm/mock-current-gtk-theme"))]
+  (cond
+    (= first-arg "get")
+    (println (get-theme))
+
+    (= first-arg "monitor")
+    (loop [curr-theme (get-theme)
+           last-reported-theme nil]
+
+      (if (not= curr-theme last-reported-theme)
+        (do
+          (println (format "xxx %s" curr-theme))
+          (recur (get-theme) curr-theme))
+
+        (do
+          (Thread/sleep 1000)
+          (recur (get-theme) last-reported-theme))))))

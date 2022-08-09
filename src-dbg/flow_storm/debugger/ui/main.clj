@@ -115,17 +115,18 @@
     (.registerListener detector listener)
     listener))
 
-(defn- start-theming-system [{:keys [theme styles]} stages]
-  (let [update-scene-with-current-theme (fn [scn]
-                                          (let [dark? (or (= :dark theme)
-                                                          (.isDark (OsThemeDetector/getDetector)))
-                                                new-styles (calculate-styles dark? styles)]
+(defn- start-theming-system [{:keys [theme styles] :or {theme :auto}} stages]
+  (let [update-scene-with-current-theme (fn [scn dark?]
+                                          (let [new-styles (calculate-styles dark? styles)]
                                             (update-scene-styles scn new-styles)))
 
         theme-listener (when (= :auto theme)
-                         (start-theme-listener (fn [] (doseq [stg @stages] (update-scene-with-current-theme (.getScene stg))))))]
+                         (start-theme-listener (fn [dark?]
+                                                 (doseq [stg @stages]
+                                                   (update-scene-with-current-theme (.getScene stg) dark?)))))]
 
-    (update-scene-with-current-theme (-> @stages first (.getScene)))
+    (update-scene-with-current-theme (-> @stages first (.getScene)) (or (= :dark theme)
+                                                                        (.isDark (OsThemeDetector/getDetector))))
 
     (alter-var-root #'ui-vars/register-and-init-stage!
                     (constantly
@@ -148,7 +149,6 @@
                    (.setScene scene))
 
            stages (atom #{stage})
-
            theme-listener (start-theming-system config stages)]
 
        (doto scene
