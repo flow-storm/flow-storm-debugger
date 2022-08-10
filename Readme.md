@@ -5,6 +5,11 @@ A tracing debugger for Clojure and ClojureScript
 ![demo](./docs/images/screenshot-light.png)
 ![demo](./docs/images/screenshot-dark.png)
 
+# Clojure has the repl, does it need a debugger?
+
+I gave a talk recently for the London Clojurians, the first slide goes about my answer to this :
+https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
+
 # Artifacts
 
 Debugger GUI artifact :
