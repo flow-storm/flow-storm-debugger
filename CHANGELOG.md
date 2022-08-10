@@ -4,6 +4,14 @@
 
 ## New Features
 
+### Changes
+
+### Bugs fixed
+
+## 2.3.131 (10-08-2022)
+
+## New Features
+
     * Add a proper lazy and recursive value inspector
 	* Add tap tool (support for tap>)
 	* New functions for shutting down the debugger and connections gracefully.
