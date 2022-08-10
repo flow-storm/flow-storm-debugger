@@ -2,7 +2,8 @@
 
 A tracing debugger for Clojure and ClojureScript
 
-![demo](./docs/images/screenshot.png)
+![demo](./docs/images/screenshot-light.png)
+![demo](./docs/images/screenshot-dark.png)
 
 # Artifacts
 
