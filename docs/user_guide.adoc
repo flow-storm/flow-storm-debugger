@@ -115,6 +115,15 @@ cljs.user> (fs-api/remote-connect) ;; will connect your JS runtime to the debugg
 cljs.user> #rtrace (reduce + (map inc (range 10))) ;; you can use #trace and #rtrace like in Clojure
 ----
 
+[NOTE]
+.Initialization debugging
+====
+If you need to debug some app initialization code it could be that the websocket isn't ready
+when you aready have something to trace. If this is the case you can use
+(fs-api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
+you are connected to the debugger.
+====
+
 
 == Starting the debugger
 

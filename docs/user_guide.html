@@ -905,6 +905,24 @@ Do this by running <code>npm install websocket --save</code></p>
 </span><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; you can use #trace and #rtrace like in Clojure</span></code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Initialization debugging</div>
+<div class="paragraph">
+<p>If you need to debug some app initialization code it could be that the websocket isn&#8217;t ready
+when you aready have something to trace. If this is the case you can use
+(fs-api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
+you are connected to the debugger.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1701,7 +1719,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-09 07:48:14 -0300
+Last updated 2022-08-10 08:56:13 -0300
 </div>
 </div>
 </body>
