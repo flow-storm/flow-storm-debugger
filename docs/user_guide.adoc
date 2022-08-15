@@ -380,6 +380,9 @@ image::user_guide_images/controls.png[]
 
 The numbers at the end show `current_trace_index / total_traces`.
 
+Write any number (less than total_traces) on the text box to jump into that position in time. When jumping around you can write down any interesting
+positions you find and then use the text box to jump back to it if you need.
+
 The code tool allows you to step and "travel thought time" in two ways:
 
 - You can use the controls at the top to move one step at a time.
@@ -407,7 +410,10 @@ The locals panel will always show the locals bounded for the current point in ti
 
 image::user_guide_images/locals.png[]
 
-Right clicking on them will show a menu where you can define the value with a name, so you can use it at the repl.
+Right clicking on them will show a menu where you can :
+
+	  - define the value with a name, so you can use it at the repl
+	  - inspect the value with the <<#_value_inspectors,value inspector>>
 
 ==== Value inspectors
 
