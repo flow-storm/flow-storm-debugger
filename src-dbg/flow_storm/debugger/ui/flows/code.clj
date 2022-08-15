@@ -76,8 +76,8 @@
   (let [symb-lbl (doto (label (first symb-val))
                    (.setPrefWidth 100))
         val-lbl (label  (utils/elide-string (val-pprint (second symb-val)
-                                                        {:print-length 3
-                                                         :print-level 3
+                                                        {:print-length 20
+                                                         :print-level 5
                                                          :pprint? false})
                                             80))
         hbox (h-box [symb-lbl val-lbl])]
@@ -88,7 +88,10 @@
     (let [[_ val] (first selected-items)
           ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
                                                  :on-click (fn []
-                                                             (value-inspector/def-val val))}])]
+                                                             (value-inspector/def-val val))}
+                                                {:text "Inspect"
+                                                 :on-click (fn []
+                                                             (value-inspector/create-inspector val))}])]
       (.show ctx-menu
              list-view-pane
              (.getScreenX mev)

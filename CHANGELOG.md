@@ -2,9 +2,13 @@
 
 ## master (unreleased)
 
+	* Add inspect for locals
+	
 ## New Features
 
 ### Changes
+
+	* Locals print-length is now 20 and print-level 5
 
 ### Bugs fixed
 

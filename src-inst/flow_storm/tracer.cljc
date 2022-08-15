@@ -158,5 +158,6 @@
   
   nil)
 
-(defn stop-tracer []
-  (async/close! trace-chan))
+(defn stop-tracer []  
+  (when trace-chan
+    (async/close! trace-chan)))
