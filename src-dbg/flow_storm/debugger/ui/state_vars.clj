@@ -86,8 +86,8 @@
 (defn thread-tool-tab-pane-id [thread-id]
   (format "thread_tool_tab_pane_id_%d" thread-id))
 
-(defn thread-curr-trace-lbl-id [thread-id]
-  (format "thread_curr_trace_lbl_%d" thread-id))
+(defn thread-curr-trace-tf-id [thread-id]
+  (format "thread_curr_trace_tf_%d" thread-id))
 
 (defn thread-trace-count-lbl-id [thread-id]
   (format "thread_trace_count_lbl_%d" thread-id))

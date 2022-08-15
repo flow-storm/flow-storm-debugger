@@ -218,7 +218,7 @@
             curr-form-id (:form-id curr-tentry)
             next-tentry (indexer/timeline-entry indexer next-idx)
             next-form-id (:form-id next-tentry)
-            [^Label curr_trace_lbl] (obj-lookup flow-id (ui-vars/thread-curr-trace-lbl-id thread-id))
+            [curr-trace-text-field] (obj-lookup flow-id (ui-vars/thread-curr-trace-tf-id thread-id))
             ;; because how frames are cached by trace, their pointers can't be compared
             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
             ;; a frame
@@ -227,7 +227,7 @@
             changing-form? (not= curr-form-id next-form-id)]
 
         ;; update thread current trace label and total traces
-        (.setText curr_trace_lbl (str (inc next-idx)))
+        (.setText curr-trace-text-field (str (inc next-idx)))
         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
         (when changing-form?

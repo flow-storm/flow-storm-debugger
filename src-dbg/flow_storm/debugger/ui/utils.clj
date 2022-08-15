@@ -4,7 +4,7 @@
             Alert ButtonType Alert$AlertType ProgressIndicator TextField TableView TableColumn TableCell
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane]
            [javafx.scene.layout HBox VBox BorderPane]
-           [javafx.geometry Side]
+           [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
@@ -143,6 +143,23 @@
      (when class
        (add-class lbl class))
      lbl)))
+
+(defn text-field
+  ([params] (text-field params nil))
+  ([{:keys [initial-text on-return-key align]} class]
+   (let [tf (TextField. "")]
+     (when class
+       (add-class tf class))
+     (when initial-text
+       (.setText tf initial-text))
+     (when on-return-key
+       (.setOnAction tf (event-handler [_] (on-return-key (.getText tf)))))
+     (when align
+       (.setAlignment tf (get {:left   Pos/CENTER_LEFT
+                               :right  Pos/CENTER_RIGHT
+                               :center Pos/CENTER}
+                              align)))
+     tf)))
 
 (defn tab [{:keys [text graphic class content on-selection-changed]}]
   (let [t (Tab.)]

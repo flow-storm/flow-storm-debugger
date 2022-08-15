@@ -3,7 +3,7 @@
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon tab-pane tab]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon tab-pane tab text-field]]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.target-commands :as target-commands]))
 
@@ -52,10 +52,17 @@
                                   (flow-code/jump-to-coord flow-id
                                                  thread-id
                                                  (dec (dbg-state/current-idx flow-id thread-id))))))
-        curr-trace-lbl (label "1")
+        curr-trace-text-field (doto (text-field {:initial-text "1"
+                                            :on-return-key (fn [idx-str]
+                                                             (flow-code/jump-to-coord flow-id
+                                                                                      thread-id
+                                                                                      (dec (Long/parseLong idx-str))))
+                                                 :align :right})
+                                (.setPrefWidth 80))
+
         separator-lbl (label "/")
         thread-trace-count-lbl (label "?")
-        _ (store-obj flow-id (ui-vars/thread-curr-trace-lbl-id thread-id) curr-trace-lbl)
+        _ (store-obj flow-id (ui-vars/thread-curr-trace-tf-id thread-id) curr-trace-text-field)
         _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
         execution-expression? (and (:ns execution-expr)
@@ -78,7 +85,7 @@
                                          (when execution-expression?
                                            (target-commands/run-command :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))
                           (.setDisable (not execution-expression?)))
-        trace-pos-box (doto (h-box [curr-trace-lbl separator-lbl thread-trace-count-lbl] "trace-position-box")
+        trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
         controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
                        (.setSpacing 2.0))]

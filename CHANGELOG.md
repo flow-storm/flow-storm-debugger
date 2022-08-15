@@ -1,10 +1,11 @@
 # Changelog
 
 ## master (unreleased)
-
-	* Add inspect for locals
 	
 ## New Features
+
+	* Add inspect for locals
+	* Can jump to any index by typing the idx number in the thread controls
 
 ### Changes
 
