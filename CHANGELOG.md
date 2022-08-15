@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ## New Features
+        
+### Changes
+
+### Bugs fixed
+
+## 2.3.141 (15-08-2022)
+	
+## New Features
 
 	* Add inspect for locals
 	* Can jump to any index by typing the idx number in the thread controls
