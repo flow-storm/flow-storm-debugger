@@ -96,11 +96,21 @@ $ cat shadow-cljs.edn
 
 {:dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]] ...} 
 ----
+[NOTE]
+.ClojureScript environments
+====
+
+FlowStorm is supported for ClojureScript in :
+
+		  - Browsers
+		  - NodeJS
+		  - React native
+====
 
 [NOTE]
-.NodeJs
+.NodeJs and react-native
 ====
-On NodeJs you need to install the `websocket` library.
+On NodeJs and react-native you need to install the `websocket` library.
 Do this by running `npm install websocket --save`
 ====
 
