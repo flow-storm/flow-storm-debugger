@@ -82,7 +82,8 @@
                    {:port 7722
                     :on-connection-open (fn [conn]
                                           (reset! remote-connection conn)
-                                          (on-connection-open conn))
+                                          (when on-connection-open
+                                            (on-connection-open conn)))
                     :on-message (fn [_ msg]
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
