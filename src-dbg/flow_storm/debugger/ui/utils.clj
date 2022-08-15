@@ -2,7 +2,7 @@
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator TextField TableView TableColumn TableCell
-            TabPane$TabClosingPolicy TabPane$TabDragPolicy TabPane]
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side]
            [javafx.collections.transformation FilteredList]
@@ -71,18 +71,19 @@
 (defn create-list-cell-factory [update-item-fn]
   (proxy [ListCell] []
     (updateItem [item empty?]
-      (proxy-super updateItem item empty?)
-      (if empty?
-        (.setGraphic ^Node this nil)
-        (update-item-fn this item)))))
+      (let [^ListCell this this]
+        (proxy-super updateItem item empty?)
+        (if empty?
+          (.setGraphic this nil)
+          (update-item-fn this item))))))
 
-(defn add-class [node class]
+(defn add-class [^Node node class]
   (.add (.getStyleClass node) class))
 
-(defn rm-class [node class]
+(defn rm-class [^Node node class]
   (.remove (.getStyleClass node) class))
 
-(defn icon [icon-name]
+(defn icon [^String icon-name]
   (FontIcon. icon-name))
 
 (defn button
@@ -97,7 +98,7 @@
 (defn icon-button
   ([icon-name]
    (icon-button icon-name nil))
-  ([icon-name class]
+  ([^String icon-name class]
    (let [b (doto (Button.)
              (.setGraphic (FontIcon. icon-name)))]
      (when class
@@ -107,7 +108,7 @@
 (defn v-box
   ([childs] (v-box childs nil))
   ([childs class]
-   (let [box (VBox. (into-array Node childs))]
+   (let [box (VBox. ^"[Ljavafx.scene.Node;" (into-array Node childs))]
      (when class
        (.add (.getStyleClass box) class))
      box)))
@@ -115,7 +116,7 @@
 (defn h-box
   ([childs] (h-box childs nil))
   ([childs class]
-   (let [box (HBox. (into-array Node childs))]
+   (let [box (HBox. ^"[Ljavafx.scene.Node;" (into-array Node childs))]
      (when class
        (.add (.getStyleClass box) class))
      box)))
@@ -288,7 +289,7 @@
         make-column (fn [col-idx col-text]
                       (doto (TableColumn. col-text)
                         (.setCellValueFactory (proxy [javafx.util.Callback] []
-                                                (call [cell-val]
+                                                (call [^TableColumn$CellDataFeatures cell-val]
                                                   (proxy [ObservableValue] []
                                                     (addListener [_])
                                                     (removeListener [_])
@@ -298,18 +299,18 @@
                                            (call [tcol]
                                              (proxy [TableCell] []
                                                (updateItem [item empty?]
+                                                 (let [^TableCell this this]
+                                                   (proxy-super updateItem item empty?)
+                                                   (if empty?
 
-                                                 (proxy-super updateItem item empty?)
-                                                 (if empty?
-
-                                                   (doto this
-                                                     (.setGraphic nil)
-                                                     (.setText nil))
-
-                                                   (let [cell-graphic (cell-factory-fn item)]
                                                      (doto this
-                                                       (.setText nil)
-                                                       (.setGraphic cell-graphic)))))))))))
+                                                       (.setGraphic nil)
+                                                       (.setText nil))
+
+                                                     (let [cell-graphic (cell-factory-fn item)]
+                                                       (doto this
+                                                         (.setText nil)
+                                                         (.setGraphic cell-graphic))))))))))))
         columns (map-indexed make-column columns)
         items-array (FXCollections/observableArrayList (into-array Object items))]
 
@@ -330,59 +331,59 @@
 ;; Some experiments on reflective FX object creation
 ;;-------------------------------------------------------------------------
 
-(def class-map {:Button "javafx.scene.control.Button"
-                :Label  "javafx.scene.control.Label"})
+;; (def class-map {:Button "javafx.scene.control.Button"
+;;                 :Label  "javafx.scene.control.Label"})
 
-(defn- class* [obj]
-  (let [clazz (class obj)]
-    (cond
-      (= clazz java.lang.Long) java.lang.Long/TYPE
-      (= clazz java.lang.Integer) java.lang.Integer/TYPE
-      (= clazz java.lang.Double) java.lang.Double/TYPE
-      :else clazz)))
+;; (defn- class* [obj]
+;;   (let [clazz (class obj)]
+;;     (cond
+;;       (= clazz java.lang.Long) java.lang.Long/TYPE
+;;       (= clazz java.lang.Integer) java.lang.Integer/TYPE
+;;       (= clazz java.lang.Double) java.lang.Double/TYPE
+;;       :else clazz)))
 
-;; TODO: memoize this
-(defn- get-constructor [class-name ctor-vec]
-  (let [clazz (clojure.lang.RT/classForName class-name
-                                            false
-                                            (.getContextClassLoader (Thread/currentThread)))]
-    (.getConstructor clazz (into-array Class (mapv class* ctor-vec)))))
+;; ;; TODO: memoize this
+;; (defn- get-constructor [class-name ctor-vec]
+;;   (let [clazz (clojure.lang.RT/classForName class-name
+;;                                             false
+;;                                             (.getContextClassLoader (Thread/currentThread)))]
+;;     (.getConstructor clazz (into-array Class (mapv class* ctor-vec)))))
 
-(defn- class-methods [clazz methods-sigs]
-  (reduce-kv (fn [r mkey args-vec]
-            (assoc r mkey (.getMethod clazz (name mkey) (into-array Class args-vec))))
-   {}
-   methods-sigs))
+;; (defn- class-methods [clazz methods-sigs]
+;;   (reduce-kv (fn [r mkey args-vec]
+;;             (assoc r mkey (.getMethod clazz (name mkey) (into-array Class args-vec))))
+;;    {}
+;;    methods-sigs))
 
-(defn- set-instance-props [obj props-map]
-  (let [clazz (class obj)
-        methods-sigs (reduce-kv
-                      (fn [r mk args-vec]
-                        (assoc r mk (mapv class* args-vec)))
-                      {}
-                      props-map)
-        methods-map (class-methods clazz methods-sigs)]
-    (doseq [mkey (keys props-map)]
-      (let [method (get methods-map mkey)
-            args-vec (get props-map mkey)]
-        (.invoke method obj (into-array Object args-vec))))
-    obj))
+;; (defn- set-instance-props [obj props-map]
+;;   (let [clazz (class obj)
+;;         methods-sigs (reduce-kv
+;;                       (fn [r mk args-vec]
+;;                         (assoc r mk (mapv class* args-vec)))
+;;                       {}
+;;                       props-map)
+;;         methods-map (class-methods clazz methods-sigs)]
+;;     (doseq [mkey (keys props-map)]
+;;       (let [method (get methods-map mkey)
+;;             args-vec (get props-map mkey)]
+;;         (.invoke method obj (into-array Object args-vec))))
+;;     obj))
 
-(defn ->fx [{:keys [type ctor] :as obj-desc}]
-  (let [class-name (class-map type)
-        ctor-obj (get-constructor class-name ctor)
-        obj-instance (.newInstance ctor-obj (into-array Object ctor))]
-    (set-instance-props obj-instance (dissoc obj-desc :type :ctor))))
+;; (defn ->fx [{:keys [type ctor] :as obj-desc}]
+;;   (let [class-name (class-map type)
+;;         ctor-obj (get-constructor class-name ctor)
+;;         obj-instance (.newInstance ctor-obj (into-array Object ctor))]
+;;     (set-instance-props obj-instance (dissoc obj-desc :type :ctor))))
 
-(comment
+;; (comment
 
-  (def l (->fx {:type :Label
-                :ctor ["Hello"]
-                :setPrefWidth [(double 10)]}))
+;;   (def l (->fx {:type :Label
+;;                 :ctor ["Hello"]
+;;                 :setPrefWidth [(double 10)]}))
 
-  ;; Meh, it works but it is worse than
+;;   ;; Meh, it works but it is worse than
 
-  (def l (doto (Label. "Hello")
-           (.setPrefWidth 10)))
+;;   (def l (doto (Label. "Hello")
+;;            (.setPrefWidth 10)))
 
-  )
+;;   )

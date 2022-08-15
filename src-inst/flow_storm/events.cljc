@@ -20,7 +20,8 @@
       ;; "send" locally (just call a function)
       #?(:clj
          (let [local-process-event (resolve (symbol (name debugger-events-processor-ns) "process-event"))]
-           (local-process-event ev))))))
+           (local-process-event ev))
+         :cljs nil)))) ;; just so clj-kondo doesn't complain
 
 (defn tap-value [remote? v]
   (send-event-to-debugger [:tap {:value (rt-values/make-value v remote?)}]))
