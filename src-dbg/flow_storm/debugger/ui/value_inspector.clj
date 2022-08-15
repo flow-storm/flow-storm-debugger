@@ -58,17 +58,18 @@
 
 (defn- create-dig-node [ctx v]
   (if (or (local-imm-value? v) (remote-imm-value? v))
-    (let [short-txt-len 20
-          short-txt (-> v
-                        (dbg-values/val-pprint {:print-level 2 :pprint? false :print-length 10})
-                        (utils/elide-string short-txt-len))]
-      (doto (label short-txt "link-lbl")
+    (let [stack-txt-len 20
+          node-txt-len 80
+          val-txt (dbg-values/val-pprint v {:print-level 4 :pprint? false :print-length 20})
+          stack-txt (utils/elide-string val-txt stack-txt-len)
+          node-txt (utils/elide-string val-txt node-txt-len)]
+      (doto (label node-txt "link-lbl")
         (.setOnMouseClicked
          (event-handler
           [_]
           (let [new-frame (create-shallow-frame-pane ctx (dbg-values/shallow-val v))]
             (update-center-pane ctx new-frame)
-            (swap! (:vals-panes-stack ctx) conj [short-txt new-frame])
+            (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
             (update-stack-bar-pane ctx))))))
 
     (label (pr-str v))))
@@ -168,11 +169,6 @@
                               :b "hello"
                               :c [1 2 3 {1 2}]
                               :d #{:a :b :c}}))
-
-    (ui-utils/run-now (create-inspector ev)))
-
-  (do
-    (def ev (->LocalImmValue {:a (range)}))
 
     (ui-utils/run-now (create-inspector ev)))
 

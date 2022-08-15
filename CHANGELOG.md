@@ -9,6 +9,7 @@
 ### Changes
 
 	* Locals print-length is now 20 and print-level 5
+	* Make the value inspector show more info on dig nodes
 
 ### Bugs fixed
 
