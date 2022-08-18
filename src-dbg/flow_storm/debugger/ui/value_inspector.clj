@@ -3,11 +3,9 @@
              :as ui-utils
              :refer [event-handler button label h-box v-box border-pane table-view]]
             [clojure.string :as str]
-            [flow-storm.debugger.values :as dbg-values]
             [flow-storm.utils :as utils :refer [log-error]]
-            [flow-storm.value-types :refer [->LocalImmValue local-imm-value? remote-imm-value?]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]
-            [flow-storm.debugger.target-commands :as target-commands])
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.state-vars :as ui-vars])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.scene.layout HBox Priority]
@@ -24,14 +22,7 @@
                    (if (str/blank? txt)
                      "val0"
                      txt))]
-    (cond
-      (local-imm-value? val)
-      (target-commands/run-command :def-value {:val (:val val)
-                                               :val-name val-name})
-
-      (remote-imm-value? val)
-      (target-commands/run-command :def-remote-value {:vid (:vid val)
-                                                      :val-name val-name}))))
+    (runtime-api/def-value rt-api val-name val)))
 
 (defn- update-center-pane [{:keys [center-pane]} frame-pane]
   (.clear (.getChildren center-pane))
@@ -56,18 +47,22 @@
                        (update-stack-bar-pane ctx)))))
                  @vals-panes-stack)))
 
+(defn dig-node [v]
+  (when (and (vector? v) (= :val/dig-node (first v)))
+    (second v)))
+
 (defn- create-dig-node [ctx v]
-  (if (or (local-imm-value? v) (remote-imm-value? v))
+  (if-let [v (dig-node v)]
     (let [stack-txt-len 20
           node-txt-len 80
-          val-txt (dbg-values/val-pprint v {:print-level 4 :pprint? false :print-length 20})
+          val-txt (runtime-api/val-pprint rt-api v {:print-level 4 :pprint? false :print-length 20})
           stack-txt (utils/elide-string val-txt stack-txt-len)
           node-txt (utils/elide-string val-txt node-txt-len)]
       (doto (label node-txt "link-lbl")
         (.setOnMouseClicked
          (event-handler
           [_]
-          (let [new-frame (create-shallow-frame-pane ctx (dbg-values/shallow-val v))]
+          (let [new-frame (create-shallow-frame-pane ctx (runtime-api/shallow-val rt-api v))]
             (update-center-pane ctx new-frame)
             (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
             (update-stack-bar-pane ctx))))))
@@ -93,7 +88,7 @@
                                             (doto more-button
                                               (.setOnAction (event-handler
                                                              [_]
-                                                             (let [new-val (dbg-values/shallow-val more)]
+                                                             (let [new-val (runtime-api/shallow-val rt-api more)]
                                                                (add-all (:val/page new-val))
                                                                (change-more-handler-for-shallow new-val)))))
                                             (doto more-button
@@ -134,7 +129,7 @@
              :center-pane center-pane
              :vals-panes-stack *vals-panes-stack}
         first-frame (create-shallow-frame-pane ctx
-                                              (dbg-values/shallow-val v))
+                                              (runtime-api/shallow-val rt-api v))
         mp (border-pane {:top stack-bar-pane
                          :center center-pane}
                         "value-inspector-main-pane")]

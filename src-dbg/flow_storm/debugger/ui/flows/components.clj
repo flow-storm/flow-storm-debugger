@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.values :refer [val-pprint]])
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
   (:import [javafx.scene.control CheckBox TextField TextArea]
            [javafx.scene.layout VBox Priority]
            [javafx.geometry Pos]))
@@ -46,10 +46,11 @@
         [print-meta-chk]  (obj-lookup flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id))
         [def-btn] (obj-lookup flow-id (ui-vars/thread-pprint-def-btn-id thread-id pane-id))
         [inspect-btn] (obj-lookup flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id))
-        val-str (when val (val-pprint val {:print-length 50
-                                          :print-level (Integer/parseInt (.getText print-level-txt))
-                                          :print-meta? (.isSelected print-meta-chk)
-                                          :pprint? true}))]
+        val-str (when val
+                  (runtime-api/val-pprint rt-api val {:print-length 50
+                                                      :print-level (Integer/parseInt (.getText print-level-txt))
+                                                      :print-meta? (.isSelected print-meta-chk)
+                                                      :pprint? true}))]
     (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
     (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val)))
     (.setText text-area val-str)))

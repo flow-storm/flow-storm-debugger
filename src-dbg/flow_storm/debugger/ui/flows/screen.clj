@@ -2,16 +2,17 @@
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon tab-pane tab text-field]]
-            [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.debugger.target-commands :as target-commands]))
+            [flow-storm.debugger.state :as dbg-state]))
 
 (defn remove-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         [flow-tab] (obj-lookup flow-id "flow_tab")]
 
     (when flow-tab
+
       ;; remove the tab from flows_tabs_pane
       (-> flows-tabs-pane
           .getTabs
@@ -19,6 +20,16 @@
 
     ;; clean ui state vars
     (ui-vars/clean-flow-objs flow-id)))
+
+(defn fully-remove-flow [flow-id]
+  ;; remove it from our state
+  (dbg-state/remove-flow flow-id)
+
+  ;; let runtime know we are not interested in this flow anymore
+  (runtime-api/discard-flow rt-api flow-id)
+
+  ;; remove it from the ui
+  (remove-flow flow-id))
 
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -31,8 +42,7 @@
     (.setOnCloseRequest flow-tab
                         (event-handler
                          [ev]
-                         (dbg-state/remove-flow flow-id)
-                         (remove-flow flow-id)
+                         (fully-remove-flow flow-id)
                          ;; since we are destroying this tab, we don't need
                          ;; this event to propagate anymore
                          (.consume ev)))
@@ -78,12 +88,13 @@
                                   [ev]
                                   (flow-code/jump-to-coord flow-id
                                                            thread-id
-                                                           (dec (dbg-state/thread-trace-count flow-id thread-id))))))
+                                                           (dec (runtime-api/timeline-count rt-api flow-id thread-id ))))))
         re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
                           (.setOnAction (event-handler
                                          [_]
                                          (when execution-expression?
-                                           (target-commands/run-command :re-run-flow {:flow-id flow-id :execution-expr execution-expr}))))
+                                           (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
+                                                                                                 :ns (:ns execution-expr)}))))
                           (.setDisable (not execution-expression?)))
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
@@ -120,14 +131,13 @@
     thread-pane))
 
 (defn create-empty-thread [flow-id thread-id]
-  (run-now
-   (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")
-         thread-tab-pane (create-thread-pane flow-id thread-id)
-         thread-tab (tab {:text (str "thread-" thread-id)
-                          :content thread-tab-pane})]
-     (-> threads-tabs-pane
-         .getTabs
-         (.addAll [thread-tab])))))
+  (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")
+        thread-tab-pane (create-thread-pane flow-id thread-id)
+        thread-tab (tab {:text (str "thread-" thread-id)
+                         :content thread-tab-pane})]
+    (-> threads-tabs-pane
+        .getTabs
+        (.addAll [thread-tab]))))
 
 (defn main-pane []
   (let [t-pane (tab-pane {:closing-policy :all-tabs

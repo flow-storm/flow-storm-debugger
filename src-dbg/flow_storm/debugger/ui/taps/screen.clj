@@ -3,8 +3,8 @@
              :as ui-utils
              :refer [event-handler button label list-view h-box v-box]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.value-inspector :as value-inspector]
-            [flow-storm.debugger.values :as dbg-values])
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.value-inspector :as value-inspector])
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.input MouseButton]
            [javafx.geometry Pos]))
@@ -14,14 +14,19 @@
    (let [[{:keys [add-all]}] (obj-lookup "taps-list-view-data")]
      (add-all [val]))))
 
+(defn clear-all-taps []
+  (ui-utils/run-later
+   (let [[{:keys [clear]}] (obj-lookup "taps-list-view-data")]
+     (clear))))
+
 (defn main-pane []
   (let [{:keys [list-view-pane clear] :as lv-data}
         (list-view {:editable? false
                     :cell-factory-fn (fn [list-cell val]
-                                       (let [val-list-text (dbg-values/val-pprint val {:print-length 50
-                                                                                       :print-level 5
-                                                                                       :print-meta? false
-                                                                                       :pprint? false})]
+                                       (let [val-list-text (runtime-api/val-pprint rt-api val {:print-length 50
+                                                                                               :print-level 5
+                                                                                               :print-meta? false
+                                                                                               :pprint? false})]
                                          (.setText list-cell nil)
                                          (.setGraphic list-cell (label val-list-text))))
                     :on-click (fn [mev sel-items _]
@@ -37,7 +42,7 @@
                                    ;; when vals are remote send a command to clear all (get-all-items)
 
                                    ;; clear the list
-                                   (clear))))
+                                   (clear-all-taps))))
         header-pane (doto (h-box [clear-btn])
                       (.setAlignment Pos/CENTER_RIGHT))
         mp (v-box [header-pane list-view-pane])]

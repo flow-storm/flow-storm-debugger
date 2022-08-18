@@ -2,12 +2,11 @@
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.utils :as utils :refer [log]]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button]]
-            [flow-storm.debugger.values :refer [val-pprint]])
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
            [javafx.scene.input KeyCode]
@@ -16,16 +15,15 @@
            [javafx.scene.layout HBox Priority VBox]))
 
 (defn update-call-stack-tree-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        lazy-tree-item (fn lazy-tree-item [tree-node]
-                         (let [calls (indexer/callstack-tree-childs indexer tree-node)]
+  (let [lazy-tree-item (fn lazy-tree-item [tree-node]
+                         (let [calls (runtime-api/callstack-node-childs rt-api tree-node)]
                            (proxy [TreeItem] [tree-node]
                              (getChildren []
                                (let [^ObservableList super-childrens (proxy-super getChildren)]
                                  (if (.isEmpty super-childrens)
                                    (let [new-children (->> calls
                                                            (remove (fn [child-node]
-                                                                     (let [{:keys [fn-name fn-ns]} (indexer/callstack-node-frame indexer child-node)]
+                                                                     (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
                                                                        (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
                                                            (map lazy-tree-item)
                                                            (into-array TreeItem))]
@@ -33,56 +31,18 @@
                                      super-childrens)
                                    super-childrens)))
                              (isLeaf [] (empty? calls)))))
-        tree-root-node (indexer/callstack-tree-root indexer)
+        tree-root-node (runtime-api/callstack-tree-root-node rt-api flow-id thread-id)
         root-item (lazy-tree-item tree-root-node)
         [tree-view] (obj-lookup flow-id (ui-vars/thread-callstack-tree-view-id thread-id))]
 
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
-  (let [step-1 (utils/elide-string (val-pprint args-vec {:print-length 3 :print-level 3 :pprint? false}) 80)]
+  (let [v-str (runtime-api/val-pprint rt-api args-vec {:print-length 3 :print-level 3 :pprint? false})
+        step-1 (utils/elide-string v-str 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
-
-;; NOTE: Not using create-call-stack-tree-graphic-node now because there is an annoying bug when expanding scrolled trees
-
-#_(defn- create-call-stack-tree-graphic-node [{:keys [frame-idx form-id fn-name fn-ns args]} flow-id thread-id]
-  ;; Important !
-  ;; this will be called for all visible tree nodes after any expansion
-  ;; so it should be fast
-    (if-not frame-idx
-
-    (doto (ui-utils/icon-button "mdi-reload")
-        (.setOnAction (event-handler
-                       [_]
-                       (update-call-stack-tree-pane flow-id thread-id))))
-
-    (let [indexer (state/thread-trace-indexer flow-id thread-id)
-          {:keys [multimethod/dispatch-val form/def-kind]} (indexer/get-form indexer form-id)
-          ns-lbl (label (str fn-ns "/") "fn-ns")
-          fn-name-lbl (flow-cmp/def-kind-colored-label fn-name def-kind)
-          args-lbl (label (str " " (format-tree-fn-call-args args)) "fn-args")
-          fn-call-box (if dispatch-val
-                        (h-box [(label "(") ns-lbl fn-name-lbl (label (str dispatch-val)) args-lbl (label ")")])
-                        (h-box [(label "(") ns-lbl fn-name-lbl args-lbl (label ")")]))
-          ctx-menu-options [{:text (format "Goto trace %d" frame-idx)
-                             :on-click #(do
-                                          (ui-flows-gral/select-tool-tab flow-id thread-id :code)
-                                          (flow-code/jump-to-coord flow-id thread-id frame-idx))}
-                            {:text (format "Hide %s/%s from this tree" fn-ns fn-name)
-                             :on-click #(do
-                                          (state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
-                                          (update-call-stack-tree-pane flow-id thread-id))}]
-          ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
-      (doto fn-call-box
-        (.setOnMouseClicked (event-handler
-                             [^MouseEvent mev]
-                             (when (= MouseButton/SECONDARY (.getButton mev))
-                               (.show ctx-menu
-                                      fn-call-box
-                                      (.getScreenX mev)
-                                      (.getScreenY mev)))))))))
 
 (defn- create-call-stack-tree-text-node [{:keys [frame-idx form-id fn-name fn-ns args-vec]} flow-id thread-id]
   ;; Important !
@@ -92,11 +52,10 @@
 
     "."
 
-    (let [indexer (state/thread-trace-indexer flow-id thread-id)
-          {:keys [multimethod/dispatch-val]} (indexer/get-form indexer form-id)]
+    (let [{:keys [multimethod/dispatch-val]} (runtime-api/get-form rt-api flow-id thread-id form-id)]
 
       (if dispatch-val
-        (format "(%s/%s %s %s)" fn-ns fn-name (val-pprint dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
+        (format "(%s/%s %s %s)" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
         (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))))
 
 
@@ -111,8 +70,7 @@
         (.select ^SelectionModel tree-selection-model tree-item)))))
 
 (defn- create-tree-search-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        search-txt (doto (TextField.)
+  (let [search-txt (doto (TextField.)
                      (.setPromptText "Search"))
         search-from-txt (doto (TextField. "0")
                           (.setPrefWidth 70)
@@ -129,34 +87,44 @@
                    (.setStyle ""))
 
                  (state/callstack-tree-collapse-all-calls flow-id thread-id)
-                 (indexer/search-next-frame-idx
-                  indexer
-                  (.getText search-txt)
-                  (Integer/parseInt (.getText search-from-txt))
-                  (Integer/parseInt (.getText search-lvl-txt))
-                  (fn [next-match-path]
-                    (if next-match-path
-                      (let [[match-idx] next-match-path]
-                        #_(log (format "Next match at %s" next-match-path))
-                        (state/callstack-tree-select-path flow-id
-                                                          thread-id
-                                                          next-match-path)
-                        (ui-utils/run-later
-                         (update-call-stack-tree-pane flow-id thread-id)
-                         (doto search-match-lbl
-                           (.setText  (format "Match idx %d" match-idx))
-                           (.setOnMouseClicked (event-handler
-                                                [ev]
-                                                (select-call-stack-tree-node flow-id thread-id match-idx))))
-                         (.setText search-from-txt (str match-idx))))
 
-                      (do
-                        (ui-utils/run-later (.setText search-match-lbl ""))
-                        (log "No match found")))
-                    (ui-utils/run-later (.setDisable search-btn false)))
-                  (fn [progress-perc]
-                    (ui-utils/run-later
-                     (.setText search-match-lbl (format "%.2f %%" (double progress-perc)))))))]
+                 (let [task-id (runtime-api/search-next-frame-idx
+                                rt-api
+                                flow-id
+                                thread-id
+                                (.getText search-txt)
+                                (Integer/parseInt (.getText search-from-txt))
+                                {:print-level (Integer/parseInt (.getText search-lvl-txt))})]
+
+                   (ui-vars/subscribe-to-task-event :progress
+                                                    task-id
+                                                    (fn [progress-perc]
+                                                      (ui-utils/run-later
+                                                       (.setText search-match-lbl (format "%.2f %%" (double progress-perc))))))
+
+                   (ui-vars/subscribe-to-task-event :result
+                                                    task-id
+                                                    (fn [{:keys [frame-data match-stack]}]
+
+                                                      (if frame-data
+                                                        (let [[match-idx] match-stack]
+                                                          (state/callstack-tree-select-path flow-id
+                                                                                            thread-id
+                                                                                            match-stack)
+                                                          (ui-utils/run-later
+                                                           (update-call-stack-tree-pane flow-id thread-id)
+                                                           (doto search-match-lbl
+                                                             (.setText  (format "Match idx %d" match-idx))
+                                                             (.setOnMouseClicked (event-handler
+                                                                                  [ev]
+                                                                                  (select-call-stack-tree-node flow-id thread-id match-idx))))
+                                                           (.setText search-from-txt (str match-idx))))
+
+                                                        (do
+                                                          (ui-utils/run-later (.setText search-match-lbl ""))
+                                                          (log "No match found")))
+
+                                                      (ui-utils/run-later (.setDisable search-btn false))))))]
     (.setOnKeyReleased search-txt (event-handler
                                    [kev]
                                    (when (= (.getCode kev) KeyCode/ENTER)
@@ -175,7 +143,7 @@
 (defn dummy-root-frame? [frame]
   (nil? (:frame-idx frame)))
 
-(defn- build-tree-cell-factory [flow-id thread-id indexer]
+(defn- build-tree-cell-factory [flow-id thread-id]
   (proxy [javafx.util.Callback] []
     (call [tv]
       (proxy [TreeCell] []
@@ -187,7 +155,7 @@
               (.setGraphic nil)
               (.setText nil))
 
-            (let [frame (indexer/callstack-node-frame indexer tree-node)
+            (let [frame (runtime-api/callstack-node-frame rt-api tree-node)
                   frame-idx (:frame-idx frame)
                   expanded? (or (nil? frame-idx)
                                 (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
@@ -225,9 +193,7 @@
                 (.setExpanded expanded?)))))))))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-
-        tree-cell-factory (build-tree-cell-factory flow-id thread-id indexer)
+  (let [tree-cell-factory (build-tree-cell-factory flow-id thread-id)
         search-pane (create-tree-search-pane flow-id thread-id)
         tree-view (doto (TreeView.)
                     (.setEditable false)
@@ -235,7 +201,7 @@
         tree-view-sel-model (.getSelectionModel tree-view)
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
-                               (indexer/callstack-node-frame indexer sel-tree-node)))
+                               (runtime-api/callstack-node-frame rt-api sel-tree-node)))
         ctx-menu-options [{:text "Goto trace"
                            :on-click (fn [& _]
                                        (let [{:keys [frame-idx]} (get-selected-frame)]
@@ -267,7 +233,7 @@
                   (proxy [ChangeListener] []
                     (changed [changed old-val new-val]
                       (when new-val
-                        (let [{:keys [args-vec ret]} (indexer/callstack-node-frame indexer (.getValue new-val))]
+                        (let [{:keys [args-vec ret]} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
                           (flow-cmp/update-pprint-pane flow-id thread-id "fn_args" args-vec)
                           (flow-cmp/update-pprint-pane flow-id thread-id "fn_ret" ret))))))
 

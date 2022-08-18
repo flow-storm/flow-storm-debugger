@@ -3,13 +3,16 @@
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.runtime.values :as rt-values]
+            [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log log-error] :as utils]
             [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
+            [flow-storm.runtime.debuggers-api :as dbg-api]
+            [flow-storm.runtime.events :as rt-events]
             [flow-storm.json-serializer :as serializer]
-            [flow-storm.events :as events]
-            [flow-storm.remote-websocket-client :as remote-websocket-client]))
+            [flow-storm.remote-websocket-client :as remote-websocket-client]
+            [flow-storm.runtime.indexes.api :as indexes-api]))
 
 ;; TODO: build script
 ;; Maybe we can figure out this ns names by scanning (all-ns) so
@@ -17,9 +20,6 @@
 ;; Also maybe just finding main is enough, we can add to it a fn
 ;; that returns the rest of the functions we need
 (def debugger-main-ns 'flow-storm.debugger.main)
-(def debugger-trace-processor-ns 'flow-storm.debugger.trace-processor)
-
-(declare tap-value)
 
 (defn stop []
   (let [stop-debugger (try
@@ -30,10 +30,11 @@
     (when stop-debugger
       (stop-debugger))
 
-    (events/remove-tap!)
+    (rt-events/clear-subscription!)
 
-    ;; always stop the tracer
-    (tracer/stop-tracer)
+    (indexes-api/stop)
+
+    (rt-taps/remove-tap!)
 
     ;; stop remote websocket client if needed
     (remote-websocket-client/stop-remote-websocket-client)))
@@ -57,57 +58,29 @@
   ([] (local-connect {}))
 
   ([config]
-   (require debugger-trace-processor-ns)
    (require debugger-main-ns)
    (let [config (assoc config :local? true)
-         dispatch-trace (resolve (symbol (name debugger-trace-processor-ns) "dispatch-trace"))
          start-debugger (resolve (symbol (name debugger-main-ns) "start-debugger"))]
 
      ;; start the debugger UI
      (start-debugger config)
 
-     ;; setup the tap system so we send tap> to the debugger
-     (events/setup-tap! false)
+     (rt-taps/setup-tap!))))
 
-     ;; start the tracer
-     (tracer/start-tracer
-      (assoc config
-             :send-fn (fn local-send [trace]
-                        (try
-                          (dispatch-trace (rt-values/wrap-trace-values! trace false))
-                          (catch Exception e
-                            (log-error "Exception dispatching trace " e)))))))))
+(defn remote-connect [config]
 
-(defn remote-connect
+  ;; connect to the remote websocket
+  (remote-websocket-client/start-remote-websocket-client
+   (assoc config :api-call-fn dbg-api/call-by-name))
 
-  "Connect to a remote debugger.
-  Without arguments connects to localhost:7722.
+  ;; push all events thru the websocket
+  (rt-events/subscribe! (fn [ev]
+                          (-> [:event ev]
+                              serializer/serialize
+                              remote-websocket-client/send)))
 
-  `config` is a map with `:host`, `:port`
-
-  Use `flow-storm.api/stop` to shutdown the system nicely."
-
-  ([] (remote-connect {:host "localhost" :port 7722}))
-
-  ([config]
-
-   ;; connect to the remote websocket
-   (remote-websocket-client/start-remote-websocket-client
-    (assoc config :run-command fs-core/run-command))
-
-   ;; setup the tap system so we send tap> to the debugger
-   (events/setup-tap! true)
-
-   ;; start the tracer
-   (tracer/start-tracer
-    (assoc config
-           :send-fn (fn local-send [trace]
-                      (try
-                        (let [packet [:trace (rt-values/wrap-trace-values! trace true)]
-                              ser (serializer/serialize packet)]
-                          (remote-websocket-client/send ser))
-                        (catch Exception e
-                          (log-error "Exception dispatching trace " e))))))))
+  ;; setup the tap system so we send tap> to the debugger
+  (rt-taps/setup-tap!))
 
 (defn instrument-var
 
@@ -133,8 +106,8 @@
 
    (fs-core/instrument-var var-symb config)
 
-   (events/send-event-to-debugger [:var-instrumented {:var-name (name var-symb)
-                                               :var-ns (namespace var-symb)}])))
+   (rt-events/enqueue-event! (rt-events/make-var-instrumented-event (name var-symb)
+                                                                    (namespace var-symb)))))
 
 (defn uninstrument-var
 
@@ -146,8 +119,8 @@
 
   (fs-core/uninstrument-var var-symb)
 
-  (events/send-event-to-debugger [:var-uninstrumented {:var-name (name var-symb)
-                                                :var-ns (namespace var-symb)}]))
+  (rt-events/enqueue-event! (rt-events/make-var-instrumented-event (name var-symb)
+                                                                   (namespace var-symb))))
 
 (defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
@@ -195,23 +168,14 @@
   "
 
   ([prefixes] (instrument-forms-for-namespaces prefixes {}))
-  ([prefixes opts]
-
-   (let [inst-namespaces (inst-ns/instrument-files-for-namespaces prefixes (assoc opts
-                                                                                  :prefixes? true))]
-     (doseq [ns-symb inst-namespaces]
-       (events/send-event-to-debugger [:namespace-instrumented {:ns-name (str ns-symb)}])))))
+  ([prefixes opts] (dbg-api/instrument-namespaces prefixes opts)))
 
 (defn uninstrument-forms-for-namespaces
 
   "Undo instrumentation made by `flow-storm.api/instrument-forms-for-namespaces`"
 
   [prefixes]
-
-  (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces prefixes {:prefixes? true
-                                                                             :uninstrument? true})]
-    (doseq [ns-symb uninst-namespaces]
-      (events/send-event-to-debugger [:namespace-uninstrumented {:ns-name (str ns-symb)}]))))
+  (dbg-api/uninstrument-namespaces prefixes))
 
 
 (defn cli-run
@@ -225,10 +189,6 @@
   `verbose?` (optional) when true show more logging.
 
   `styles` (optional) a file path containing styles (css) that will override default styles
-
-  `host` (optional) when a host is given traces are going to be send to a remote debugger
-
-  `port` (optional) when a port is given traces are going to be send to a remote debugger
 
   cli-run is designed to be used with clj -X like :
 
@@ -262,23 +222,19 @@
           (log (format "Requiring ns %s" ns-name))
           (require (symbol ns-name))))
 
-      (if (or host port)
-        (remote-connect {:host host :port port :verbose? verbose? :styles styles :theme theme})
-        (local-connect {:verbose? verbose? :styles styles :theme theme}))
+      (local-connect {:verbose? verbose? :styles styles :theme theme})
+
       (log (format "Instrumenting namespaces %s" ns-to-instrument))
       (instrument-forms-for-namespaces ns-to-instrument inst-opts)
       (log "Instrumentation done.")
       (eval (runi* {}
                    `(~fn-symb ~@fn-args))))))
 
-(defmacro instrument* [config form]
-  (inst-forms/instrument (assoc config :env &env) form))
-
 (defn read-trace-tag [form]
-  `(instrument* {} ~form))
+  `(dbg-api/instrument* {} ~form))
 
 (defn read-ctrace-tag [form]
-  `(instrument* {:tracing-disabled? true} ~form))
+  `(dbg-api/instrument* {:tracing-disabled? true} ~form))
 
 (defn read-rtrace-tag [form]  `(runi {:flow-id 0} ~form))
 (defn read-rtrace0-tag [form] `(runi {:flow-id 0} ~form))
@@ -287,3 +243,47 @@
 (defn read-rtrace3-tag [form] `(runi {:flow-id 3} ~form))
 (defn read-rtrace4-tag [form] `(runi {:flow-id 4} ~form))
 (defn read-rtrace5-tag [form] `(runi {:flow-id 5} ~form))
+
+
+(comment
+
+  #rtrace (+ 1 2 (* 3 4))
+
+  #trace (defn factorial [n] (if (zero? n) 1 (* n (factorial (dec n)))))
+  #rtrace (factorial 5)
+
+  (indexes-api/start)
+
+  (indexes-api/all-threads)
+
+  (do
+    (def flow-id (-> (indexes-api/all-threads) first first))
+    (def thread-id (-> (indexes-api/all-threads) first second)))
+
+  (indexes-api/all-forms flow-id thread-id)
+
+  (indexes-api/timeline-count flow-id thread-id)
+
+  (indexes-api/timeline-entry flow-id thread-id 2)
+
+  (indexes-api/frame-data flow-id thread-id 2)
+
+  (indexes-api/bindings flow-id thread-id 52)
+
+  (def r-node (indexes-api/callstack-tree-root-node flow-id thread-id))
+
+  (-> r-node
+      indexes-api/callstack-node-childs
+      (nth 0)
+      indexes-api/callstack-node-frame)
+
+  (indexes-api/callstack-node-childs r-node)
+
+  (indexes-api/fn-call-stats flow-id thread-id)
+
+  (indexes-api/find-fn-frames flow-id thread-id "flow-storm.api" "factorial" 71712880)
+
+  (indexes-api/search-next-frame-idx flow-id thread-id "3" 0 {})
+
+  (indexes-api/discard-flow flow-id)
+  )

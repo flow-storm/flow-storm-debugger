@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
             [flow-storm.utils :refer [log-error]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.target-commands :as target-commands]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str])
   (:import [javafx.scene.control CheckBox SplitPane]
            [javafx.scene Node]
@@ -31,14 +31,14 @@
 
 (defn- instrument-function [var-ns var-name add?]
 
-  (target-commands/run-command :instrument-fn {:fn-symb (symbol var-ns var-name)})
+  (runtime-api/get-and-eval-form rt-api (str var-ns) (str var-name) true)
 
   (when add?
     (add-to-var-instrumented-list var-ns var-name)))
 
 (defn- uninstrument-function [var-ns var-name remove?]
 
-  (target-commands/run-command :uninstrument-fns {:vars-symbs [(symbol var-ns var-name)]})
+  (runtime-api/get-and-eval-form rt-api (str var-ns) (str var-name) false)
 
   (when remove?
     (remove-from-var-instrumented-list var-ns var-name)))
@@ -52,18 +52,13 @@
     (remove-all ns-maps)))
 
 (defn- instrument-namespaces [inst-namespaces add?]
-  (target-commands/run-command
-   :instrument-namespaces
-   {:ns-names (map :ns-name inst-namespaces)
-    :profile (:profile (first inst-namespaces))})
+  (runtime-api/instrument-namespaces rt-api (map :ns-name inst-namespaces) (:profile (first inst-namespaces)))
 
   (when add?
     (add-to-namespace-instrumented-list inst-namespaces)))
 
 (defn- uninstrument-namespaces [inst-namespaces remove?]
-  (target-commands/run-command
-   :uninstrument-namespaces
-   {:ns-names (map :ns-name inst-namespaces)})
+  (runtime-api/uninstrument-namespaces rt-api (map :ns-name inst-namespaces))
 
   (when remove?
     (remove-from-namespace-instrumented-list inst-namespaces)))
@@ -103,23 +98,18 @@
     (add-all (sort namespaces))))
 
 (defn get-var-meta [{:keys [var-name var-ns]}]
-  (target-commands/run-command :get-var-meta
-                               {:var-ns var-ns :var-name var-name}
-                               (fn [var-meta]
-                                 (ui-utils/run-later (update-selected-fn-detail-pane var-meta)))))
+  (let [var-meta (runtime-api/get-var-meta rt-api var-ns var-name)]
+    (ui-utils/run-later (update-selected-fn-detail-pane var-meta))))
 
 (defn- get-all-vars-for-ns [ns-name]
-  (target-commands/run-command :get-all-vars-for-ns
-                               {:ns-name ns-name}
-                               (fn [all-vars]
-                                 (ui-utils/run-later (update-vars-pane (->> all-vars
-                                                                            (map #(assoc % :inst-type :var))))))))
+  (let [all-vars (->> (runtime-api/get-all-vars-for-ns rt-api ns-name)
+                      (map (fn [vn]
+                             (make-inst-var ns-name vn))))]
+    (ui-utils/run-later (update-vars-pane all-vars))))
 
 (defn get-all-namespaces []
-  (target-commands/run-command :get-all-namespaces
-                               {}
-                               (fn [all-namespaces]
-                                 (ui-utils/run-later (update-namespaces-pane all-namespaces)))))
+  (let [all-namespaces (runtime-api/get-all-namespaces rt-api)]
+    (ui-utils/run-later (update-namespaces-pane all-namespaces))))
 
 (defn create-namespaces-pane []
   (let [{:keys [list-view-pane] :as lv-data}

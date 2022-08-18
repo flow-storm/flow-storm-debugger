@@ -11,8 +11,8 @@ test:
 lint:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst
 
-run-dbg:
-	clj -X:dbg flow-storm.debugger.main/start-debugger
+connect-to-shadow:
+	clj -X:dbg flow-storm.debugger.main/start-debugger :local? false :host '"localhost"' :port 9000 :repl-type :shadow :build-id :browser-repl
 
 test-cljs:
 	npx shadow-cljs compile :dev-test && node public/dev-test.js

@@ -3,11 +3,9 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.target-commands :as target-commands]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.trace-indexer.protos :as indexer]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
-            [flow-storm.debugger.values :refer [val-pprint]]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.geometry Orientation]
@@ -15,9 +13,9 @@
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
-(defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
+(defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt] :as i}]
   (let [fn-lbl (doto (case form-def-kind
-                       :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (val-pprint dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
+                       :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
                        :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                        :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                        :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
@@ -39,22 +37,23 @@
     (let [vars-symbs (->> (:vars groups)
                           (map (fn [{:keys [fn-name fn-ns]}]
                                  (symbol fn-ns fn-name))))]
-      (when (seq vars-symbs)
-        (target-commands/run-command :uninstrument-fns {:vars-symbs vars-symbs})))
+      (doseq [vs vars-symbs]
+        (runtime-api/get-and-eval-form rt-api (namespace vs) (name vs) false)))
 
     (let [forms (->> (:forms groups)
                      (map (fn [{:keys [fn-ns form]}]
                             {:form-ns fn-ns
                              :form form})))]
       (when (seq forms)
-        (target-commands/run-command :eval-forms {:forms forms})))))
+        (doseq [{:keys [form-ns form]} forms]
+          (runtime-api/eval-form rt-api form {:instrument? false
+                                              :ns form-ns}))))))
 
 (defn- function-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [show-function-calls (fn []
-                              (let [indexer (state/thread-trace-indexer flow-id thread-id)
-                                    {:keys [form-id fn-ns fn-name]} (first selected-items)
+                              (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
                                     [{:keys [clear add-all]}] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-view-data thread-id))
-                                    fn-call-traces (indexer/find-fn-frames indexer fn-ns fn-name form-id)]
+                                    fn-call-traces (runtime-api/find-fn-frames-light rt-api flow-id thread-id fn-ns fn-name form-id)]
                                 (clear)
                                 (add-all fn-call-traces)))]
     (cond
@@ -63,7 +62,7 @@
      (show-function-calls)
 
      (= MouseButton/SECONDARY (.getButton mev))
-     (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click uninstrument-items}
+     (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
            ctx-menu-show-similar-fn-call-item {:text "Show function calls" :on-click show-function-calls}
            sel-cnt (count selected-items)
            ctx-menu (if (= 1 sel-cnt)
@@ -83,7 +82,6 @@
                                               :search-predicate (fn [{:keys [fn-name fn-ns]} search-str]
                                                                   (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
 
-    ;; TODO: change this name
     (store-obj flow-id (ui-vars/thread-fns-list-view-data thread-id) lv-data)
 
     list-view-pane))
@@ -93,8 +91,8 @@
 (defn- functions-calls-cell-factory [selected-args list-cell {:keys [args-vec]}]
   (let [sel-args (selected-args)
         args-vec-str (if (= (count sel-args) max-args)
-                       (val-pprint args-vec {:print-length 4 :print-level 4 :pprint? false})
-                       (val-pprint args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
+                       (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false})
+                       (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
         args-lbl (label args-vec-str)]
     (.setGraphic ^Node list-cell args-lbl)))
 
@@ -154,7 +152,7 @@
     split-pane))
 
 (defn update-functions-pane [flow-id thread-id]
-  (let [fn-call-stats (->> (state/fn-call-stats flow-id thread-id)
+  (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
                            (sort-by :cnt >))
         [{:keys [add-all clear]}] (obj-lookup flow-id (ui-vars/thread-fns-list-view-data thread-id))]
     (clear)

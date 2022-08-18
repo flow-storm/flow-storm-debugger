@@ -630,7 +630,7 @@
   (let [inst-ext (fn [[etype emap]]
                    (let [inst-emap (reduce-kv
                                     (fn [r k f]
-                                      ;; @@@HACKY This ' is needed in `fn-name` because it will end up
+                                      ;; HACKY: This ' is needed in `fn-name` because it will end up
                                       ;; in (fn* fn-name ([])) functions entry of extend-type after instrumenting
                                       ;; because of how fn-name thing is currently designed
                                       ;; This if we use the same name as the type key there it will compile
@@ -887,7 +887,7 @@
   "Add some special instrumentation that is needed only on the outer form."
   [ctx forms preamble fn-ns fn-name]
   `(let [runtime-ctx# tracer/*runtime-ctx*]
-     ;; @@@ Speed rebinding on every function call probably makes execution much slower
+     ;; SPEED: rebinding on every function call probably makes execution much slower
      ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
 
      (binding [tracer/*runtime-ctx* (cond-> (if runtime-ctx#

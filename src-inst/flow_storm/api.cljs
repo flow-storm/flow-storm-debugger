@@ -3,41 +3,30 @@
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.values :as rt-values]
-            [flow-storm.core :as fs-core]
+            [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log-error] :as utils]
-            [flow-storm.events :as events])
+            [flow-storm.runtime.events :as rt-events]
+            [flow-storm.runtime.indexes.api :as indexes-api]
+            [flow-storm.runtime.debuggers-api :as dbg-api])
   (:require-macros [flow-storm.api]))
 
-(defn remote-connect
+(defn remote-connect [config]
 
-  "Connect to a remote debugger.
-  Without arguments connects to localhost:7722.
+  ;; connect to the remote websocket
+  (remote-websocket-client/start-remote-websocket-client
+   (assoc config :api-call-fn dbg-api/call-by-name))
 
-  `config` is a map with `:host`, `:port`
+  ;; push all events thru the websocket
+  (rt-events/subscribe! (fn [ev]
+                          (-> [:event ev]
+                              serializer/serialize
+                              remote-websocket-client/send)))
 
-   Use `flow-storm.api/stop` to shutdown the system nicely."
-
-  ([] (remote-connect {:host "localhost" :port 7722}))
-
-  ([config]
-
-   ;; connect to the remote websocket
-   (remote-websocket-client/start-remote-websocket-client
-    (assoc config :run-command fs-core/run-command))
-
-   (events/setup-tap! true)
-
-   ;; start the tracer
-   (tracer/start-tracer
-    (assoc config
-           :send-fn (fn remote-send [trace]
-                      (try
-                        (let [packet [:trace (rt-values/wrap-trace-values! trace true)]
-                              ser (serializer/serialize packet)]
-                          (remote-websocket-client/send ser))
-                        (catch js/Error e (log-error "Exception dispatching trace " e))))))))
+  (rt-taps/setup-tap!)
+  (println "ClojureScript runtime initialized"))
 
 (defn stop []
-  (events/remove-tap!)
-  (tracer/stop-tracer)
+  (rt-taps/remove-tap!)
+  (rt-events/clear-subscription!)
+  (indexes-api/stop)
   (remote-websocket-client/stop-remote-websocket-client))

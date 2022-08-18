@@ -1,27 +1,12 @@
 (ns flow-storm.tracer
   (:require [flow-storm.utils :refer [log] :as utils]
             [flow-storm.runtime.values :refer [snapshot-reference]]
-            [clojure.core.async :as async]))
+            [flow-storm.runtime.indexes.api :as indexes-api]))
 
 (def orphan-flow-id -1)
 
 (declare start-tracer)
 (declare stop-tracer)
-
-(def trace-chan nil)
-
-(defn init-stats []
-  {:put 0
-   :sent 0
-   :last-report-t (utils/get-monotonic-timestamp)
-   :last-report-sent 0})
-
-(def tracer-stats (atom (init-stats)))
-
-
-(defn enqueue-trace! [trace]
-  (swap! tracer-stats update :put inc)
-  (async/put! trace-chan trace))
 
 (def ^:dynamic *runtime-ctx* nil)
 
@@ -37,10 +22,10 @@
   [flow-id form-ns form]
   (let [trace {:trace/type :flow-init
                :flow-id flow-id
-               :form-ns form-ns
+               :ns form-ns
                :form form
                :timestamp (utils/get-monotonic-timestamp)}]
-    (enqueue-trace! trace)))
+    (indexes-api/add-flow-init-trace trace)))
 
 (defn trace-form-init
 
@@ -59,7 +44,11 @@
                    :def-kind def-kind
                    :mm-dispatch-val dispatch-val
                    :timestamp (utils/get-monotonic-timestamp)}]
-        (enqueue-trace! trace)
+
+        (indexes-api/add-form-init-trace trace)
+
+        ;; this makes it so add-form-init-trace gets called only once
+        ;; is not only about perf, is about semantics
         (swap! init-traced-forms conj [flow-id thread-id form-id])))))
 
 (defn trace-expr-exec
@@ -77,7 +66,7 @@
                    :timestamp (utils/get-monotonic-timestamp)
                    :result (snapshot-reference result)
                    :outer-form? outer-form?}]
-        (enqueue-trace! trace)))
+        (indexes-api/add-expr-exec-trace trace)))
     
     result))
 
@@ -96,7 +85,7 @@
                    :thread-id (utils/get-current-thread-id)
                    :args-vec  (mapv snapshot-reference args-vec)
                    :timestamp (utils/get-monotonic-timestamp)}]
-        (enqueue-trace! trace)))))
+        (indexes-api/add-fn-call-trace trace)))))
 
 (defn trace-bind
   
@@ -112,52 +101,4 @@
                    :timestamp (utils/get-monotonic-timestamp)
                    :symbol (name symb)
                    :value (snapshot-reference val)}]
-        (enqueue-trace! trace)))))
-
-(defn log-stats []
-  (let [{:keys [put sent last-report-sent last-report-t]} @tracer-stats
-        qsize (- put sent)]
-    (log (utils/format "CNT: %d, Q_SIZE: %d, Speed: %.1f tps"
-                       sent
-                       qsize
-                       (quot (- sent last-report-sent)
-                             (/ (double (- (utils/get-monotonic-timestamp) last-report-t))
-                                1000000000.0))))))
-
-(defn start-tracer
-  
-  "Creates and starts a thread that read traces from the global `trace-queue`
-  and send them using `send-fn`"
-  
-  [{:keys [send-fn verbose?]}]
-
-  ;; Initialize global vars
-  #?@(:clj [(alter-var-root #'trace-chan (constantly (async/chan 30000000)))]
-      :cljs [(set! trace-chan (async/chan 30000000))])
-  
-  (async/go
-    (reset! tracer-stats (init-stats))
-    (loop []
-      (let [trace (async/<! trace-chan)]
-        (when trace ;; no trace we asume the trace-chan was closed, so finish the thread
-          ;; Stats
-          (let [{:keys [sent]} @tracer-stats]
-            (when (and verbose? (zero? (mod sent 50000)))
-              (log-stats)
-              (swap! tracer-stats
-                     (fn [{:keys [sent] :as stats}]
-                       (assoc stats 
-                              :last-report-t (utils/get-monotonic-timestamp)
-                              :last-report-sent sent)))))
-          
-          (send-fn trace)
-          
-          (swap! tracer-stats update :sent inc)
-          (recur))))
-    (log "Thread interrupted. Dying..."))
-  
-  nil)
-
-(defn stop-tracer []  
-  (when trace-chan
-    (async/close! trace-chan)))
+        (indexes-api/add-bind-trace trace)))))

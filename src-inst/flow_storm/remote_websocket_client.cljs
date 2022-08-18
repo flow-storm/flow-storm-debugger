@@ -1,7 +1,6 @@
 (ns flow-storm.remote-websocket-client
-  (:require [flow-storm.json-serializer :as serializer]
-            [flow-storm.utils :refer [log log-error] :as utils]
-            [flow-storm.core :as fs-core]))
+  (:require [flow-storm.utils :refer [log log-error] :as utils]
+            [flow-storm.json-serializer :as serializer]))
 
 (def remote-websocket-client nil)
 
@@ -27,7 +26,7 @@
         ws-client (WebSocket. uri-str)]
     ws-client))
 
-(defn start-remote-websocket-client [{:keys [host port on-connected]
+(defn start-remote-websocket-client [{:keys [host port on-connected api-call-fn]
                                       :or {host "localhost"
                                            port 7722}}]
   (let [uri-str (utils/format "ws://%s:%s/ws" host port)
@@ -38,24 +37,35 @@
     (set! (.-onopen ws-client) (fn []
                                  (log (utils/format "Connection opened to %s" uri-str))
                                  (when on-connected (on-connected))))
-    (set! (.-onclose ws-client) (fn []
-                                  (log (utils/format "Connection with %s closed." uri-str))))
-    (set! (.-onmessage ws-client) (fn [e]
-                                    (if (= (.-type e) "message")
-                                      (let [message (.-data e)
-                                            [comm-id method args-map] (serializer/deserialize message)
-                                            ret-packet (fs-core/run-command comm-id method args-map)
-                                            ret-packet-ser (serializer/serialize ret-packet)]
-                                        (.send ws-client ret-packet-ser))
+    (set! (.-onclose ws-client) (fn [] (log (utils/format "Connection with %s closed." uri-str))))
 
-                                      (js/console.error (str "Message type not handled" e)))))
+    (set! (.-onmessage ws-client)
+          (fn [msg]
+
+            (try
+
+              (if (= (.-type msg) "message")
+                (let [message (.-data msg)
+                      [packet-key :as in-packet] (serializer/deserialize message)
+                      ret-packet (case packet-key
+                                   :api-request (let [[_ request-id method args] in-packet]
+                                                  (try
+                                                    (let [ret-data (api-call-fn method args)]
+                                                      [:api-response [request-id nil ret-data]])
+                                                    (catch js/Error err
+                                                      (log-error (str "Error on api-call-fn " [method args]))
+                                                      [:api-response [request-id (.-message err) nil]])))
+                                   (log-error "Unrecognized packet key"))
+                      ret-packet-ser (serializer/serialize ret-packet)]
+                  (.send ws-client ret-packet-ser))
+
+                (js/console.error (str "Message type not handled" msg)))
+
+              (catch js/Error err (log-error "Error processing message : " (.-message err))))))
+
     (set! remote-websocket-client ws-client)
 
     ws-client))
 
 (defn send [ser-packet]
   (.send remote-websocket-client ser-packet))
-
-(defn send-event-to-debugger [ev-packet]
-  (let [ser-packet (serializer/serialize ev-packet)]
-    (send ser-packet)))

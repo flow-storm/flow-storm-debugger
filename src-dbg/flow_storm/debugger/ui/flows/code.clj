@@ -1,15 +1,13 @@
 (ns flow-storm.debugger.ui.flows.code
   (:require [clojure.pprint :as pp]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
-            [flow-storm.debugger.trace-indexer.protos :as indexer]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.target-commands :as target-commands]
-            [flow-storm.debugger.values :refer [val-pprint]])
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
   (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.scene Node]
            [javafx.geometry Orientation Pos]
@@ -36,8 +34,7 @@
     print-tokens))
 
 (defn- add-form [flow-id thread-id form-id]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        form (indexer/get-form indexer form-id)
+  (let [form (runtime-api/get-form rt-api flow-id thread-id form-id)
         print-tokens (binding [pp/*print-right-margin* 80]
                        (-> (form-pprinter/pprint-tokens (:form/form form))
                            ;; if it is a wrapped repl expression discard some tokens that the user
@@ -75,10 +72,10 @@
 (defn- locals-list-cell-factory [list-cell symb-val]
   (let [symb-lbl (doto (label (first symb-val))
                    (.setPrefWidth 100))
-        val-lbl (label  (utils/elide-string (val-pprint (second symb-val)
-                                                        {:print-length 20
-                                                         :print-level 5
-                                                         :pprint? false})
+        val-lbl (label  (utils/elide-string (runtime-api/val-pprint rt-api (second symb-val)
+                                                                    {:print-length 20
+                                                                     :print-level 5
+                                                                     :pprint? false})
                                             80))
         hbox (h-box [symb-lbl val-lbl])]
     (.setGraphic ^Node list-cell hbox)))
@@ -131,24 +128,15 @@
     (ui-utils/rm-class form-pane "form-background-highlighted")))
 
 (defn highlight-form [flow-id thread-id form-id]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        form (indexer/get-form indexer form-id)
+  (let [form (runtime-api/get-form rt-api flow-id thread-id form-id)
         [form-pane]          (obj-lookup flow-id (ui-vars/thread-form-box-id thread-id form-id))
         [thread-scroll-pane] (obj-lookup flow-id (ui-vars/thread-forms-scroll-id thread-id))
 
         ;; if the form we are about to highlight doesn't exist in the view add it first
         form-pane (or form-pane (add-form flow-id thread-id form-id))
         ctx-menu-options [{:text "Fully instrument this form"
-                           :on-click (fn []
-
-                                       (if (= :defn (:form/def-kind form))
-
-                                         (let [curr-idx (state/current-idx flow-id thread-id)
-                                               {:keys [fn-name]} (indexer/frame-data-for-idx indexer curr-idx)]
-                                           (target-commands/run-command :instrument-fn {:fn-symb (symbol (:form/ns form) fn-name)}))
-
-                                         (target-commands/run-command :instrument-forms {:forms [{:form-ns (:form/ns form)
-                                                                                                  :form (:form/form form)}]})))}]
+                           :on-click (fn [] (runtime-api/eval-form rt-api (:form/form form) {:instrument? true
+                                                                                             :ns (:form/ns form)}))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 
     (.setOnMouseClicked form-pane
@@ -173,8 +161,9 @@
   (if (> (count traces) 1)
     (let [ctx-menu-options (->> traces
                                 (map (fn [{:keys [idx result]}]
-                                       {:text (format "%s" (utils/elide-string (val-pprint result {:print-length 3 :print-level 3 :pprint? false}) 80))
-                                        :on-click #(jump-to-coord flow-id thread-id idx)})))
+                                       (let [v-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})]
+                                         {:text (format "%s" (utils/elide-string v-str 80))
+                                          :on-click #(jump-to-coord flow-id thread-id idx)}))))
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler
                                       [^MouseEvent ev]
@@ -193,37 +182,20 @@
     (and (every? true? (map = scope-coor current-coor))
          (> (count current-coor) (count scope-coor)))))
 
-(defn- bindings-for-idx [indexer idx]
-  (let [thing (indexer/timeline-entry indexer idx)]
-    (cond
-      (= :frame (:timeline/type thing))
-      []
-
-      (= :expr (:timeline/type thing))
-      (let [expr thing
-            {:keys [bindings]} (indexer/frame-data-for-idx indexer idx)]
-        (->> bindings
-             (keep (fn [bind]
-                     (when (and (coor-in-scope? (:coor bind) (:coor expr))
-                                (<= (:timestamp bind) (:timestamp expr)))
-                       [(:symbol bind) (:value bind)])))
-             (into {}))))))
-
 (defn jump-to-coord [flow-id thread-id next-idx]
-  (let [indexer (state/thread-trace-indexer flow-id thread-id)
-        trace-count (indexer/thread-timeline-count indexer)]
+  (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
     (when (<= 0 next-idx (dec trace-count))
       (let [curr-idx (state/current-idx flow-id thread-id)
-            curr-tentry (indexer/timeline-entry indexer curr-idx)
+            curr-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx)
             curr-form-id (:form-id curr-tentry)
-            next-tentry (indexer/timeline-entry indexer next-idx)
+            next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id next-idx)
             next-form-id (:form-id next-tentry)
             [curr-trace-text-field] (obj-lookup flow-id (ui-vars/thread-curr-trace-tf-id thread-id))
             ;; because how frames are cached by trace, their pointers can't be compared
             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
             ;; a frame
-            changing-frame? (not= (:frame-idx (indexer/frame-data-for-idx indexer curr-idx))
-                                  (:frame-idx (indexer/frame-data-for-idx indexer next-idx)))
+            changing-frame? (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
+                                  (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx)))
             changing-form? (not= curr-form-id next-form-id)]
 
         ;; update thread current trace label and total traces
@@ -232,7 +204,7 @@
 
         (when changing-form?
           ;; we are leaving a form with this jump, so unhighlight all curr-form interesting tokens
-          (let [{:keys [expr-executions]} (indexer/frame-data-for-idx indexer curr-idx)]
+          (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
 
             (unhighlight-form flow-id thread-id curr-form-id)
             (highlight-form flow-id thread-id next-form-id)
@@ -246,7 +218,7 @@
                   (zero? curr-idx))
           ;; we are leaving a frame with this jump, or its the first trace
           ;; highlight all interesting tokens for the form we are currently in
-          (let [{:keys [expr-executions]} (indexer/frame-data-for-idx indexer next-idx)
+          (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx)
                 next-exec-expr (->> expr-executions
                                     (group-by :coor))]
 
@@ -280,7 +252,7 @@
         (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
 
         ;; update locals panel
-        (update-locals-pane flow-id thread-id (bindings-for-idx indexer next-idx))
+        (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
 
         (state/set-idx flow-id thread-id next-idx)))))
 

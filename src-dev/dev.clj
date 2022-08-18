@@ -13,7 +13,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (javafx.embed.swing.JFXPanel.)
-#_(add-tap (bound-fn* println))
+(comment (add-tap (bound-fn* println)) )
 
 (defn start-dev-debugger []
   (fs-api/local-connect))
@@ -28,11 +28,16 @@
 
   (fs-api/instrument-forms-for-namespaces
    #{"dev-tester"}
-   {:disable #{} #_#{:expr :anonymous-fn :binding}})
+   {:disable #_#{} #{:expr :anonymous-fn :binding}})
 
-  #_(fs-api/runi
-     {:flow-id 0}
-     (dev-tester/boo [2 "hello" 8]))
+  #rtrace (dev-tester/boo [2 "hello" 6])
+
+  (main/start-debugger {:local? false
+                        :host "localhost"
+                        :port 9000
+                        :repl-type :shadow
+                        :build-id :browser-repl})
+  (main/stop-debugger)
   )
 
 
@@ -78,7 +83,7 @@
     (dbg-api/local-connect {:styles "/home/jmonetta/.flow-storm/magenta-debugger.css"})
     (dbg-api/instrument-forms-for-namespaces #{"flow-storm.tracer" "flow-storm.api" "flow-storm.core"} {}))
 
-  (fs-api/remote-connect {:on-connected (fn []
+  #_(fs-api/remote-connect {:on-connected (fn []
                                           (println "Connected to remote debugger, running test ...")
                                           (fs-api/instrument-forms-for-namespaces #{"dev-tester"} {})
                                           (throw (Exception. "Not implemented"))

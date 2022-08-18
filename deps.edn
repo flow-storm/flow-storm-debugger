@@ -1,22 +1,12 @@
 {:paths ["src-inst" "src-dbg" "src-shared" "resources" ]
  :deps {
         ;; Remote debugging
-        org.java-websocket/Java-WebSocket {:mvn/version "1.5.2"}
+        org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
 
         ;; Traces serialization/deserialization
         com.cognitect/transit-clj {:mvn/version"1.0.329"}
 
-        ;; Refs patches
-        ;; juji/editscript           {:mvn/version "0.4.6"}
-
-        ;; To use it as :local/root, for debugging, remove after
-        ;; org.openjfx/javafx-controls {:mvn/version "18"}
-        ;; org.openjfx/javafx-base {:mvn/version "18"}
-        ;; org.openjfx/javafx-graphics {:mvn/version "18"}
-        ;; org.openjfx/javafx-swing {:mvn/version "18"}
-        ;; org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
-        ;; org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
-        ;; org.clojure/tools.namespace {:mvn/version "1.2.0"}
+        org.clojure/core.async {:mvn/version "1.5.648"}
         }
 
  :jvm-opts []
@@ -34,16 +24,14 @@
                               ;; Dark mode
                               com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
 
-                              mount/mount {:mvn/version "0.1.16"}}}
+                              mount/mount {:mvn/version "0.1.16"}
+                              nrepl/nrepl {:mvn/version "1.0.0"}
+                              }}
 
 
            :inst {:extra-paths ["src-inst" "src-shared"]
                   :extra-deps {;; Namespaces instrumentation
                                org.clojure/tools.namespace {:mvn/version "1.2.0"}
-
-                               ;; for using async/thread for tracer instead of Thread so it
-                               ;; works with cljs too
-                               org.clojure/core.async {:mvn/version "1.5.648"}
                                com.cognitect/transit-cljs {:mvn/version "0.8.269"}
                                org.clojure/clojurescript {:mvn/version "1.11.57"
                                                           ;;:local/root "/home/jmonetta/my-projects/clojurescript"

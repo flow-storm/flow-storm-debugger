@@ -5,9 +5,11 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
              :refer [obj-lookup store-obj]]
+            [flow-storm.debugger.state :as dbg-state]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io]
             [mount.core :as mount :refer [defstate]])
@@ -70,9 +72,9 @@
                                                  [_]
                                                  (browser-screen/get-all-namespaces))})
         taps-tab (tab {:text "Taps"
-                      :class "vertical-tab"
-                      :content (taps-screen/main-pane)
-                      :on-selection-changed (event-handler [_])})
+                       :class "vertical-tab"
+                       :content (taps-screen/main-pane)
+                       :on-selection-changed (event-handler [_])})
 
         tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab]
                           :rotate? true
@@ -138,6 +140,17 @@
 
     theme-listener))
 
+(defn clear-all []
+  (log "Removing all taps")
+  (taps-screen/clear-all-taps)
+
+  (log "Removing all flows")
+  (doseq [fid (dbg-state/all-flows-ids)]
+    (flows-screen/fully-remove-flow fid))
+
+  (log "Clearing values")
+  (runtime-api/interrupt-all-tasks rt-api))
+
 (defn start-ui [config]
   ;; Initialize the JavaFX toolkit
   (javafx.embed.swing.JFXPanel.)
@@ -162,8 +175,12 @@
                                 (and (.isControlDown kev)
                                      (= key-name "G"))
                                 (do
-                                  (log "Interrupting long running task")
-                                  (ui-vars/interrupt-long-running-task-thread))
+                                  (log "Interrupting task")
+                                  (runtime-api/interrupt-all-tasks rt-api))
+
+                                (and (.isControlDown kev)
+                                     (= key-name "K"))
+                                (clear-all)
 
                                 ;; :else
                                 ;; (log (format "Unhandled keypress %s" key-name))

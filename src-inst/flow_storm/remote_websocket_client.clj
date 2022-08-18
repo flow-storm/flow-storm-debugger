@@ -1,7 +1,8 @@
 (ns flow-storm.remote-websocket-client
   (:refer-clojure :exclude [send])
   (:require [flow-storm.json-serializer :as serializer]
-            [flow-storm.utils :refer [log log-error] :as utils])
+            [flow-storm.utils :refer [log log-error] :as utils]
+            )
   (:import [org.java_websocket.client WebSocketClient]
            [java.net URI]
            [org.java_websocket.handshake ServerHandshake]))
@@ -16,7 +17,7 @@
 (defn remote-connected? []
   (boolean remote-websocket-client))
 
-(defn start-remote-websocket-client [{:keys [host port on-connected run-command]
+(defn start-remote-websocket-client [{:keys [host port on-connected run-command api-call-fn]
                                       :or {host "localhost"
                                            port 7722}}]
   (let [uri-str (format "ws://%s:%s/ws" host port)
@@ -29,11 +30,17 @@
                                        (when on-connected (on-connected)))
 
                                      (onMessage [^String message]
-                                       ;; this is sketchy since it assumes the only messages
-                                       ;; we receive are commands
-                                       (let [[comm-id method args-map] (serializer/deserialize message)
-                                             ret-packet (run-command comm-id method args-map)
+                                       (let [[packet-key :as in-packet] (serializer/deserialize message)
+                                             ret-packet (case packet-key
+                                                          :api-request (let [[_ request-id method args] in-packet]
+                                                                         (try
+                                                                           (let [ret-data (api-call-fn method args)]
+                                                                             [:api-response [request-id nil ret-data]])
+                                                                           (catch Exception e
+                                                                             [:api-response [request-id (.getMessage e) nil]])))
+                                                          (log-error "Unrecognized packet key"))
                                              ret-packet-ser (serializer/serialize ret-packet)]
+
                                          (.send remote-websocket-client ret-packet-ser)))
 
                                      (onClose [code reason remote?]
