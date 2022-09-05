@@ -54,6 +54,23 @@
       form
       (macroexpand+ macroexpand-1-fn ex))))
 
+(defn listy?
+  "Returns true if x is any kind of list except a vector."
+  [x]
+  (and (sequential? x) (not (vector? x))))
+
+(defn walk-unquoted
+  "Traverses form, an arbitrary data structure.  inner and outer are
+  functions.  Applies inner to each element of form, building up a
+  data structure of the same type, then applies outer to the result.
+  Recognizes all Clojure data structures. Consumes seqs as with doall.
+
+  Unlike clojure.walk/walk, does not traverse into quoted forms."
+  [inner outer form]
+  (if (and (listy? form) (= (first form) 'quote))
+    (outer form)
+    (walk/walk inner outer form)))
+
 (defn macroexpand-all
 
   "Like `clojure.walk/macroexpand-all`, but preserves metadata.
@@ -62,9 +79,10 @@
 
   [macroexpand-1-fn form & [original-key]]
   (let [md (meta form)
-        expanded (walk/walk #(macroexpand-all macroexpand-1-fn % original-key)
+        expanded (walk-unquoted #(macroexpand-all macroexpand-1-fn % original-key)
                             identity
-                            (if (seq? form)
+                            (if (and (seq? form)
+                                     (not= (first form) 'quote))
                               ;; Without this, `macroexpand-all`
                               ;; throws if called on `defrecords`.
                               (try (let [r (macroexpand+ macroexpand-1-fn form)]
