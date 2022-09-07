@@ -3,7 +3,6 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.state :as state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
             [clojure.string :as str])
@@ -13,7 +12,7 @@
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
-(defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt] :as i}]
+(defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
   (let [fn-lbl (doto (case form-def-kind
                        :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
                        :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)

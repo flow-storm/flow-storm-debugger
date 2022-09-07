@@ -2,16 +2,18 @@
   (:require [nrepl.core :as nrepl]
             [nrepl.transport :as transport]
             [clojure.edn :as edn]
+            [flow-storm.utils :refer [log-error]]
             [clojure.java.io :as io]))
 
 (def log-file-path "./nrepl-client-debug")
+
 (defn connect [{:keys [host port repl-type build-id] :or {host "localhost"}}]
   (let [transport (nrepl/connect :host host
                                  :port port
                                  :transport-fn #'transport/bencode)
         log-file (io/file log-file-path)
-        log-output-stream (io/make-output-stream (io/file log-file-path) {:append true
-                                                                          :encoding "UTF-8"})
+        log-output-stream (io/make-output-stream log-file {:append true
+                                                           :encoding "UTF-8"})
         client (nrepl/client transport Long/MAX_VALUE)
         session (nrepl/client-session client)
         send-msg (fn [msg]
@@ -47,13 +49,14 @@
                                      :cljs "cljs.user"))]
 
                      (try
-                       (let [[m1 m2 :as res] (send-msg {:op "eval" :code code :ns ns})
-                             ret (if (and (not (:err m1))
-                                          (= (:status m2) ["done"]))
+                       (let [[m1 m2] (send-msg {:op "eval" :code code :ns ns})
+                             ret (when (and (not (:err m1))
+                                            (= (:status m2) ["done"]))
 
                                    (try
                                      (edn/read-string (:value m1))
                                      (catch Exception e
+                                       (log-error (.getMessage e))
                                        ;; if what we evaluated doesn't return valid edn
                                        ;; just return the value string
                                        (:value m1))))]

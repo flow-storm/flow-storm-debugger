@@ -153,18 +153,3 @@
 
     (catch Exception e
       (log-error "UI Thread exception" e))))
-
-(comment
-
-  (do
-    (def ev (->LocalImmValue {:a 100
-                              "other" {1 {1 2
-                                          2 4}
-                                       2 {:hello :world}}
-                              :b "hello"
-                              :c [1 2 3 {1 2}]
-                              :d #{:a :b :c}}))
-
-    (ui-utils/run-now (create-inspector ev)))
-
-  )

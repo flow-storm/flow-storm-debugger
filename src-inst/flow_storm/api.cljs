@@ -1,10 +1,7 @@
 (ns flow-storm.api
   (:require [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
-            [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.values :as rt-values]
             [flow-storm.runtime.taps :as rt-taps]
-            [flow-storm.utils :refer [log-error] :as utils]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.debuggers-api :as dbg-api])

@@ -1,5 +1,5 @@
 (ns flow-storm.tracer
-  (:require [flow-storm.utils :refer [log] :as utils]
+  (:require [flow-storm.utils :as utils]
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]))
 

@@ -66,7 +66,7 @@
 (defn add-form-init-trace [{:keys [flow-id thread-id] :as trace}]
   (let [thread-indexes (get-or-create-thread-indexes flow-id thread-id)]
     
-    (doseq [[k thread-index] thread-indexes]
+    (doseq [[_ thread-index] thread-indexes]
       (protos/add-form-init thread-index trace))))
 
 (defn add-fn-call-trace [{:keys [flow-id thread-id form-id] :as trace}]

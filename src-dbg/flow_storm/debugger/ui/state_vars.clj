@@ -65,6 +65,7 @@
 ;; Interruptible tasks stuff ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare tasks-subscriptions)
 (defstate tasks-subscriptions
   :start (atom {})
   :stop nil)

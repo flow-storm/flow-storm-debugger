@@ -2,10 +2,8 @@
   "This is the only namespace intended for users.
   Provides functionality to connect to the debugger and instrument forms."
   (:require [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.values :as rt-values]
             [flow-storm.runtime.taps :as rt-taps]
-            [flow-storm.utils :refer [log log-error] :as utils]
-            [flow-storm.instrument.namespaces :as inst-ns]
+            [flow-storm.utils :refer [log] :as utils]
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.core :as fs-core]
             [flow-storm.runtime.debuggers-api :as dbg-api]
@@ -197,8 +195,7 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme
-           host port] :as opts}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme] :as opts}]
   (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :host :port}]
 
     (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))

@@ -176,12 +176,6 @@
                                     [ev]
                                     (jump-to-coord flow-id thread-id (-> traces first :idx))))))
 
-(defn- coor-in-scope? [scope-coor current-coor]
-  (if (empty? scope-coor)
-    true
-    (and (every? true? (map = scope-coor current-coor))
-         (> (count current-coor) (count scope-coor)))))
-
 (defn jump-to-coord [flow-id thread-id next-idx]
   (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
     (when (<= 0 next-idx (dec trace-count))

@@ -1,14 +1,12 @@
 (ns flow-storm.runtime.debuggers-api
   (:require [flow-storm.runtime.indexes.api :as indexes-api]            
-            [flow-storm.utils :as utils :refer [log log-error]]
+            [flow-storm.utils :as utils :refer [log]]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
             [clojure.core.async :as async]
-            #?@(:clj [[clojure.repl :as clj-repl]
-                      [flow-storm.instrument.forms :as inst-forms]
+            #?@(:clj [[flow-storm.instrument.forms :as inst-forms]
                       [flow-storm.instrument.namespaces :as inst-ns]
                       [cljs.repl :as cljs-repl]
-                      [cljs.analyzer :as ana]
                       [cljs.analyzer.api :as ana-api]
                       [clojure.java.io :as io]
                       [clojure.set :as set]
@@ -49,7 +47,7 @@
   (let [v (get-reference-value vref)]
     (runtime-values/shallow-val v)))
 
-(def def-val-reference runtime-values/def-val-reference)
+(def def-value runtime-values/def-value)
 
 (def get-form indexes-api/get-form)
 (def all-threads indexes-api/all-threads)
@@ -121,7 +119,7 @@
                                       reference-frame-data!
                                       (dissoc :bindings :expr-executions)))))))
 
-(defn search-next-frame-idx [& [flow-id thread-id query-str from-idx params :as args]]
+(defn search-next-frame-idx [& args]
   (submit-interruptible-task! search-next-frame-idx* args))
 
 (def discard-flow indexes-api/discard-flow)
@@ -164,7 +162,7 @@
              :find-fn-frames-light find-fn-frames-light
              :search-next-frame-idx search-next-frame-idx
              :discard-flow discard-flow
-             :def-value def-val-reference
+             :def-value def-value
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
              :clear-values-references clear-values-references
@@ -220,9 +218,9 @@
      (let [all-ns-info (->> ns-symbs
                             (map (fn [ns-symb]
                                    (let [file-name (-> (ana-api/find-ns ns-symb) :meta :file)
-                                         file (try (io/resource file-name) (catch Exception e nil))
-                                         ns-decl-form (try (tools-ns-file/read-file-ns-decl file) (catch Exception e nil))
-                                         deps (try (tools-ns-parse/deps-from-ns-decl ns-decl-form) (catch Exception e nil))]
+                                         file (try (io/resource file-name) (catch Exception _ nil))
+                                         ns-decl-form (try (tools-ns-file/read-file-ns-decl file) (catch Exception _ nil))
+                                         deps (try (tools-ns-parse/deps-from-ns-decl ns-decl-form) (catch Exception _ nil))]
                                      [ns-symb {:ns-symb ns-symb
                                                :file-name file-name
                                                :file file
@@ -251,3 +249,4 @@
        (mapv (fn [[ns-symb ns-file]]
                [(str ns-symb) (cljs-file-forms ns-symb ns-file)])
              to-instrument-vec))))
+

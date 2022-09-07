@@ -13,7 +13,7 @@
             [mount.core :as mount :refer [defstate]]))
 
 (declare process-event)
-
+(declare event-subscription)
 (defstate event-subscription
   :start (let [subscribe! (requiring-resolve 'flow-storm.runtime.events/subscribe!)]
            (subscribe! process-event))
@@ -40,7 +40,7 @@
   (ui-utils/run-later
    (taps-screen/add-tap-value value)))
 
-(defn flow-created-event [{:keys [flow-id form-ns form timestamp] :as e}]
+(defn flow-created-event [{:keys [flow-id form-ns form timestamp]}]
   (dbg-state/create-flow flow-id form-ns form timestamp)
   (ui-utils/run-now (flows-screen/remove-flow flow-id))
   (ui-utils/run-now (flows-screen/create-empty-flow flow-id))
@@ -62,7 +62,7 @@
 (defn task-progress-event [{:keys [task-id progress]}]
   (ui-vars/dispatch-task-event :progress task-id progress))
 
-(defn process-event [[ev-type ev-args-map :as ev]]
+(defn process-event [[ev-type ev-args-map]]
   (case ev-type
     :var-instrumented (var-instrumented-event ev-args-map)
     :var-uninstrumented (var-uninstrumented-event ev-args-map)

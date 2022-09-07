@@ -17,7 +17,7 @@
 (defn remote-connected? []
   (boolean remote-websocket-client))
 
-(defn start-remote-websocket-client [{:keys [host port on-connected run-command api-call-fn]
+(defn start-remote-websocket-client [{:keys [host port on-connected api-call-fn]
                                       :or {host "localhost"
                                            port 7722}}]
   (let [uri-str (format "ws://%s:%s/ws" host port)

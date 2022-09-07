@@ -1,9 +1,8 @@
 (ns flow-storm.core
   (:require [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.instrument.namespaces :as inst-ns]
-            [flow-storm.utils :refer [log-error log]]
+            [flow-storm.utils :refer [log]]
             [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.values :as rt-values]
             [clojure.repl :as clj.repl]))
 
 (defn disable-from-profile [profile]

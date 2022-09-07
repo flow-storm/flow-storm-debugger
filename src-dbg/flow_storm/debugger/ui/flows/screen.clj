@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler run-now v-box h-box label icon tab-pane tab text-field]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon tab-pane tab text-field]]
             [flow-storm.debugger.state :as dbg-state]))
 
 (defn remove-flow [flow-id]

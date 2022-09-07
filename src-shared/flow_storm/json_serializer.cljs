@@ -1,5 +1,5 @@
 (ns flow-storm.json-serializer
-  (:require [cognitect.transit :as transit :refer [tagged-value write-handler]]
+  (:require [cognitect.transit :as transit :refer [write-handler]]
             [flow-storm.utils :refer [log-error]]))
 
 (defn serialize [o]

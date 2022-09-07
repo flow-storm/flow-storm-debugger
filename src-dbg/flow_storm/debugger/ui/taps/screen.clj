@@ -20,7 +20,7 @@
      (clear))))
 
 (defn main-pane []
-  (let [{:keys [list-view-pane clear] :as lv-data}
+  (let [{:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :cell-factory-fn (fn [list-cell val]
                                        (let [val-list-text (runtime-api/val-pprint rt-api val {:print-length 50

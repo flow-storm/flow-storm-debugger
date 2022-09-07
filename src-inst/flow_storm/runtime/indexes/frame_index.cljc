@@ -38,7 +38,7 @@
   (add-binding-to-frame [_ b]
     (ml-add bindings b))
 
-  (add-expr-exec-to-frame [this idx expr]
+  (add-expr-exec-to-frame [_ idx expr]
     (ml-add expr-executions (assoc expr :idx idx))
     (dec (ml-count expr-executions)))
 
@@ -141,7 +141,7 @@
           (merge tl-entry
                  (get-immutable-frame (:frame tl-entry)))))))
 
-  (timeline-frame-seq [this]
+  (timeline-frame-seq [_]
     (->> timeline
          (keep (fn [tl-entry]
                  (when-not (= :expr (:timeline/type tl-entry))

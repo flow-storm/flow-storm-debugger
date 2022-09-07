@@ -1,7 +1,5 @@
 (ns flow-storm.debugger.state
-  (:require [mount.core :as mount :refer [defstate]]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
-  (:import [java.util HashMap Map$Entry]))
+  (:require [mount.core :as mount :refer [defstate]]))
 
 (def orphans-flow-id -1)
 

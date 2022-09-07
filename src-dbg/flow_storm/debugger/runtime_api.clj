@@ -9,6 +9,7 @@
 
 (declare ->LocalRuntimeApi)
 (declare ->RemoteRuntimeApi)
+(declare rt-api)
 
 (defstate rt-api
   :start (let [{:keys [local?] :as config} (mount/args)]
@@ -99,7 +100,7 @@
           ;; so when re-evaluating a var (probably a function) store and restore its meta
           (when v (reset-meta! v vmeta))))))
 
-  (def-value [_ v-name vref] (local-call def-val-reference v-name vref))
+  (def-value [_ v-name vref] (local-call def-value v-name vref))
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
   (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
 
@@ -107,8 +108,12 @@
     (-> (meta (resolve (symbol var-ns var-name)))
         (update :ns (comp str ns-name))))
 
-  (instrument-namespaces [_ nsnames profile])
-  (uninstrument-namespaces [_ nanames])
+  (instrument-namespaces [_ nsnames profile]
+    (let [disable-set-str (if (= profile :light)
+                            #{:expr :anonymous-fn :binding}
+                            #{})]
+      (local-call instrument-namespaces nsnames {:disable disable-set-str})))
+  (uninstrument-namespaces [_ nsnames] (local-call uninstrument-namespaces nsnames))
 
   (interrupt-all-tasks [_] (local-call interrupt-all-tasks))
   (clear-values-references [_] (local-call clear-values-references))
@@ -190,7 +195,7 @@
   (get-all-vars-for-ns [_ nsname] (eval-str-expr env-kind (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
   (get-var-meta [_ var-ns var-name] (eval-str-expr env-kind (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
 
-  (instrument-namespaces [this nsnames profile]
+  (instrument-namespaces [_ nsnames profile]
     (let [opts (if (= profile :light)
                  {:disable #{:expr :binding :anonymous-fn}}
                  {})]
@@ -200,7 +205,7 @@
 
        :clj (websocket/sync-remote-api-request :instrument-namespaces [nsnames opts]))))
 
-  (uninstrument-namespaces [this nsnames]
+  (uninstrument-namespaces [_ nsnames]
     (case env-kind
       :cljs (re-eval-all-ns-forms (partial eval-str-expr env-kind) nsnames {:instrument? false})
 
@@ -212,7 +217,7 @@
   (clear-values-references [_] (websocket/sync-remote-api-request :clear-values-references []))
 
 
-  java.io.Closeable
+  Closeable
   (close [_] (close-connection))
   )
 

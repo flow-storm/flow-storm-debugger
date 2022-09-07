@@ -102,11 +102,11 @@
            :val/full (reference-value! v))))
 
 #?(:clj
-   (defn def-val-reference [val-name vref]
+   (defn def-value [val-name vref]
      (intern 'user (symbol val-name) (get-reference-value vref)))
 
    :cljs
-   (defn def-val-reference [val-name vref]
+   (defn def-value [val-name vref]
      (gobj/set (if (= *target* "nodejs") js/global js/window)
                val-name
                (get-reference-value vref))))

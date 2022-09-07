@@ -9,7 +9,7 @@
   
   index-protos/BuildIndexP
 
-  (add-form-init [_ {:keys [flow-id thread-id form-id ns form def-kind mm-dispatch-val]}]
+  (add-form-init [_ {:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
     (let [form-data (cond-> {:form/id form-id
                              :form/flow-id flow-id
                              :form/ns ns

@@ -6,7 +6,6 @@
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
-           [java.net InetSocketAddress BindException]
            [java.util UUID]))
 
 (declare start-websocket-server)
@@ -88,10 +87,10 @@
         (when-not (.isInterrupted (Thread/currentThread))
           (dispatch-event ev)
           (recur (async/<!! events-chan))))
-       (catch java.lang.InterruptedException ie
+       (catch java.lang.InterruptedException _
          (log "Events thread interrupted"))))))
 
-(defn start-websocket-server [{:keys [event-dispatcher show-error on-connection-open]}]
+(defn start-websocket-server [{:keys [event-dispatcher on-connection-open]}]
   (stop-websocket-server)
   (let [remote-connection (atom nil)
         events-chan (async/chan 100)

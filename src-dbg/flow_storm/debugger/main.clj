@@ -1,9 +1,10 @@
 (ns flow-storm.debugger.main
   (:require [flow-storm.debugger.ui.main :as ui-main]
-            [flow-storm.utils :refer [log-error]]
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.events-processor :as events-processor]
+            [flow-storm.debugger.runtime-api]
+            [flow-storm.debugger.websocket]
             [mount.core :as mount]))
 
 (def flow-storm-core-ns 'flow-storm.core)
