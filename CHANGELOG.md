@@ -7,7 +7,9 @@
 ### Changes
 
 ### Bugs fixed
-
+	
+	- We can instrumente lazy-seq functions now, so instrumenting (for ...) should work fine
+	
 ## 2.3.141 (15-08-2022)
 	
 ## New Features

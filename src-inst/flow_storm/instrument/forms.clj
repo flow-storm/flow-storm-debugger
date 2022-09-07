@@ -423,20 +423,24 @@
 
         lazy-seq-fn? (expanded-lazy-seq-form? (first arity-body-forms))
 
-        inst-arity-body-form (if (or (and (disable :anonymous-fn) (= :anonymous (:kind fn-ctx))) ;; don't instrument anonymous-fn if they are disabled
-                                     (and (#{:deftype :defrecord} outer-form-kind)
-                                          (or (str/starts-with? (str fn-trace-name) "->")
-                                              (str/starts-with? (str fn-trace-name) "map->"))) ;; don't instrument record constructors
-                                     (excluding-fns (symbol form-ns (str fn-trace-name))) ;; don't instrument if in excluding-fn
-                                     lazy-seq-fn?) ;; don't instrument if lazy-seq-fn
-                               ;; NOTE: on skipping instrumentation for lazy-seq fns
-                               ;;
-                               ;; if the fn* returns a lazy-seq we can't wrap it or we will generate a
-                               ;; recursion and we risk getting a StackOverflow.
-                               ;; If we can't wrap the output we can't wrap the call neither since
-                               ;; they are sinchronized, so we skip this fn* body tracing
+        inst-arity-body-form (cond (or (and (disable :anonymous-fn) (= :anonymous (:kind fn-ctx))) ;; don't instrument anonymous-fn if they are disabled
+                                       (and (#{:deftype :defrecord} outer-form-kind)
+                                            (or (str/starts-with? (str fn-trace-name) "->")
+                                                (str/starts-with? (str fn-trace-name) "map->"))) ;; don't instrument record constructors
+                                       (excluding-fns (symbol form-ns (str fn-trace-name))))  ;; don't instrument if in excluding-fn
+
+                               ;; skip instrumentation
                                `(do ~@arity-body-forms)
 
+                               ;; on functions like (fn iter [x] (lazy-seq (cons x (iter x)))) skip outer
+                               ;; instrumentation because it will make the process not lazy anymore and will
+                               ;; risk a stackoverflow if the iteration is big
+                               lazy-seq-fn?
+                               (let [[a1 a2 fform] (first arity-body-forms)]
+                                 `(~a1 ~a2 ~(instrument-form-recursively fform ctx')))
+
+                               ;; else instrument fn body
+                               :else
                                (instrument-outer-form ctx'
                                                       (instrument-coll arity-body-forms ctx')
                                                       outer-preamble
