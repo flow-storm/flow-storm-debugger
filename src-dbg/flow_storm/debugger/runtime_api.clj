@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.runtime-api
   (:require [mount.core :as mount :refer [defstate]]
+            [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.nrepl :as dbg-nrepl]
             [flow-storm.debugger.websocket :as websocket]
             [clojure.string :as str]
@@ -122,7 +123,7 @@
 (defmethod make-repl-expression [:clj 'get-var-form-str] [_ _ var-ns var-name] (format "(clojure.repl/source-fn (symbol %s %s))" (pr-str var-ns) (pr-str var-name)))
 (defmethod make-repl-expression [:clj 'get-all-namespaces] [_ _] "(mapv (comp str ns-name) (all-ns))")
 (defmethod make-repl-expression [:clj 'get-all-vars-for-ns] [_ _ nsname] (format "(->> (ns-interns '%s) keys (mapv str))" nsname))
-(defmethod make-repl-expression '[:clj get-var-meta] [_ _ var-ns var-name] (format "(meta (var %s/%s))" var-ns var-name))
+(defmethod make-repl-expression '[:clj get-var-meta] [_ _ var-ns var-name] (format "(-> (meta #'%s/%s) (update :ns (comp str ns-name)))" var-ns var-name))
 
 (defmethod make-repl-expression '[:clj instrument-namespaces]
   [_ _ nsnames profile]
@@ -174,13 +175,16 @@
 
   (get-var-form-str [_ var-ns var-name] (eval-str-expr env-kind (make-repl-expression env-kind 'get-var-form-str var-ns var-name)))
 
-  (eval-form [_ form-str {:keys [instrument? instrument-options ns]}]
-    ;; TODO: figure out if it is a var and reset its meta
-    (let [form-expr (if instrument?
+  (eval-form [this form-str {:keys [instrument? instrument-options var-name ns]}]
+    (let [var-meta (when var-name (select-keys (get-var-meta this ns var-name) [:file :column :end-column :line :end-line]))
+          form-expr (if instrument?
                       (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
-                      form-str)]
-      (eval-str-expr env-kind form-expr ns)))
-
+                      form-str)
+          expr-res (eval-str-expr env-kind form-expr ns)]
+      (when var-meta
+        ;; for vars restore the meta attributes that get lost when we re eval from the repl
+        (eval-str-expr env-kind (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
+      expr-res))
 
   (get-all-namespaces [_] (eval-str-expr env-kind (make-repl-expression env-kind 'get-all-namespaces )))
   (get-all-vars-for-ns [_ nsname] (eval-str-expr env-kind (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
@@ -191,17 +195,13 @@
                  {:disable #{:expr :binding :anonymous-fn}}
                  {})]
       (case env-kind
-
-        ;; for ClojureScript do it via the repl
-        ;; TODO: generate instrumentation events
         :cljs (re-eval-all-ns-forms (partial eval-str-expr env-kind) nsnames {:instrument? true
                                                                               :instrument-options opts})
+
        :clj (websocket/sync-remote-api-request :instrument-namespaces [nsnames opts]))))
 
   (uninstrument-namespaces [this nsnames]
     (case env-kind
-      ;; for ClojureScript do it via the repl
-      ;; TODO: generate uninstrumentation events
       :cljs (re-eval-all-ns-forms (partial eval-str-expr env-kind) nsnames {:instrument? false})
 
       ;; for Clojure just call the api
@@ -218,6 +218,10 @@
 
 (defn get-and-eval-form [api var-ns var-name instrument?]
   (let [var-form-str (get-var-form-str api var-ns var-name)]
-    (eval-form rt-api var-form-str {:instrument? instrument?
-                                    :ns var-ns
-                                    :var-name var-name})))
+
+    (if var-form-str
+      (eval-form rt-api var-form-str {:instrument? instrument?
+                                      :ns var-ns
+                                      :var-name var-name})
+
+      (log-error (utils/format "Couldn't retrieve the source for #'%s/%s" var-ns var-name) ))))
