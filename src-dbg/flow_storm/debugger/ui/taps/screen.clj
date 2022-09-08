@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.taps.screen
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [event-handler button label list-view h-box v-box]]
+             :refer [button label list-view h-box v-box]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector])
@@ -35,14 +35,8 @@
                                   (let [val (first sel-items)]
                                     (value-inspector/create-inspector val))))
                     :selection-mode :single})
-        clear-btn (doto (button "clear")
-                    (.setOnAction (event-handler
-                                   [_]
-                                   ;; TODO: https://github.com/jpmonettas/flow-storm-debugger/issues/38
-                                   ;; when vals are remote send a command to clear all (get-all-items)
-
-                                   ;; clear the list
-                                   (clear-all-taps))))
+        clear-btn (button :label "clear"
+                          :on-click (fn [] (clear-all-taps)))
         header-pane (doto (h-box [clear-btn])
                       (.setAlignment Pos/CENTER_RIGHT))
         mp (v-box [header-pane list-view-pane])]

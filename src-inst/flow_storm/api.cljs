@@ -4,7 +4,8 @@
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.debuggers-api :as dbg-api])
+            [flow-storm.runtime.debuggers-api :as dbg-api]
+            [flow-storm.tracer])
   (:require-macros [flow-storm.api]))
 
 (defn remote-connect [config]

@@ -79,7 +79,8 @@
                          (.setPrefWidth 50)
                          (.setAlignment Pos/CENTER))
         search-match-lbl (label "" "link-lbl")
-        search-btn (ui-utils/icon-button "mdi-magnify" "tree-search")
+        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
+                                         :class "tree-search")
         search (fn [] (log "Searching")
                  (.setDisable search-btn true)
                  (doto search-match-lbl
@@ -125,12 +126,14 @@
                                                           (log "No match found")))
 
                                                       (ui-utils/run-later (.setDisable search-btn false))))))]
+
+    (.setOnAction search-btn (event-handler [_] (search)))
+
     (.setOnKeyReleased search-txt (event-handler
                                    [kev]
                                    (when (= (.getCode kev) KeyCode/ENTER)
                                      (search))))
 
-    (.setOnAction search-btn (event-handler [_] (search)))
     (doto (h-box [search-match-lbl
                   search-txt
                   (label "From Idx: ")   search-from-txt
@@ -160,10 +163,10 @@
                   expanded? (or (nil? frame-idx)
                                 (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
                   tree-item (.getTreeItem this)
-                  update-tree-btn (doto (icon-button "mdi-reload" "reload-tree-btn")
-                                    (.setOnAction (event-handler
-                                                   [_]
-                                                   (update-call-stack-tree-pane flow-id thread-id))))]
+                  update-tree-btn (icon-button :icon-name "mdi-reload"
+                                               :class "reload-tree-btn"
+                                               :on-click (fn []
+                                                           (update-call-stack-tree-pane flow-id thread-id)))]
 
               (if (dummy-root-frame? frame)
 

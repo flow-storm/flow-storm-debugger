@@ -3,6 +3,7 @@
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.nrepl :as dbg-nrepl]
             [flow-storm.debugger.websocket :as websocket]
+            [flow-storm.debugger.config :refer [config]]
             [clojure.string :as str]
             [clojure.repl :as clj-repl])
   (:import [java.io Closeable]))
@@ -12,7 +13,7 @@
 (declare rt-api)
 
 (defstate rt-api
-  :start (let [{:keys [local?] :as config} (mount/args)]
+  :start (let [{:keys [local?]} config]
            (if local?
 
              (->LocalRuntimeApi)

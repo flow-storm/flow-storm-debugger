@@ -2,6 +2,7 @@
   (:require [flow-storm.utils :refer [log log-error]]
             [flow-storm.json-serializer :as serializer]
             [mount.core :as mount :refer [defstate]]
+            [flow-storm.debugger.config :refer [config]]
             [clojure.core.async :as async])
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
@@ -14,7 +15,7 @@
 (declare websocket-server)
 
 (defstate websocket-server
-  :start (start-websocket-server (mount/args))
+  :start (start-websocket-server config)
   :stop  (stop-websocket-server))
 
 (defn async-remote-api-request [method args callback]

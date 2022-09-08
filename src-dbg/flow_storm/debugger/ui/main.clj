@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.main
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
+             :refer [icon-button event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -12,11 +12,13 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io]
+            [flow-storm.debugger.config :refer [config]]
             [mount.core :as mount :refer [defstate]])
   (:import [com.jthemedetecor OsThemeDetector]
-           [javafx.scene Scene]
+           [javafx.scene Scene Node]
            [javafx.stage Stage]
            [javafx.geometry Pos]
+           [javafx.scene.control ToolBar]
            [javafx.application Platform]))
 
 (declare start-ui)
@@ -24,8 +26,19 @@
 (declare ui)
 
 (defstate ui
-  :start (start-ui (mount/args))
+  :start (start-ui config)
   :stop  (stop-ui))
+
+(defn clear-all []
+  (log "Removing all taps")
+  (taps-screen/clear-all-taps)
+
+  (log "Removing all flows")
+  (doseq [fid (dbg-state/all-flows-ids)]
+    (flows-screen/fully-remove-flow fid))
+
+  (log "Clearing values")
+  (runtime-api/interrupt-all-tasks rt-api))
 
 (defn bottom-box []
   (let [box (doto (h-box [] "main-bottom-bar-box")
@@ -84,8 +97,25 @@
 
     tabs-p))
 
+(defn- build-tool-bar-pane []
+  (let [tools [(icon-button :icon-name "mdi-lan-connect"
+                            :tooltip "Re-connect to repl server"
+                            :on-click (fn []
+                                        ;; restart the runtime api which will restart the repl connection
+                                        (mount/stop (mount/only [#'flow-storm.debugger.runtime-api/rt-api]))
+                                        (mount/start (mount/only [#'flow-storm.debugger.runtime-api/rt-api])))
+                            :disable (:local? config))
+               (icon-button :icon-name "mdi-delete-forever"
+                            :tooltip "Clean all debugger and runtime values references"
+                            :on-click (fn [] (clear-all)))
+               (icon-button :icon-name "mdi-stop-circle-outline"
+                            :tooltip "Cancel current running task (search, etc)"
+                            :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api)))]]
+    (ToolBar. (into-array Node tools))))
+
 (defn- build-main-pane []
-  (let [mp (border-pane {:center (main-tabs-pane)
+  (let [mp (border-pane {:top (build-tool-bar-pane)
+                         :center (main-tabs-pane)
                          :bottom (bottom-box)})]
     (ui-utils/add-class mp "main-pane")
     mp))
@@ -139,17 +169,6 @@
                        (swap! stages conj stg))))
 
     theme-listener))
-
-(defn clear-all []
-  (log "Removing all taps")
-  (taps-screen/clear-all-taps)
-
-  (log "Removing all flows")
-  (doseq [fid (dbg-state/all-flows-ids)]
-    (flows-screen/fully-remove-flow fid))
-
-  (log "Clearing values")
-  (runtime-api/interrupt-all-tasks rt-api))
 
 (defn start-ui [config]
   ;; Initialize the JavaFX toolkit

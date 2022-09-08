@@ -32,7 +32,7 @@
   (.clear (.getChildren stack-bar-pane))
   (.addAll (.getChildren stack-bar-pane)
            (mapv (fn [[short-txt frame-pane]]
-                   (doto (button short-txt "stack-bar-btn")
+                   (doto (button :label short-txt :class "stack-bar-btn")
                      (.setOnAction
                       (event-handler
                        [_]
@@ -82,7 +82,7 @@
                                                               (.setText list-cell nil)
                                                               (.setGraphic list-cell (create-dig-node ctx elem)))})
         header-lbl (label (format "Count : %s" (if-let [cnt (:total-count shallow-v)] cnt "unknown")))
-        more-button (when (:val/more shallow-v) (button "More.."))
+        more-button (when (:val/more shallow-v) (button :label "More.."))
         change-more-handler-for-shallow (fn change-more-handler-for-shallow [{:keys [val/more]}]
                                           (if more
                                             (doto more-button
@@ -105,11 +105,9 @@
     container))
 
 (defn- create-shallow-frame-pane [ctx shallow-v]
-  (let [def-btn (doto (button "def" "def-btn")
-                  (.setOnAction
-                   (event-handler
-                    [_]
-                    (def-val (:val/full shallow-v)))))
+  (let [def-btn (button :label "def"
+                        :class "def-btn"
+                        :on-click (fn [] (def-val (:val/full shallow-v))))
         frame-pane (border-pane {:top (border-pane {:left (label (format "Type: %s" (:val/type shallow-v)))
                                                     :right def-btn}
                                                    "value-inspector-header")

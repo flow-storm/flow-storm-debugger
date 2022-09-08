@@ -23,8 +23,8 @@
         print-level-txt (doto (TextField. "5")
                           (.setPrefWidth 50)
                           (.setAlignment Pos/CENTER))
-        def-btn (button "def" "def-btn")
-        inspect-btn (button "ins" "def-btn")
+        def-btn (button :label "def" :class "def-btn")
+        inspect-btn (button :label "ins" :class "def-btn")
         tools-box (doto (h-box [(label "*print-level*") print-level-txt
                                 (label "*print-meta*") print-meta-chk
                                 def-btn

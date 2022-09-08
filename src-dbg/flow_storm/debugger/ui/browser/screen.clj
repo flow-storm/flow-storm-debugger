@@ -165,7 +165,7 @@
 
 (defn create-fn-details-pane []
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
-        inst-button (button "Instrument" "browser-instrument-btn")
+        inst-button (button :label "Instrument" :class "browser-instrument-btn")
         name-box (doto (h-box [selected-fn-fq-name-label inst-button])
                    (.setAlignment Pos/CENTER_LEFT))
         selected-fn-added-label (label "" "browser-fn-attr")
@@ -195,10 +195,9 @@
                                 inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
                                                        (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
                                            (.setSpacing 10))
-                                inst-del-btn (doto (button "del" "browser-instr-del-btn")
-                                               (.setOnAction (event-handler
-                                                              [_]
-                                                              (uninstrument-function var-ns var-name true))))]
+                                inst-del-btn (button :label "del"
+                                                     :class "browser-instr-del-btn"
+                                                     :on-click (fn [] (uninstrument-function var-ns var-name true)))]
                             (doto (h-box [inst-lbl inst-del-btn])
                               (.setSpacing 10)
                               (.setAlignment Pos/CENTER_LEFT)))
@@ -206,10 +205,9 @@
                                inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
                                                       (label ns-name "browser-instr-label")])
                                           (.setSpacing 10))
-                               inst-del-btn (doto (button "del" "browser-instr-del-btn")
-                                              (.setOnAction (event-handler
-                                                             [_]
-                                                             (uninstrument-namespaces [inst-ns] true))))]
+                               inst-del-btn (button :label "del"
+                                                    :class "browser-instr-del-btn"
+                                                    :on-click (fn [] (uninstrument-namespaces [inst-ns] true)))]
                            (doto (h-box [inst-lbl inst-del-btn])
                              (.setSpacing 10)
                              (.setAlignment Pos/CENTER_LEFT))))]
@@ -220,17 +218,16 @@
   (let [{:keys [list-view-pane get-all-items] :as lv-data} (list-view {:editable? false
                                                                       :selection-mode :single
                                                                       :cell-factory-fn instrumentations-cell-factory})
-        delete-all-btn (doto (button "Delete all")
-                         (.setOnAction (event-handler
-                                        [_]
-                                        (let [type-groups (group-by :inst-type (get-all-items))
-                                              del-namespaces   (:ns type-groups)
-                                              del-vars (:var type-groups)]
+        delete-all-btn (button :label "Delete all"
+                               :on-click (fn []
+                                           (let [type-groups (group-by :inst-type (get-all-items))
+                                                 del-namespaces   (:ns type-groups)
+                                                 del-vars (:var type-groups)]
 
-                                          (uninstrument-namespaces del-namespaces true)
+                                             (uninstrument-namespaces del-namespaces true)
 
-                                          (doseq [v del-vars]
-                                            (uninstrument-function (:var-ns v) (:var-name v) true))))))
+                                             (doseq [v del-vars]
+                                               (uninstrument-function (:var-ns v) (:var-name v) true)))))
         en-dis-chk (doto (CheckBox.)
                      (.setSelected true))
         _ (.setOnAction en-dis-chk

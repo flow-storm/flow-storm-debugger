@@ -5,6 +5,7 @@
             [flow-storm.debugger.events-processor :as events-processor]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
+            [flow-storm.debugger.config]
             [mount.core :as mount]))
 
 (def flow-storm-core-ns 'flow-storm.core)
@@ -15,7 +16,8 @@
   This exists so `start-debugger`, `stop-debugger` don't mess with other
   states when the debugger is used inside a application that uses mount."
 
-  [#'flow-storm.debugger.ui.state-vars/ui-objs
+  [#'flow-storm.debugger.config/config
+   #'flow-storm.debugger.ui.state-vars/ui-objs
    #'flow-storm.debugger.ui.state-vars/flows-ui-objs
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
    #'flow-storm.debugger.state/state

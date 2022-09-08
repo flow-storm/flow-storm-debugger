@@ -2,7 +2,7 @@
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator TextField TableView TableColumn TableCell
-            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane]
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
@@ -86,24 +86,35 @@
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
 
-(defn button
-  ([lbl]
-   (button lbl nil))
-  ([lbl class]
-   (let [b (Button. lbl)]
-     (when class
-       (.add (.getStyleClass b) class))
-     b)))
+(defn button [& {:keys [label class on-click disable]}]
+  (let [b (Button. label)]
 
-(defn icon-button
-  ([icon-name]
-   (icon-button icon-name nil))
-  ([^String icon-name class]
-   (let [b (doto (Button.)
-             (.setGraphic (FontIcon. icon-name)))]
-     (when class
-       (.add (.getStyleClass b) class))
-     b)))
+    (when on-click
+      (.setOnAction b (event-handler [_] (on-click))))
+
+    (when class
+      (.add (.getStyleClass b) class))
+
+    (when disable
+      (.setDisable b true))
+
+    b))
+
+(defn icon-button [& {:keys [icon-name class on-click disable tooltip]}]
+  (let [b (doto (Button.)
+            (.setGraphic (FontIcon. icon-name)))]
+
+    (when tooltip (.setTooltip b (Tooltip. tooltip)))
+    (when on-click
+      (.setOnAction b (event-handler [_] (on-click))))
+
+    (when class
+      (.add (.getStyleClass b) class))
+
+    (when disable
+      (.setDisable b true))
+
+    b))
 
 (defn v-box
   ([childs] (v-box childs nil))

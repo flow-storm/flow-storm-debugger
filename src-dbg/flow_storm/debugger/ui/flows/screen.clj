@@ -54,14 +54,13 @@
         (.addAll [flow-tab]))))
 
 (defn- create-thread-controls-pane [flow-id thread-id]
-  (let [first-btn (doto (ui-utils/icon-button "mdi-page-first")
-                   (.setOnAction (event-handler [ev] (flow-code/jump-to-coord flow-id thread-id 0))))
-        prev-btn (doto (ui-utils/icon-button "mdi-chevron-left")
-                   (.setOnAction (event-handler
-                                  [ev]
-                                  (flow-code/jump-to-coord flow-id
-                                                 thread-id
-                                                 (dec (dbg-state/current-idx flow-id thread-id))))))
+  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
+                                        :on-click (fn [] (flow-code/jump-to-coord flow-id thread-id 0)))
+        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
+                                       :on-click (fn [] (flow-code/jump-to-coord flow-id
+                                                                                 thread-id
+                                                                                 (dec (dbg-state/current-idx flow-id thread-id)))))
+
         curr-trace-text-field (doto (text-field {:initial-text "1"
                                             :on-return-key (fn [idx-str]
                                                              (flow-code/jump-to-coord flow-id
@@ -77,25 +76,26 @@
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
-        next-btn (doto (ui-utils/icon-button "mdi-chevron-right")
-                   (.setOnAction (event-handler
-                                  [ev]
-                                  (flow-code/jump-to-coord flow-id
-                                                 thread-id
-                                                 (inc (dbg-state/current-idx flow-id thread-id))))))
-        last-btn (doto (ui-utils/icon-button "mdi-page-last")
-                   (.setOnAction (event-handler
-                                  [ev]
-                                  (flow-code/jump-to-coord flow-id
-                                                           thread-id
-                                                           (dec (runtime-api/timeline-count rt-api flow-id thread-id ))))))
-        re-run-flow-btn (doto (ui-utils/icon-button "mdi-cached")
-                          (.setOnAction (event-handler
-                                         [_]
-                                         (when execution-expression?
-                                           (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
-                                                                                                 :ns (:ns execution-expr)}))))
-                          (.setDisable (not execution-expression?)))
+        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
+                                       :on-click (fn []
+                                                   (flow-code/jump-to-coord flow-id
+                                                                            thread-id
+                                                                            (inc (dbg-state/current-idx flow-id thread-id)))))
+
+        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
+                                       :on-click (fn []
+                                                   (flow-code/jump-to-coord flow-id
+                                                                            thread-id
+                                                                            (dec (runtime-api/timeline-count rt-api flow-id thread-id )))))
+
+        re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
+                                              :on-click (fn []
+                                                          (when execution-expression?
+                                                            (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
+                                                                                                                  :ns (:ns execution-expr)})))
+                                              :disable (not execution-expression?))
+
+
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
         controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
