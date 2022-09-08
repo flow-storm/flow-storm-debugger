@@ -54,7 +54,7 @@
          'struct-map #'pp/pprint-hold-first, 'ns #'pp/pprint-ns
          })))
 
-(defn code-pprint [form]
+(defn- code-pprint [form]
   ;; Had to hack pprint like this because code pprinting replace (fn [arg#] ... arg# ...) with #(... % ...)
   ;; and #' with var, deref with @ etc, wich breaks our pprintln system
   ;; This is super hacky! because I wasn't able to use with-redefs (it didn't work) I replace
@@ -106,6 +106,18 @@
       (= :nl t) (println)
       :else     (print (first t))))
   (println))
+
+(defn pprint-form-hl-coord [form c]
+  (let [tokens (pprint-tokens form)]
+    (doseq [tok tokens]
+      (let [txt (case tok
+                  :sp " "
+                  :nl "\n"
+                  (let [[txt coor] tok]
+                    (if (= coor c)
+                      (utils/colored-string txt :red)
+                      txt)))]
+        (print txt)))))
 
 (comment
 

@@ -1,14 +1,17 @@
 (ns dev
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.main :as main]
+            [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.runtime.indexes.frame-index :as frame-index]
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error]]
             [clojure.tools.namespace.repl :refer [refresh]]
+            [flow-storm.debugger.form-pprinter :as form-pprinter]
             [dev-tester]
-            [flow-storm.api-v2-0-38-FLOWNS :as dbg-api]))
+            [flow-storm.api-v2-0-38-FLOWNS :as dbg-api]
+            [flow-storm.utils :as utils]))
 
 
 (javafx.embed.swing.JFXPanel.)
@@ -118,5 +121,49 @@
                    []))))
 
   (frame-similar-values 32) ;; sum
+
+  ;; Create a small debugger for the repl
+  ;; -------------------------------------------------------------------------------------------
+
+  (def idx (atom 0))
+
+  (defn show-current []
+    (let [[flow-id thread-id] @index-api/selected-thread
+          {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
+          {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
+      (when coor
+        (form-pprinter/pprint-form-hl-coord form coor)
+        (println "\n")
+        (println "==[VAL]==>" (utils/colored-string result :yellow)))))
+
+  (defn step-next []
+    (swap! idx inc)
+    (show-current))
+
+  (defn step-prev []
+    (swap! idx dec)
+    (show-current))
+
+  ;; use the debugger
+  (index-api/print-threads)
+  (index-api/select-thread 0 16)
+
+  (step-next)
+  (step-prev)
+
+  ;; ---------------------------------------------------------------------------------------------
+
+
+  )
+
+(defn show-current []
+    (let [[flow-id thread-id] @index-api/selected-thread
+          {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
+          form (index-api/get-form flow-id thread-id form-id)]
+      (prn ">>>" form)))
+;; forms instrumentation
+(comment
+
+  (inst-forms/instrument {} '(defn foo [a b] (+ a b)))
 
   )
