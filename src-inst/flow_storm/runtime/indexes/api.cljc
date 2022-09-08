@@ -7,7 +7,7 @@
             [flow-storm.runtime.events :as events]
             [clojure.string :as str]
             [clojure.core.async :as async]
-            ))
+            [clojure.pprint :as pp]))
 
 (declare discard-flow)
 
@@ -101,7 +101,7 @@
   (let [{:keys [forms-index]} (get-thread-indexes flow-id thread-id)]
     (forms-index/all-forms forms-index)))
 
-(defn timeline-count [ flow-id thread-id]
+(defn timeline-count [flow-id thread-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (frame-index/timeline-count frame-index)))
 
@@ -218,3 +218,67 @@
              (apply dissoc flows-threads discard-keys))))) 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities for exploring indexes from the repl ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def selected-thread (atom nil))
+
+(defn print-threads []
+  (->> (all-threads)
+       (map #(zipmap [:flow-id :thread-id] %))
+       pp/print-table))
+
+(defn select-thread [flow-id thread-id]
+  (reset! selected-thread [flow-id thread-id]))
+
+(defn print-forms []  
+  (let [[flow-id thread-id] @selected-thread]
+    (->> (all-forms flow-id thread-id)
+         (map #(dissoc % :form/flow-id ))
+         pp/print-table)))
+
+(comment
+  (print-threads)
+  (select-thread 0 16)
+  (print-forms)
+
+  ;; Synthesizing all the spec information for parameters that flow into a function
+  (defn fn-signatures [fn-ns fn-name]
+    (let [[flow-id thread-id] @selected-thread
+          {:keys [frame-index]} (get-thread-indexes flow-id thread-id)
+          frames (frame-index/timeline-frame-seq frame-index)
+          sampled-args (->> frames
+                            (reduce (fn [coll-samples frame]
+                                      (if (and (= fn-ns (:fn-ns frame))
+                                               (= fn-name (:fn-name frame)))
+                                        
+                                        (conj coll-samples (:args-vec frame))
+
+                                        coll-samples))
+                                    []))
+          signature-types (->> sampled-args
+                               (map (fn [args-v] (mapv type args-v)))
+                               (into #{}))]
+      signature-types))
+
+  (fn-signatures "dev-tester" "factorial")
+  (fn-signatures "dev-tester" "other-function")
+
+  ;; Visualization lenses over traces: say I have a loop-recur process in which I am computing
+  ;; new versions of an accumulated data structure, but I want to see only some derived data
+  ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
+
+  (defn frame-similar-values [idx]
+    (let [[flow-id thread-id] @selected-thread
+          {:keys [frame-index]} (get-thread-indexes flow-id thread-id)
+          frame (frame-index/frame-data frame-index 116)
+          target-exec (frame-index/timeline-entry frame-index 116)]
+      
+      (->> (:expr-executions frame)
+           (reduce (fn [coll-vals {:keys [coor result]}]
+                     (if (= coor (:coor target-exec))
+                       (conj coll-vals result)
+                       coll-vals))
+                   []))))
+  )

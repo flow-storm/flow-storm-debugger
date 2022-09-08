@@ -6,6 +6,7 @@
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
+           [java.net InetSocketAddress]
            [java.util UUID]))
 
 (declare start-websocket-server)

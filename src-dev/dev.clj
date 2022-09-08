@@ -28,7 +28,7 @@
 
   (fs-api/instrument-forms-for-namespaces
    #{"dev-tester"}
-   {:disable #_#{} #{:expr :anonymous-fn :binding}})
+   {:disable #{} #_#{:expr :anonymous-fn :binding}})
 
   #rtrace (dev-tester/boo [2 "hello" 6])
 
