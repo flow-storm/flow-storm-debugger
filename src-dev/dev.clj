@@ -42,6 +42,12 @@
 ;; Playing at the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment
+
+  (local-restart-everything)
+
+  )
+
 ;; instrument and run dev-tester namespaces
 (comment
 
@@ -86,18 +92,15 @@
     (let [[flow-id thread-id] @index-api/selected-thread
           {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
           frames (frame-index/timeline-frame-seq frame-index)
-          sampled-args (->> frames
-                            (reduce (fn [coll-samples frame]
-                                      (if (and (= fn-ns (:fn-ns frame))
-                                               (= fn-name (:fn-name frame)))
+          signature-types (->> frames
+                               (reduce (fn [coll-samples frame]
+                                         (if (and (= fn-ns (:fn-ns frame))
+                                                  (= fn-name (:fn-name frame)))
 
-                                        (conj coll-samples (:args-vec frame))
+                                           (conj coll-samples (mapv type (:args-vec frame)))
 
-                                        coll-samples))
-                                    []))
-          signature-types (->> sampled-args
-                               (map (fn [args-v] (mapv type args-v)))
-                               (into #{}))]
+                                           coll-samples))
+                                       #{}))]
       signature-types))
 
   (fn-signatures "dev-tester" "factorial")
@@ -106,21 +109,20 @@
   ;; Visualization lenses over traces: say I have a loop-recur process in which I am computing
   ;; new versions of an accumulated data structure, but I want to see only some derived data
   ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
-
   (defn frame-similar-values [idx]
     (let [[flow-id thread-id] @index-api/selected-thread
           {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-          frame (frame-index/frame-data frame-index 116)
-          target-exec (frame-index/timeline-entry frame-index 116)]
+          {:keys [expr-executions]} (frame-index/frame-data frame-index idx)
+          {:keys [coor]} (frame-index/timeline-entry frame-index idx)]
 
-      (->> (:expr-executions frame)
-           (reduce (fn [coll-vals {:keys [coor result]}]
-                     (if (= coor (:coor target-exec))
-                       (conj coll-vals result)
+      (->> expr-executions
+           (reduce (fn [coll-vals expr-exec]
+                     (if (= coor (:coor expr-exec))
+                       (conj coll-vals (:result expr-exec))
                        coll-vals))
                    []))))
 
-  (frame-similar-values 32) ;; sum
+  (frame-similar-values (dec 109)) ;; sum
 
   ;; Create a small debugger for the repl
   ;; -------------------------------------------------------------------------------------------
@@ -156,14 +158,9 @@
 
   )
 
-(defn show-current []
-    (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
-          form (index-api/get-form flow-id thread-id form-id)]
-      (prn ">>>" form)))
 ;; forms instrumentation
 (comment
 
-  (inst-forms/instrument {} '(defn foo [a b] (+ a b)))
+  (inst-forms/instrument {:disable #{}} '(defn foo [a b] ^{:meta true} (conj [] b)))
 
   )
