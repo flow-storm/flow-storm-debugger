@@ -63,6 +63,8 @@
      ;; start the debugger UI
      (start-debugger config)
 
+     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-processor/process-event))
+
      (rt-taps/setup-tap!))))
 
 (defn remote-connect [config]

@@ -80,7 +80,10 @@ First you need to add FlowStorm dependency to your project dependencies, like th
 ----
 $ cat shadow-cljs.edn
 
-{:dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]] ...} 
+{...
+ :dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]]
+ :nrepl {:port 9000}
+ ...} 
 ----
 
 Then lets say you start your repl like :

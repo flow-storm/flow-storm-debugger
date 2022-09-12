@@ -9,16 +9,7 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.ui.utils :as ui-utils]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]
-            [mount.core :as mount :refer [defstate]]))
-
-(declare process-event)
-(declare event-subscription)
-(defstate event-subscription
-  :start (let [subscribe! (requiring-resolve 'flow-storm.runtime.events/subscribe!)]
-           (subscribe! process-event))
-  :stop (let [clear-subscription! (requiring-resolve 'flow-storm.runtime.events/clear-subscription!)]
-          (clear-subscription!)))
+            [flow-storm.debugger.ui.state-vars :as ui-vars]))
 
 (defn var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later

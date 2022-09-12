@@ -22,7 +22,6 @@
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
    #'flow-storm.debugger.state/state
    #'flow-storm.debugger.ui.main/ui
-   #'flow-storm.debugger.events-processor/event-subscription
    #'flow-storm.debugger.runtime-api/rt-api])
 
 (def remote-debugger-mount-vars

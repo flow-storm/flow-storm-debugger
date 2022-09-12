@@ -197,13 +197,18 @@
      (cljs-repl/source-fn &env symb)))
 
 #?(:clj
-   (defn- cljs-file-forms [ns-symb file-url]
-     (binding [*ns* (ana-api/find-ns ns-symb)]
-       (let [file-forms (read-string {:read-cond :allow}
-                                     (format "[%s]" (slurp file-url)))]
-         (->> file-forms
-              rest ;; discard the (ns ...) form
-              (mapv str))))))
+   (defn- cljs-file-forms [ns-symb file-url]     
+     (let [found-ns (ana-api/find-ns ns-symb)]
+       (try
+         (binding [*ns* found-ns]           
+           (let [file-str (format "[%s]" (slurp file-url))
+                 file-forms (read-string {:read-cond :allow} file-str)]
+            (->> file-forms
+                 rest ;; discard the (ns ...) form
+                 (mapv str))))
+         (catch Exception e
+           (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
+           (.printStackTrace e))))))
 
 #?(:clj
    (defmacro cljs-sorted-namespaces-sources
