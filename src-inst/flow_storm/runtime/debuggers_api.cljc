@@ -7,12 +7,14 @@
             #?@(:clj [[flow-storm.instrument.forms :as inst-forms]
                       [flow-storm.instrument.namespaces :as inst-ns]
                       [cljs.repl :as cljs-repl]
+                      [cljs.analyzer :as ana]
                       [cljs.analyzer.api :as ana-api]
-                      [clojure.java.io :as io]
+                      [clojure.java.io :as io]                      
                       [clojure.set :as set]
                       [clojure.tools.namespace.parse :as tools-ns-parse]
                       [clojure.tools.namespace.file :as tools-ns-file]
-                      [clojure.tools.namespace.dependency :as tools-ns-deps]])))
+                      [clojure.tools.namespace.dependency :as tools-ns-deps]]))
+  #?(:clj (:import [java.io StringReader])))
 
 ;; Utilities for long interruptible tasks
 
@@ -200,9 +202,9 @@
    (defn- cljs-file-forms [ns-symb file-url]     
      (let [found-ns (ana-api/find-ns ns-symb)]
        (try
-         (binding [*ns* found-ns]           
-           (let [file-str (format "[%s]" (slurp file-url))
-                 file-forms (read-string {:read-cond :allow} file-str)]
+         (binding [ana/*cljs-ns* ns-symb]           
+           (let [file-str (slurp file-url)
+                 file-forms (ana-api/forms-seq (StringReader. file-str))]
             (->> file-forms
                  rest ;; discard the (ns ...) form
                  (mapv str))))
