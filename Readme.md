@@ -23,64 +23,12 @@ Instrumentation artifact :
 	- jdk11+
     - clojure 1.10.0+
 
-# Documentation
+# QuickStart and Documentation
 
-Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html)
+If you want to use it with Clojure cheackout the [Clojure QuickStart guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojure)
+or the [ClojureScript QuickStart Guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
-# QuickStart (Clojure)
-
-To check that it is working you can run a repl with both deps in your dependencies :
-
-```bash
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'
-```
-
-and then :
-
-```clojure
-user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
-
-user> (fs-api/local-connect) ;; will run the debbuger GUI and get everything ready
-
-user> #rtrace (reduce + (map inc (range 10)))
-```
-
-Calling `flow-storm.api/local-connect` will start the debugger UI under the same JVM your program is running. This is the recommended way of debugging Clojure applications since it is the fastest, 
-but this isn't always possible. 
-If you need to run your debugger remotley check [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html)
-
-# QuickStart (ClojureScript)
-
-FlowStorm ClojureScript is in its infancy and doesn't support every feature, take a look at the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for more info.
-
-First run a standalone debugger :
-
-```
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
-```
-
-Then add [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst) to your ClojureScript project.
-
-Lets say you are using [shadow-cljs](https://clojurescript.org/tools/shadow-cljs), your shadow-cljs.edn should look like :
-
-```bash
-$ cat shadow-cljs.edn
-
-{...
- :dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]]}
- 
-$ shadow-cljs browser-repl 
-```
-
-Now on your ClojureScript repl :
-
-```clojure
-cljs.user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
-
-cljs.user> (fs-api/remote-connect) ;; will connect your JS runtime to the debugger via a websocket 
-
-cljs.user> #rtrace (reduce + (map inc (range 10))) ;; you can use #trace and #rtrace like in Clojure
-```
+Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
 
 ## Some demo videos
 

@@ -722,17 +722,25 @@ pre.rouge {
 <li><a href="#_browser_tool">5. Browser tool</a></li>
 <li><a href="#_taps_tool">6. Taps tool</a></li>
 <li><a href="#_value_inspector">7. Value inspector</a></li>
-<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">8. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
-<li><a href="#_styling_and_theming">9. Styling and theming</a></li>
-<li><a href="#_key_bindings">10. Key bindings</a></li>
-<li><a href="#_tutorials_and_demos">11. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">12. Troubleshooting</a>
+<li><a href="#_the_tool_bar">8. The tool bar</a></li>
+<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">9. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
+<li><a href="#_programmable_debugging">10. Programmable debugging</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">12.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">12.2. Run verbose</a></li>
+<li><a href="#_example_1">10.1. Example 1</a></li>
+<li><a href="#_example_2">10.2. Example 2</a></li>
+<li><a href="#_example_3">10.3. Example 3</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">13. Internals, diagrams and documentation</a></li>
+<li><a href="#_styling_and_theming">11. Styling and theming</a></li>
+<li><a href="#_key_bindings">12. Key bindings</a></li>
+<li><a href="#_tutorials_and_demos">13. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">14. Troubleshooting</a>
+<ul class="sectlevel3">
+<li><a href="#_instrument_verbose">14.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">14.2. Run verbose</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">15. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -821,8 +829,8 @@ should show the executed form. You can go ahead and use the stepping controls to
 <div class="sect3">
 <h4 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h4>
 <div class="paragraph">
-<p>Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the the debugger
-will run in a separate process, and the debuggee will connect to it throuhg a socket.</p>
+<p>Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
+will run in a separate process and connect to the debuggee by connecting to a ClojureScript repl.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -831,44 +839,19 @@ will run in a separate process, and the debuggee will connect to it throuhg a so
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">ClojureScript limitations</div>
+<div class="title">Connection limitations</div>
 <div class="paragraph">
-<p>ClojureScript support is still limited.
-Unsupported features :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>No browser</p>
-</li>
-<li>
-<p>No namespaces or library var instrumentation</p>
-</li>
-<li>
-<p>No re run flow</p>
-</li>
-</ul>
+<p>Currently only shadow-cljs repl over nrepl is supported.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>To start the debugger you run :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
-</div>
+<p>Lets say you are using <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> to start a ClojureScript repl.</p>
 </div>
 <div class="paragraph">
-<p>You should now see a empty debugger window.</p>
-</div>
-<div class="paragraph">
-<p>On your ClojureScript project you need to add only <code>com.github.jpmonettas/flow-storm-inst</code> dependency.</p>
-</div>
-<div class="paragraph">
-<p>The next example will use shadow-cljs but a similar approach will work with any cljs build tool.</p>
+<p>First you need to add FlowStorm dependency to your project dependencies, like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -876,6 +859,35 @@ Unsupported features :</p>
 
 <span class="o">{</span>:dependencies <span class="o">[</span>... <span class="o">[</span>com.github.jpmonettas/flow-storm-inst <span class="s2">"RELEASE"</span><span class="o">]]</span> ...<span class="o">}</span></code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Then lets say you start your repl like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">npx shadow-cljs browser-repl
+
+shadow-cljs - config: /home/jmonetta/demo/shadow-cljs.edn
+shadow-cljs - server version: 2.19.0 running at http://localhost:9630
+shadow-cljs - nREPL server started on port 9000
+<span class="o">[</span>:browser-repl] Configuring build.
+<span class="o">[</span>:browser-repl] Compiling ...
+<span class="o">[</span>:browser-repl] Build completed. <span class="o">(</span>127 files, 0 compiled, 0 warnings, 6.19s<span class="o">)</span>
+
+cljs.user<span class="o">=&gt;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port FlowStorm needs to connect to,
+so to start the debugger and connect to it you run :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And that is all you need, the debugger GUI will pop up and everything will be ready.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -921,18 +933,6 @@ Do this by running <code>npm install websocket --save</code></p>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>If you then run <code>shadow-cljs browser-repl</code>, a ClojureScript browser repl starts, where you can then :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w"> </span><span class="c1">;; the only namespace you need to require</span><span class="w">
-
-</span><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="p">)</span><span class="w"> </span><span class="c1">;; will connect your JS runtime to the debugger via a websocket</span><span class="w">
-
-</span><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; you can use #trace and #rtrace like in Clojure</span></code></pre>
-</div>
-</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -940,11 +940,11 @@ Do this by running <code>npm install websocket --save</code></p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">Initialization debugging</div>
+<div class="title">App initialization debugging</div>
 <div class="paragraph">
 <p>If you need to debug some app initialization code it could be that the websocket isn&#8217;t ready
-when you aready have something to trace. If this is the case you can use
-(fs-api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
+when you already have something to trace. If this is the case you can use
+(flow-storm.api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
 you are connected to the debugger.</p>
 </div>
 </td>
@@ -1004,31 +1004,31 @@ process and connect to it from the debuggee via sockets.</p>
 <div class="sect3">
 <h4 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">2.2. Remote debugging</a></h4>
 <div class="paragraph">
-<p>For running FlowStorm remoteley you first need to run a standalone debugger :</p>
+<p>You can remotely debug any Clojure application the exposes a nrepl server to it by running :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Then on your Clojure or ClojureScript project :</p>
+<p>assuming your nrepl server is listening on port 9000.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w">
-
-</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="p">)</span></code></pre>
-</div>
-</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Reconnecting</div>
 <div class="paragraph">
-<p>By default <code>remote-connect</code> will connect to <code>localhost</code> on port <code>7722</code>. You can change this by providing
-a host and a port like this :</p>
+<p>When you are remote debugging (Clojure or ClojureScript) and the debuggee restarts (like a browser page reload)
+you can reconnect to it without restarting the debugger by clicking at the reconnect button on the toolbar.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:host</span><span class="w"> </span><span class="s">"192.1681.7"</span><span class="w"> </span><span class="no">:port</span><span class="w"> </span><span class="mi">1234</span><span class="p">})</span></code></pre>
-</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1637,7 +1637,34 @@ to dig deeper into the data.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">8. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
+<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">8. The tool bar</a></h3>
+<div class="paragraph">
+<p>The toolbar provides quick access to some general commands :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/toolbar.png" alt="toolbar">
+</div>
+</div>
+<div class="paragraph">
+<p>From left to right :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Reconnect to repl server (useful for page reloads in ClojureScript)</p>
+</li>
+<li>
+<p>Clean all. Will clean all flows, taps and every value the debugger is retaining.</p>
+</li>
+<li>
+<p>Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">9. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
 <div class="paragraph">
 <p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
 you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
@@ -1668,7 +1695,121 @@ run you original command.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">9. Styling and theming</a></h3>
+<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">10. Programmable debugging</a></h3>
+<div class="paragraph">
+<p>FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
+enough.</p>
+</div>
+<div class="paragraph">
+<p>Lets say you have traced some code and now you want to analyze the traces from the repl, this are some examples :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.runtime.indexes.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">index-api</span><span class="p">])</span><span class="w"> </span><span class="c1">;; first require the index-api</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">index-api/print-threads</span><span class="p">)</span><span class="w"> </span><span class="c1">;; you can print all threads</span><span class="w">
+</span><span class="p">(</span><span class="nf">index-api/print-forms</span><span class="p">)</span><span class="w"> </span><span class="c1">;; print all traced forms</span><span class="w">
+</span><span class="p">(</span><span class="nf">index-api/select-thread</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="c1">;; select the flow-id and thread-id, so you don't need to be constantly typing it</span></code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">10.1. Example 1</a></h4>
+<div class="paragraph">
+<p>Collect all the types information for parameters that flow into a function</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">fn-signatures</span><span class="w"> </span><span class="p">[</span><span class="n">fn-ns</span><span class="w"> </span><span class="n">fn-name</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">frame-index</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/get-thread-indexes</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">)</span><span class="w">
+        </span><span class="n">frames</span><span class="w"> </span><span class="p">(</span><span class="nf">frame-index/timeline-frame-seq</span><span class="w"> </span><span class="n">frame-index</span><span class="p">)</span><span class="w">
+        </span><span class="n">signature-types</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">frames</span><span class="w">
+                             </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">coll-samples</span><span class="w"> </span><span class="n">frame</span><span class="p">]</span><span class="w">
+                                       </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">fn-ns</span><span class="w"> </span><span class="p">(</span><span class="no">:fn-ns</span><span class="w"> </span><span class="n">frame</span><span class="p">))</span><span class="w">
+                                                </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">fn-name</span><span class="w"> </span><span class="p">(</span><span class="no">:fn-name</span><span class="w"> </span><span class="n">frame</span><span class="p">)))</span><span class="w">
+
+                                         </span><span class="p">(</span><span class="nb">conj</span><span class="w"> </span><span class="n">coll-samples</span><span class="w"> </span><span class="p">(</span><span class="nf">mapv</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">(</span><span class="no">:args-vec</span><span class="w"> </span><span class="n">frame</span><span class="p">)))</span><span class="w">
+
+                                         </span><span class="n">coll-samples</span><span class="p">))</span><span class="w">
+                                     </span><span class="o">#</span><span class="p">{}))]</span><span class="w">
+    </span><span class="n">signature-types</span><span class="p">))</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">fn-signatures</span><span class="w"> </span><span class="s">"dev-tester"</span><span class="w"> </span><span class="s">"factorial"</span><span class="p">)</span><span class="w">
+</span><span class="p">(</span><span class="nf">fn-signatures</span><span class="w"> </span><span class="s">"dev-tester"</span><span class="w"> </span><span class="s">"other-function"</span><span class="p">)</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">10.2. Example 2</a></h4>
+<div class="paragraph">
+<p>Visualization lenses over traces. Say I have a loop-recur process in which I am computing
+new versions of an accumulated data structure, but I want to see only some derived data
+instead of the entire data-structure (like, a visualization based on every frame of the loop).</p>
+</div>
+<div class="paragraph">
+<p>Lets say we stepped with the debugger to index 109 (some expression inside a loop),
+and we want to work with all the values for that coordinate from the repl, then you can :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">frame-similar-values</span><span class="w"> </span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">frame-index</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/get-thread-indexes</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">)</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">expr-executions</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">frame-index/frame-data</span><span class="w"> </span><span class="n">frame-index</span><span class="w"> </span><span class="n">idx</span><span class="p">)</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">coor</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">frame-index/timeline-entry</span><span class="w"> </span><span class="n">frame-index</span><span class="w"> </span><span class="n">idx</span><span class="p">)]</span><span class="w">
+
+    </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">expr-executions</span><span class="w">
+         </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">coll-vals</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">]</span><span class="w">
+                   </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">coor</span><span class="w"> </span><span class="p">(</span><span class="no">:coor</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">))</span><span class="w">
+                     </span><span class="p">(</span><span class="nb">conj</span><span class="w"> </span><span class="n">coll-vals</span><span class="w"> </span><span class="p">(</span><span class="no">:result</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">))</span><span class="w">
+                     </span><span class="n">coll-vals</span><span class="p">))</span><span class="w">
+                 </span><span class="p">[]))))</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">frame-similar-values</span><span class="w"> </span><span class="mi">109</span><span class="p">)</span><span class="w"> </span><span class="c1">;; get all the values</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">10.3. Example 3</a></h4>
+<div class="paragraph">
+<p>Create a small stepper for the repl</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.debugger.form-pprinter</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">form-pprinter</span><span class="p">])</span><span class="w"> </span><span class="c1">;; a helper for pprinting forms with highlighted parts</span><span class="w">
+
+</span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="p">(</span><span class="nf">atom</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="c1">;; the state of our debugger, where we are in the timeline</span><span class="w">
+
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">show-current</span><span class="w"> </span><span class="p">[]</span><span class="w">
+  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">coor</span><span class="w"> </span><span class="n">form-id</span><span class="w"> </span><span class="n">result</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/timeline-entry</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="o">@</span><span class="n">idx</span><span class="p">)</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">form/form</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/get-form</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="n">form-id</span><span class="p">)]</span><span class="w">
+    </span><span class="p">(</span><span class="nb">when</span><span class="w"> </span><span class="n">coor</span><span class="w">
+      </span><span class="p">(</span><span class="nf">form-pprinter/pprint-form-hl-coord</span><span class="w"> </span><span class="n">form</span><span class="w"> </span><span class="n">coor</span><span class="p">)</span><span class="w">
+      </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span><span class="w">
+      </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"==[VAL]==&gt;"</span><span class="w"> </span><span class="p">(</span><span class="nf">utils/colored-string</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="no">:yellow</span><span class="p">)))))</span><span class="w">
+
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">step-next</span><span class="w"> </span><span class="p">[]</span><span class="w">
+  </span><span class="p">(</span><span class="nf">swap!</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="nb">inc</span><span class="p">)</span><span class="w">
+  </span><span class="p">(</span><span class="nf">show-current</span><span class="p">))</span><span class="w">
+
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">step-prev</span><span class="w"> </span><span class="p">[]</span><span class="w">
+  </span><span class="p">(</span><span class="nf">swap!</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="nb">dec</span><span class="p">)</span><span class="w">
+  </span><span class="p">(</span><span class="nf">show-current</span><span class="p">))</span><span class="w">
+
+</span><span class="c1">;; use the debugger with</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">index-api/print-threads</span><span class="p">)</span><span class="w">
+</span><span class="p">(</span><span class="nf">index-api/select-thread</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="mi">16</span><span class="p">)</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">step-next</span><span class="p">)</span><span class="w">
+</span><span class="p">(</span><span class="nf">step-prev</span><span class="p">)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">11. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -1687,13 +1828,20 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">10. Key bindings</a></h3>
-<div class="paragraph">
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">12. Key bindings</a></h3>
+<div class="ulist">
+<ul>
+<li>
 <p><code>Ctrl-g</code> Cancel any long running task (only search supported yet)</p>
+</li>
+<li>
+<p><code>Ctrl-k</code> Clean all debugger state</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">11. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">13. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1721,16 +1869,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">12. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">14. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">12.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">14.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">12.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">14.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -1743,7 +1891,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">13. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">15. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1761,7 +1909,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-15 15:46:25 -0300
+Last updated 2022-09-12 10:43:42 -0300
 </div>
 </div>
 </body>

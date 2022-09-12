@@ -63,32 +63,18 @@ should show the executed form. You can go ahead and use the stepping controls to
 
 === ClojureScript
 
-Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the the debugger
-will run in a separate process, and the debuggee will connect to it throuhg a socket.
+Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
+will run in a separate process and connect to the debuggee by connecting to a ClojureScript repl.
 
 [NOTE]
-.ClojureScript limitations
+.Connection limitations
 ====
-ClojureScript support is still limited.
-Unsupported features :
-
-        - No browser 
-        - No namespaces or library var instrumentation
-        - No re run flow
+Currently only shadow-cljs repl over nrepl is supported.
 ====
 
-To start the debugger you run :
+Lets say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
 
-[,bash]
-----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
-----
-
-You should now see a empty debugger window.
-
-On your ClojureScript project you need to add only `com.github.jpmonettas/flow-storm-inst` dependency.
-
-The next example will use shadow-cljs but a similar approach will work with any cljs build tool.
+First you need to add FlowStorm dependency to your project dependencies, like this :
 
 [,bash]
 ----
@@ -96,6 +82,33 @@ $ cat shadow-cljs.edn
 
 {:dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]] ...} 
 ----
+
+Then lets say you start your repl like :
+
+[,bash]
+----
+npx shadow-cljs browser-repl
+
+shadow-cljs - config: /home/jmonetta/demo/shadow-cljs.edn
+shadow-cljs - server version: 2.19.0 running at http://localhost:9630
+shadow-cljs - nREPL server started on port 9000
+[:browser-repl] Configuring build.
+[:browser-repl] Compiling ...
+[:browser-repl] Build completed. (127 files, 0 compiled, 0 warnings, 6.19s)
+
+cljs.user=> 
+----
+
+As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port FlowStorm needs to connect to,
+so to start the debugger and connect to it you run :
+
+[,bash]
+----
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+----
+
+And that is all you need, the debugger GUI will pop up and everything will be ready. 
+
 [NOTE]
 .ClojureScript environments
 ====
@@ -114,26 +127,14 @@ On NodeJs and react-native you need to install the `websocket` library.
 Do this by running `npm install websocket --save`
 ====
 
-If you then run `shadow-cljs browser-repl`, a ClojureScript browser repl starts, where you can then :
-
-[,clojure]
-----
-cljs.user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
-
-cljs.user> (fs-api/remote-connect) ;; will connect your JS runtime to the debugger via a websocket 
-
-cljs.user> #rtrace (reduce + (map inc (range 10))) ;; you can use #trace and #rtrace like in Clojure
-----
-
 [NOTE]
-.Initialization debugging
+.App initialization debugging
 ====
 If you need to debug some app initialization code it could be that the websocket isn't ready
-when you aready have something to trace. If this is the case you can use
-(fs-api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
+when you already have something to trace. If this is the case you can use
+(flow-storm.api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
 you are connected to the debugger.
 ====
-
 
 == Starting the debugger
 
@@ -165,29 +166,22 @@ You can stop the debugger grecefully by calling `(fs-api/stop)`
 
 === Remote debugging
 
-For running FlowStorm remoteley you first need to run a standalone debugger :
+You can remotely debug any Clojure application the exposes a nrepl server to it by running :
 
 [,bash]
 ----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
 ----
 
-Then on your Clojure or ClojureScript project :
+assuming your nrepl server is listening on port 9000.
 
-[,clojure]
-----
-user> (require '[flow-storm.api :as fs-api])
+[NOTE]
+.Reconnecting
+====
+When you are remote debugging (Clojure or ClojureScript) and the debuggee restarts (like a browser page reload)
+you can reconnect to it without restarting the debugger by clicking at the reconnect button on the toolbar.
+====
 
-user> (fs-api/remote-connect)
-----
-
-By default `remote-connect` will connect to `localhost` on port `7722`. You can change this by providing
-a host and a port like this :
-
-[,clojure]
-----
-user> (fs-api/remote-connect {:host "192.1681.7" :port 1234})
-----
 
 == Instrument code
 
@@ -554,6 +548,18 @@ Use the `def` button to define the current value for the repl.
 Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore your objects also.
 ====
 
+== The tool bar
+
+The toolbar provides quick access to some general commands :
+
+image::user_guide_images/toolbar.png[]
+
+From left to right :
+
+- Reconnect to repl server (useful for page reloads in ClojureScript)
+- Clean all. Will clean all flows, taps and every value the debugger is retaining.
+- Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
+
 == Debug cmd line programs (clj -X, clj -m, etc)
 
 If you run any Clojure programs from the command line, by using `clj -X ...`, `clj -m ...` etc, 
@@ -581,6 +587,110 @@ clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.githu
                               :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
 ----
 
+== Programmable debugging
+
+FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
+enough.
+
+Lets say you have traced some code and now you want to analyze the traces from the repl, this are some examples :
+
+[,clojure]
+----
+(require '[flow-storm.runtime.indexes.api :as index-api]) ;; first require the index-api
+
+(index-api/print-threads) ;; you can print all threads
+(index-api/print-forms) ;; print all traced forms
+(index-api/select-thread 0 16) ;; select the flow-id and thread-id, so you don't need to be constantly typing it
+----
+
+=== Example 1 
+
+Collect all the types information for parameters that flow into a function
+
+[,clojure]
+----
+(defn fn-signatures [fn-ns fn-name]
+  (let [[flow-id thread-id] @index-api/selected-thread
+        {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
+        frames (frame-index/timeline-frame-seq frame-index)
+        signature-types (->> frames
+                             (reduce (fn [coll-samples frame]
+                                       (if (and (= fn-ns (:fn-ns frame))
+                                                (= fn-name (:fn-name frame)))
+
+                                         (conj coll-samples (mapv type (:args-vec frame)))
+
+                                         coll-samples))
+                                     #{}))]
+    signature-types))
+
+(fn-signatures "dev-tester" "factorial")
+(fn-signatures "dev-tester" "other-function")
+----
+
+=== Example 2
+
+Visualization lenses over traces. Say I have a loop-recur process in which I am computing
+new versions of an accumulated data structure, but I want to see only some derived data
+instead of the entire data-structure (like, a visualization based on every frame of the loop).
+
+Lets say we stepped with the debugger to index 109 (some expression inside a loop),
+and we want to work with all the values for that coordinate from the repl, then you can :
+
+[,clojure]
+----
+(defn frame-similar-values [idx]
+  (let [[flow-id thread-id] @index-api/selected-thread
+        {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
+        {:keys [expr-executions]} (frame-index/frame-data frame-index idx)
+        {:keys [coor]} (frame-index/timeline-entry frame-index idx)]
+
+    (->> expr-executions
+         (reduce (fn [coll-vals expr-exec]
+                   (if (= coor (:coor expr-exec))
+                     (conj coll-vals (:result expr-exec))
+                     coll-vals))
+                 []))))
+
+(frame-similar-values 109) ;; get all the values
+----
+
+=== Example 3
+
+Create a small stepper for the repl
+
+[,clojure]
+----
+(require '[flow-storm.debugger.form-pprinter :as form-pprinter]) ;; a helper for pprinting forms with highlighted parts
+
+(def idx (atom 0)) ;; the state of our debugger, where we are in the timeline
+
+(defn show-current []
+  (let [[flow-id thread-id] @index-api/selected-thread
+        {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
+        {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
+    (when coor
+      (form-pprinter/pprint-form-hl-coord form coor)
+      (println "\n")
+      (println "==[VAL]==>" (utils/colored-string result :yellow)))))
+
+(defn step-next []
+  (swap! idx inc)
+  (show-current))
+
+(defn step-prev []
+  (swap! idx dec)
+  (show-current))
+
+;; use the debugger with
+
+(index-api/print-threads)
+(index-api/select-thread 0 16)
+
+(step-next)
+(step-prev)
+----
+
 == Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map
@@ -598,7 +708,8 @@ You can overwrite all the styles defined here https://github.com/jpmonettas/flow
 
 == Key bindings
 
-`Ctrl-g` Cancel any long running task (only search supported yet)
+- `Ctrl-g` Cancel any long running task (only search supported yet)
+- `Ctrl-k` Clean all debugger state
 
 == Tutorials and demos
 

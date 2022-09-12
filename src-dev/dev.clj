@@ -10,7 +10,6 @@
             [clojure.tools.namespace.repl :refer [refresh]]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [dev-tester]
-            [flow-storm.api-v2-0-38-FLOWNS :as dbg-api]
             [flow-storm.utils :as utils]))
 
 
