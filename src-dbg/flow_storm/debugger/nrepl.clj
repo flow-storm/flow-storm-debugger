@@ -2,7 +2,6 @@
   (:require [nrepl.core :as nrepl]
             [nrepl.transport :as transport]
             [clojure.edn :as edn]
-            [flow-storm.utils :refer [log-error]]
             [clojure.java.io :as io]))
 
 (def log-file-path "./nrepl-client-debug")
@@ -55,8 +54,7 @@
 
                                    (try
                                      (edn/read-string (:value m1))
-                                     (catch Exception e
-                                       (log-error (.getMessage e))
+                                     (catch Exception _
                                        ;; if what we evaluated doesn't return valid edn
                                        ;; just return the value string
                                        (:value m1))))]
