@@ -22,8 +22,15 @@
 
 (defn reference-value! [v]  
   (when v
-    (let [vid (str (utils/rnd-uuid))]
-      (swap! *values-references assoc vid v)
+    (let [vid (utils/obj-uuid v)
+          vv (get @*values-references vid)]
+
+      (when (and vv (not= v vv))
+        (utils/log-error "Error! reference-value! obj-id collision. This shouldn't happen in Clojure but can happen in ClojureScript. Please report. "))
+      
+      (when-not vv
+        (swap! *values-references assoc vid v))
+      
       vid)))
 
 (defn clear-values-references []

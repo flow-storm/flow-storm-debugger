@@ -47,6 +47,11 @@
   #?(:clj (java.util.UUID/randomUUID)
      :cljs (.-uuid ^cljs.core/UUID (random-uuid))))
 
+(defn obj-uuid [o]
+  #?(:clj (System/identityHashCode o)
+     :cljs (hash o) ;; this is pretty dangerous and wrong since this things can happen (= (hash "Aa") (hash "BB")) but don't know how to do something like System/identityHashCode in js
+     ))
+
 (defn get-timestamp []
   #?(:cljs (.now js/Date)
      :clj (System/currentTimeMillis)))

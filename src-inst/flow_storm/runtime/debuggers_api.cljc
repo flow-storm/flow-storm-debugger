@@ -51,7 +51,10 @@
 
 (def def-value runtime-values/def-value)
 
-(def get-form indexes-api/get-form)
+(defn get-form [flow-id thread-id form-id]
+  (let [form (indexes-api/get-form flow-id thread-id form-id)]
+    (update form :multimethod/dispatch-val reference-value!)))
+
 (def all-threads indexes-api/all-threads)
 (def all-forms indexes-api/all-forms)
 (def timeline-count indexes-api/timeline-count)
@@ -60,6 +63,7 @@
   (-> frame-data
       (update :dispatch-val reference-value!)
       (update :args-vec reference-value!)
+      (update :ret reference-value!)
       (update :bindings (fn [bs]
                           (mapv #(update % :value reference-value!) bs)))
       (update :expr-executions (fn [ee]
