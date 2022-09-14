@@ -165,7 +165,7 @@
 }
 
 .browser-instr-type-lbl {
-	-fx-text-fill: -fx-theme-base1;
+	-fx-text-fill: -fx-theme-dim-text;
 }
 
 .browser-instr-tools-box {

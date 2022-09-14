@@ -56,12 +56,17 @@
   (interrupt-all-tasks [_])
   (clear-values-references [_]))
 
+(defmacro with-cache-disabled [& forms]
+  `(binding [*cache-enabled?* false]
+     ~@forms))
+
 ;; TODO: deduplicate the code of `cached-local-call` and `cached-remote-call`
 (defmacro cached-local-call [cache f-symb & args]
   (let [cache-key (into [(name f-symb)] args)]
     `(let [f# (requiring-resolve '~(symbol "flow-storm.runtime.debuggers-api" (name f-symb)))
            res# (get (deref ~cache) ~cache-key :flow-storm/cache-miss)]
-       (if (and *cache-enabled?* (= res# :flow-storm/cache-miss))
+       (if (or (not *cache-enabled?*)
+               (= res# :flow-storm/cache-miss))
 
          ;; miss
          (let [new-res# (f# ~@args)]
@@ -74,7 +79,8 @@
 (defn cached-remote-call [cache f-key args]
   (let [cache-key (into [f-key] args)
         res (get @cache cache-key :flow-storm/cache-miss)]
-    (if (and *cache-enabled?* (= res :flow-storm/cache-miss))
+    (if (or (not *cache-enabled?*)
+            (= res :flow-storm/cache-miss))
 
       ;; miss
       (let [new-res (websocket/sync-remote-api-request f-key args)]
@@ -91,17 +97,17 @@
   (val-pprint [_ v opts] (cached-local-call cache val-pprint v opts))
   (shallow-val [_ v] (cached-local-call cache shallow-val v))
   (get-form [_ flow-id thread-id form-id] (cached-local-call cache get-form flow-id thread-id form-id))
-  (timeline-count [_ flow-id thread-id] (cached-local-call cache timeline-count flow-id thread-id))
+  (timeline-count [_ flow-id thread-id] (with-cache-disabled (cached-local-call cache timeline-count flow-id thread-id)))
   (timeline-entry [_ flow-id thread-id idx] (cached-local-call cache timeline-entry flow-id thread-id idx))
   (frame-data [_ flow-id thread-id idx] (cached-local-call cache frame-data flow-id thread-id idx))
   (bindings [_ flow-id thread-id idx] (cached-local-call cache bindings flow-id thread-id idx))
   (callstack-tree-root-node [_ flow-id thread-id] (cached-local-call cache callstack-tree-root-node flow-id thread-id))
   (callstack-node-childs [_ node] (cached-local-call cache callstack-node-childs node))
   (callstack-node-frame [_ node] (cached-local-call cache callstack-node-frame node))
-  (fn-call-stats [_ flow-id thread-id] (cached-local-call cache fn-call-stats flow-id thread-id))
-  (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (cached-local-call cache find-fn-frames-light flow-id thread-id fn-ns fn-name form-id))
-  (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (cached-local-call cache search-next-frame-idx flow-id thread-id query-str from-idx opts))
-  (discard-flow [_ flow-id] (cached-local-call cache discard-flow flow-id))
+  (fn-call-stats [_ flow-id thread-id] (with-cache-disabled (cached-local-call cache fn-call-stats flow-id thread-id)))
+  (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (with-cache-disabled (cached-local-call cache find-fn-frames-light flow-id thread-id fn-ns fn-name form-id)))
+  (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (with-cache-disabled (cached-local-call cache search-next-frame-idx flow-id thread-id query-str from-idx opts)))
+  (discard-flow [_ flow-id] (with-cache-disabled (cached-local-call cache discard-flow flow-id)))
 
   (get-var-form-str [_ var-ns var-name] (clj-repl/source-fn (symbol var-ns var-name)))
   (eval-form [_ form-str {:keys [instrument? instrument-options var-name ns]}]
@@ -129,7 +135,7 @@
           ;; so when re-evaluating a var (probably a function) store and restore its meta
           (when v (reset-meta! v vmeta))))))
 
-  (def-value [_ v-name vref] (cached-local-call cache def-value v-name vref))
+  (def-value [_ v-name vref] (with-cache-disabled (cached-local-call cache def-value v-name vref)))
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
   (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
 
@@ -141,11 +147,14 @@
     (let [disable-set-str (if (= profile :light)
                             #{:expr :anonymous-fn :binding}
                             #{})]
-      (cached-local-call cache instrument-namespaces nsnames {:disable disable-set-str})))
-  (uninstrument-namespaces [_ nsnames] (cached-local-call cache uninstrument-namespaces nsnames))
+      (with-cache-disabled
+        (cached-local-call cache instrument-namespaces nsnames {:disable disable-set-str}))))
 
-  (interrupt-all-tasks [_] (cached-local-call cache interrupt-all-tasks))
-  (clear-values-references [_] (cached-local-call cache clear-values-references))
+  (uninstrument-namespaces [_ nsnames] (with-cache-disabled
+                                         (cached-local-call cache uninstrument-namespaces nsnames)))
+
+  (interrupt-all-tasks [_] (with-cache-disabled (cached-local-call cache interrupt-all-tasks)))
+  (clear-values-references [_] (with-cache-disabled (cached-local-call cache clear-values-references)))
   )
 
 (defmulti make-repl-expression (fn [env-kind fn-symb & _] [env-kind fn-symb]))
@@ -194,18 +203,19 @@
   (val-pprint [_ ref-id opts] (cached-remote-call cache :val-pprint [ref-id opts]))
   (shallow-val [_ ref-id] (cached-remote-call cache :shallow-val [ref-id]))
   (get-form [_ flow-id thread-id form-id] (cached-remote-call cache :get-form [flow-id thread-id form-id]))
-  (timeline-count [_ flow-id thread-id] (cached-remote-call cache :timeline-count [flow-id thread-id]))
+  ;; leave timeline count cache always disable, it doesn't make too much sense to cache it since it is constantly changing
+  (timeline-count [_ flow-id thread-id] (with-cache-disabled (cached-remote-call cache :timeline-count [flow-id thread-id])))
   (timeline-entry [_ flow-id thread-id idx] (cached-remote-call cache :timeline-entry [flow-id thread-id idx]))
   (frame-data [_ flow-id thread-id idx] (cached-remote-call cache :frame-data [flow-id thread-id idx]))
   (bindings [_ flow-id thread-id idx] (cached-remote-call cache :bindings [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (cached-remote-call cache :callstack-tree-root-node [flow-id thread-id]))
   (callstack-node-childs [_ node] (cached-remote-call cache :callstack-node-childs [node]))
   (callstack-node-frame [_ node] (cached-remote-call cache :callstack-node-frame [node]))
-  (fn-call-stats [_ flow-id thread-id] (cached-remote-call cache :fn-call-stats [flow-id thread-id]))
-  (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (cached-remote-call cache :find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id]))
-  (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (cached-remote-call cache :search-next-frame-idx [flow-id thread-id query-str from-idx opts]))
-  (discard-flow [_ flow-id] (cached-remote-call cache :discard-flow [flow-id]))
-  (def-value [_ v-name v] (cached-remote-call cache :def-value [v-name v]))
+  (fn-call-stats [_ flow-id thread-id] (with-cache-disabled (cached-remote-call cache :fn-call-stats [flow-id thread-id])))
+  (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (with-cache-disabled (cached-remote-call cache :find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id])))
+  (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (with-cache-disabled (cached-remote-call cache :search-next-frame-idx [flow-id thread-id query-str from-idx opts])))
+  (discard-flow [_ flow-id] (with-cache-disabled (cached-remote-call cache :discard-flow [flow-id])))
+  (def-value [_ v-name v] (with-cache-disabled (cached-remote-call cache :def-value [v-name v])))
 
   (get-var-form-str [_ var-ns var-name] (eval-str-expr env-kind (make-repl-expression env-kind 'get-var-form-str var-ns var-name)))
 
@@ -232,18 +242,22 @@
         :cljs (re-eval-all-ns-forms (partial eval-str-expr env-kind) nsnames {:instrument? true
                                                                               :instrument-options opts})
 
-       :clj (cached-remote-call cache :instrument-namespaces [nsnames opts]))))
+        :clj (with-cache-disabled
+               (cached-remote-call cache :instrument-namespaces [nsnames opts])))))
 
   (uninstrument-namespaces [_ nsnames]
     (case env-kind
       :cljs (re-eval-all-ns-forms (partial eval-str-expr env-kind) nsnames {:instrument? false})
 
       ;; for Clojure just call the api
-      :clj (cached-remote-call cache :uninstrument-namespaces [nsnames])))
+      :clj (with-cache-disabled
+             (cached-remote-call cache :uninstrument-namespaces [nsnames]))))
 
-  (interrupt-all-tasks [_] (cached-remote-call cache :interrupt-all-tasks []))
+  (interrupt-all-tasks [_] (with-cache-disabled
+                             (cached-remote-call cache :interrupt-all-tasks [])))
 
-  (clear-values-references [_] (cached-remote-call cache :clear-values-references []))
+  (clear-values-references [_] (with-cache-disabled
+                                 (cached-remote-call cache :clear-values-references [])))
 
 
   Closeable

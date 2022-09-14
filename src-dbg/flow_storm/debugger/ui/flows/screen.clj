@@ -84,9 +84,10 @@
 
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
                                        :on-click (fn []
-                                                   (flow-code/jump-to-coord flow-id
-                                                                            thread-id
-                                                                            (dec (runtime-api/timeline-count rt-api flow-id thread-id )))))
+                                                   (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id )]
+                                                     (flow-code/jump-to-coord flow-id
+                                                                              thread-id
+                                                                              (dec tl-count)))))
 
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
                                               :on-click (fn []
