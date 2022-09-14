@@ -1,6 +1,5 @@
 (ns flow-storm.runtime.values
-  (:require [flow-storm.utils :as utils]            
-            [clojure.pprint :as pp]
+  (:require [clojure.pprint :as pp]
             [clojure.datafy :as datafy]
             #?(:cljs [goog.object :as gobj])))
 
@@ -25,7 +24,7 @@
   ValueRefP
   
   (ref-value! [_ v]
-    (swap! state (fn [{:keys [vid->val val->vid next-val-id] :as s}]
+    (swap! state (fn [{:keys [val->vid next-val-id] :as s}]
                    (let [vid (get val->vid v :flow-storm/not-found)]
                      (if (= vid :flow-storm/not-found)
                        (-> s
