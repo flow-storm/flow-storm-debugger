@@ -22,12 +22,15 @@
    (defn colored-string [_ _]
      "UNIMPLEMENTED"))
 
+#?(:clj (def out-print-writer *out*))
+
 #?(:clj
-   (defn log [msg]
-     (println msg))
+   (defn log [& msgs]
+     (binding [*out* out-print-writer]
+       (apply println msgs)))
    :cljs
-   (defn log [msg]
-     (js/console.log msg)))
+   (defn log [& msgs]
+     (apply js/console.log msgs)))
 
 #?(:clj
    (defn log-error

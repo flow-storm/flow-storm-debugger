@@ -1,10 +1,18 @@
 (ns flow-storm.debugger.nrepl
   (:require [nrepl.core :as nrepl]
             [nrepl.transport :as transport]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]
+            [flow-storm.utils :as utils]))
 
 (def log-file-path "./nrepl-client-debug")
+
+(defn maybe-nicer-error-message [msg-str]
+  (cond
+    (str/includes? msg-str "No such namespace: dbg-api")
+    "Debugger isn't initialized correctly. Probably it got disconnected, try reconnecting please."
+
+    :else msg-str))
 
 (defn connect [{:keys [host port repl-type build-id] :or {host "localhost"}}]
   (let [transport (nrepl/connect :host host
@@ -15,30 +23,45 @@
                                                            :encoding "UTF-8"})
         client (nrepl/client transport Long/MAX_VALUE)
         session (nrepl/client-session client)
-        send-msg (fn [msg]
-                   (.write log-output-stream (.getBytes "\n\n--------->\n"))
-                   (.write log-output-stream (.getBytes (pr-str msg)))
-                   (let [res (nrepl/message session msg)]
-                     (.write log-output-stream (.getBytes "\n<---------\n"))
-                     (.write log-output-stream (.getBytes (pr-str res)))
-                     (.flush log-output-stream)
-                     res))
+        eval-code-str (fn eval-code-str
+                        ([code-str] (eval-code-str code-str nil))
+                        ([code-str ns]
+                         (let [msg (cond-> {:op "eval" :code code-str}
+                                     ns (assoc :ns ns))]
+                           (.write log-output-stream (.getBytes "\n\n--------->\n"))
+                           (.write log-output-stream (.getBytes (pr-str msg)))
+                           (let [responses (nrepl/message session msg)
+                                 {:keys [err] :as res-map} (nrepl/combine-responses responses)]
+                             (.write log-output-stream (.getBytes "\n<---------\n"))
+                             (.write log-output-stream (.getBytes (pr-str responses)))
+                             (.flush log-output-stream)
+                             (if err
+                               (throw (ex-info (str "nrepl evaluation error: " err) (assoc res-map :msg msg)))
+                               (-> (:value res-map)
+                                   first
+                                   read-string))))))
         repl-type-init-command (case repl-type
                                  :shadow (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))"
                                                  build-id)
                                  nil)]
 
     (when repl-type-init-command
-      (println "Initializing repl-type" repl-type)
-      (let [res (send-msg {:op "eval" :code repl-type-init-command})]
-        (println "repl-type response : " res)))
+      (try
 
-    ;; Make the runtime connect a websocket back to us
-    (println "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
+        (utils/log "Initializing repl-type" repl-type)
+        (eval-code-str repl-type-init-command)
 
-    (send-msg {:op "eval" :code "(require '[flow-storm.api :as fsa :include-macros true])"})
-    (send-msg {:op "eval" :code "(fsa/remote-connect {})"})
-    (send-msg {:op "eval" :code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])"})
+        ;; Make the runtime connect a websocket back to us
+        (utils/log "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
+
+        (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])")
+        (eval-code-str "(fsa/remote-connect {})")
+        (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])")
+
+        (catch Exception e
+          (println (ex-message e) (ex-data e)))))
+
+
 
     {:repl-eval (fn repl-eval
                   ([env-kind code] (repl-eval env-kind code nil))
@@ -46,21 +69,10 @@
                    (let [ns (or ns (case env-kind
                                      :clj "user"
                                      :cljs "cljs.user"))]
-
                      (try
-                       (let [[m1 m2] (send-msg {:op "eval" :code code :ns ns})
-                             ret (when (and (not (:err m1))
-                                            (= (:status m2) ["done"]))
-
-                                   (try
-                                     (edn/read-string (:value m1))
-                                     (catch Exception _
-                                       ;; if what we evaluated doesn't return valid edn
-                                       ;; just return the value string
-                                       (:value m1))))]
-                         ret)
+                       (eval-code-str code ns)
                        (catch Exception e
-                         (tap> e))))))
+                         (println (maybe-nicer-error-message (ex-message e)) (ex-data e)))))))
      :close-connection (fn []
                          (.close transport)
                          (.close log-output-stream))}))
@@ -68,12 +80,14 @@
 (comment
 
   (def transport (nrepl/connect :host "localhost"
-                                :port 9000
+                                :port 46000
                                 :transport-fn #'transport/bencode))
 
   (def client (nrepl/client transport Long/MAX_VALUE))
 
   (def session (nrepl/client-session client))
+
+  (def res (nrepl/message session {:op "eval" :code "(require '[some.crazy :as c])"}))
 
   (def res (nrepl/message session {:op "eval" :code "(do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/nrepl-select :browser-repl))"}))
 
