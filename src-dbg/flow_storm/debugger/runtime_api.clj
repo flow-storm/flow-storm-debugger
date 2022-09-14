@@ -214,7 +214,7 @@
           form-expr (if instrument?
                       (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str)
-          expr-res (eval-str-expr env-kind form-expr ns)]
+          expr-res (eval-str-expr env-kind (format "(do %s nil)" form-expr) ns)]
       (when var-meta
         ;; for vars restore the meta attributes that get lost when we re eval from the repl
         (eval-str-expr env-kind (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))

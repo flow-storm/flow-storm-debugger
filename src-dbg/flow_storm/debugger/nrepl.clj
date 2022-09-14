@@ -37,9 +37,8 @@
                              (.flush log-output-stream)
                              (if err
                                (throw (ex-info (str "nrepl evaluation error: " err) (assoc res-map :msg msg)))
-                               (-> (:value res-map)
-                                   first
-                                   read-string))))))
+                               (let [val-str (first (:value res-map))]
+                                 (read-string {:read-cond :allow} val-str)))))))
         repl-type-init-command (case repl-type
                                  :shadow (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))"
                                                  build-id)

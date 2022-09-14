@@ -11,30 +11,49 @@
      :ref/type (type x)}
     x))
 
-(def *values-references
+(defprotocol ValueRefP
+  (ref-value! [_ v])
+  (get-value [_ val-id])
+  (clear-all [_]))
 
-  "Reified pointers. A map from val-id -> val "
+(def empty-value-references {:vid->val {}
+                             :val->vid {}
+                             :next-val-id 0})
+
+(defrecord ValueReferences [state]
+
+  ValueRefP
   
-  (atom {}))
+  (ref-value! [_ v]
+    (swap! state (fn [{:keys [vid->val val->vid next-val-id] :as s}]
+                   (let [vid (get val->vid v :flow-storm/not-found)]
+                     (if (= vid :flow-storm/not-found)
+                       (-> s
+                           (assoc-in [:vid->val next-val-id] v)
+                           (assoc-in [:val->vid v] next-val-id)
+                           (update :next-val-id inc))
+                       s))))
+    (get-in @state [:val->vid v]))
+  
+  (get-value [_ val-id]
+    (get-in @state [:vid->val val-id]))
+  
+  (clear-all [_]
+    (reset! state empty-value-references)))
+
+(defn make-value-references []
+  (->ValueReferences (atom empty-value-references)))
+
+(def values-references (make-value-references))
 
 (defn get-reference-value [vid]
-  (get @*values-references vid))
+  (get-value values-references vid))
 
-(defn reference-value! [v]  
-  (when v
-    (let [vid (utils/obj-uuid v)
-          vv (get @*values-references vid)]
-
-      (when (and vv (not= v vv))
-        (utils/log-error "Error! reference-value! obj-id collision. This shouldn't happen in Clojure but can happen in ClojureScript. Please report. "))
-      
-      (when-not vv
-        (swap! *values-references assoc vid v))
-      
-      vid)))
+(defn reference-value! [v]
+  (ref-value! values-references v))
 
 (defn clear-values-references []
-  (reset! *values-references {}))
+  (clear-all values-references))
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [print-fn #?(:clj (if pprint? pp/pprint print) 
