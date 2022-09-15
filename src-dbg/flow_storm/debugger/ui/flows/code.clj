@@ -135,8 +135,11 @@
         ;; if the form we are about to highlight doesn't exist in the view add it first
         form-pane (or form-pane (add-form flow-id thread-id form-id))
         ctx-menu-options [{:text "Fully instrument this form"
-                           :on-click (fn [] (runtime-api/eval-form rt-api (:form/form form) {:instrument? true
-                                                                                             :ns (:form/ns form)}))}]
+                           :on-click (fn []
+                                       (runtime-api/eval-form rt-api
+                                                              (pr-str (:form/form form))
+                                                              {:instrument? true
+                                                               :ns (:form/ns form)}))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 
     (.setOnMouseClicked form-pane

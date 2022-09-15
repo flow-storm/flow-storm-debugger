@@ -166,7 +166,7 @@
                   update-tree-btn (icon-button :icon-name "mdi-reload"
                                                :class "reload-tree-btn"
                                                :on-click (fn []
-                                                           (binding [runtime-api/*cache-enabled?* false]
+                                                           (binding [runtime-api/*cache-disabled?* true]
                                                              (update-call-stack-tree-pane flow-id thread-id))))]
 
               (if (dummy-root-frame? frame)

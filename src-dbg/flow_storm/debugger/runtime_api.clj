@@ -12,7 +12,7 @@
 (declare ->RemoteRuntimeApi)
 (declare rt-api)
 
-(def ^:dynamic *cache-enabled?* true)
+(def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
   :start (let [{:keys [local?]} config
@@ -58,15 +58,16 @@
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
-    (if (= res :flow-storm/cache-miss)
+    (if (or *cache-disabled?*
+            (= res :flow-storm/cache-miss))
 
-      ;; miss
+      ;; miss or disabled, we need to call
       (let [new-res (apply f args)]
-        (when debug-mode (log "CALLED"))
+        (when debug-mode (log (utils/colored-string "CALLED" :red)))
         (swap! cache assoc cache-key new-res)
         new-res)
 
-      ;; hit
+      ;; hit, return cached
       (do
         (when debug-mode (log "CACHED"))
         res))))
