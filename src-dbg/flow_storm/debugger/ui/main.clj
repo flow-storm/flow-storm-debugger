@@ -12,7 +12,7 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io]
-            [flow-storm.debugger.config :refer [config]]
+            [flow-storm.debugger.config :refer [config] :as config]
             [mount.core :as mount :refer [defstate]])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
@@ -170,6 +170,10 @@
 
     theme-listener))
 
+(defn- toggle-debug-mode []
+  (alter-var-root #'config/debug-mode not)
+  (log (format "DEBUG MODE %s" (if config/debug-mode "ENABLED" "DISABLED"))))
+
 (defn start-ui [config]
   ;; Initialize the JavaFX toolkit
   (javafx.embed.swing.JFXPanel.)
@@ -198,9 +202,12 @@
                                   (runtime-api/interrupt-all-tasks rt-api))
 
                                 (and (.isControlDown kev)
-                                     (= key-name "K"))
+                                     (= key-name "L"))
                                 (clear-all)
 
+                                (and (.isControlDown kev)
+                                     (= key-name "D"))
+                                (toggle-debug-mode)
                                 ;; :else
                                 ;; (log (format "Unhandled keypress %s" key-name))
                                 ))))

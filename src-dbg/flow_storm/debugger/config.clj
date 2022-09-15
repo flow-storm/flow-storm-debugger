@@ -5,3 +5,5 @@
 (defstate config
   :start (mount/args)
   :stop nil)
+
+(def debug-mode false)
