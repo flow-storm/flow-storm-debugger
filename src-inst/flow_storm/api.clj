@@ -243,6 +243,10 @@
 (defn read-rtrace4-tag [form] `(runi {:flow-id 4} ~form))
 (defn read-rtrace5-tag [form] `(runi {:flow-id 5} ~form))
 
+(defn read-tap-tag [form]
+  `(let [form-val# ~form]
+     (tap> form-val#)
+     form-val# ))
 
 (comment
 
