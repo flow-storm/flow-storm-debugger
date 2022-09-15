@@ -151,13 +151,6 @@
        (seq? (second form))
        (= 'clojure.core/extend (-> form second first))))
 
-(defn- expanded-cljs-multi-arity-defn? [[x1 & xs] _]
-  (when (= x1 'do)
-    (let [[xdef & xset] (keep first xs)]
-      (and (= xdef 'def)
-           (pos? (count xset))
-           (every? #(= 'set! %) (butlast xset))))))
-
 (defn expanded-def-form? [form]
   (and (seq? form)
        (= (first form) 'def)))
@@ -168,6 +161,14 @@
        (let [[_ _ x] form]
          (and (seq? x)
               (= (first x) 'fn*)))))
+
+(defn- expanded-cljs-multi-arity-defn? [[x1 & xs] _]
+  (when (= x1 'do)
+    (let [[_ & xset] (keep first xs)]
+      (and (expanded-defn-form? (first xs))
+           (pos? (count xset))
+           (every? #{'set! 'do}
+                   (butlast xset))))))
 
 (defn expanded-form-type [form ctx]
   (when (seq? form)
