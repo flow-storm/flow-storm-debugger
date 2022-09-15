@@ -44,8 +44,8 @@
 (comment
 
   (local-restart-everything)
-
   )
+
 
 ;; instrument and run dev-tester namespaces
 (comment
@@ -61,11 +61,12 @@
 ;; Start a remote debugger and connect to a shadow repl
 (comment
 
-  (main/start-debugger {:local? false
-                        :host "localhost"
-                        :port 9000
+  (main/start-debugger {:port 9000
                         :repl-type :shadow
                         :build-id :browser-repl})
+  (main/start-debugger {:port 46000
+                        :repl-type :shadow
+                        :build-id :analysis-viewer})
   (main/stop-debugger)
 
   )

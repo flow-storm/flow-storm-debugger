@@ -530,6 +530,7 @@ it show in the taps list.
 
 Double click on any value to start the value inspector for it.
 
+A `#tap` tag will also be available, which will tap and return so you can use it like `(+ 1 2 #tap (* 3 4))`
 Use the `clear` button to clear the list.
 
 == Value inspector

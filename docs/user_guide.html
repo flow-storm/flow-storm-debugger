@@ -857,7 +857,10 @@ will run in a separate process and connect to the debuggee by connecting to a Cl
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="nv">$ </span><span class="nb">cat </span>shadow-cljs.edn
 
-<span class="o">{</span>:dependencies <span class="o">[</span>... <span class="o">[</span>com.github.jpmonettas/flow-storm-inst <span class="s2">"RELEASE"</span><span class="o">]]</span> ...<span class="o">}</span></code></pre>
+<span class="o">{</span>...
+ :dependencies <span class="o">[</span>... <span class="o">[</span>com.github.jpmonettas/flow-storm-inst <span class="s2">"RELEASE"</span><span class="o">]]</span>
+ :nrepl <span class="o">{</span>:port 9000<span class="o">}</span>
+ ...<span class="o">}</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1597,7 +1600,8 @@ it show in the taps list.</p>
 <p>Double click on any value to start the value inspector for it.</p>
 </div>
 <div class="paragraph">
-<p>Use the <code>clear</code> button to clear the list.</p>
+<p>A <code>#tap</code> tag will also be available, which will tap and return so you can use it like <code>(+ 1 2 #tap (* 3 4))</code>
+Use the <code>clear</code> button to clear the list.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1835,7 +1839,10 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 <p><code>Ctrl-g</code> Cancel any long running task (only search supported yet)</p>
 </li>
 <li>
-<p><code>Ctrl-k</code> Clean all debugger state</p>
+<p><code>Ctrl-l</code> Clean all debugger state</p>
+</li>
+<li>
+<p><code>Ctrl-d</code> Toggle debug-mode. Will log useful debugging information to the console.</p>
 </li>
 </ul>
 </div>
@@ -1909,7 +1916,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-12 10:43:42 -0300
+Last updated 2022-09-15 13:56:29 -0300
 </div>
 </div>
 </body>
