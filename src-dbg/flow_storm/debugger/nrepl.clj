@@ -42,7 +42,10 @@
         repl-type-init-command (case repl-type
                                  :shadow (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))"
                                                  build-id)
-                                 nil)]
+
+                                 ;; else it is a clj remote repl
+                                 "(require '[flow-storm.runtime.debuggers-api])"
+                                 )]
 
     (when repl-type-init-command
       (try

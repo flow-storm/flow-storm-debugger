@@ -21,7 +21,7 @@
                               remote-websocket-client/send)))
 
   (rt-taps/setup-tap!)
-  (println "ClojureScript runtime initialized"))
+  (println "Remote ClojureScript runtime initialized"))
 
 (defn stop []
   (rt-taps/remove-tap!)

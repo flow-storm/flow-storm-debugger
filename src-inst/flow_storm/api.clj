@@ -80,7 +80,8 @@
                               remote-websocket-client/send)))
 
   ;; setup the tap system so we send tap> to the debugger
-  (rt-taps/setup-tap!))
+  (rt-taps/setup-tap!)
+  (println "Remote Clojure runtime initialized"))
 
 (defn instrument-var
 
