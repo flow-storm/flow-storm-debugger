@@ -7,8 +7,21 @@
 ### Changes
 
 ### Bugs fixed
+	    
+## 3.0.171 (15-9-2022)
 	
-	- We can instrumente lazy-seq functions now, so instrumenting (for ...) should work fine
+## New Features
+        
+	3.0 is a full redesign! So it is full of changes, and fixes. Most remarkable things are :
+	
+	- ClojureScript is feature par with Clojure now, so every feature is available to both languages.
+    - Remote debugging can be accomplished by just connecting to nrepl server (socket repl support on the roadmap)
+    - A programable API (https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging)
+    - Enables the posibility to integrate it with IDEs/editors
+
+### Changes
+
+### Bugs fixed	
 	
 ## 2.3.141 (15-08-2022)
 	
