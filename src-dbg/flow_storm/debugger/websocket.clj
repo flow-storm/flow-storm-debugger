@@ -28,14 +28,19 @@
          (.send conn packet-str)
          (swap! (:pending-commands-callbacks websocket-server) assoc request-id callback))
        (catch Exception e
-         (log-error "Error sending async command" e))))))
+         (log-error "Error sending async command, maybe the connection is down, try to reconnect" e))))))
 
 (defn sync-remote-api-request [method args]
   (let [p (promise)]
 
     (async-remote-api-request method args (fn [resp] (deliver p resp)))
 
-    (deref p 5000 nil)))
+    (let [v (deref p 5000 :flow-storm/timeout)]
+      (if (= v :flow-storm/timeout)
+        (do
+          (log-error "Timeout waiting for sync-remote-api-request response")
+          nil)
+        v))))
 
 (defn process-remote-api-response [[request-id err-msg resp :as packet]]
   (let [callback (get @(:pending-commands-callbacks websocket-server) request-id)]
