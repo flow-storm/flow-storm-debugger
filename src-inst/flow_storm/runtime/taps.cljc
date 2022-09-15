@@ -5,13 +5,15 @@
 (def tap-fn (atom nil))
 
 (defn setup-tap! []
-  (let [tap-f (fn [v]                
-                (let [vref (rt-values/reference-value! v)]
-                  (rt-events/enqueue-event! (rt-events/make-tap-event vref))))]
-    (add-tap tap-f)
-    (reset! tap-fn tap-f)))
+  (when-not @tap-fn
+    (let [tap-f (fn [v]                
+                  (let [vref (rt-values/reference-value! v)]
+                    (rt-events/enqueue-event! (rt-events/make-tap-event vref))))]
+      (add-tap tap-f)
+      (reset! tap-fn tap-f))))
 
 (defn remove-tap! []
-  (remove-tap @tap-fn)
-  (reset! tap-fn nil))
+  (when-let [tfn @tap-fn]
+    (remove-tap tfn)
+    (reset! tap-fn nil)))
 
