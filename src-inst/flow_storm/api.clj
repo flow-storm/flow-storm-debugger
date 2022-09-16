@@ -123,14 +123,14 @@
   (rt-events/enqueue-event! (rt-events/make-var-instrumented-event (name var-symb)
                                                                    (namespace var-symb))))
 
-(defn- runi* [{:keys [ns flow-id tracing-disabled?] :as opts} form]
+(defn- runi* [{:keys [ns flow-id tracing-disabled? env] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
   ;; doesn't work with fn* in clojurescript
-  (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))]
+  (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))
+        ns (or ns (when-let [env-ns (-> env :ns :name)]
+                    (str env-ns)))]
     `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
-           curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))))
-
-           ]
+           curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))) (-> env :ns :name str))]
        (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
                                                                  :tracing-disabled? ~tracing-disabled?})]
          (tracer/trace-flow-init-trace flow-id# curr-ns# (quote (runi ~opts ~form)))

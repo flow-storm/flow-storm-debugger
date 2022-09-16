@@ -8,9 +8,9 @@
 
 ### Bugs fixed
 
-	- Fix multi-arity function instrumentation in clojurescript
+    - Fix ClojureScript re-run flow
 	
-## 3.0.171 (15-9-2022)
+## 3.0.173 (15-9-2022)
 	
 ## New Features
         
