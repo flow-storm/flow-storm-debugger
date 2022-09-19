@@ -104,7 +104,8 @@
                                         ;; restart the runtime api which will restart the repl connection
                                         (mount/stop (mount/only [#'flow-storm.debugger.runtime-api/rt-api]))
                                         (mount/start (mount/only [#'flow-storm.debugger.runtime-api/rt-api])))
-                            :disable (:local? config))
+                            :disable (or (:local? config)
+                                         (not (:port config))))
                (icon-button :icon-name "mdi-delete-forever"
                             :tooltip "Clean all debugger and runtime values references"
                             :on-click (fn [] (clear-all)))

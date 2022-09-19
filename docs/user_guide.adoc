@@ -66,8 +66,11 @@ should show the executed form. You can go ahead and use the stepping controls to
 Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
 will run in a separate process and connect to the debuggee by connecting to a ClojureScript repl.
 
+For enabling every debugger feature, remote connections needs a repl. If you don't connect to a repl you
+can still use the debugger but you will have to call `flow-storm.api/remote-connect` by hand on your app.
+
 [NOTE]
-.Connection limitations
+.Repl connection limitations
 ====
 Currently only shadow-cljs repl over nrepl is supported.
 ====
@@ -111,6 +114,19 @@ clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"
 ----
 
 And that is all you need, the debugger GUI will pop up and everything will be ready. 
+
+If you are not using a repl or the repl you are using isn't supported by FlowStorm yet you can still use the debugger
+but not all features will be supported (mainly the browser features).
+
+For this you can start the debugger like before but without any parameters, like this :
+
+[,bash]
+----
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
+----
+
+And then go to your app code and call `(flow-storm.api/remote-connect)` maybe on your main, so everytime your program starts
+will automatically connect to the repl.
 
 [NOTE]
 .ClojureScript environments
