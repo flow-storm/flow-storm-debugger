@@ -3,7 +3,7 @@
             [nrepl.transport :as transport]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [flow-storm.utils :as utils]))
+            [flow-storm.utils :refer [log log-error]]))
 
 (def log-file-path "./nrepl-client-debug")
 
@@ -14,7 +14,7 @@
 
     :else msg-str))
 
-(defn connect [{:keys [host port repl-type build-id] :or {host "localhost"}}]
+(defn connect [{:keys [host port repl-type build-id show-error] :or {host "localhost"}}]
   (let [transport (nrepl/connect :host host
                                  :port port
                                  :transport-fn #'transport/bencode)
@@ -50,18 +50,19 @@
     (when repl-type-init-command
       (try
 
-        (utils/log "Initializing repl-type" repl-type)
+        (log "Initializing repl-type" repl-type)
         (eval-code-str repl-type-init-command)
 
         ;; Make the runtime connect a websocket back to us
-        (utils/log "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
+        (log "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
 
         (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])")
         (eval-code-str "(fsa/remote-connect {})")
         (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])")
 
         (catch Exception e
-          (println (ex-message e) (ex-data e)))))
+          (show-error (ex-message e))
+          (log-error (format "%s %s" (ex-message e) (ex-data e))))))
 
 
 
@@ -74,7 +75,9 @@
                      (try
                        (eval-code-str code ns)
                        (catch Exception e
-                         (println (maybe-nicer-error-message (ex-message e)) (ex-data e)))))))
+                         (let [err-msg (maybe-nicer-error-message (ex-message e))]
+                           (show-error (ex-message e))
+                           (log-error err-msg (ex-data e))))))))
      :close-connection (fn []
                          (.close transport)
                          (.close log-output-stream))}))

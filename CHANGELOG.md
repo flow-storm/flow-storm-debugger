@@ -5,9 +5,10 @@
 ## New Features
         
 ### Changes
-
+	
 ### Bugs fixed
 
+	- Show nrepl errors on the UI
     - Fix ClojureScript re-run flow
 	
 ## 3.0.173 (15-9-2022)
