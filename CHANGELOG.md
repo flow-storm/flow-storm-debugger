@@ -8,6 +8,7 @@
 	
 ### Bugs fixed
 
+    - Add support for remote debugging without repl connection (clojure and clojurescript)
 	- Show nrepl errors on the UI
     - Fix ClojureScript re-run flow
 	

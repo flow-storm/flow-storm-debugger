@@ -14,7 +14,7 @@
 
     :else msg-str))
 
-(defn connect [{:keys [host port repl-type build-id show-error] :or {host "localhost"}}]
+(defn connect [{:keys [host port repl-type build-id env-kind show-error] :or {host "localhost"}}]
   (let [transport (nrepl/connect :host host
                                  :port port
                                  :transport-fn #'transport/bencode)
@@ -23,6 +23,9 @@
                                                            :encoding "UTF-8"})
         client (nrepl/client transport Long/MAX_VALUE)
         session (nrepl/client-session client)
+        default-cljs-ns (case env-kind
+                          :clj "user"
+                          :cljs "cljs.user")
         eval-code-str (fn eval-code-str
                         ([code-str] (eval-code-str code-str nil))
                         ([code-str ns]
@@ -55,23 +58,21 @@
 
         ;; Make the runtime connect a websocket back to us
         (log "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
-
-        (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])")
-        (eval-code-str "(fsa/remote-connect {})")
-        (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])")
+        (case env-kind
+          :clj (eval-code-str "(in-ns 'user)" default-cljs-ns)
+          :cljs (eval-code-str "(in-ns 'cljs.user)" default-cljs-ns))
+        (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])" default-cljs-ns)
+        (eval-code-str "(fsa/remote-connect {})" default-cljs-ns)
+        (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" default-cljs-ns)
 
         (catch Exception e
           (show-error (ex-message e))
           (log-error (format "%s %s" (ex-message e) (ex-data e))))))
 
-
-
     {:repl-eval (fn repl-eval
-                  ([env-kind code] (repl-eval env-kind code nil))
-                  ([env-kind code ns]
-                   (let [ns (or ns (case env-kind
-                                     :clj "user"
-                                     :cljs "cljs.user"))]
+                  ([code] (repl-eval code nil))
+                  ([code ns]
+                   (let [ns (or ns default-cljs-ns)]
                      (try
                        (eval-code-str code ns)
                        (catch Exception e

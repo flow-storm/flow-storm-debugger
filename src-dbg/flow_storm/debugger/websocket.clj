@@ -35,7 +35,7 @@
 
     (async-remote-api-request method args (fn [resp] (deliver p resp)))
 
-    (let [v (deref p 5000 :flow-storm/timeout)]
+    (let [v (deref p 10000 :flow-storm/timeout)]
       (if (= v :flow-storm/timeout)
         (do
           (log-error "Timeout waiting for sync-remote-api-request response")
