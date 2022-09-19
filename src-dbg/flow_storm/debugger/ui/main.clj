@@ -80,10 +80,7 @@
                         :content (flows-screen/main-pane)})
         browser-tab (tab {:text "Browser"
                           :class "vertical-tab"
-                          :content (browser-screen/main-pane)
-                          :on-selection-changed (event-handler
-                                                 [_]
-                                                 (browser-screen/get-all-namespaces))})
+                          :content (browser-screen/main-pane)})
         taps-tab (tab {:text "Taps"
                        :class "vertical-tab"
                        :content (taps-screen/main-pane)
@@ -92,7 +89,10 @@
         tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab]
                           :rotate? true
                           :closing-policy :unavailable
-                          :side :left})
+                          :side :left
+                          :on-tab-change (fn [from-tab to-tab]
+                                           (when (= to-tab browser-tab)
+                                             (browser-screen/get-all-namespaces)))})
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))

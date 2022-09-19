@@ -207,7 +207,7 @@
   (doto (ProgressIndicator.)
     (.setPrefSize size size)))
 
-(defn tab-pane [{:keys [tabs rotate? side closing-policy drag-policy]
+(defn tab-pane [{:keys [tabs rotate? side closing-policy drag-policy on-tab-change]
                  :or {closing-policy :unavailable
                       drag-policy :fixed
                       side :top
@@ -230,6 +230,13 @@
                                :reorder TabPane$TabDragPolicy/REORDER}
                               drag-policy)))
 
+    (when on-tab-change
+      (-> tp
+          .getSelectionModel
+          .selectedItemProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed [_ old-tab new-tab]
+                            (on-tab-change old-tab new-tab))))))
     (when tabs
       (.addAll tabs-list tabs))
 
