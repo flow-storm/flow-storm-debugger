@@ -8,6 +8,7 @@
             [flow-storm.core :as fs-core]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
+            [flow-storm.runtime.values :as rt-values]
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as indexes-api]))
@@ -28,14 +29,21 @@
     (when stop-debugger
       (stop-debugger))
 
+
     (rt-events/clear-subscription!)
 
     (indexes-api/stop)
 
     (rt-taps/remove-tap!)
 
+    (dbg-api/interrupt-all-tasks)
+
+    (rt-values/clear-values-references)
+
     ;; stop remote websocket client if needed
-    (remote-websocket-client/stop-remote-websocket-client)))
+    (remote-websocket-client/stop-remote-websocket-client)
+
+    (log "System stopped")))
 
 (defn local-connect
 
@@ -63,7 +71,10 @@
      ;; start the debugger UI
      (start-debugger config)
 
+
      (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-processor/enqueue-event!))
+
+     (rt-values/clear-values-references)
 
      (rt-taps/setup-tap!))))
 
@@ -78,6 +89,8 @@
                           (-> [:event ev]
                               serializer/serialize
                               remote-websocket-client/send)))
+
+  (rt-values/clear-values-references)
 
   ;; setup the tap system so we send tap> to the debugger
   (rt-taps/setup-tap!)

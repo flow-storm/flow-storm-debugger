@@ -16,7 +16,7 @@
 
 (declare start-events-processor)
 (declare stop-events-processor)
-
+(declare events-processor)
 (defstate events-processor
   :start (start-events-processor)
   :stop (stop-events-processor))
@@ -93,9 +93,10 @@
                          (utils/log "Events thread interrupted")))))]
 
     (.start ev-thread)
-
+    (utils/log "Events processor started")
     {:events-chan events-chan
      :events-thread ev-thread}))
 
 (defn stop-events-processor []
+  (utils/log "Stopping events processor by closing the events-chan")
   (async/close! (:events-chan events-processor)))

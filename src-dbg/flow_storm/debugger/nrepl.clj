@@ -63,7 +63,7 @@
           (case env-kind
            :clj (eval-code-str "(do (in-ns 'user) nil)")
            :cljs (eval-code-str "(do (in-ns 'cljs.user) nil)"))
-          (catch Exception e))
+          (catch Exception _))
         (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])" default-cljs-ns)
         (eval-code-str "(fsa/remote-connect {})" default-cljs-ns)
         (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" default-cljs-ns)

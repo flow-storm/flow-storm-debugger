@@ -5,6 +5,8 @@
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.debuggers-api :as dbg-api]
+            [flow-storm.runtime.values :as rt-values]
+            [flow-storm.utils :refer [log] :as utils]
             [flow-storm.tracer])
   (:require-macros [flow-storm.api]))
 
@@ -20,11 +22,15 @@
                               serializer/serialize
                               remote-websocket-client/send)))
 
+  (rt-values/clear-values-references)
+
   (rt-taps/setup-tap!)
   (println "Remote ClojureScript runtime initialized"))
 
 (defn stop []
   (rt-taps/remove-tap!)
   (rt-events/clear-subscription!)
+  (rt-values/clear-values-references)
   (indexes-api/stop)
-  (remote-websocket-client/stop-remote-websocket-client))
+  (remote-websocket-client/stop-remote-websocket-client)
+  (log "System stopped"))

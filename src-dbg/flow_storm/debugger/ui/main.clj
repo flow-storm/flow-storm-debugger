@@ -90,7 +90,7 @@
                           :rotate? true
                           :closing-policy :unavailable
                           :side :left
-                          :on-tab-change (fn [from-tab to-tab]
+                          :on-tab-change (fn [_ to-tab]
                                            (when (= to-tab browser-tab)
                                              (browser-screen/get-all-namespaces)))})
         _ (store-obj "main-tools-tab" tabs-p)]

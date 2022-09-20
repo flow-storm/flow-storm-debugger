@@ -3,6 +3,8 @@
             [clojure.datafy :as datafy]
             #?(:cljs [goog.object :as gobj])))
 
+(def values-references (atom nil))
+
 (defn snapshot-reference [x]  
   (if #?(:clj  (instance? clojure.lang.IDeref x)
          :cljs (instance? cljs.core.IDeref x))
@@ -11,48 +13,40 @@
     x))
 
 (defprotocol ValueRefP
-  (ref-value! [_ v])
+  (ref-value [_ v])
   (get-value [_ val-id])
   (clear-all [_]))
 
-(def empty-value-references {:vid->val {}
-                             :val->vid {}
-                             :next-val-id 0})
-
-(defrecord ValueReferences [state]
+(defrecord ValueReferences [val->vid vid->val next-val-id]
 
   ValueRefP
   
-  (ref-value! [_ v]
-    (swap! state (fn [{:keys [val->vid next-val-id] :as s}]
-                   (let [vid (get val->vid v :flow-storm/not-found)]
-                     (if (= vid :flow-storm/not-found)
-                       (-> s
-                           (assoc-in [:vid->val next-val-id] v)
-                           (assoc-in [:val->vid v] next-val-id)
-                           (update :next-val-id inc))
-                       s))))
-    (get-in @state [:val->vid v]))
+  (ref-value [this v]
+    (let [vid (get val->vid v :flow-storm/not-found)]
+      (if (= vid :flow-storm/not-found)
+        (-> this
+            (assoc-in [:vid->val next-val-id] v)
+            (assoc-in [:val->vid v] next-val-id)
+            (update :next-val-id inc))
+        this)))
   
   (get-value [_ val-id]
-    (get-in @state [:vid->val val-id]))
-  
-  (clear-all [_]
-    (reset! state empty-value-references)))
+    (get vid->val val-id)))
 
 (defn make-value-references []
-  (->ValueReferences (atom empty-value-references)))
-
-(def values-references (make-value-references))
+  (map->ValueReferences {:vid->val {}
+                         :val->vid {}
+                         :next-val-id 0}))
 
 (defn get-reference-value [vid]
-  (get-value values-references vid))
+  (get-value @values-references vid))
 
 (defn reference-value! [v]
-  (ref-value! values-references v))
+  (let [{:keys [val->vid]} (swap! values-references ref-value v)]
+    (get val->vid v)))
 
 (defn clear-values-references []
-  (clear-all values-references))
+  (reset! values-references (make-value-references)))
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [print-fn #?(:clj (if pprint? pp/pprint print) 

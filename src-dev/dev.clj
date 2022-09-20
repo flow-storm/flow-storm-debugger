@@ -6,12 +6,11 @@
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.runtime.indexes.frame-index :as frame-index]
             [flow-storm.tracer :as tracer]
-            [flow-storm.utils :refer [log-error]]
-            [clojure.tools.namespace.repl :refer [refresh]]
+            [flow-storm.utils :refer [log-error log]]
+            [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [dev-tester]
             [flow-storm.utils :as utils]))
-
 
 (javafx.embed.swing.JFXPanel.)
 
@@ -28,14 +27,44 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn start-dev-debugger []
+(defn start-local []
   (fs-api/local-connect))
 
-(defn local-restart-everything []
-  (fs-api/stop)
+(defn start-remote []
 
-  ;; reload all namespaces
-  (refresh :after 'dev/start-dev-debugger))
+  (comment
+
+    (main/start-debugger {:port 9000
+                          :repl-type :shadow
+                          :build-id :browser-repl})
+
+    (main/start-debugger {:port 9000
+                          :repl-type :shadow
+                          :build-id :app})
+
+    (main/start-debugger {})
+    (main/start-debugger {:port 9000})
+
+    (main/start-debugger {:port 46000
+                          :repl-type :shadow
+                          :build-id :analysis-viewer})
+    (main/stop-debugger)
+
+    )
+
+  (main/start-debugger {:port 9000
+                        :repl-type :shadow
+                        :build-id :browser-repl}))
+
+(defn after-refresh []
+  (alter-var-root #'utils/out-print-writer (constantly *out*))
+  (log "Refresh done"))
+
+(defn stop []
+  (fs-api/stop))
+
+(defn refresh []
+  (tools-namespace-repl/refresh :after 'dev/after-refresh))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Playing at the repl ;;
@@ -44,6 +73,7 @@
 (comment
 
   (local-restart-everything)
+
   )
 
 
@@ -55,19 +85,6 @@
    {:disable #{} #_#{:expr :anonymous-fn :binding}})
 
   #rtrace (dev-tester/boo [2 "hello" 6])
-
-  )
-
-;; Start a remote debugger and connect to a shadow repl
-(comment
-
-  (main/start-debugger {:port 9000
-                        :repl-type :shadow
-                        :build-id :browser-repl})
-  (main/start-debugger {:port 46000
-                        :repl-type :shadow
-                        :build-id :analysis-viewer})
-  (main/stop-debugger)
 
   )
 
