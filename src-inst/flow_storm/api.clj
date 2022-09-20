@@ -63,7 +63,7 @@
      ;; start the debugger UI
      (start-debugger config)
 
-     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-processor/process-event))
+     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-processor/enqueue-event!))
 
      (rt-taps/setup-tap!))))
 
@@ -107,7 +107,7 @@
 
    (fs-core/instrument-var var-symb config)
 
-   (rt-events/enqueue-event! (rt-events/make-var-instrumented-event (name var-symb)
+   (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
                                                                     (namespace var-symb)))))
 
 (defn uninstrument-var
@@ -120,7 +120,7 @@
 
   (fs-core/uninstrument-var var-symb)
 
-  (rt-events/enqueue-event! (rt-events/make-var-instrumented-event (name var-symb)
+  (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
                                                                    (namespace var-symb))))
 
 (defn- runi* [{:keys [ns flow-id tracing-disabled? env] :as opts} form]

@@ -58,9 +58,12 @@
 
         ;; Make the runtime connect a websocket back to us
         (log "Initializing, requiring flow-storm.api on remote side plus trying to connect back to us via websocket.")
-        (case env-kind
-          :clj (eval-code-str "(do (in-ns 'user) nil)" default-cljs-ns)
-          :cljs (eval-code-str "(do (in-ns 'cljs.user) nil)" default-cljs-ns))
+        ;; Not sure why this fails sometime
+        (try
+          (case env-kind
+           :clj (eval-code-str "(do (in-ns 'user) nil)")
+           :cljs (eval-code-str "(do (in-ns 'cljs.user) nil)"))
+          (catch Exception e))
         (eval-code-str "(require '[flow-storm.api :as fsa :include-macros true])" default-cljs-ns)
         (eval-code-str "(fsa/remote-connect {})" default-cljs-ns)
         (eval-code-str "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" default-cljs-ns)

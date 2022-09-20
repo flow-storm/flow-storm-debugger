@@ -17,6 +17,7 @@
   states when the debugger is used inside a application that uses mount."
 
   [#'flow-storm.debugger.config/config
+   #'flow-storm.debugger.events-processor/events-processor
    #'flow-storm.debugger.ui.state-vars/ui-objs
    #'flow-storm.debugger.ui.state-vars/flows-ui-objs
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
@@ -65,6 +66,6 @@
     ;; else, start components for remote debugging
     (-> (mount/with-args (assoc config
                                 :show-error ui-main/show-error
-                                :event-dispatcher events-processor/process-event))
+                                :dispatch-event events-processor/enqueue-event!))
         (mount/only remote-debugger-mount-vars)
         (mount/start))))

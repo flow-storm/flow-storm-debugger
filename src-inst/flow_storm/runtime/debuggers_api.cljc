@@ -25,12 +25,12 @@
 (defn- submit-interruptible-task! [f args]
   (let [task-id (str (utils/rnd-uuid))
         interrupt-ch (async/promise-chan)
-        on-progress (fn [progress] (rt-events/enqueue-event! (rt-events/make-task-progress-event task-id progress)))]
+        on-progress (fn [progress] (rt-events/publish-event! (rt-events/make-task-progress-event task-id progress)))]
     (swap! interruptible-tasks assoc task-id interrupt-ch)
     (async/go
       (let [task-result (async/<! (apply f (-> [] (into args) (into [interrupt-ch on-progress]))))]
         (log (utils/format "Task %s finished with : %s" task-id task-result))
-        (rt-events/enqueue-event! (rt-events/make-task-result-event task-id task-result))))
+        (rt-events/publish-event! (rt-events/make-task-result-event task-id task-result))))
     (log (utils/format "Submited interruptible task with task-id: %s" task-id))
     task-id))
 
@@ -141,14 +141,14 @@
      (let [inst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes (assoc opts
                                                                                        :prefixes? true))]
        (doseq [ns-symb inst-namespaces]
-         (rt-events/enqueue-event! (rt-events/make-ns-instrumented-event (str ns-symb)))))))
+         (rt-events/publish-event! (rt-events/make-ns-instrumented-event (str ns-symb)))))))
 
 #?(:clj
    (defn uninstrument-namespaces [ns-prefixes]
      (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes {:prefixes? true
                                                                                    :uninstrument? true})]
        (doseq [ns-symb uninst-namespaces]
-         (rt-events/enqueue-event! (rt-events/make-ns-uninstrumented-event (str ns-symb)))))))
+         (rt-events/publish-event! (rt-events/make-ns-uninstrumented-event (str ns-symb)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils for calling by name, used by the websocket api calls ;;

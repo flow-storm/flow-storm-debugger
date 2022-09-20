@@ -46,6 +46,6 @@
 (defn make-task-progress-event [task-id progress]
   [:task-progress {:task-id task-id :progress progress}])
 
-(defn enqueue-event! [ev]
+(defn publish-event! [ev]
   (when-let [cb @callback]
     (cb ev)))

@@ -30,14 +30,14 @@
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
   (discard-flow flow-id)
-  (events/enqueue-event! (events/make-flow-created-event flow-id ns form timestamp)))
+  (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
 (defn create-thread-indexes! [flow-id thread-id]  
   (let [thread-indexes {:frame-index (frame-index/make-index)
                         :fn-call-stats-index (fn-call-stats-index/make-index)
                         :forms-index (forms-index/make-index)}]
 
-    (events/enqueue-event! (events/make-thread-created-event flow-id thread-id))
+    (events/publish-event! (events/make-thread-created-event flow-id thread-id))
     
     (swap! flow-thread-indexes
            assoc [flow-id thread-id] thread-indexes)
@@ -73,7 +73,7 @@
   (let [thread-indexes (get-or-create-thread-indexes flow-id thread-id)]
 
     (when (zero? (frame-index/timeline-count (:frame-index thread-indexes)))
-      (events/enqueue-event! (events/make-first-fn-call-event flow-id thread-id form-id)))
+      (events/publish-event! (events/make-first-fn-call-event flow-id thread-id form-id)))
 
     (doseq [[_ thread-index] thread-indexes]
       (protos/add-fn-call thread-index trace))))

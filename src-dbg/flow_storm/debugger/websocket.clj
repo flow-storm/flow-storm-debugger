@@ -2,8 +2,7 @@
   (:require [flow-storm.utils :refer [log log-error]]
             [flow-storm.json-serializer :as serializer]
             [mount.core :as mount :refer [defstate]]
-            [flow-storm.debugger.config :refer [config]]
-            [clojure.core.async :as async])
+            [flow-storm.debugger.config :refer [config]])
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
@@ -85,22 +84,9 @@
     (.interrupt events-thread))
   nil)
 
-(defn build-events-dispatcher-thread [dispatch-event events-chan]
-  (Thread.
-   (fn []
-
-     (try
-       (loop [ev (async/<!! events-chan)]
-        (when-not (.isInterrupted (Thread/currentThread))
-          (dispatch-event ev)
-          (recur (async/<!! events-chan))))
-       (catch java.lang.InterruptedException _
-         (log "Events thread interrupted"))))))
-
-(defn start-websocket-server [{:keys [event-dispatcher on-connection-open]}]
+(defn start-websocket-server [{:keys [dispatch-event on-connection-open]}]
   (stop-websocket-server)
   (let [remote-connection (atom nil)
-        events-chan (async/chan 100)
         ws-server (create-ws-server
                    {:port 7722
                     :on-connection-open (fn [conn]
@@ -111,13 +97,10 @@
                                   (try
                                     (let [[msg-kind msg-body] (serializer/deserialize msg)]
                                       (case msg-kind
-                                        :event (async/>!! events-chan msg-body)
+                                        :event (dispatch-event msg-body)
                                         :api-response (process-remote-api-response msg-body)))
                                     (catch Exception e
-                                      (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})
-        events-thread (build-events-dispatcher-thread event-dispatcher events-chan)]
-
-    (.start events-thread)
+                                      (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
 
     ;; see https://github.com/TooTallNate/Java-WebSocket/wiki/Enable-SO_REUSEADDR
     ;; if we don't have this we get Address already in use when starting twice in a row
@@ -127,6 +110,5 @@
 
 
     {:ws-server ws-server
-     :events-thread events-thread
      :pending-commands-callbacks (atom {})
      :remote-connection remote-connection}))
