@@ -61,11 +61,13 @@
        (-> box .getChildren .clear)))))
 
 (defn show-error [msg]
-  (ui-utils/run-later
-   (let [err-dialog (alert-dialog {:type :error
-                                   :message msg
-                                   :buttons [:close]})]
-     (.show err-dialog))))
+  (try
+    (ui-utils/run-later
+     (let [err-dialog (alert-dialog {:type :error
+                                     :message msg
+                                     :buttons [:close]})]
+       (.show err-dialog)))
+    (catch Exception _)))
 
 (defn select-main-tools-tab [tool]
   (let [[main-tools-tab] (obj-lookup "main-tools-tab")
