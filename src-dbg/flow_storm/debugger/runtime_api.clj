@@ -204,10 +204,14 @@
 (defmethod make-repl-expression [:cljs 'get-all-vars-for-ns] [_ _ nsname] (format "(dbg-api/cljs-get-ns-interns %s)" nsname))
 (defmethod make-repl-expression [:cljs 'get-var-meta] [_ _ var-ns var-name] (format "(meta #'%s/%s)" var-ns var-name))
 
-(defn- re-eval-all-ns-forms [eval-fn ns-names eval-opts]
+(defn- re-eval-all-ns-forms [eval-fn ns-names {:keys [instrument?] :as eval-opts}]
   (let [all-ns-forms (eval-fn (format "(dbg-api/cljs-sorted-namespaces-sources %s)" (mapv symbol ns-names)))]
     (doseq [[ns-name ns-forms] all-ns-forms]
       (doseq [form-str ns-forms]
+        (log (format "%s ns: %s form: %s"
+                     (if instrument? "Instrumenting" "Uninstrumenting")
+                     ns-name
+                     (utils/elide-string form-str 50)))
         (eval-form rt-api form-str (assoc eval-opts :ns ns-name))))))
 
 (defrecord RemoteRuntimeApi [eval-str-expr env-kind close-connection cache]
