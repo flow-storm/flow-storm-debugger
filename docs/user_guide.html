@@ -832,6 +832,10 @@ should show the executed form. You can go ahead and use the stepping controls to
 <p>Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
 will run in a separate process and connect to the debuggee by connecting to a ClojureScript repl.</p>
 </div>
+<div class="paragraph">
+<p>For enabling every debugger feature, remote connections needs a repl. If you don&#8217;t connect to a repl you
+can still use the debugger but you will have to call <code>flow-storm.api/remote-connect</code> by hand on your app.</p>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -839,7 +843,7 @@ will run in a separate process and connect to the debuggee by connecting to a Cl
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">Connection limitations</div>
+<div class="title">Repl connection limitations</div>
 <div class="paragraph">
 <p>Currently only shadow-cljs repl over nrepl is supported.</p>
 </div>
@@ -891,6 +895,22 @@ so to start the debugger and connect to it you run :</p>
 </div>
 <div class="paragraph">
 <p>And that is all you need, the debugger GUI will pop up and everything will be ready.</p>
+</div>
+<div class="paragraph">
+<p>If you are not using a repl or the repl you are using isn&#8217;t supported by FlowStorm yet you can still use the debugger
+but not all features will be supported (mainly the browser features).</p>
+</div>
+<div class="paragraph">
+<p>For this you can start the debugger like before but without any parameters, like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And then go to your app code and call <code>(flow-storm.api/remote-connect)</code> maybe on your main, so everytime your program starts
+will automatically connect to the repl.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1916,7 +1936,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-15 13:56:29 -0300
+Last updated 2022-09-19 16:41:38 -0300
 </div>
 </div>
 </body>

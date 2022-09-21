@@ -8,9 +8,18 @@
 	
 ### Bugs fixed
 
+## 3.0.184 (21-9-2022)
+	
+## New Features
+        
+### Changes
+	
+### Bugs fixed
+
     - Add support for remote debugging without repl connection (clojure and clojurescript)
 	- Show nrepl errors on the UI
     - Fix ClojureScript re-run flow
+	- Fix a deadlock caused by the event system
 	
 ## 3.0.173 (15-9-2022)
 	
