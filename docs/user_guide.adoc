@@ -61,6 +61,9 @@ image::user_guide_images/quick_start.png[]
 After running it, you should get the return value of the expression (as if #rtrace wasn't there) and the debugger
 should show the executed form. You can go ahead and use the stepping controls to step over the code.
 
+Now you are sure everything works move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+your code, and many ways to explore its executions.
+
 === ClojureScript
 
 Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
@@ -113,7 +116,20 @@ so to start the debugger and connect to it you run :
 clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
 ----
 
-And that is all you need, the debugger GUI will pop up and everything will be ready. 
+And that is all you need, the debugger GUI will pop up and everything will be ready.
+
+Try tracing some code from the repl :
+
+[,clojure]
+----
+cljs.user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
+----
+
+After running it, you should get the return value of the expression (as if #rtrace wasn't there) and the debugger
+should show the executed form. You can go ahead and use the stepping controls to step over the code.
+
+Now you are sure everything works move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+your code, and many ways to explore its executions.
 
 If you are not using a repl or the repl you are using isn't supported by FlowStorm yet you can still use the debugger
 but not all features will be supported (mainly the browser features).

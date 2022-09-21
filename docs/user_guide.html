@@ -825,6 +825,10 @@ pre.rouge {
 <p>After running it, you should get the return value of the expression (as if #rtrace wasn&#8217;t there) and the debugger
 should show the executed form. You can go ahead and use the stepping controls to step over the code.</p>
 </div>
+<div class="paragraph">
+<p>Now you are sure everything works move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+your code, and many ways to explore its executions.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h4>
@@ -895,6 +899,22 @@ so to start the debugger and connect to it you run :</p>
 </div>
 <div class="paragraph">
 <p>And that is all you need, the debugger GUI will pop up and everything will be ready.</p>
+</div>
+<div class="paragraph">
+<p>Try tracing some code from the repl :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">cljs.user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; #rtrace will instrument and run some code</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After running it, you should get the return value of the expression (as if #rtrace wasn&#8217;t there) and the debugger
+should show the executed form. You can go ahead and use the stepping controls to step over the code.</p>
+</div>
+<div class="paragraph">
+<p>Now you are sure everything works move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+your code, and many ways to explore its executions.</p>
 </div>
 <div class="paragraph">
 <p>If you are not using a repl or the repl you are using isn&#8217;t supported by FlowStorm yet you can still use the debugger
@@ -1936,7 +1956,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-19 16:41:38 -0300
+Last updated 2022-09-21 09:21:39 -0300
 </div>
 </div>
 </body>
