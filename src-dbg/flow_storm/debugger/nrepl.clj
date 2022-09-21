@@ -81,7 +81,7 @@
                        (catch Exception e
                          (let [err-msg (maybe-nicer-error-message (ex-message e))]
                            (show-error (ex-message e))
-                           (log-error err-msg (ex-data e))))))))
+                           (log-error (format "%s %s" err-msg (ex-data e)))))))))
      :close-connection (fn []
                          (.close transport)
                          (.close log-output-stream))}))

@@ -253,7 +253,7 @@
                  {})]
       (case env-kind
         :cljs (re-eval-all-ns-forms eval-str-expr nsnames {:instrument? true
-                                                                              :instrument-options opts})
+                                                           :instrument-options opts})
 
         :clj (api-call :remote "instrument-namespaces" [nsnames opts]))))
 
