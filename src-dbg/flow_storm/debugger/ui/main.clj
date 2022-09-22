@@ -178,6 +178,7 @@
   (log (format "DEBUG MODE %s" (if config/debug-mode "ENABLED" "DISABLED"))))
 
 (defn start-ui [config]
+  (log "[Starting UI subsystem]")
   ;; Initialize the JavaFX toolkit
   (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
@@ -225,6 +226,7 @@
        (log-error "UI Thread exception" e)))))
 
 (defn stop-ui []
+  (log "[Stopping UI subsystem]")
   (let [{:keys [stages theme-listener]} ui]
 
     ;; remove the OS theme listener

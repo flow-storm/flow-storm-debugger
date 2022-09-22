@@ -54,29 +54,34 @@
 
 
 (defn- create-ws-server [{:keys [port on-message on-connection-open]}]
-  (proxy
-      [WebSocketServer]
-      [(InetSocketAddress. port)]
+  (let [ws-ready-promise (promise)
+        server (proxy
+                   [WebSocketServer]
+                   [(InetSocketAddress. port)]
 
-    (onStart []
-      (log (format "WebSocket server started, listening on %s" port)))
+                 (onStart []
+                   (log (format "WebSocket server started, listening on %s" port))
+                   (deliver ws-ready-promise true))
 
-    (onOpen [^WebSocket conn ^ClientHandshake handshake-data]
-      (when on-connection-open
-        (on-connection-open conn))
-      (log "Got a connection"))
+                 (onOpen [^WebSocket conn ^ClientHandshake handshake-data]
+                   (when on-connection-open
+                     (on-connection-open conn))
+                   (log "Got a connection"))
 
-    (onMessage [conn message]
-      (on-message conn message))
+                 (onMessage [conn message]
+                   (on-message conn message))
 
-    (onClose [conn code reason remote?]
-      (log (format "Connection with debugger closed. code=%s reson=%s remote?=%s"
-                   code reason remote?)))
+                 (onClose [conn code reason remote?]
+                   (log (format "Connection with debugger closed. code=%s reson=%s remote?=%s"
+                                code reason remote?)))
 
-    (onError [conn ^Exception e]
-      (log-error "WebSocket error" e))))
+                 (onError [conn ^Exception e]
+                   (log-error "WebSocket error" e)))]
+
+    [server ws-ready-promise]))
 
 (defn stop-websocket-server []
+  (log "[Stopping WebSocket subsystem]")
   (when-let [wss (:ws-server websocket-server)]
     (.stop wss)
     (log "WebSocket server stopped"))
@@ -85,29 +90,31 @@
   nil)
 
 (defn start-websocket-server [{:keys [dispatch-event on-connection-open]}]
-  (stop-websocket-server)
+  (log "[Starting WebSocket subsystem]")
   (let [remote-connection (atom nil)
-        ws-server (create-ws-server
-                   {:port 7722
-                    :on-connection-open (fn [conn]
-                                          (reset! remote-connection conn)
-                                          (when on-connection-open
-                                            (on-connection-open conn)))
-                    :on-message (fn [_ msg]
-                                  (try
-                                    (let [[msg-kind msg-body] (serializer/deserialize msg)]
-                                      (case msg-kind
-                                        :event (dispatch-event msg-body)
-                                        :api-response (process-remote-api-response msg-body)))
-                                    (catch Exception e
-                                      (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
+        [ws-server ready] (create-ws-server
+                           {:port 7722
+                            :on-connection-open (fn [conn]
+                                                  (reset! remote-connection conn)
+                                                  (when on-connection-open
+                                                    (on-connection-open conn)))
+                            :on-message (fn [_ msg]
+                                          (try
+                                            (let [[msg-kind msg-body] (serializer/deserialize msg)]
+                                              (case msg-kind
+                                                :event (dispatch-event msg-body)
+                                                :api-response (process-remote-api-response msg-body)))
+                                            (catch Exception e
+                                              (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
 
     ;; see https://github.com/TooTallNate/Java-WebSocket/wiki/Enable-SO_REUSEADDR
     ;; if we don't have this we get Address already in use when starting twice in a row
     (.setReuseAddr ws-server true)
     (.start ws-server)
 
-
+    ;; wait for the websocket to be ready before finishing this subsystem start
+    ;; just to avoid weird race conditions
+    @ready
 
     {:ws-server ws-server
      :pending-commands-callbacks (atom {})

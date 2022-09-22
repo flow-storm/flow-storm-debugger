@@ -81,6 +81,7 @@
   (async/>!! (:events-chan events-processor) e))
 
 (defn start-events-processor []
+  (utils/log "[Starting Events processor subsystem]")
   (let [events-chan (async/chan 100)
         ev-thread (Thread.
                    (fn []
@@ -98,5 +99,5 @@
      :events-thread ev-thread}))
 
 (defn stop-events-processor []
-  (utils/log "Stopping events processor by closing the events-chan")
+  (utils/log "[Stopping Events processor subsystem]")
   (async/close! (:events-chan events-processor)))

@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.runtime-api
   (:require [mount.core :as mount :refer [defstate]]
             [flow-storm.utils :as utils :refer [log-error log]]
-            [flow-storm.debugger.nrepl :as dbg-nrepl]
+            [flow-storm.debugger.repl.connection :refer [eval-code-str close-repl-connection]]
             [flow-storm.debugger.websocket :as websocket]
             [flow-storm.debugger.config :refer [config debug-mode]]
             [clojure.string :as str]
@@ -15,28 +15,19 @@
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
-  :start (let [{:keys [local? port show-error]} config
+  :start (let [{:keys [local? env-kind]} config
                cache (atom {})]
+           (log "[Starting Runtime Api subsystem]")
            (if local?
 
              (->LocalRuntimeApi cache)
 
-             (if port
-               ;; connect to repl server
-               (let [env-kind (if (#{:shadow} (:repl-type config))
-                                :cljs
-                                :clj)
-                     {:keys [repl-eval close-connection]} (dbg-nrepl/connect (assoc config
-                                                                                    :env-kind env-kind))]
-                 (->RemoteRuntimeApi repl-eval env-kind close-connection cache))
+             (->RemoteRuntimeApi env-kind cache)))
 
-               ;; if no port provided don't connect to any repl but start anyway,
-               ;; since non repl functionality can still be used
-               (let [repl-eval (fn [_] (show-error "You need a repl connection to use this feature"))]
-                 (->RemoteRuntimeApi repl-eval nil nil cache)))))
-
-  :stop (when-let [cc (:close-connection rt-api)]
-          (cc)))
+  :stop (do
+          (log "[Stopping Runtime Api subsystem]")
+          (when-let [cc (:close-connection rt-api)]
+           (cc))))
 
 (defprotocol RuntimeApiP
   (val-pprint [_ v opts])
@@ -214,7 +205,7 @@
                      (utils/elide-string form-str 50)))
         (eval-form rt-api form-str (assoc eval-opts :ns ns-name))))))
 
-(defrecord RemoteRuntimeApi [eval-str-expr env-kind close-connection cache]
+(defrecord RemoteRuntimeApi [env-kind cache]
 
   RuntimeApiP
 
@@ -234,36 +225,36 @@
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :remote "def-value" [v-name vref]))
 
-  (get-var-form-str [_ var-ns var-name] (eval-str-expr (make-repl-expression env-kind 'get-var-form-str var-ns var-name)))
+  (get-var-form-str [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-form-str var-ns var-name)))
 
   (eval-form [this form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [var-meta (when var-name (select-keys (get-var-meta this ns var-name) [:file :column :end-column :line :end-line]))
           form-expr (if instrument?
                       (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str)
-          expr-res (eval-str-expr (format "(do %s nil)" form-expr) ns)]
+          expr-res (eval-code-str (format "(do %s nil)" form-expr) ns)]
       (when var-meta
         ;; for vars restore the meta attributes that get lost when we re eval from the repl
-        (eval-str-expr (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
+        (eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
 
-  (get-all-namespaces [_] (eval-str-expr (make-repl-expression env-kind 'get-all-namespaces )))
-  (get-all-vars-for-ns [_ nsname] (eval-str-expr (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
-  (get-var-meta [_ var-ns var-name] (eval-str-expr (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
+  (get-all-namespaces [_] (eval-code-str (make-repl-expression env-kind 'get-all-namespaces )))
+  (get-all-vars-for-ns [_ nsname] (eval-code-str (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
+  (get-var-meta [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
 
   (instrument-namespaces [_ nsnames profile]
     (let [opts (if (= profile :light)
                  {:disable #{:expr :binding :anonymous-fn}}
                  {})]
       (case env-kind
-        :cljs (re-eval-all-ns-forms eval-str-expr nsnames {:instrument? true
+        :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? true
                                                            :instrument-options opts})
 
         :clj (api-call :remote "instrument-namespaces" [nsnames opts]))))
 
   (uninstrument-namespaces [_ nsnames]
     (case env-kind
-      :cljs (re-eval-all-ns-forms eval-str-expr nsnames {:instrument? false})
+      :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? false})
 
       ;; for Clojure just call the api
       :clj (api-call :remote "uninstrument-namespaces" [nsnames])))
@@ -276,7 +267,7 @@
 
 
   Closeable
-  (close [_] (close-connection))
+  (close [_] (close-repl-connection))
   )
 
 (defn get-and-eval-form [api var-ns var-name instrument?]

@@ -5,6 +5,7 @@
             [flow-storm.debugger.events-processor :as events-processor]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
+            [flow-storm.debugger.repl.connection]
             [flow-storm.debugger.config]
             [mount.core :as mount]))
 
@@ -30,7 +31,8 @@
   "Same as `local-debugger-mount-vars` but for remote debugger"
 
   (into local-debugger-mount-vars
-        [#'flow-storm.debugger.websocket/websocket-server]))
+        [#'flow-storm.debugger.websocket/websocket-server
+         #'flow-storm.debugger.repl.connection/connection]))
 
 (defn stop-debugger []
   (-> (mount/only (into local-debugger-mount-vars remote-debugger-mount-vars))
@@ -65,6 +67,10 @@
 
     ;; else, start components for remote debugging
     (-> (mount/with-args (assoc config
+                                :env-kind (if (#{:shadow} (:repl-type config))
+                                            :cljs
+                                            :clj)
+                                :repl-kind :nrepl
                                 :show-error ui-main/show-error
                                 :dispatch-event events-processor/enqueue-event!))
         (mount/only remote-debugger-mount-vars)
