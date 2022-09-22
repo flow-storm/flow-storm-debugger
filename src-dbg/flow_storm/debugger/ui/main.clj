@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.main
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [icon-button event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
+             :refer [label icon-button event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -41,20 +41,32 @@
   (runtime-api/interrupt-all-tasks rt-api))
 
 (defn bottom-box []
-  (let [box (doto (h-box [] "main-bottom-bar-box")
+  (let [progress-box (h-box [])
+        repl-status-lbl (label "REPL")
+        runtime-status-lbl (label "RUNTIME")
+        box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl] "main-bottom-bar-box")
+              (.setSpacing 5)
               (.setAlignment Pos/CENTER_RIGHT)
               (.setPrefHeight 20))]
-    (store-obj "main-bottom-bar-box" box)
+    (store-obj "progress-box" progress-box)
+    (store-obj "repl-status-lbl" repl-status-lbl)
+    (store-obj "runtime-status-lbl" runtime-status-lbl)
     box))
+
+(defn set-repl-status-lbl [status]
+  (let [[repl-status-lbl] (obj-lookup "repl-status-lbl")]
+    (.setStyle repl-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" )))))
+
+(defn set-runtime-status-lbl [status]
+  (let [[runtime-status-lbl] (obj-lookup "runtime-status-lbl")]
+    (.setStyle runtime-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" )))))
 
 (defn set-in-progress [in-progress?]
   (ui-utils/run-later
-   (let [[box] (obj-lookup "main-bottom-bar-box")]
+   (let [[box] (obj-lookup "progress-box")]
      (if in-progress?
 
        (let [prog-ind (progress-indicator 20)]
-         ;; @HACK this is super hacky, you can't use the bottom bar for anything
-         ;; more than this progress-indicator
          (-> box .getChildren .clear)
          (.addAll (.getChildren box) [prog-ind]))
 
@@ -100,15 +112,7 @@
     tabs-p))
 
 (defn- build-tool-bar-pane []
-  (let [tools [(icon-button :icon-name "mdi-lan-connect"
-                            :tooltip "Re-connect to repl server"
-                            :on-click (fn []
-                                        ;; restart the runtime api which will restart the repl connection
-                                        (mount/stop (mount/only [#'flow-storm.debugger.runtime-api/rt-api]))
-                                        (mount/start (mount/only [#'flow-storm.debugger.runtime-api/rt-api])))
-                            :disable (or (:local? config)
-                                         (not (:port config))))
-               (icon-button :icon-name "mdi-delete-forever"
+  (let [tools [(icon-button :icon-name "mdi-delete-forever"
                             :tooltip "Clean all debugger and runtime values references"
                             :on-click (fn [] (clear-all)))
                (icon-button :icon-name "mdi-stop-circle-outline"

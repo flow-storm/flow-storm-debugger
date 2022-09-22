@@ -132,6 +132,8 @@
 
 (def clear-values-references runtime-values/clear-values-references)
 
+(defn ping [] :pong)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Used by clojure only ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,6 +174,7 @@
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
              :clear-values-references clear-values-references
+             :ping ping
              #?@(:clj
                  [:instrument-namespaces instrument-namespaces
                   :uninstrument-namespaces uninstrument-namespaces])})

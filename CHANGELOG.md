@@ -3,7 +3,9 @@
 ## master (unreleased)
 	
 ## New Features
-        
+	
+	- Automatic remote connection management. The re-connect button was removed from the toolbar since it isn't needed anymore
+	
 ### Changes
 	
 ### Bugs fixed

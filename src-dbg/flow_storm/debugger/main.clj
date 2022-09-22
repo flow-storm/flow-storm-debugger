@@ -3,6 +3,7 @@
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.events-processor :as events-processor]
+            [flow-storm.debugger.watchdog]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.repl.connection]
@@ -32,7 +33,8 @@
 
   (into local-debugger-mount-vars
         [#'flow-storm.debugger.websocket/websocket-server
-         #'flow-storm.debugger.repl.connection/connection]))
+         #'flow-storm.debugger.repl.connection/connection
+         #'flow-storm.debugger.watchdog/watchdog]))
 
 (defn stop-debugger []
   (-> (mount/only (into local-debugger-mount-vars remote-debugger-mount-vars))
@@ -70,6 +72,7 @@
                                 :env-kind (if (#{:shadow} (:repl-type config))
                                             :cljs
                                             :clj)
+                                :connect-to-repl? (:port config)
                                 :repl-kind :nrepl
                                 :show-error ui-main/show-error
                                 :dispatch-event events-processor/enqueue-event!))

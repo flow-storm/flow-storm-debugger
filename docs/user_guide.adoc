@@ -210,14 +210,6 @@ clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"
 
 assuming your nrepl server is listening on port 9000.
 
-[NOTE]
-.Reconnecting
-====
-When you are remote debugging (Clojure or ClojureScript) and the debuggee restarts (like a browser page reload)
-you can reconnect to it without restarting the debugger by clicking at the reconnect button on the toolbar.
-====
-
-
 == Instrument code
 
 Code instrumentation in FlowStorm is done by rewriting your code in a way that doesn't change its behavior
@@ -592,7 +584,6 @@ image::user_guide_images/toolbar.png[]
 
 From left to right :
 
-- Reconnect to repl server (useful for page reloads in ClojureScript)
 - Clean all. Will clean all flows, taps and every value the debugger is retaining.
 - Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
 

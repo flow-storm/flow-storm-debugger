@@ -10,6 +10,10 @@
             [flow-storm.tracer])
   (:require-macros [flow-storm.api]))
 
+(def api-loaded?
+  "Used for remote connections to check this ns has been loaded"
+  true)
+
 (defn remote-connect [config]
 
   ;; connect to the remote websocket

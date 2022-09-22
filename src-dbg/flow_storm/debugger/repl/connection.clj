@@ -23,8 +23,13 @@
      (repl-eval code-str ns)
      (utils/log-error "No repl available"))))
 
-(defn make-repl-init-sequence [{:keys [env-kind repl-type build-id]}]
-  (let [default-cljs-ns (case env-kind :clj "user" :cljs "cljs.user")
+(defn default-repl-ns [{:keys [env-kind]}]
+  (case env-kind :clj "user" :cljs "cljs.user"))
+
+(def remote-connect-code "(fsa/remote-connect {})")
+
+(defn make-repl-init-sequence [{:keys [env-kind repl-type build-id] :as config}]
+  (let [default-ns (default-repl-ns config)
         repl-type-init-command (case repl-type
                                  :shadow {:code (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))" build-id)
                                           :ns nil}
@@ -36,11 +41,11 @@
                             :clj {:code "(do (in-ns 'user) nil)" :ns nil}
                             :cljs {:code "(do (in-ns 'cljs.user) nil)" :ns nil})
         fs-require-api-command {:code "(require '[flow-storm.api :as fsa :include-macros true])"
-                                :ns default-cljs-ns}
-        fs-connect-command {:code "(fsa/remote-connect {})"
-                            :ns default-cljs-ns}
+                                :ns default-ns}
+        fs-connect-command {:code remote-connect-code
+                            :ns default-ns}
         fs-require-dbg-command {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])"
-                                :ns default-cljs-ns}]
+                                :ns default-ns}]
 
     [repl-type-init-command
      ns-ensure-command
@@ -50,7 +55,7 @@
 
 (defn start-repl-connection []
   (utils/log "[Starting Repl subsystem]")
-  (when (:port config)
+  (when (:connect-to-repl? config)
     (let [{:keys [repl-kind]} config
           log-file (io/file log-file-path)
           log-output-stream (io/make-output-stream log-file {:append true

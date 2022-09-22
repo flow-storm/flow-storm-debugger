@@ -20,6 +20,10 @@
 ;; that returns the rest of the functions we need
 (def debugger-main-ns 'flow-storm.debugger.main)
 
+(def api-loaded?
+  "Used for remote connections to check this ns has been loaded"
+  true)
+
 (defn stop []
   (let [stop-debugger (try
                         (resolve (symbol (name debugger-main-ns) "stop-debugger"))

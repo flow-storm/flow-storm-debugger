@@ -6,6 +6,7 @@
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
+           [org.java_websocket.exceptions WebsocketNotConnectedException]
            [java.net InetSocketAddress]
            [java.util UUID]))
 
@@ -19,6 +20,7 @@
 
 (defn async-remote-api-request [method args callback]
   (let [conn @(:remote-connection websocket-server)]
+
     (if (nil? conn)
      (log-error "No process connected.")
      (try
@@ -26,20 +28,23 @@
              packet-str (serializer/serialize [:api-request request-id method args])]
          (.send conn packet-str)
          (swap! (:pending-commands-callbacks websocket-server) assoc request-id callback))
+       (catch WebsocketNotConnectedException _)
        (catch Exception e
          (log-error "Error sending async command, maybe the connection is down, try to reconnect" e))))))
 
-(defn sync-remote-api-request [method args]
-  (let [p (promise)]
+(defn sync-remote-api-request
+  ([method args] (sync-remote-api-request method args 10000))
+  ([method args timeout]
+   (let [p (promise)]
 
-    (async-remote-api-request method args (fn [resp] (deliver p resp)))
+     (async-remote-api-request method args (fn [resp] (deliver p resp)))
 
-    (let [v (deref p 10000 :flow-storm/timeout)]
-      (if (= v :flow-storm/timeout)
-        (do
-          (log-error "Timeout waiting for sync-remote-api-request response")
-          nil)
-        v))))
+     (let [v (deref p timeout :flow-storm/timeout)]
+       (if (= v :flow-storm/timeout)
+         (do
+           (log-error "Timeout waiting for sync-remote-api-request response")
+           nil)
+         v)))))
 
 (defn process-remote-api-response [[request-id err-msg resp :as packet]]
   (let [callback (get @(:pending-commands-callbacks websocket-server) request-id)]
