@@ -1,12 +1,24 @@
 (ns flow-storm.runtime.events)
 
 (def callback (atom nil))
+(def pending-events (atom []))
 
 (defn subscribe! [callback-fn]
   (reset! callback callback-fn))
 
 (defn clear-subscription! []
   (reset! callback nil))
+
+(defn clear-pending-events! []
+  (reset! pending-events []))
+
+(defn pop-pending-events! []
+  (let [popped-events @pending-events
+        popped-count (count popped-events)]
+    (when (pos? popped-count)
+      (swap! pending-events (fn [pending-evs]
+                              (subvec pending-evs (count popped-events)))))
+    popped-events))
 
 (defn make-flow-created-event [flow-id form-ns form timestamp]
   [:flow-created {:flow-id flow-id
@@ -47,5 +59,6 @@
   [:task-progress {:task-id task-id :progress progress}])
 
 (defn publish-event! [ev]
-  (when-let [cb @callback]
-    (cb ev)))
+  (if-let [cb @callback]
+    (cb ev)
+    (swap! pending-events conj ev)))

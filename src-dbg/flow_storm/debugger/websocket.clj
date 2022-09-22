@@ -2,7 +2,8 @@
   (:require [flow-storm.utils :refer [log log-error]]
             [flow-storm.json-serializer :as serializer]
             [mount.core :as mount :refer [defstate]]
-            [flow-storm.debugger.config :refer [config]])
+            [flow-storm.debugger.config :refer [config]]
+            [flow-storm.debugger.events-queue])
   (:import [org.java_websocket.server WebSocketServer]
            [org.java_websocket.handshake ClientHandshake]
            [org.java_websocket WebSocket]
@@ -110,7 +111,7 @@
                                                 :event (dispatch-event msg-body)
                                                 :api-response (process-remote-api-response msg-body)))
                                             (catch Exception e
-                                              (log-error (format "Error processing a remote trace for message '%s', error msg %s" msg (.getMessage e))))))})]
+                                              (log-error (format "Error processing remote message '%s', error msg %s" msg (.getMessage e))))))})]
 
     ;; see https://github.com/TooTallNate/Java-WebSocket/wiki/Enable-SO_REUSEADDR
     ;; if we don't have this we get Address already in use when starting twice in a row

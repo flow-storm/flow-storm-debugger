@@ -34,6 +34,7 @@
 (defn stop []
   (rt-taps/remove-tap!)
   (rt-events/clear-subscription!)
+  (rt-events/clear-pending-events!)
   (rt-values/clear-values-references)
   (indexes-api/stop)
   (remote-websocket-client/stop-remote-websocket-client)

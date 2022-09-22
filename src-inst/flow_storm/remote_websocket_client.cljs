@@ -1,6 +1,7 @@
 (ns flow-storm.remote-websocket-client
   (:require [flow-storm.utils :refer [log log-error] :as utils]
-            [flow-storm.json-serializer :as serializer]))
+            [flow-storm.json-serializer :as serializer]
+            [flow-storm.runtime.events :as rt-events]))
 
 (def remote-websocket-client nil)
 
@@ -26,6 +27,14 @@
         ws-client (WebSocket. uri-str)]
     ws-client))
 
+
+(defn send [ser-packet]
+  (.send remote-websocket-client ser-packet))
+
+(defn send-event-to-debugger [ev-packet]
+  (let [ser-packet (serializer/serialize [:event ev-packet])]
+    (send ser-packet)))
+
 (defn start-remote-websocket-client [{:keys [host port on-connected api-call-fn]
                                       :or {host "localhost"
                                            port 7722}}]
@@ -36,6 +45,19 @@
                                   (log-error (utils/format "WebSocket error connection %s" uri-str))))
     (set! (.-onopen ws-client) (fn []
                                  (log (utils/format "Connection opened to %s" uri-str))
+
+                                 ;; send all pending events
+                                 (let [pending-events (rt-events/pop-pending-events!)]
+                                   (when (seq pending-events)
+                                     (log "Replaying stored events")
+                                     ;; HACKY: wait a little befor sending the events to be sure
+                                     ;; the debugger that just connected is ready to start
+                                     ;; processing events
+                                     (js/setTimeout (fn []
+                                                      (doseq [ev pending-events]
+                                                        (send-event-to-debugger ev)))
+                                                    2000)))
+
                                  (when on-connected (on-connected))))
     (set! (.-onclose ws-client) (fn [] (log (utils/format "Connection with %s closed." uri-str))))
 
@@ -66,6 +88,3 @@
     (set! remote-websocket-client ws-client)
 
     ws-client))
-
-(defn send [ser-packet]
-  (.send remote-websocket-client ser-packet))

@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.debugger.events-processor :as events-processor]
+            [flow-storm.debugger.events-queue :as events-queue]
             [flow-storm.debugger.watchdog]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
@@ -19,7 +19,7 @@
   states when the debugger is used inside a application that uses mount."
 
   [#'flow-storm.debugger.config/config
-   #'flow-storm.debugger.events-processor/events-processor
+   #'flow-storm.debugger.events-queue/events-queue
    #'flow-storm.debugger.ui.state-vars/ui-objs
    #'flow-storm.debugger.ui.state-vars/flows-ui-objs
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
@@ -75,6 +75,6 @@
                                 :connect-to-repl? (:port config)
                                 :repl-kind :nrepl
                                 :show-error ui-main/show-error
-                                :dispatch-event events-processor/enqueue-event!))
+                                :dispatch-event events-queue/enqueue-event!))
         (mount/only remote-debugger-mount-vars)
         (mount/start))))

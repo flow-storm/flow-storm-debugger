@@ -35,6 +35,7 @@
 
 
     (rt-events/clear-subscription!)
+    (rt-events/clear-pending-events!)
 
     (indexes-api/stop)
 
@@ -76,7 +77,7 @@
      (start-debugger config)
 
 
-     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-processor/enqueue-event!))
+     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
 
      (rt-values/clear-values-references)
 

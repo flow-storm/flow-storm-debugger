@@ -985,10 +985,9 @@ Do this by running <code>npm install websocket --save</code></p>
 <td class="content">
 <div class="title">App initialization debugging</div>
 <div class="paragraph">
-<p>If you need to debug some app initialization code it could be that the websocket isn&#8217;t ready
-when you already have something to trace. If this is the case you can use
-(flow-storm.api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
-you are connected to the debugger.</p>
+<p>If you need to debug some app initialization, for adding <code>#trace</code> tags before the debugger is connected you
+will have to require flow-storm.api yourself, probably in your main. All the tarcing will be replayed to the debugger
+once it is connected.</p>
 </div>
 </td>
 </tr>
@@ -1937,7 +1936,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-22 14:09:40 -0300
+Last updated 2022-09-22 16:00:46 -0300
 </div>
 </div>
 </body>

@@ -165,10 +165,9 @@ Do this by running `npm install websocket --save`
 [NOTE]
 .App initialization debugging
 ====
-If you need to debug some app initialization code it could be that the websocket isn't ready
-when you already have something to trace. If this is the case you can use
-(flow-storm.api/remote-connect {:on-connected (fn [] (my-app-start))}) so you start your application after
-you are connected to the debugger.
+If you need to debug some app initialization, for adding `#trace` tags before the debugger is connected you
+will have to require flow-storm.api yourself, probably in your main. All the tarcing will be replayed to the debugger
+once it is connected.
 ====
 
 == Starting the debugger
