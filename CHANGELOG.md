@@ -4,12 +4,22 @@
 	
 ## New Features
 	
+### Changes
+	
+### Bugs fixed
+
+## 3.0.188 (22-9-2022)
+	
+## New Features
+	
 	- Automatic remote connection management. The re-connect button was removed from the toolbar since it isn't needed anymore
 	
 ### Changes
 	
 ### Bugs fixed
 
+	- Fix javafx platform not initialized exception when there is a error connecting to a repl
+	
 ## 3.0.184 (21-9-2022)
 	
 ## New Features
