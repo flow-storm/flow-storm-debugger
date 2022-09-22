@@ -33,7 +33,7 @@ If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a 
 
 [,bash]
 ----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'
 ----
 
 If you are a https://leiningen.org/[lein] user add both dependencies to your project.clj `:dependencies` and run `lein repl`.
@@ -113,7 +113,7 @@ so to start the debugger and connect to it you run :
 
 [,bash]
 ----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
 ----
 
 And that is all you need, the debugger GUI will pop up and everything will be ready.
@@ -138,7 +138,7 @@ For this you can start the debugger like before but without any parameters, like
 
 [,bash]
 ----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
 ----
 
 And then go to your app code and call `(flow-storm.api/remote-connect)` maybe on your main, so everytime your program starts
@@ -204,7 +204,7 @@ You can remotely debug any Clojure application the exposes a nrepl server to it 
 
 [,bash]
 ----
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
 ----
 
 assuming your nrepl server is listening on port 9000.
@@ -604,7 +604,7 @@ you can then run and debug the execution of the same command like this :
 
 [,bash]
 ----
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
+clj -Sforce -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
 	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
                               :profile ':light'                     \
                               :require-before '#{"cljs.repl.node"}' \
