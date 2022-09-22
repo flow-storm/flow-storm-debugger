@@ -39,7 +39,7 @@
                                   :ns nil})
         ns-ensure-command (case env-kind
                             :clj {:code "(do (in-ns 'user) nil)" :ns nil}
-                            :cljs {:code "(do (in-ns 'cljs.user) nil)" :ns nil})
+                            :cljs {:code "(in-ns 'cljs.user)" :ns nil})
         fs-require-api-command {:code "(require '[flow-storm.api :as fsa :include-macros true])"
                                 :ns default-ns}
         fs-connect-command {:code remote-connect-code
