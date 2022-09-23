@@ -96,7 +96,7 @@
                     (doseq [{:keys [code ns]} (repl-conn/make-general-repl-init-sequence config)]
                       (repl-conn/eval-code-str code ns)))
 
-                  (repl-conn/eval-code-str repl-conn/remote-connect-code (repl-conn/default-repl-ns config))
+                  (repl-conn/eval-code-str (repl-conn/remote-connect-code config) (repl-conn/default-repl-ns config))
                   ;; if we started, lets wait some time before checking again
                   (async/<! (async/timeout 5000))
                   (catch Exception _

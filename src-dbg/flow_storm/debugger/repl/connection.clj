@@ -26,7 +26,10 @@
 (defn default-repl-ns [{:keys [env-kind]}]
   (case env-kind :clj "user" :cljs "cljs.user"))
 
-(def remote-connect-code "(fsa/remote-connect {})")
+(defn remote-connect-code [config]
+  (format "(fsa/remote-connect %s)" (-> config
+                                        (select-keys [:port :debugger-host])
+                                        (pr-str))))
 
 (defn make-specific-repl-init-sequence [{:keys [repl-type build-id]}]
   (case repl-type
@@ -45,7 +48,7 @@
                             :cljs {:code "(in-ns 'cljs.user)" :ns nil})
         fs-require-api-command {:code "(require '[flow-storm.api :as fsa :include-macros true])"
                                 :ns default-ns}
-        fs-connect-command {:code remote-connect-code
+        fs-connect-command {:code (remote-connect-code config)
                             :ns default-ns}
         fs-require-dbg-command {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])"
                                 :ns default-ns}]

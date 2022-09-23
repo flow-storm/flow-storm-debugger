@@ -75,7 +75,7 @@
                                 :env-kind (if (#{:shadow} (:repl-type config))
                                             :cljs
                                             :clj)
-                                :connect-to-repl? (:port config)
+                                :connect-to-repl? (boolean (:port config))
                                 :repl-kind :nrepl
                                 :show-error ui-main/show-error
                                 :dispatch-event events-queue/enqueue-event!))
