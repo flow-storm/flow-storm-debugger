@@ -35,7 +35,8 @@
 (defn start-watchdog []
   (utils/log "[Starting Connection watchdog subsystem]")
   (let [repl-watch-stop-ch (async/promise-chan)
-        websocket-watch-stop-ch (async/promise-chan)]
+        websocket-watch-stop-ch (async/promise-chan)
+        ui-cleared (atom false)]
 
     ;; start the repl watchdog loop
     ;; this will check for the repl connection to be ready and also
@@ -70,7 +71,9 @@
                 ws-ok? (= :pong r)]
 
             (if ws-ok?
-              (ui-main/set-runtime-status-lbl :ok)
+              (do
+                (ui-main/set-runtime-status-lbl :ok)
+                (reset! ui-cleared false))
 
               (do
                 (utils/log "[WATCHDOG] websocket looks down, trying to reconnect ...")
@@ -81,7 +84,10 @@
                 ;; clear the ui
                 ;; if we lost the connection we can assume we lost the state on the runtime side
                 ;; so get rid of flows, taps, and browser instrumentation
-                (clear-ui)
+                (when-not @ui-cleared
+                  (utils/log "Clearing the UI because of websocket connection down")
+                  (clear-ui)
+                  (reset! ui-cleared true))
 
                 (try
                   ;; if we lost the connection to the runtime, and we are connected to a repl,
