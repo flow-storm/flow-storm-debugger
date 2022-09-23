@@ -10,9 +10,12 @@
 	
 ### Changes
 	
+	- Remote connection now accepts :debugger-host and :runtime-host keys (check out the documentation)
+	
 ### Bugs fixed
 	
 	- Fix the more button on value inspector
+	- Fix for infinite sequence handling
 	
 ## 3.0.188 (22-9-2022)
 	

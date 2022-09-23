@@ -209,6 +209,11 @@ clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "
 
 assuming your nrepl server is listening on port 9000.
 
+If your application is running in a different box you can also provide two extra keys :
+
+   - `:debugger-host` should be the ip of the debuggee (defaults to localhost)
+   - `:runtime-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
+
 == Instrument code
 
 Code instrumentation in FlowStorm is done by rewriting your code in a way that doesn't change its behavior

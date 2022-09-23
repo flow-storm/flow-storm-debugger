@@ -2,8 +2,8 @@
   (:require [nrepl.core :as nrepl]
             [nrepl.transport :as transport]))
 
-(defn connect [{:keys [host port] :or {host "localhost"}}]
-  (let [transport (nrepl/connect :host host
+(defn connect [{:keys [runtime-host port] :or {runtime-host "localhost"}}]
+  (let [transport (nrepl/connect :host runtime-host
                                  :port port
                                  :transport-fn #'transport/bencode)
         client (nrepl/client transport Long/MAX_VALUE)

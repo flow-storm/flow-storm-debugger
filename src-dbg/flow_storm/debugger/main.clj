@@ -49,7 +49,10 @@
         - `:theme` can be one of `:light`, `:dark` or `:auto`
         - `:styles` a string path to a css file if you want to override some started debugger styles
 
-   When `:local?` is false you can also provide `:host` and `:port` for the nrepl server."
+   When `:local?` is false you can also provide `:runtime-host` `:debugger-host` and `:port` for the nrepl server.
+  `:runtime-host` should be the ip of the debuggee (defaults to localhost)
+  `:debugger-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
+
 
   [{:keys [local?] :as config}]
 

@@ -21,10 +21,10 @@ test-cljs:
 	npx shadow-cljs compile :dev-test && node public/dev-test.js
 
 test-instrument-own-cljs-light:
-	clj -X:dbg:inst:dev flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':light' :verbose? true :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.vendor.cognitect.transit"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/demo/src/org/foo/myscript.cljs"]';
+	clj -X:dbg:inst:dev flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':light' :verbose? true :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.vendor.cognitect.transit"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
 
 test-instrument-own-cljs-full:
-	clj -X:dbg:inst:dev flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':full' :verbose? true :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.vendor.cognitect.transit"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/demo/src/org/foo/myscript.cljs"]';
+	clj -X:dbg:inst:dev flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':full' :verbose? true :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.vendor.cognitect.transit"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
 
 test-local:
 	clj -X:dbg:inst:dev dev/start-and-add-data

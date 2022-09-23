@@ -1056,6 +1056,19 @@ process and connect to it from the debuggee via sockets.</p>
 <div class="paragraph">
 <p>assuming your nrepl server is listening on port 9000.</p>
 </div>
+<div class="paragraph">
+<p>If your application is running in a different box you can also provide two extra keys :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>:debugger-host</code> should be the ip of the debuggee (defaults to localhost)</p>
+</li>
+<li>
+<p><code>:runtime-host</code> shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1936,7 +1949,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-22 16:58:23 -0300
+Last updated 2022-09-23 14:44:36 -0300
 </div>
 </div>
 </body>

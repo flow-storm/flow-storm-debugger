@@ -27,10 +27,10 @@
   (let [ser-packet (serializer/serialize [:event ev-packet])]
     (send ser-packet)))
 
-(defn start-remote-websocket-client [{:keys [host port on-connected api-call-fn]
-                                      :or {host "localhost"
-                                           port 7722}}]
-  (let [uri-str (format "ws://%s:%s/ws" host port)
+(defn start-remote-websocket-client [{:keys [debugger-host on-connected api-call-fn]
+                                      :or {debugger-host "localhost"}}]
+  (let [port 7722
+        uri-str (format "ws://%s:%s/ws" debugger-host port)
         ^WebSocketClient ws-client (proxy
                                        [WebSocketClient]
                                        [(URI. uri-str)]
