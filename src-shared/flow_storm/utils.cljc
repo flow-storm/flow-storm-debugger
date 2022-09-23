@@ -1,6 +1,7 @@
 (ns flow-storm.utils
   #?(:cljs (:require [goog.string :as gstr]
-                     [goog.string.format])
+                     [goog.string.format]
+                     [goog :as g])
      :clj (:refer-clojure :exclude [format])))
 
 (defn elide-string [s max-len]
@@ -21,6 +22,15 @@
    :cljs
    (defn colored-string [_ _]
      "UNIMPLEMENTED"))
+
+#?(:clj (defn object-id [o] (System/identityHashCode o))
+   :cljs (defn object-id [o]
+           (cond
+             (or (undefined? o) (nil? o)) 0
+             (boolean? o)                 (hash o)
+             (number? o)                  (hash o)
+             (string? o)                  (hash o)
+             (= "object" (g/typeOf o))    (g/getUid o))))
 
 #?(:clj (def out-print-writer *out*))
 

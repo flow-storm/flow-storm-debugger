@@ -1,6 +1,7 @@
 (ns flow-storm.runtime.values
   (:require [clojure.pprint :as pp]
             [clojure.datafy :as datafy]
+            [flow-storm.utils :as utils]
             #?(:cljs [goog.object :as gobj])))
 
 (def values-references (atom nil))
@@ -17,36 +18,16 @@
   (get-value [_ val-id])
   (clear-all [_]))
 
-(defrecord ValueReferences [val->vid vid->val next-val-id]
-
-  ValueRefP
-  
-  (ref-value [this v]
-    (let [vid (get val->vid v :flow-storm/not-found)]
-      (if (= vid :flow-storm/not-found)
-        (-> this
-            (assoc-in [:vid->val next-val-id] v)
-            (assoc-in [:val->vid v] next-val-id)
-            (update :next-val-id inc))
-        this)))
-  
-  (get-value [_ val-id]
-    (get vid->val val-id)))
-
-(defn make-value-references []
-  (map->ValueReferences {:vid->val {}
-                         :val->vid {}
-                         :next-val-id 0}))
-
 (defn get-reference-value [vid]
-  (get-value @values-references vid))
+  (get @values-references vid))
 
 (defn reference-value! [v]
-  (let [{:keys [val->vid]} (swap! values-references ref-value v)]
-    (get val->vid v)))
+  (let [vid (utils/object-id v)]
+    (swap! values-references assoc vid v)
+    vid))
 
 (defn clear-values-references []
-  (reset! values-references (make-value-references)))
+  (reset! values-references {}))
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [print-fn #?(:clj (if pprint? pp/pprint print) 
