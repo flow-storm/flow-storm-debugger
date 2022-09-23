@@ -28,15 +28,18 @@
 
 (def remote-connect-code "(fsa/remote-connect {})")
 
-(defn make-repl-init-sequence [{:keys [env-kind repl-type build-id] :as config}]
-  (let [default-ns (default-repl-ns config)
-        repl-type-init-command (case repl-type
-                                 :shadow {:code (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))" build-id)
-                                          :ns nil}
+(defn make-specific-repl-init-sequence [{:keys [repl-type build-id]}]
+  (case repl-type
+    :shadow [{:code (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))" build-id)
+              :ns nil}]
 
-                                 ;; else it is a clj remote repl
-                                 {:code "(require '[flow-storm.runtime.debuggers-api])"
-                                  :ns nil})
+    ;; else it is a clj remote repl
+    [{:code "(require '[flow-storm.runtime.debuggers-api])"
+      :ns nil}]))
+
+(defn make-general-repl-init-sequence [{:keys [env-kind] :as config}]
+  (let [default-ns (default-repl-ns config)
+
         ns-ensure-command (case env-kind
                             :clj {:code "(do (in-ns 'user) nil)" :ns nil}
                             :cljs {:code "(in-ns 'cljs.user)" :ns nil})
@@ -47,8 +50,7 @@
         fs-require-dbg-command {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])"
                                 :ns default-ns}]
 
-    [repl-type-init-command
-     ns-ensure-command
+    [ns-ensure-command
      fs-require-api-command
      fs-connect-command
      fs-require-dbg-command]))
@@ -83,7 +85,10 @@
       (utils/log "Initializing repl...")
 
       ;; initialize the repl
-      (doseq [{:keys [code ns]} (make-repl-init-sequence config)]
+      (doseq [{:keys [code ns]} (make-specific-repl-init-sequence config)]
+        (repl-eval code ns))
+
+      (doseq [{:keys [code ns]} (make-general-repl-init-sequence config)]
         (repl-eval code ns))
 
       {:repl-eval repl-eval

@@ -6,7 +6,8 @@
 	
 	- Automatic event retention. For ClojureScript or remote Clojure you don't need to remote-connect by hand
 	  when you want to capture traces before the debugger is connected. Just need to require flow-storm.api on your main.
-	  
+	- Automatic ui cleaning on reconnection
+	
 ### Changes
 	
 ### Bugs fixed

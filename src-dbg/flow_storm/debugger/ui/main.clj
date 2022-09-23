@@ -38,7 +38,7 @@
     (flows-screen/fully-remove-flow fid))
 
   (log "Clearing values")
-  (runtime-api/interrupt-all-tasks rt-api))
+  (runtime-api/clear-values-references rt-api))
 
 (defn bottom-box []
   (let [progress-box (h-box [])

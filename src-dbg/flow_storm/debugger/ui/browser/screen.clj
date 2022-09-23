@@ -21,6 +21,10 @@
     :profile profile
     :ns-name ns-name}))
 
+(defn clear-instrumentation-list []
+  (let [[{:keys [clear]}] (obj-lookup "browser-observable-instrumentations-list-data")]
+    (clear)))
+
 (defn add-to-var-instrumented-list [var-ns var-name]
   (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (add-all [(make-inst-var var-ns var-name)])))
