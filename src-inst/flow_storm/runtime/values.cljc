@@ -96,7 +96,7 @@
     (cond-> {:val/kind :seq
              :val/page shallow-page             
              :total-count cnt}
-      (seq more-elems) (assoc :val/more (maybe-dig-node! more-elems)))))
+      (seq more-elems) (assoc :val/more (reference-value! more-elems)))))
 
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
 #?(:cljs (defn map-like? [x] (map? x)))

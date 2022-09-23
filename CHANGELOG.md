@@ -11,7 +11,9 @@
 ### Changes
 	
 ### Bugs fixed
-
+	
+	- Fix the more button on value inspector
+	
 ## 3.0.188 (22-9-2022)
 	
 ## New Features
