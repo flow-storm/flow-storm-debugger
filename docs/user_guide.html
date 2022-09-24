@@ -972,6 +972,11 @@ will automatically connect to the repl.</p>
 <p>On NodeJs and react-native you need to install the <code>websocket</code> library.
 Do this by running <code>npm install websocket --save</code></p>
 </div>
+<div class="paragraph">
+<p>For react-native if your app is running inside a cellphone you will have to also provide the <code>:debugger-host</code> key
+to <code>flow-storm.debugger.main/start-debugger</code> with your box ip address, unless you are using adb reverse with your ports for
+which you will have to <code>adb reverse tcp:7722 tcp:7722</code> (the debugger websocket port)</p>
+</div>
 </td>
 </tr>
 </table>
@@ -1062,10 +1067,10 @@ process and connect to it from the debuggee via sockets.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>:debugger-host</code> should be the ip of the debuggee (defaults to localhost)</p>
+<p><code>:runtime-host</code> should be the ip of the debuggee (defaults to localhost)</p>
 </li>
 <li>
-<p><code>:runtime-host</code> shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
+<p><code>:debugger-host</code> shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
 </li>
 </ul>
 </div>
@@ -1949,7 +1954,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-23 14:44:36 -0300
+Last updated 2022-09-24 15:42:39 -0300
 </div>
 </div>
 </body>

@@ -160,6 +160,10 @@ FlowStorm is supported for ClojureScript in :
 ====
 On NodeJs and react-native you need to install the `websocket` library.
 Do this by running `npm install websocket --save`
+
+For react-native if your app is running inside a cellphone you will have to also provide the `:debugger-host` key
+to `flow-storm.debugger.main/start-debugger` with your box ip address, unless you are using adb reverse with your ports for
+which you will have to `adb reverse tcp:7722 tcp:7722` (the debugger websocket port)
 ====
 
 [NOTE]
@@ -211,8 +215,8 @@ assuming your nrepl server is listening on port 9000.
 
 If your application is running in a different box you can also provide two extra keys :
 
-   - `:debugger-host` should be the ip of the debuggee (defaults to localhost)
-   - `:runtime-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
+   - `:runtime-host` should be the ip of the debuggee (defaults to localhost)
+   - `:debugger-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
 
 == Instrument code
 
