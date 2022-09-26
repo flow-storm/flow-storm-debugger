@@ -23,6 +23,8 @@
 (declare instrument-function-call)
 (declare instrument-cljs-extend-type-form-types)
 
+(def ^:dynamic *runtime-ctx* nil)
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
 ;;;;;;;;;;;;;;;;;;;;
@@ -294,15 +296,16 @@
 
   "Generates a form to trace a `symb` binding at `coor`."
 
-  [symb coor {:keys [disable] :as ctx}]
+  [symb coor {:keys [disable trace-bind] :as ctx}]
 
   (when-not (or (disable :binding)
                 (uninteresting-symb? symb))
-    `(tracer/trace-bind
+    `(~trace-bind
       (quote ~symb)
       ~symb
       ~{:coor coor
-        :form-id (:form-id ctx)})))
+        :form-id (:form-id ctx)}
+      *runtime-ctx*)))
 
 (defn- args-bind-tracers
 
@@ -390,7 +393,7 @@
 
   "Instrument a (fn* ([] )) arity body. The core of functions body instrumentation."
 
-  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns] :as ctx}]
+  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns trace-form-init trace-fn-call] :as ctx}]
 
   (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
         fn-form (cond
@@ -405,18 +408,19 @@
                   :else (let [err-msg (utils/format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind)]
                           (throw (Exception. err-msg))))
         outer-preamble (-> []
-                           (into [`(tracer/trace-form-init {:form-id ~form-id
-                                                            :ns ~form-ns
-                                                            :def-kind ~(cond
-                                                                         (= outer-form-kind :extend-protocol) :extend-protocol
-                                                                         (= outer-form-kind :extend-type) :extend-type
-                                                                         (= outer-form-kind :defrecord) :extend-type
-                                                                         (= outer-form-kind :deftype) :extend-type
-                                                                         (= (:kind fn-ctx) :defmethod) :defmethod
-                                                                         (= (:kind fn-ctx) :defn) :defn)
-                                                            :dispatch-val ~(:dispatch-val fn-ctx)}
-                                                                 ~fn-form)])
-                           (into [`(tracer/trace-fn-call ~form-id ~form-ns ~(str fn-trace-name) ~(expanded-fn-args-vec-symbols arity-args-vec))])
+                           (into [`(~trace-form-init {:form-id ~form-id
+                                                      :ns ~form-ns
+                                                      :def-kind ~(cond
+                                                                   (= outer-form-kind :extend-protocol) :extend-protocol
+                                                                   (= outer-form-kind :extend-type) :extend-type
+                                                                   (= outer-form-kind :defrecord) :extend-type
+                                                                   (= outer-form-kind :deftype) :extend-type
+                                                                   (= (:kind fn-ctx) :defmethod) :defmethod
+                                                                   (= (:kind fn-ctx) :defn) :defn)
+                                                      :dispatch-val ~(:dispatch-val fn-ctx)}
+                                    ~fn-form
+                                    *runtime-ctx*)])
+                           (into [`(~trace-fn-call ~form-id ~form-ns ~(str fn-trace-name) ~(expanded-fn-args-vec-symbols arity-args-vec) *runtime-ctx*)])
                            (into (args-bind-tracers arity-args-vec form-coor ctx)))
 
         ctx' (-> ctx
@@ -575,7 +579,7 @@
 
   (with-meta (cons name (instrument-coll args ctx)) (meta form)))
 
-(defn- instrument-expression-form [form coor {:keys [form-id outer-form? disable]}]
+(defn- instrument-expression-form [form coor {:keys [form-id outer-form? disable trace-expr-exec]}]
   ;; only disable :fn-call traces if it is NOT the outer form. we still want to
   ;; trace outer forms since they are function returns
   (if (and (disable :expr) (not outer-form?))
@@ -584,7 +588,7 @@
 
     (let [trace-data (cond-> {:coor coor, :form-id form-id}
                        outer-form? (assoc :outer-form? outer-form?))]
-      `(tracer/trace-expr-exec ~form ~trace-data))))
+      `(~trace-expr-exec ~form ~trace-data *runtime-ctx*))))
 
 (defn- maybe-instrument
 
@@ -768,7 +772,7 @@
 
   [form enable-clause]
 
-  `(binding [tracer/*runtime-ctx* (assoc tracer/*runtime-ctx* :tracing-disabled? (not ~enable-clause))]
+  `(binding [*runtime-ctx* (assoc *runtime-ctx* :tracing-disabled? (not ~enable-clause))]
      ~form))
 
 (defn- instrument-form-recursively
@@ -885,12 +889,12 @@
 
 (defn- instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
-  [ctx forms preamble fn-ns fn-name]
+  [ctx forms preamble _ _]
   `(do
      ~@(-> preamble
            (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))]))))
 
-(defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled?]} form-ns form env]
+(defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled? trace-bind trace-form-init trace-fn-call trace-expr-exec]} form-ns form env]
   (let [form-id (hash form)]
     (assert (or (nil? disable) (set? disable)) ":disable configuration should be a set")
     {:environment      env
@@ -903,8 +907,16 @@
      :form-ns          form-ns
      :excluding-fns     (or excluding-fns #{})
      :disable          (or disable #{}) ;; :expr :binding :anonymous-fn
+
+     :trace-bind (or trace-bind `tracer/trace-bind)
+     :trace-form-init (or trace-form-init `tracer/trace-form-init)
+     :trace-fn-call (or trace-fn-call `tracer/trace-fn-call)
+     :trace-expr-exec (or trace-expr-exec `tracer/trace-expr-exec)
      }))
 
+(defn build-runtime-ctx [{:keys [flow-id tracing-disabled?]}]
+  {:flow-id flow-id
+   :tracing-disabled? tracing-disabled?})
 
 (defn instrument
 

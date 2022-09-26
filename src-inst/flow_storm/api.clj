@@ -149,8 +149,8 @@
                     (str env-ns)))]
     `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
            curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))) (-> env :ns :name str))]
-       (binding [tracer/*runtime-ctx* (tracer/build-runtime-ctx {:flow-id flow-id#
-                                                                 :tracing-disabled? ~tracing-disabled?})]
+       (binding [inst-forms/*runtime-ctx* (inst-forms/build-runtime-ctx {:flow-id flow-id#
+                                                                         :tracing-disabled? ~tracing-disabled?})]
          (tracer/trace-flow-init-trace flow-id# curr-ns# (quote (runi ~opts ~form)))
 
          (~(inst-forms/instrument opts wrapped-form))))))

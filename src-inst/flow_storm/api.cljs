@@ -7,7 +7,8 @@
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.utils :refer [log] :as utils]
-            [flow-storm.tracer])
+            [flow-storm.tracer]
+            [flow-storm.instrument.forms])
   (:require-macros [flow-storm.api]))
 
 (def api-loaded?

@@ -1,0 +1,9 @@
+#kaocha/v1
+{:tests [{:id :unit-cljs
+          :type :kaocha.type/cljs
+          :source-paths ["src-inst" "src-dbg" "src-shared"]
+          :test-paths ["test"]
+          :cljs/repl-env cljs.repl.node/repl-env}
+         {:id :unit-clj
+          :source-paths ["src-inst" "src-dbg" "src-shared"]
+          :test-paths ["test"]}]}
