@@ -883,21 +883,12 @@
       (and (= compiler :cljs) (cljs-defrecord-form? expanded-form ctx'))
       (assoc :outer-form-kind :defrecord))))
 
-
 (defn- instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
   [ctx forms preamble fn-ns fn-name]
-  `(let [runtime-ctx# tracer/*runtime-ctx*]
-     ;; SPEED: rebinding on every function call probably makes execution much slower
-     ;; need to find a way of remove this, and maybe use ThreadLocals for *runtime-ctx* ?
-
-     (binding [tracer/*runtime-ctx* (cond-> (if runtime-ctx#
-                                              (update runtime-ctx# :tracing-disabled? #(or % ~(:tracing-disabled? ctx)))
-                                              (tracer/build-runtime-ctx {:flow-id tracer/orphan-flow-id
-                                                                         :tracing-disabled? ~(:tracing-disabled? ctx)}))
-                                      ~fn-name (assoc :fn-ns ~fn-ns :fn-name ~fn-name))]
-       ~@(-> preamble
-             (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))])))))
+  `(do
+     ~@(-> preamble
+           (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))]))))
 
 (defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled?]} form-ns form env]
   (let [form-id (hash form)]

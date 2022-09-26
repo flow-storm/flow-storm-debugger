@@ -35,9 +35,9 @@
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (tab-pane {:closing-policy :all-tabs
                                     :drag-policy :reorder})
-        flow-tab (if (= flow-id dbg-state/orphans-flow-id)
-                         (tab {:graphic (icon "mdi-filter") :content threads-tab-pane})
-                         (tab {:text (str "flow-" flow-id) :content threads-tab-pane}))]
+        flow-tab (if (nil? flow-id)
+                   (tab {:graphic (icon "mdi-filter") :content threads-tab-pane})
+                   (tab {:text (str "flow-" flow-id) :content threads-tab-pane}))]
 
     (.setOnCloseRequest flow-tab
                         (event-handler

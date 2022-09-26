@@ -53,7 +53,9 @@
 
 (defn get-form [flow-id thread-id form-id]
   (let [form (indexes-api/get-form flow-id thread-id form-id)]
-    (update form :multimethod/dispatch-val reference-value!)))
+    (if (:multimethod/dispatch-val form)
+      (update form :multimethod/dispatch-val reference-value!)
+      form)))
 
 (def all-threads indexes-api/all-threads)
 (def all-forms indexes-api/all-forms)

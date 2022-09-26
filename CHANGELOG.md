@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ## New Features
+	            
+### Changes
+
+	- Instrummented code should run much faster due to removed unnecessary runtime ctx rebinding
+	
+### Bugs fixed
+
+## 3.0.198 (24-9-2022)
+	
+## New Features
 	
 	- Automatic event retention. For ClojureScript or remote Clojure you don't need to remote-connect by hand
 	  when you want to capture traces before the debugger is connected. Just need to require flow-storm.api on your main.

@@ -11,8 +11,6 @@
 
 (declare discard-flow)
 
-(def orphan-flow-id -1)
-
 (def flow-thread-indexes
 
   "A map containing [flow-id thread-id] pointing to thread indexes"
@@ -48,9 +46,9 @@
 
 (defn get-or-create-thread-indexes [flow-id thread-id]
   
-  (when (and (= orphan-flow-id flow-id)
-             (not (flow-exists? orphan-flow-id)))
-    (create-flow {:flow-id orphan-flow-id}))
+  (when (and (nil? flow-id)
+             (not (flow-exists? nil)))
+    (create-flow {:flow-id nil}))
   
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti

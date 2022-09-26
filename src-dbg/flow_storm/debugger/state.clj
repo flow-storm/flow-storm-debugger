@@ -1,8 +1,6 @@
 (ns flow-storm.debugger.state
   (:require [mount.core :as mount :refer [defstate]]))
 
-(def orphans-flow-id -1)
-
 (def initial-state {:flows {}
                     :selected-flow-id nil})
 

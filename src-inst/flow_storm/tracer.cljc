@@ -3,8 +3,6 @@
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]))
 
-(def orphan-flow-id -1)
-
 (declare start-tracer)
 (declare stop-tracer)
 
