@@ -91,7 +91,7 @@
 ;;;;;;;;;;;;;;;;;
 
 (defn get-form [flow-id thread-id form-id]  
-  (let [{:keys [forms-index]} (get-thread-indexes flow-id thread-id)]
+  (when-let [{:keys [forms-index]} (get-thread-indexes flow-id thread-id)]
     (forms-index/get-form forms-index form-id)))
 
 (defn all-threads []

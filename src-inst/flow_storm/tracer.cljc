@@ -12,8 +12,7 @@
 
 (defn build-runtime-ctx [{:keys [flow-id tracing-disabled?]}]
   {:flow-id flow-id
-   :tracing-disabled? tracing-disabled?
-   :init-traced-forms (atom #{})})
+   :tracing-disabled? tracing-disabled?})
 
 (defn trace-flow-init-trace
 
@@ -32,9 +31,9 @@
   "Send form initialization trace only once for each thread."
   
   [{:keys [form-id ns def-kind dispatch-val]} form]
-  (let [{:keys [flow-id init-traced-forms]} *runtime-ctx*        
+  (let [{:keys [flow-id]} *runtime-ctx*
         thread-id (utils/get-current-thread-id)]
-    (when-not (contains? @init-traced-forms [flow-id thread-id form-id])
+    (when-not (indexes-api/get-form flow-id thread-id form-id)
       (let [trace {:trace/type :form-init
                    :flow-id flow-id
                    :form-id form-id
@@ -45,11 +44,7 @@
                    :mm-dispatch-val dispatch-val
                    :timestamp (utils/get-monotonic-timestamp)}]
 
-        (indexes-api/add-form-init-trace trace)
-
-        ;; this makes it so add-form-init-trace gets called only once
-        ;; is not only about perf, is about semantics
-        (swap! init-traced-forms conj [flow-id thread-id form-id])))))
+        (indexes-api/add-form-init-trace trace)))))
 
 (defn trace-expr-exec
   
