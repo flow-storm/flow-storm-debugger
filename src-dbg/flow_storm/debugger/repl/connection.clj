@@ -16,15 +16,15 @@
   :start (start-repl-connection)
   :stop (close-repl-connection))
 
+(defn default-repl-ns [{:keys [env-kind]}]
+  (case env-kind :clj "user" :cljs "cljs.user"))
+
 (defn eval-code-str
-  ([code-str] (eval-code-str code-str nil))
+  ([code-str] (eval-code-str code-str (default-repl-ns config)))
   ([code-str ns]
    (if-let [repl-eval (:repl-eval connection)]
      (repl-eval code-str ns)
      (utils/log-error "No repl available"))))
-
-(defn default-repl-ns [{:keys [env-kind]}]
-  (case env-kind :clj "user" :cljs "cljs.user"))
 
 (defn remote-connect-code [config]
   (format "(fsa/remote-connect %s)" (-> config
@@ -72,14 +72,18 @@
                  :nrepl (nrepl/connect config))
           repl-eval (fn [code-str ns]
                       (try
-                        (.write log-output-stream (.getBytes (format "\n\n---- [ %s ] ---->\n" ns)))
-                        (.write log-output-stream (.getBytes (pr-str code-str)))
-                        (.flush log-output-stream)
+
+                        (when-not (= code-str ":watch-dog-ping")
+                          (.write log-output-stream (.getBytes (format "\n\n---- [ %s ] ---->\n" ns)))
+                          (.write log-output-stream (.getBytes (pr-str code-str)))
+                          (.flush log-output-stream))
 
                         (let [response ((:repl-eval repl) code-str ns)]
-                          (.write log-output-stream (.getBytes "\n<---------\n"))
-                          (.write log-output-stream (.getBytes (pr-str response)))
-                          (.flush log-output-stream)
+
+                          (when-not (= code-str ":watch-dog-ping")
+                            (.write log-output-stream (.getBytes "\n<---------\n"))
+                            (.write log-output-stream (.getBytes (pr-str response)))
+                            (.flush log-output-stream))
 
                           (read-string {} response))
                         (catch Exception e

@@ -238,7 +238,7 @@
         (eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
 
-  (get-all-namespaces [_] (eval-code-str (make-repl-expression env-kind 'get-all-namespaces )))
+  (get-all-namespaces [_] (eval-code-str (make-repl-expression env-kind 'get-all-namespaces)))
   (get-all-vars-for-ns [_ nsname] (eval-code-str (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
   (get-var-meta [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
 

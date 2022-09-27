@@ -10,6 +10,8 @@
 	
 ### Bugs fixed
 
+	- Fix browser navigation after instrumentation bug
+
 ## 3.0.198 (24-9-2022)
 	
 ## New Features

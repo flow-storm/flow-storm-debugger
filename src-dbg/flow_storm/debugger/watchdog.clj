@@ -47,7 +47,7 @@
         (let [[_ ch] (async/alts! [(async/timeout repl-watchdog-interval)
                                    repl-watch-stop-ch])]
           (when-not (= ch repl-watch-stop-ch)
-            (let [repl-ok? (= 42 (repl-conn/eval-code-str "42"))]
+            (let [repl-ok? (= :watch-dog-ping (repl-conn/eval-code-str ":watch-dog-ping"))]
               (if repl-ok?
                 (ui-main/set-repl-status-lbl :ok)
 
