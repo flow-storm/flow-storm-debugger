@@ -75,7 +75,7 @@
                                                     (let [ret-data (api-call-fn method args)]
                                                       [:api-response [request-id nil ret-data]])
                                                     (catch js/Error err
-                                                      (log-error (str "Error on api-call-fn " [method args]))
+                                                      (log-error (str "Error on api-call-fn " [method args]) err)
                                                       [:api-response [request-id (.-message err) nil]])))
                                    (log-error "Unrecognized packet key"))
                       ret-packet-ser (serializer/serialize ret-packet)]

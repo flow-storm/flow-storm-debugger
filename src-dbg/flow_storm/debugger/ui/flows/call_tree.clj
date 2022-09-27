@@ -44,11 +44,15 @@
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
 
-(defn- create-call-stack-tree-text-node [{:keys [frame-idx form-id fn-name fn-ns args-vec]} flow-id thread-id]
+(defn dummy-root-frame? [frame]
+  (and (contains? frame :frame-idx)
+       (nil? (:frame-idx frame))))
+
+(defn- create-call-stack-tree-text-node [{:keys [frame-idx form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast
-  (if-not frame-idx
+  (if (dummy-root-frame? frame)
 
     "."
 
@@ -142,9 +146,6 @@
       (.setSpacing 3.0)
       (.setAlignment Pos/CENTER_RIGHT)
       (.setPadding (Insets. 4.0)))))
-
-(defn dummy-root-frame? [frame]
-  (nil? (:frame-idx frame)))
 
 (defn- build-tree-cell-factory [flow-id thread-id]
   (proxy [javafx.util.Callback] []

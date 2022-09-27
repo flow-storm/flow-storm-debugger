@@ -86,10 +86,11 @@
     (locking this
       (let [exec-exprs (make-mutable-list)
             bindings (make-mutable-list)
+            frame-idx (ml-count timeline)
             new-frame (->CallStackFrame fn-ns
                                         fn-name
                                         args-vec
-                                        (ml-count timeline)
+                                        frame-idx
                                         form-id
                                         exec-exprs
                                         bindings)

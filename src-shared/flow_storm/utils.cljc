@@ -24,13 +24,19 @@
      "UNIMPLEMENTED"))
 
 #?(:clj (defn object-id [o] (System/identityHashCode o))
+
+   ;; TODO: HACKY and wrong for ClojureScript !!!!!!!!!!!!!!!
+   ;;
+   ;; Find a better way of doing this since collisions will lead to incorrect
+   ;; values in the debugger
+   ;; For objects we start at 1 and every new object will get the next number
+   ;; while for the rest will be the hash of the string.
+
    :cljs (defn object-id [o]
            (cond
-             (or (undefined? o) (nil? o)) 0
-             (boolean? o)                 (hash o)
-             (number? o)                  (hash o)
-             (string? o)                  (hash o)
-             (= "object" (g/typeOf o))    (g/getUid o))))
+             (or (undefined? o) (nil? o))              0
+             (or (boolean? o) (number? o) (string? o)) (hash (str o))
+             (= "object" (g/typeOf o))                 (g/getUid o))))
 
 #?(:clj (def out-print-writer *out*))
 

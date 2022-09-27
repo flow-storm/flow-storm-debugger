@@ -90,13 +90,15 @@
                bs-map)))
 
 (defn callstack-tree-root-node [flow-id thread-id]
-  (let [rnode (indexes-api/callstack-tree-root-node flow-id thread-id)]
-    (reference-value! rnode)))
+  (let [rnode (indexes-api/callstack-tree-root-node flow-id thread-id)
+        node-id (reference-value! rnode)]
+    node-id))
 
-(defn callstack-node-childs [node-ref]  
+(defn callstack-node-childs [node-ref]
   (let [node (get-reference-value node-ref)
-        childs (indexes-api/callstack-node-childs node)]
-    (mapv reference-value! childs)))
+        childs (indexes-api/callstack-node-childs node)
+        childs-ids (mapv reference-value! childs)]
+    childs-ids))
 
 (defn callstack-node-frame [node-ref]
   (let [node (get-reference-value node-ref)
@@ -181,7 +183,7 @@
                  [:instrument-namespaces instrument-namespaces
                   :uninstrument-namespaces uninstrument-namespaces])})
 
-(defn call-by-name [fun-key args]
+(defn call-by-name [fun-key args]  
   (let [f (get api-fn fun-key)]
     (apply f args)))
 
