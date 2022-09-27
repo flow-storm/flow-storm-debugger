@@ -8,7 +8,9 @@
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
+            [flow-storm.debugger.config :refer [debug-mode]]
             [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :as ui-vars]))
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
@@ -54,6 +56,7 @@
   (ui-vars/dispatch-task-event :progress task-id progress))
 
 (defn process-event [[ev-type ev-args-map]]
+  (when debug-mode (log (format "Processing event: %s") [ev-type ev-args-map]))
   (case ev-type
     :var-instrumented (var-instrumented-event ev-args-map)
     :var-uninstrumented (var-uninstrumented-event ev-args-map)

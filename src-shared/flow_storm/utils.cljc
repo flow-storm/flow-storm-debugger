@@ -23,20 +23,37 @@
    (defn colored-string [_ _]
      "UNIMPLEMENTED"))
 
-#?(:clj (defn object-id [o] (System/identityHashCode o))
+#?(:cljs (def uuids (atom {:max-uuid 3 :strings-and-numbers {}})))
 
-   ;; TODO: HACKY and wrong for ClojureScript !!!!!!!!!!!!!!!
-   ;;
-   ;; Find a better way of doing this since collisions will lead to incorrect
-   ;; values in the debugger
-   ;; For objects we start at 1 and every new object will get the next number
-   ;; while for the rest will be the hash of the string.
+;; copying goog.getUid https://github.com/google/closure-library/blob/master/closure/goog/base.js#L1306
+#?(:cljs (def flow-storm-uuid-prop (str "flow_storm_" (unsigned-bit-shift-right (* (js/Math.random) 1e9) 0))))
+
+#?(:clj (defn object-id [o] (System/identityHashCode o))
 
    :cljs (defn object-id [o]
            (cond
-             (or (undefined? o) (nil? o))              0
-             (or (boolean? o) (number? o) (string? o)) (hash (str o))
-             (= "object" (g/typeOf o))                 (g/getUid o))))
+             (or (undefined? o) (nil? o))
+             0
+
+             (boolean? o)
+             (if (true? o) 1 2)
+
+             (or (number? o) (string? o))
+             (let [uuids' (swap! uuids (fn [{:keys [max-uuid strings-and-numbers] :as u}]
+                                         (if-let [id (get strings-and-numbers o)]
+                                           u
+                                           (let [next-uuid (inc max-uuid)]
+                                             (-> u
+                                                 (assoc :max-uuid next-uuid)
+                                                 (update :strings-and-numbers assoc o next-uuid))))))]
+               (get-in @uuids [:strings-and-numbers o]))
+
+             (= "object" (g/typeOf o))
+             (or (and (js/Object.prototype.hasOwnProperty.call o flow-storm-uuid-prop)
+                      (aget o flow-storm-uuid-prop))
+                 (let [next-uid (-> (swap! uuids update :max-uuid inc)
+                                    :max-uuid)]
+                   (aset o flow-storm-uuid-prop next-uid))))))
 
 #?(:clj (def out-print-writer *out*))
 
@@ -65,11 +82,6 @@
 (defn rnd-uuid []
   #?(:clj (java.util.UUID/randomUUID)
      :cljs (.-uuid ^cljs.core/UUID (random-uuid))))
-
-(defn obj-uuid [o]
-  #?(:clj (System/identityHashCode o)
-     :cljs (hash o) ;; this is pretty dangerous and wrong since this things can happen (= (hash "Aa") (hash "BB")) but don't know how to do something like System/identityHashCode in js
-     ))
 
 (defn get-timestamp []
   #?(:cljs (.now js/Date)
