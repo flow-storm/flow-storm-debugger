@@ -67,7 +67,7 @@
       (let [[_ ch] (async/alts! [(async/timeout websocket-watchdog-interval)
                                  websocket-watch-stop-ch])]
         (when-not (= ch websocket-watch-stop-ch)
-          (let [r (websocket/sync-remote-api-request :ping [] 1000)
+          (let [r (websocket/sync-remote-api-request :ping [])
                 ws-ok? (= :pong r)]
 
             (if ws-ok?

@@ -103,8 +103,8 @@
   (frame-data [_ flow-id thread-id idx] (api-call :local "frame-data" [flow-id thread-id idx]))
   (bindings [_ flow-id thread-id idx] (api-call :local "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :local "callstack-tree-root-node" [flow-id thread-id]))
-  (callstack-node-childs [_ node] (api-call :local cache "callstack-node-childs" [node]))  ;; CACHED
-  (callstack-node-frame [_ node] (api-call :local cache "callstack-node-frame" [node])) ;; CACHED
+  (callstack-node-childs [_ node] (api-call :local "callstack-node-childs" [node]))
+  (callstack-node-frame [_ node] (api-call :local "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-frame-idx" [flow-id thread-id query-str from-idx opts]))
@@ -213,8 +213,8 @@
   (frame-data [_ flow-id thread-id idx] (api-call :remote "frame-data" [flow-id thread-id idx]))
   (bindings [_ flow-id thread-id idx] (api-call :remote "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :remote "callstack-tree-root-node" [flow-id thread-id]))
-  (callstack-node-childs [_ node] (api-call :remote cache "callstack-node-childs" [node]))  ;; CACHED
-  (callstack-node-frame [_ node] (api-call :remote cache "callstack-node-frame" [node])) ;; CACHED
+  (callstack-node-childs [_ node] (api-call :remote "callstack-node-childs" [node]))
+  (callstack-node-frame [_ node] (api-call :remote "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :remote "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :remote "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (api-call :remote "search-next-frame-idx" [flow-id thread-id query-str from-idx opts]))
@@ -272,4 +272,8 @@
                                       :ns var-ns
                                       :var-name var-name})
 
-      (log-error (utils/format "Couldn't retrieve the source for #'%s/%s" var-ns var-name) ))))
+      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var. Instrument the entire namespace or use #trace instead." var-ns var-name)
+            {:keys [show-error]} config]
+
+        (log-error err-msg)
+        (show-error err-msg)))))

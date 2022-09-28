@@ -29,9 +29,10 @@
              packet-str (serializer/serialize [:api-request request-id method args])]
          (.send conn packet-str)
          (swap! (:pending-commands-callbacks websocket-server) assoc request-id callback))
-       (catch WebsocketNotConnectedException _)
+       (catch WebsocketNotConnectedException _ nil)
        (catch Exception e
-         (log-error "Error sending async command, maybe the connection is down, try to reconnect" e))))))
+         (log-error "Error sending async command, maybe the connection is down, try to reconnect" e)
+         nil)))))
 
 (defn sync-remote-api-request
   ([method args] (sync-remote-api-request method args 10000))
