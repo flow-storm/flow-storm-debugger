@@ -146,10 +146,8 @@
         (update :ns (comp str ns-name))))
 
   (instrument-namespaces [_ nsnames profile]
-    (let [disable-set-str (if (= profile :light)
-                            #{:expr :anonymous-fn :binding}
-                            #{})]
-      (api-call :local "instrument-namespaces" [nsnames {:disable disable-set-str}])))
+    (let [disable-set (utils/disable-from-profile profile)]
+      (api-call :local "instrument-namespaces" [nsnames {:disable disable-set}])))
 
   (uninstrument-namespaces [_ nsnames]
     (api-call :local "uninstrument-namespaces" [nsnames]))
@@ -176,9 +174,7 @@
 (defmethod make-repl-expression '[:clj instrument-namespaces]
   [_ _ nsnames profile]
   (let [nss-str (str/join " " nsnames)
-        disable-set-str (if (= profile :light)
-                          "#{:expr :anonymous-fn :binding}"
-                          "#{}")]
+        disable-set-str (pr-str (utils/disable-from-profile profile))]
     (format "(flow-storm.api/instrument-forms-for-namespaces #{%s} {:disable %s})" nss-str disable-set-str)))
 
 (defmethod make-repl-expression '[:clj uninstrument-namespaces]
@@ -243,9 +239,7 @@
   (get-var-meta [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
 
   (instrument-namespaces [_ nsnames profile]
-    (let [opts (if (= profile :light)
-                 {:disable #{:expr :binding :anonymous-fn}}
-                 {})]
+    (let [opts {:disable (utils/disable-from-profile profile)}]
       (case env-kind
         :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? true
                                                            :instrument-options opts})

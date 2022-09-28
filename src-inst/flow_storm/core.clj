@@ -5,12 +5,6 @@
             [flow-storm.tracer :as tracer]
             [clojure.repl :as clj.repl]))
 
-(defn disable-from-profile [profile]
-  (case profile
-    :full {}
-    :light {:disable #{:expr :binding :anonymous-fn}}
-    {}))
-
 (defmacro run-with-execution-ctx
   [{:keys [orig-form ns flow-id]} form]
   `(let [flow-id# ~(or flow-id 0)

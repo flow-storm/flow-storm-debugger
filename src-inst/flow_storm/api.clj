@@ -201,7 +201,7 @@
 
   "Require `fn-symb` ns, instrument `ns-set` (excluding `excluding-ns`) and then call (apply `fn-symb` `fn-args`).
 
-  `profile` (optional) should be :full (for full instrumentation) or :light for disable #{:expr :binding :anonymous-fn}
+  `profile` (optional) should be :full (for full instrumentation) or :light for disable #{:expr :binding}
 
   `require-before` (optional) should be a set of namespaces you want to require before the instrumentation.
 
@@ -227,9 +227,9 @@
     (assert (vector? fn-args) "fn-args should be a vector")
     (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
 
-    (let [inst-opts (-> (fs-core/disable-from-profile profile)
-                        (assoc :excluding-ns excluding-ns
-                               :verbose? verbose?))
+    (let [inst-opts {:disable (utils/disable-from-profile profile)
+                     :excluding-ns excluding-ns
+                     :verbose? verbose?}
           fn-ns-name (namespace fn-symb)
           _ (require (symbol fn-ns-name))
           _ (resolve fn-symb)

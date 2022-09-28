@@ -353,7 +353,7 @@ and then a right click should show you a menu with two instrumentation commands.
 
 image::user_guide_images/browser_ns_instrumentation.png[]
 
-- `Instrument namespace :light` (disables expressions, bindings, and anonymous functions instrumentation)
+- `Instrument namespace :light` (disables expressions, bindings tracing)
 
 - `Instrument namespace :full` fully instrument everything
 
