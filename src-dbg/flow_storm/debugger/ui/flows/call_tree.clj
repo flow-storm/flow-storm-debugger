@@ -48,7 +48,7 @@
   (and (contains? frame :frame-idx)
        (nil? (:frame-idx frame))))
 
-(defn- create-call-stack-tree-text-node [{:keys [frame-idx form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id]
+(defn- create-call-stack-tree-text-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast

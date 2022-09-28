@@ -46,13 +46,13 @@
 
              (or (number? o) (string? o))
              (let [uuids' (swap! uuids (fn [{:keys [max-uuid strings-and-numbers] :as u}]
-                                         (if-let [id (get strings-and-numbers o)]
+                                         (if (get strings-and-numbers o)
                                            u
                                            (let [next-uuid (inc max-uuid)]
                                              (-> u
                                                  (assoc :max-uuid next-uuid)
                                                  (update :strings-and-numbers assoc o next-uuid))))))]
-               (get-in @uuids [:strings-and-numbers o]))
+               (get-in uuids' [:strings-and-numbers o]))
 
              (= "object" (g/typeOf o))
              (or (and (js/Object.prototype.hasOwnProperty.call o flow-storm-uuid-prop)
