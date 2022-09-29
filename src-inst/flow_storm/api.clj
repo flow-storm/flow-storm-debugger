@@ -5,13 +5,14 @@
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.instrument.forms :as inst-forms]
-            [flow-storm.core :as fs-core]
+            [flow-storm.instrument.namespaces :as inst-ns]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
-            [flow-storm.runtime.indexes.api :as indexes-api]))
+            [flow-storm.runtime.indexes.api :as indexes-api]
+            [clojure.repl :as clj.repl]))
 
 ;; TODO: build script
 ;; Maybe we can figure out this ns names by scanning (all-ns) so
@@ -120,13 +121,22 @@
 
   `opts` is a map that support :flow-id and :disable
   See `instrument-forms-for-namespaces` for :disable"
+
   ([var-symb] (instrument-var var-symb {}))
   ([var-symb config]
 
-   (fs-core/instrument-var var-symb config)
+   (let [form (some->> (clj.repl/source-fn var-symb)
+                       (read-string {:read-cond :allow}))
+         form-ns (find-ns (symbol (namespace var-symb)))]
+     (if form
 
-   (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
-                                                                    (namespace var-symb)))))
+       (binding [*ns* form-ns]
+         (inst-ns/instrument-and-eval-form form-ns form config)
+         (log (format "Instrumented %s" var-symb))
+         (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
+                                                                          (namespace var-symb))))
+
+       (log (format "Couldn't find source for %s" var-symb))))))
 
 (defn uninstrument-var
 
@@ -135,11 +145,23 @@
   (uninstrument-var var-symb)"
 
   [var-symb]
+  (let [ns-name (namespace var-symb)]
+    (binding [*ns* (find-ns (symbol ns-name))]
+      (let [form (some->> (clj.repl/source-fn var-symb)
+                          (read-string {:read-cond :allow}))
+            expanded-form (inst-forms/macroexpand-all macroexpand-1 form ::original-form)]
+        (if form
 
-  (fs-core/uninstrument-var var-symb)
+          (if (inst-forms/expanded-def-form? expanded-form)
+            (let [[v vval] (inst-ns/expanded-defn-parse ns-name expanded-form)]
+              (alter-var-root v (fn [_] (eval vval)))
+              (log (format "Uninstrumented %s" v))
+              (rt-events/publish-event! (rt-events/make-var-uninstrumented-event (name var-symb)
+                                                                                 (namespace var-symb))))
 
-  (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
-                                                                   (namespace var-symb))))
+            (log (format "Don't know howto untrace %s" (pr-str expanded-form))))
+
+          (log (format "Couldn't find source for %s" var-symb)))))))
 
 (defn- runi* [{:keys [ns flow-id tracing-disabled? env] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
