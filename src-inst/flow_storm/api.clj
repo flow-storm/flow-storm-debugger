@@ -239,8 +239,8 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme] :as opts}]
-  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :debugger-host :port}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme flow-id excluding-fns] :as opts}]
+  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :debugger-host :port :flow-id :excluding-fns}]
 
     (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
     (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
@@ -268,8 +268,9 @@
       (log (format "Instrumenting namespaces %s" ns-to-instrument))
       (instrument-forms-for-namespaces ns-to-instrument inst-opts)
       (log "Instrumentation done.")
-      (eval (runi* {}
-                   `(~fn-symb ~@fn-args))))))
+      (if flow-id
+        (eval (runi* {:flow-id flow-id} `(~fn-symb ~@fn-args)))
+        (eval `(~fn-symb ~@fn-args))))))
 
 (defn read-trace-tag [form]
   `(dbg-api/instrument* {} ~form))
