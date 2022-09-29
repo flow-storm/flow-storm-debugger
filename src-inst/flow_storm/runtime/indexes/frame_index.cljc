@@ -142,22 +142,26 @@
           (merge tl-entry
                  (get-immutable-frame (:frame tl-entry)))))))
 
-  (timeline-frame-seq [_]
-    (->> timeline
-         (keep (fn [tl-entry]
-                 (when-not (= :expr (:timeline/type tl-entry))
-                   (get-immutable-frame (:frame tl-entry)))))))
+  (timeline-frame-seq [this]
+    (locking this
+      (->> timeline
+           (keep (fn [tl-entry]
+                   (when-not (= :expr (:timeline/type tl-entry))
+                     (get-immutable-frame (:frame tl-entry)))))
+           doall)))
 
-  (timeline-seq [_]
-    (seq timeline))
+  (timeline-seq [this]
+    (locking this
+      (doall (seq timeline))))
 
   (frame-data [this idx]
     (locking this
       (let [{:keys [frame]} (ml-get timeline idx)]
         (get-immutable-frame frame))))
 
-  (callstack-tree-root-node [_]
-    root-node)
+  (callstack-tree-root-node [this]
+    (locking this
+      root-node))
   )
 
 (defn make-index []
