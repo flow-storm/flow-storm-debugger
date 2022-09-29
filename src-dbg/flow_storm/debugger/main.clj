@@ -66,7 +66,8 @@
   (if local?
 
     ;; start components for local debugging
-    (-> (mount/with-args config)
+    (-> (mount/with-args (assoc config
+                                :show-error ui-main/show-error))
         (mount/only local-debugger-mount-vars)
         (mount/start))
 

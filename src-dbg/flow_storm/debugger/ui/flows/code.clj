@@ -139,6 +139,13 @@
                                        (runtime-api/eval-form rt-api
                                                               (pr-str (:form/form form))
                                                               {:instrument? true
+                                                               :ns (:form/ns form)}))}
+                          {:text "Instrument this form without bindings"
+                           :on-click (fn []
+                                       (runtime-api/eval-form rt-api
+                                                              (pr-str (:form/form form))
+                                                              {:instrument? true
+                                                               :instrument-options {:disable #{:binding}}
                                                                :ns (:form/ns form)}))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 

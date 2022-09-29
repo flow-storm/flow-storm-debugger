@@ -131,7 +131,14 @@
            (Thread.
             (fn []
               (binding [*ns* ns-to-eval]
-                (eval form)
+
+                (try
+                  (eval form)
+                  (catch Exception ex
+                    (log-error "Error instrumenting form" ex)
+                    (if (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Method code too large!"))
+                      ((:show-error config) "The form you are trying to instrument exceeds the method limit after instrumentation. Try intrumenting it without bindings.")
+                      ((:show-error config) (.getMessage ex)))))
 
                 ;; when we evaluate a function from the repl we lose all meta
                 ;; so when re-evaluating a var (probably a function) store and restore its meta

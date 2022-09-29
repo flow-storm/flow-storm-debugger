@@ -4,6 +4,18 @@
 	
 ## New Features
 	
+	- Add `Instrument form without bindings` to form context menu
+	
+### Changes
+    
+### Bugs fixed
+        
+	- Fix show-error on the clojure local path
+	
+## 3.0.216 (29-9-2022)
+	
+## New Features
+	
 	- flow-storm.api/cli-run now supports :flow-id key
 	
 ### Changes
