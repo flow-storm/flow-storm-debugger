@@ -131,11 +131,11 @@
            (Thread.
             (fn []
               (binding [*ns* ns-to-eval]
-                (eval form)))))
+                (eval form)
 
-          ;; when we evaluate a function from the repl we lose all meta
-          ;; so when re-evaluating a var (probably a function) store and restore its meta
-          (when v (reset-meta! v vmeta))))))
+                ;; when we evaluate a function from the repl we lose all meta
+                ;; so when re-evaluating a var (probably a function) store and restore its meta
+                (when v (reset-meta! v vmeta))))))))))
 
 
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
