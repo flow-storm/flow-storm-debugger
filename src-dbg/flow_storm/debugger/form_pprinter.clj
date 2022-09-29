@@ -74,14 +74,17 @@
 
 (defn pprint-tokens [form]
   (let [form (utils/tag-form-recursively form ::coor)
-        pprinted-str (with-out-str
-                       (code-pprint form))
+        pprinted-str (-> (with-out-str
+                           (code-pprint form))
+                         (.replaceAll "\\r\\n" "\n")
+                         (.replaceAll "\\r" "\n"))
         pos->layout-char (->> pprinted-str
-                              (keep-indexed (fn [i c] (cond
-                                                        (= c \newline) [i :nl]
-                                                        (= c \space)   [i :sp]
-                                                        (= c \,)       [i :sp]
-                                                        :else nil)))
+                              (keep-indexed (fn [i c]
+                                              (cond
+                                                (= c \newline) [i :nl]
+                                                (= c \space)   [i :sp]
+                                                (= c \,)       [i :sp]
+                                                :else nil)))
                               (into {}))
         pre-tokens (form-tokens form)
         final-tokens (loop [[[tname :as tok] & next-tokens] pre-tokens
