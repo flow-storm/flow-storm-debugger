@@ -29,6 +29,12 @@
    (defn colored-string [_ _]
      "UNIMPLEMENTED"))
 
+#?(:clj (defn map-like? [x] (instance? java.util.Map x)))
+#?(:cljs (defn map-like? [x] (map? x)))
+
+#?(:clj (defn seq-like? [x] (instance? java.util.List x)))
+#?(:cljs (defn seq-like? [_] false))
+
 #?(:cljs (def uuids (atom {:max-uuid 3 :strings-and-numbers {}})))
 
 ;; copying goog.getUid https://github.com/google/closure-library/blob/master/closure/goog/base.js#L1306
@@ -118,6 +124,10 @@
     (apply vary-meta obj merge metamaps)
     #?(:clj (catch Exception _ obj)
        :cljs (catch js/Error _ obj))))
+
+(defn derefable? [x]
+  #?(:clj  (instance? clojure.lang.IDeref x)
+     :cljs (instance? cljs.core.IDeref x)))
 
 (defn walk-indexed
   "Walk through form calling (f coor element).

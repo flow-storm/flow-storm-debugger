@@ -8,7 +8,7 @@
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.tracer]
-            [flow-storm.instrument.forms])
+            [flow-storm.instrument.runtime])
   (:require-macros [flow-storm.api]))
 
 (def api-loaded?

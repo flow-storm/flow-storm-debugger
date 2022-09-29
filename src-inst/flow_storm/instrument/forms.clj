@@ -14,6 +14,7 @@
    [clojure.string :as str]
    [cljs.analyzer :as ana]
    [flow-storm.tracer :as tracer]
+   [flow-storm.instrument.runtime :refer [*runtime-ctx*]]
    [flow-storm.utils :as utils]))
 
 
@@ -22,8 +23,6 @@
 (declare instrument-special-form)
 (declare instrument-function-call)
 (declare instrument-cljs-extend-type-form-types)
-
-(def ^:dynamic *runtime-ctx* nil)
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
@@ -913,10 +912,6 @@
      :trace-fn-call (or trace-fn-call `tracer/trace-fn-call)
      :trace-expr-exec (or trace-expr-exec `tracer/trace-expr-exec)
      }))
-
-(defn build-runtime-ctx [{:keys [flow-id tracing-disabled?]}]
-  {:flow-id flow-id
-   :tracing-disabled? tracing-disabled?})
 
 (defn instrument
 

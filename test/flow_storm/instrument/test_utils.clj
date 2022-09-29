@@ -1,4 +1,5 @@
-(ns flow-storm.instrument.test-utils)
+(ns flow-storm.instrument.test-utils
+  (:require [flow-storm.runtime.debuggers-api :as dbg-api]))
 
 (defmacro def-instrumentation-test [tname tdesc & {:keys [form run-form target-traces]}]
   `(do

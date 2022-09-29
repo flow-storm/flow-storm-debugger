@@ -6,6 +6,7 @@
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.instrument.forms :as inst-forms]
             [flow-storm.instrument.namespaces :as inst-ns]
+            [flow-storm.instrument.runtime :as inst-rt]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
@@ -171,8 +172,8 @@
                     (str env-ns)))]
     `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
            curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))) (-> env :ns :name str))]
-       (binding [inst-forms/*runtime-ctx* (inst-forms/build-runtime-ctx {:flow-id flow-id#
-                                                                         :tracing-disabled? ~tracing-disabled?})]
+       (binding [inst-rt/*runtime-ctx* {:flow-id flow-id#
+                                        ::tracing-disabled? ~tracing-disabled?}]
          (tracer/trace-flow-init-trace flow-id# curr-ns# (quote (runi ~opts ~form)))
 
          (~(inst-forms/instrument opts wrapped-form))))))

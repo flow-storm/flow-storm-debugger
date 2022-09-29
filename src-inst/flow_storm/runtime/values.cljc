@@ -7,8 +7,7 @@
 (def values-references (atom nil))
 
 (defn snapshot-reference [x]  
-  (if #?(:clj  (instance? clojure.lang.IDeref x)
-         :cljs (instance? cljs.core.IDeref x))
+  (if (utils/derefable? x)
     {:ref/snapshot (deref x)
      :ref/type (type x)}
     x))
@@ -79,20 +78,14 @@
              :total-count cnt}
       (seq more-elems) (assoc :val/more (reference-value! more-elems)))))
 
-#?(:clj (defn map-like? [x] (instance? java.util.Map x)))
-#?(:cljs (defn map-like? [x] (map? x)))
-
-#?(:clj (defn seq-like? [x] (instance? java.util.List x)))
-#?(:cljs (defn seq-like? [_] false))
-
 (defn shallow-val [v]
   (let [data (datafy/datafy v)
         type-name (pr-str (type v))
         shallow-data (cond
-                       (map-like? data)
+                       (utils/map-like? data)
                        (build-shallow-map data)
 
-                       (or (coll? data) (seq-like? data))
+                       (or (coll? data) (utils/seq-like? data))
                        (build-shallow-seq data)
 
                        :else {:val/kind :simple
