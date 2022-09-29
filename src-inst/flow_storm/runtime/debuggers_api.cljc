@@ -143,18 +143,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #?(:clj
-   (defn instrument-namespaces [ns-prefixes opts]                                    
-     (let [inst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes (assoc opts
-                                                                                       :prefixes? true))]
-       (doseq [ns-symb inst-namespaces]
-         (rt-events/publish-event! (rt-events/make-ns-instrumented-event (str ns-symb)))))))
+   (defn instrument-namespaces
+     ([ns-prefixes opts] (instrument-namespaces ns-prefixes opts false))
+     ([ns-prefixes opts publish-events?]
+      (let [inst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes (assoc opts
+                                                                                        :prefixes? true))]
+        (when publish-events?
+          (doseq [ns-symb inst-namespaces]
+            (rt-events/publish-event! (rt-events/make-ns-instrumented-event (str ns-symb)))))))))
 
 #?(:clj
-   (defn uninstrument-namespaces [ns-prefixes]
-     (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes {:prefixes? true
-                                                                                   :uninstrument? true})]
-       (doseq [ns-symb uninst-namespaces]
-         (rt-events/publish-event! (rt-events/make-ns-uninstrumented-event (str ns-symb)))))))
+   (defn uninstrument-namespaces
+     ([ns-prefixes] (uninstrument-namespaces ns-prefixes false))
+     ([ns-prefixes publish-events?]
+      (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes {:prefixes? true
+                                                                                    :uninstrument? true})]        
+        (when publish-events?
+          (doseq [ns-symb uninst-namespaces]
+            (rt-events/publish-event! (rt-events/make-ns-uninstrumented-event (str ns-symb)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils for calling by name, used by the websocket api calls ;;

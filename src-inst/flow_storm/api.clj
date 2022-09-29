@@ -210,14 +210,14 @@
   "
 
   ([prefixes] (instrument-forms-for-namespaces prefixes {}))
-  ([prefixes opts] (dbg-api/instrument-namespaces prefixes opts)))
+  ([prefixes opts] (dbg-api/instrument-namespaces prefixes opts true)))
 
 (defn uninstrument-forms-for-namespaces
 
   "Undo instrumentation made by `flow-storm.api/instrument-forms-for-namespaces`"
 
   [prefixes]
-  (dbg-api/uninstrument-namespaces prefixes))
+  (dbg-api/uninstrument-namespaces prefixes true))
 
 
 (defn cli-run
