@@ -358,6 +358,15 @@
 
     tv))
 
+(defn normalize-newlines [s]
+  (-> s
+      (.replaceAll "\\r\\n" "\n")
+      (.replaceAll "\\r" "\n")))
+
+(defn remove-newlines [s]
+  (-> s
+      (.replaceAll "\\n" "")
+      (.replaceAll "\\r" "")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOT USING ALL THIS NOW !!! just experiments

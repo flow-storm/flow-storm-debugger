@@ -239,7 +239,7 @@
   if you want to package flow-storm-dbg with depstar traced.
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme flow-id] :as opts}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme flow-id excluding-fns] :as opts}]
   (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :debugger-host :port :flow-id :excluding-fns}]
 
     (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
@@ -252,6 +252,7 @@
 
     (let [inst-opts {:disable (utils/disable-from-profile profile)
                      :excluding-ns excluding-ns
+                     :excluding-fns excluding-fns
                      :verbose? verbose?}
           fn-ns-name (namespace fn-symb)
           _ (require (symbol fn-ns-name))

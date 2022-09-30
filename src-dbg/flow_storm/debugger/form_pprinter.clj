@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.form-pprinter
   (:require [clojure.pprint :as pp]
-            [flow-storm.utils :as utils]))
+            [flow-storm.utils :as utils]
+            [flow-storm.debugger.ui.utils :as ui-utils]))
 
 (defn- seq-delims [form]
   (let [delims (pr-str (empty form))]
@@ -74,10 +75,7 @@
 
 (defn pprint-tokens [form]
   (let [form (utils/tag-form-recursively form ::coor)
-        pprinted-str (-> (with-out-str
-                           (code-pprint form))
-                         (.replaceAll "\\r\\n" "\n")
-                         (.replaceAll "\\r" "\n"))
+        pprinted-str (ui-utils/normalize-newlines (with-out-str (code-pprint form)))
         pos->layout-char (->> pprinted-str
                               (keep-indexed (fn [i c]
                                               (cond

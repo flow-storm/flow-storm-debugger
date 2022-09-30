@@ -62,7 +62,7 @@
           #{}
           ns-set))
 
-(defn- macroexpansion-error-data [ns ex]
+(defn- macroexpansion-error-data [ns form ex]
   (let [e-msg (.getMessage ex)]
     (cond
       ;; Hard to fix, and there shouldn't be a lot of cases like that
@@ -82,7 +82,10 @@
        :msg "We can't instrument clojure.core.async/go blocks yet since we can't clojure.walk/macroexpand-all them."}
 
       :else
-      {:type :unknown-error})))
+      {:type :unknown-error
+       :ns (ns-name ns)
+       :form form
+       :msg e-msg})))
 
 (defn uninteresting-form?
 
@@ -98,7 +101,7 @@
       (let [macro-expanded-form (try
                                   (inst-forms/macroexpand-all macroexpand-1 form ::original-form)
                                   (catch Exception e
-                                    (throw (ex-info "Error macroexpanding form" (macroexpansion-error-data ns e)))))
+                                    (throw (ex-info "Error macroexpanding form" (macroexpansion-error-data ns form e)))))
             kind (inst-forms/expanded-form-type macro-expanded-form {:compiler :clj})]
         (not (contains? #{:defn :defmethod :extend-type :extend-protocol :def} kind)))))
 
