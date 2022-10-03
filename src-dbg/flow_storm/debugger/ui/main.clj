@@ -37,8 +37,9 @@
   (doseq [fid (dbg-state/all-flows-ids)]
     (flows-screen/fully-remove-flow fid))
 
-  (log "Clearing values")
-  (runtime-api/clear-values-references rt-api))
+  (log "Clearing values and api cache")
+  (runtime-api/clear-values-references rt-api)
+  (runtime-api/clear-cache rt-api))
 
 (defn bottom-box []
   (let [progress-box (h-box [])

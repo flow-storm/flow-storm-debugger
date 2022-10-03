@@ -54,7 +54,8 @@
   (instrument-namespaces [_ nsnames profile])
   (uninstrument-namespaces [_ nanames])
   (interrupt-all-tasks [_])
-  (clear-values-references [_]))
+  (clear-values-references [_])
+  (clear-cache [_]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -108,7 +109,7 @@
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-frame-idx" [flow-id thread-id query-str from-idx opts]))
-  (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
+  (discard-flow [this flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :local "def-value" [v-name vref]))
 
   (get-var-form-str [_ var-ns var-name] (clj-repl/source-fn (symbol var-ns var-name)))
@@ -163,7 +164,10 @@
     (api-call :local "interrupt-all-tasks" []))
 
   (clear-values-references [_]
-    (api-call :local "clear-values-references" [])))
+    (api-call :local "clear-values-references" []))
+
+  (clear-cache [_]
+    (reset! cache {})))
 
 (defmulti make-repl-expression (fn [env-kind fn-symb & _] [env-kind fn-symb]))
 
@@ -266,6 +270,8 @@
   (clear-values-references [_]
     (api-call :remote "clear-values-references" []))
 
+  (clear-cache [_]
+    (reset! cache {}))
 
   Closeable
   (close [_] (close-repl-connection))

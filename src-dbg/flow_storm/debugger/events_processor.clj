@@ -10,6 +10,7 @@
             [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.config :refer [debug-mode]]
             [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.utils :refer [log]]
             [flow-storm.debugger.ui.state-vars :as ui-vars]))
 
@@ -34,6 +35,10 @@
    (taps-screen/add-tap-value value)))
 
 (defn- flow-created-event [{:keys [flow-id form-ns form timestamp]}]
+  ;; lets clear the entire cache every time a flow gets created, just to be sure
+  ;; we don't reuse old flows values on this flow
+  (runtime-api/clear-cache rt-api)
+
   (dbg-state/create-flow flow-id form-ns form timestamp)
   (ui-utils/run-now (flows-screen/remove-flow flow-id))
   (ui-utils/run-now (flows-screen/create-empty-flow flow-id))
