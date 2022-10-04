@@ -20,21 +20,17 @@
   (case env-kind :clj "user" :cljs "cljs.user"))
 
 (defn eval-code-str
-  ([code-str] (eval-code-str code-str (default-repl-ns config)))
+  ([code-str] (eval-code-str code-str nil))
   ([code-str ns]
-   (if-let [repl-eval (:repl-eval repl)]
-     (repl-eval code-str ns)
-     (utils/log-error "No repl available"))))
-
-(defn safe-eval-code-str
-  ([code-str] (eval-code-str code-str (default-repl-ns config)))
-  ([code-str ns]
-
-   (try
+   (let [ns (or ns (default-repl-ns config))]
      (if-let [repl-eval (:repl-eval repl)]
       (repl-eval code-str ns)
-      (utils/log-error "No repl available"))
-     (catch Exception e (utils/log-error (.getMessage e) e)))))
+      (utils/log-error "No repl available")))))
+
+(defn safe-eval-code-str [& args]
+  (try
+    (apply eval-code-str args)
+    (catch Exception e (utils/log-error (.getMessage e) e))))
 
 (defn remote-connect-code [config]
   (format "(fsa/remote-connect %s)" (-> config

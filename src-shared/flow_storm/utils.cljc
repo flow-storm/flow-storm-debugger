@@ -2,7 +2,10 @@
   #?(:cljs (:require [goog.string :as gstr]
                      [goog.string.format]
                      [goog :as g])
-     :clj (:refer-clojure :exclude [format])))
+     :clj (:require [clojure.java.io :as io]))
+  #?(:clj (:refer-clojure :exclude [format]))
+  #?(:clj (:import [java.io LineNumberReader InputStreamReader PushbackReader]
+                   [clojure.lang RT Reflector])))
 
 (defn disable-from-profile [profile]
   (case profile
@@ -177,4 +180,25 @@
   (walk-indexed (fn [coor frm]
                   (merge-meta frm {key coor}))
                 form))
+
+
+#?(:clj
+   (defn source-fn [x]
+     (when-let [v (resolve x)]
+       (when-let [filepath (:file (meta v))]
+         (let [strm (or (.getResourceAsStream (RT/baseLoader) filepath)
+                        (io/input-stream filepath))]
+           (when str
+             (with-open [rdr (LineNumberReader. (InputStreamReader. strm))]
+               (dotimes [_ (dec (:line (meta v)))] (.readLine rdr))
+               (let [text (StringBuilder.)
+                     pbr (proxy [PushbackReader] [rdr]
+                           (read [] (let [i (proxy-super read)]
+                                      (.append text (char i))
+                                      i)))
+                     read-opts (if (.endsWith ^String filepath "cljc") {:read-cond :allow} {})]
+                 (if (= :unknown *read-eval*)
+                   (throw (IllegalStateException. "Unable to read source while *read-eval* is :unknown."))
+                   (read read-opts (PushbackReader. pbr)))
+                 (str text)))))))))
 

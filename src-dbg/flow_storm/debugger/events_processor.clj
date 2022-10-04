@@ -37,7 +37,7 @@
 (defn- flow-created-event [{:keys [flow-id form-ns form timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
   ;; we don't reuse old flows values on this flow
-  (runtime-api/clear-cache rt-api)
+  (runtime-api/clear-api-cache rt-api)
 
   (dbg-state/create-flow flow-id form-ns form timestamp)
   (ui-utils/run-now (flows-screen/remove-flow flow-id))

@@ -39,7 +39,7 @@
 
   (log "Clearing values and api cache")
   (runtime-api/clear-values-references rt-api)
-  (runtime-api/clear-cache rt-api))
+  (runtime-api/clear-api-cache rt-api))
 
 (defn bottom-box []
   (let [progress-box (h-box [])

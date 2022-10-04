@@ -16,13 +16,14 @@
 
 (defstate rt-api
   :start (let [{:keys [local? env-kind]} config
-               cache (atom {})]
+               api-cache (atom {})
+               repl-cache (atom {})]
            (log "[Starting Runtime Api subsystem]")
            (if local?
 
-             (->LocalRuntimeApi cache)
+             (->LocalRuntimeApi api-cache repl-cache)
 
-             (->RemoteRuntimeApi env-kind cache)))
+             (->RemoteRuntimeApi env-kind api-cache repl-cache)))
 
   :stop (do
           (log "[Stopping Runtime Api subsystem]")
@@ -55,7 +56,7 @@
   (uninstrument-namespaces [_ nanames])
   (interrupt-all-tasks [_])
   (clear-values-references [_])
-  (clear-cache [_]))
+  (clear-api-cache [_]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -88,17 +89,36 @@
          (cached-apply cache cache-key f args))
 
        (do
-         (when debug-mode (log "CALLED"))
+         (when debug-mode (log (utils/colored-string "CALLED" :red)))
          (apply f args))))))
 
+(defn eval-code-str
+  ([form] (eval-code-str nil form nil))
+  ([form ns] (eval-code-str nil form ns))
+  ([cache form ns]
+   (let [cache-key form]
+     (if cache
+       (let [val (get @cache cache-key :flow-storm/cache-miss)]
+         (if (= val :flow-storm/cache-miss)
 
-(defrecord LocalRuntimeApi [cache]
+           ;; re eval the form if it is a miss
+           (let [val (safe-eval-code-str form ns)]
+             (swap! cache assoc cache-key val)
+             val)
+
+           ;; if a hit, return the cached val
+           val))
+
+       (safe-eval-code-str form ns)))))
+
+
+(defrecord LocalRuntimeApi [api-cache repl-cache]
 
   RuntimeApiP
 
-  (val-pprint [_ v opts] (api-call :local cache "val-pprint" [v opts])) ;; CACHED
-  (shallow-val [_ v] (api-call :local cache "shallow-val" [v]))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :local cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
+  (val-pprint [_ v opts] (api-call :local api-cache "val-pprint" [v opts])) ;; CACHED
+  (shallow-val [_ v] (api-call :local api-cache "shallow-val" [v]))  ;; CACHED
+  (get-form [_ flow-id thread-id form-id] (api-call :local api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :local "timeline-entry" [flow-id thread-id idx]))
   (frame-data [_ flow-id thread-id idx] (api-call :local "frame-data" [flow-id thread-id idx]))
@@ -112,7 +132,7 @@
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :local "def-value" [v-name vref]))
 
-  (get-var-form-str [_ var-ns var-name] (clj-repl/source-fn (symbol var-ns var-name)))
+  (get-var-form-str [_ var-ns var-name] (utils/source-fn (symbol var-ns var-name)))
   (eval-form [_ form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [ns-to-eval (find-ns (symbol ns))]
       (binding [*ns* ns-to-eval]
@@ -166,8 +186,8 @@
   (clear-values-references [_]
     (api-call :local "clear-values-references" []))
 
-  (clear-cache [_]
-    (reset! cache {})))
+  (clear-api-cache [_]
+    (reset! api-cache {})))
 
 (defmulti make-repl-expression (fn [env-kind fn-symb & _] [env-kind fn-symb]))
 
@@ -212,13 +232,13 @@
                      (utils/elide-string form-str 50)))
         (eval-form rt-api form-str (assoc eval-opts :ns ns-name))))))
 
-(defrecord RemoteRuntimeApi [env-kind cache]
+(defrecord RemoteRuntimeApi [env-kind api-cache repl-cache]
 
   RuntimeApiP
 
-  (val-pprint [_ v opts] (api-call :remote cache "val-pprint" [v opts])) ;; CACHED
-  (shallow-val [_ v] (api-call :remote cache "shallow-val" [v]))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :remote cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
+  (val-pprint [_ v opts] (api-call :remote api-cache "val-pprint" [v opts])) ;; CACHED
+  (shallow-val [_ v] (api-call :remote api-cache "shallow-val" [v]))  ;; CACHED
+  (get-form [_ flow-id thread-id form-id] (api-call :remote api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :remote "timeline-entry" [flow-id thread-id idx]))
   (frame-data [_ flow-id thread-id idx] (api-call :remote "frame-data" [flow-id thread-id idx]))
@@ -232,34 +252,36 @@
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :remote "def-value" [v-name vref]))
 
-  (get-var-form-str [_ var-ns var-name] (safe-eval-code-str (make-repl-expression env-kind 'get-var-form-str var-ns var-name)))
+  ;; caching this not for performace reasons but because after we re-eval a form once we don't have
+  ;; access to its source anymore because the meta get lost and can't be restored in ClojureScript
+  (get-var-form-str [_ var-ns var-name] (eval-code-str repl-cache (make-repl-expression env-kind 'get-var-form-str var-ns var-name) nil)) ;; CACHED
 
   (eval-form [this form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [var-meta (when var-name (select-keys (get-var-meta this ns var-name) [:file :column :end-column :line :end-line]))
           form-expr (if instrument?
                       (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str)
-          expr-res (safe-eval-code-str (format "(do %s nil)" form-expr) ns)]
+          expr-res (eval-code-str (format "(do %s nil)" form-expr) ns)]
       (when var-meta
         ;; for vars restore the meta attributes that get lost when we re eval from the repl
-        (safe-eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
+        (eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
 
-  (get-all-namespaces [_] (safe-eval-code-str (make-repl-expression env-kind 'get-all-namespaces)))
-  (get-all-vars-for-ns [_ nsname] (safe-eval-code-str (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
-  (get-var-meta [_ var-ns var-name] (safe-eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
+  (get-all-namespaces [_] (eval-code-str (make-repl-expression env-kind 'get-all-namespaces)))
+  (get-all-vars-for-ns [_ nsname] (eval-code-str (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
+  (get-var-meta [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
 
   (instrument-namespaces [_ nsnames profile]
     (let [opts {:disable (utils/disable-from-profile profile)}]
       (case env-kind
-        :cljs (re-eval-all-ns-forms safe-eval-code-str nsnames {:instrument? true
+        :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? true
                                                            :instrument-options opts})
 
         :clj (api-call :remote "instrument-namespaces" [nsnames opts]))))
 
   (uninstrument-namespaces [_ nsnames]
     (case env-kind
-      :cljs (re-eval-all-ns-forms safe-eval-code-str nsnames {:instrument? false})
+      :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? false})
 
       ;; for Clojure just call the api
       :clj (api-call :remote "uninstrument-namespaces" [nsnames])))
@@ -270,8 +292,8 @@
   (clear-values-references [_]
     (api-call :remote "clear-values-references" []))
 
-  (clear-cache [_]
-    (reset! cache {}))
+  (clear-api-cache [_]
+    (reset! api-cache {}))
 
   Closeable
   (close [_] (stop-repl))
@@ -285,7 +307,7 @@
                                       :ns var-ns
                                       :var-name var-name})
 
-      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var. Instrument the entire namespace or use #trace instead." var-ns var-name)
+      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var after instrumenting its namespace. Instrument the entire namespace again or use #trace instead." var-ns var-name)
             {:keys [show-error]} config]
 
         (log-error err-msg)
