@@ -733,14 +733,15 @@ pre.rouge {
 </li>
 <li><a href="#_styling_and_theming">11. Styling and theming</a></li>
 <li><a href="#_key_bindings">12. Key bindings</a></li>
-<li><a href="#_tutorials_and_demos">13. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">14. Troubleshooting</a>
+<li><a href="#_working_on_windows_with_wsl2">13. Working on Windows with WSL2</a></li>
+<li><a href="#_tutorials_and_demos">14. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">15. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">14.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">14.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">15.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">15.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">15. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">16. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -789,7 +790,11 @@ pre.rouge {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span></code></pre>
+<pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span>
+
+<span class="p">;;</span> on windows
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-inst {:mvn/version """RELEASE"""}}}'</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -894,7 +899,11 @@ so to start the debugger and connect to it you run :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl</code></pre>
+<pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+
+<span class="p">;;</span> on windows
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1886,7 +1895,56 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">13. Tutorials and demos</a></h3>
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">13. Working on Windows with WSL2</a></h3>
+<div class="paragraph">
+<p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
+</div>
+<div class="paragraph">
+<p>Then everything should work. The steps are:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install VcXsrv on Windows.</p>
+</li>
+<li>
+<p>Run the XLaunch app on Windows, Choose Multiple Windows, Display Number 0, Start no client, Check all settings on the Extra Settings screen (specifically "Disable access control"</p>
+</li>
+<li>
+<p>In the WSL2 terminal, run ip addr | grep eth0 to determine the ip of the xserver</p>
+</li>
+<li>
+<p>On Windows, go to Firewall and network protection, select Advanced Settings, and add a new Inbound Rule in the Windows Defender window that pops up.</p>
+</li>
+<li>
+<p>For the rule, select Port, then TCP, specific port 6000, then click next twice, and finally name the rule something appropriate, like "XServer rule".</p>
+</li>
+<li>
+<p>Now find the rule you just created, right click, select Properties, then the Scope tab, and enter the IP address you found at step 3 with an appropriate range in order to allow the port through for the WSL2 subsystem.</p>
+</li>
+<li>
+<p>Now find the ip address of your windows machine by typing ipconfig in a windows terminal</p>
+</li>
+<li>
+<p>Now, in the WSL2 terminal, type export DISPLAY=IP_ADDERSS_FOUND_ON_STEP_7:0.0</p>
+</li>
+<li>
+<p>Also in the WSL2 terminal, type export LIBGL_ALWAYS_INDIRECT=1</p>
+</li>
+<li>
+<p>Now you can start clojure with the command clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</p>
+</li>
+<li>
+<p>That should get you into the REPL, where you should type (require '[flow-storm.api :as fs-api])</p>
+</li>
+<li>
+<p>Finally, type (fs-api/local-connect) and you&#8217;re done!</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">14. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1914,16 +1972,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">14. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">15. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">14.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">15.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">14.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">15.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -1936,7 +1994,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">15. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">16. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1954,7 +2012,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-28 06:47:30 -0300
+Last updated 2022-10-04 08:49:11 -0300
 </div>
 </div>
 </body>
