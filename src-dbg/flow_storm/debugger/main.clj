@@ -67,7 +67,7 @@
 
     ;; start components for local debugging
     (-> (mount/with-args (assoc config
-                                :show-error ui-main/show-error))
+                                :show-message ui-main/show-message))
         (mount/only local-debugger-mount-vars)
         (mount/start))
 
@@ -78,7 +78,7 @@
                                             :clj)
                                 :connect-to-repl? (boolean (:port config))
                                 :repl-kind :nrepl
-                                :show-error ui-main/show-error
+                                :show-message ui-main/show-message
                                 :dispatch-event events-queue/enqueue-event!))
         (mount/only remote-debugger-mount-vars)
         (mount/start))))

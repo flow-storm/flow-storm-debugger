@@ -5,7 +5,7 @@
      :clj (:require [clojure.java.io :as io]))
   #?(:clj (:refer-clojure :exclude [format]))
   #?(:clj (:import [java.io LineNumberReader InputStreamReader PushbackReader]
-                   [clojure.lang RT Reflector])))
+                   [clojure.lang RT])))
 
 (defn disable-from-profile [profile]
   (case profile

@@ -4,8 +4,7 @@
             [flow-storm.debugger.repl.core :refer [safe-eval-code-str stop-repl]]
             [flow-storm.debugger.websocket :as websocket]
             [flow-storm.debugger.config :refer [config debug-mode]]
-            [clojure.string :as str]
-            [clojure.repl :as clj-repl])
+            [clojure.string :as str])
   (:import [java.io Closeable]))
 
 (declare ->LocalRuntimeApi)
@@ -158,8 +157,8 @@
                   (catch Exception ex
                     (log-error "Error instrumenting form" ex)
                     (if (and (.getCause ex) (str/includes? (.getMessage (.getCause ex)) "Method code too large!"))
-                      ((:show-error config) "The form you are trying to instrument exceeds the method limit after instrumentation. Try intrumenting it without bindings.")
-                      ((:show-error config) (.getMessage ex)))))
+                      ((:show-message config) "The form you are trying to instrument exceeds the method limit after instrumentation. Try intrumenting it without bindings." :error)
+                      ((:show-message config) (.getMessage ex) :error))))
 
                 ;; when we evaluate a function from the repl we lose all meta
                 ;; so when re-evaluating a var (probably a function) store and restore its meta
@@ -308,7 +307,7 @@
                                       :var-name var-name})
 
       (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var after instrumenting its namespace. Instrument the entire namespace again or use #trace instead." var-ns var-name)
-            {:keys [show-error]} config]
+            {:keys [show-message]} config]
 
         (log-error err-msg)
-        (show-error err-msg)))))
+        (show-message err-msg :error)))))
