@@ -6,7 +6,7 @@
             [flow-storm.debugger.watchdog]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
-            [flow-storm.debugger.repl.connection]
+            [flow-storm.debugger.repl.core]
             [flow-storm.debugger.config]
             [mount.core :as mount]))
 
@@ -33,7 +33,7 @@
 
   (into local-debugger-mount-vars
         [#'flow-storm.debugger.websocket/websocket-server
-         #'flow-storm.debugger.repl.connection/connection
+         #'flow-storm.debugger.repl.core/repl
          #'flow-storm.debugger.watchdog/watchdog]))
 
 (defn stop-debugger []

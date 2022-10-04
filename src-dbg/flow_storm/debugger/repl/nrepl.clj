@@ -6,17 +6,30 @@
   (let [transport (nrepl/connect :host runtime-host
                                  :port port
                                  :transport-fn #'transport/bencode)
-        client (nrepl/client transport Long/MAX_VALUE)
+        ;; non of our commands should take longer than 3secs to execute
+        ;; if more, we consider it a repl timeout and give up
+        client (nrepl/client transport 3000)
         session (nrepl/client-session client)]
 
     {:repl-eval (fn repl-eval [code-str ns]
-                  (let [msg (cond-> {:op "eval" :code code-str}
-                              ns (assoc :ns ns))
-                        responses (nrepl/message session msg)
-                        {:keys [err] :as res-map} (nrepl/combine-responses responses)]
-                    (if err
-                      (throw (ex-info (str "nrepl evaluation error: " err) (assoc res-map :msg msg)))
-                      (first (:value res-map)))))
+                  (try
+                    (let [msg (cond-> {:op "eval" :code code-str}
+                                ns (assoc :ns ns))
+                          responses (nrepl/message session msg)
+                          {:keys [err] :as res-map} (nrepl/combine-responses responses)]
+                      (if (empty? responses)
+
+                        (throw (ex-info "nrepl timeout" {:error/type :repl/timeout}))
+
+                        (if err
+                          (throw (ex-info (str "nrepl evaluation error: " err)
+                                          (assoc res-map
+                                                 :error/type :repl/evaluation-error
+                                                 :msg msg)))
+                          (first (:value res-map)))))
+                    (catch java.net.SocketException se
+                      (throw (ex-info (.getMessage se)
+                                      {:error/type :repl/socket-exception})))))
 
      :close-connection (fn []
                          (.close transport))}))
@@ -24,10 +37,11 @@
 (comment
 
   (def transport (nrepl/connect :host "localhost"
-                                :port 46000
+                                :port 9000
                                 :transport-fn #'transport/bencode))
 
   (def client (nrepl/client transport Long/MAX_VALUE))
+  (def client (nrepl/client transport 3000))
 
   (def session (nrepl/client-session client))
 

@@ -5,7 +5,7 @@
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.debugger.repl.connection :as repl-conn]
+            [flow-storm.debugger.repl.core :as repl-core]
             [flow-storm.debugger.config :refer [config]]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.utils :as utils]
@@ -32,11 +32,60 @@
 
   (ui-utils/run-later (browser-screen/clear-instrumentation-list)))
 
+(defn websocket-reconnect-loop [websocket-watch-stop-ch]
+  (utils/log "[WATCHDOG] starting websocket reconnect loop")
+  (async/go
+    (loop []
+      (let [[_ ch] (async/alts! [(async/timeout websocket-watchdog-interval)
+                                 websocket-watch-stop-ch])]
+        (when-not (= ch websocket-watch-stop-ch)
+          (let [r (websocket/sync-remote-api-request :ping [] 1000)
+                ws-ok? (= :pong r)]
+
+            (if ws-ok?
+
+              (ui-main/set-runtime-status-lbl :ok)
+
+              (do
+                (try
+                  ;; if we lost the connection to the runtime, and we are connected to a repl,
+                  ;; we also lost runtime initialization, so we need to re init the runtime bef
+                  (when (:connect-to-repl? config)
+                    (doseq [{:keys [code ns]} (repl-core/make-general-repl-init-sequence config)]
+                      (repl-core/safe-eval-code-str code ns)))
+
+                  ;; if we started, lets wait some time before checking again
+                  (async/<! (async/timeout 5000))
+                  (catch Exception _
+                    (utils/log (format "Couldn't restart the websocket server, retrying in %d ms" websocket-watchdog-interval))))
+                (recur)))))))))
+
 (defn start-watchdog []
   (utils/log "[Starting Connection watchdog subsystem]")
   (let [repl-watch-stop-ch (async/promise-chan)
-        websocket-watch-stop-ch (async/promise-chan)
-        ui-cleared (atom false)]
+        websocket-watch-stop-ch (async/promise-chan)]
+
+    ;; WebSocket watchdog
+
+    (websocket/register-event-callback :connection-open (fn [] (ui-main/set-runtime-status-lbl :ok)))
+
+    (websocket/register-event-callback
+     :connection-going-away
+     (fn []
+       (utils/log "WebSocket connection went away")
+       (ui-main/set-runtime-status-lbl :fail)
+
+       (utils/log "Clearing the UI because of websocket connection down")
+       ;; clear the ui
+       ;; if we lost the connection we can assume we lost the state on the runtime side
+       ;; so get rid of flows, taps, and browser instrumentation
+       (clear-ui)
+
+       (websocket-reconnect-loop websocket-watch-stop-ch)))
+
+    (websocket-reconnect-loop websocket-watch-stop-ch)
+
+    ;; Repl watchdog
 
     ;; start the repl watchdog loop
     ;; this will check for the repl connection to be ready and also
@@ -47,60 +96,26 @@
         (let [[_ ch] (async/alts! [(async/timeout repl-watchdog-interval)
                                    repl-watch-stop-ch])]
           (when-not (= ch repl-watch-stop-ch)
-            (let [repl-ok? (= :watch-dog-ping (repl-conn/eval-code-str ":watch-dog-ping"))]
+            (let [repl-ok? (try
+                             (= :watch-dog-ping (repl-core/eval-code-str ":watch-dog-ping"))
+                             (catch clojure.lang.ExceptionInfo ei
+                               (let [{:keys [error/type] :as exd} (ex-data ei)]
+                                 (utils/log (format "[WATCHDOG] error executing ping. %s" exd))
+                                 (not= type :repl/socket-exception))))]
+
               (if repl-ok?
+
                 (ui-main/set-repl-status-lbl :ok)
 
                 (do
                   (ui-main/set-repl-status-lbl :fail)
+
                   (utils/log "[WATCHDOG] repl looks down, trying to reconnect ...")
-                  (mount/stop (mount/only [#'flow-storm.debugger.repl.connection/connection]))
+                  (mount/stop (mount/only [#'flow-storm.debugger.repl.core/repl]))
                   (try
-                    (mount/start (mount/only [#'flow-storm.debugger.repl.connection/connection]))
+                    (mount/start (mount/only [#'flow-storm.debugger.repl.core/repl]))
                     (catch Exception _
                       (utils/log (format "Couldn't restart repl, retrying in %d ms" repl-watchdog-interval)))))))
-            (recur)))))
-
-    ;; start the websocket watchdog loop
-    (utils/log "Starting the websocket watchdog loop")
-    (async/go-loop []
-      (let [[_ ch] (async/alts! [(async/timeout websocket-watchdog-interval)
-                                 websocket-watch-stop-ch])]
-        (when-not (= ch websocket-watch-stop-ch)
-          (let [r (websocket/sync-remote-api-request :ping [])
-                ws-ok? (= :pong r)]
-
-            (if ws-ok?
-              (do
-                (ui-main/set-runtime-status-lbl :ok)
-                (reset! ui-cleared false))
-
-              (do
-                (utils/log "[WATCHDOG] websocket looks down, trying to reconnect ...")
-
-                ;; signal the fail on the ui
-                (ui-main/set-runtime-status-lbl :fail)
-
-                ;; clear the ui
-                ;; if we lost the connection we can assume we lost the state on the runtime side
-                ;; so get rid of flows, taps, and browser instrumentation
-                (when-not @ui-cleared
-                  (utils/log "Clearing the UI because of websocket connection down")
-                  (clear-ui)
-                  (reset! ui-cleared true))
-
-                (try
-                  ;; if we lost the connection to the runtime, and we are connected to a repl,
-                  ;; we also lost runtime initialization, so we need to re init the runtime bef
-                  (when (:connect-to-repl? config)
-                    (doseq [{:keys [code ns]} (repl-conn/make-general-repl-init-sequence config)]
-                      (repl-conn/eval-code-str code ns)))
-
-                  (repl-conn/eval-code-str (repl-conn/remote-connect-code config) (repl-conn/default-repl-ns config))
-                  ;; if we started, lets wait some time before checking again
-                  (async/<! (async/timeout 5000))
-                  (catch Exception _
-                    (utils/log (format "Couldn't restart the websocket server, retrying in %d ms" websocket-watchdog-interval))))))
             (recur)))))
 
     {:repl-watch-stop-ch repl-watch-stop-ch

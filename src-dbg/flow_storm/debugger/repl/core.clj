@@ -1,4 +1,4 @@
-(ns flow-storm.debugger.repl.connection
+(ns flow-storm.debugger.repl.core
   (:require [mount.core :as mount :refer [defstate]]
             [flow-storm.debugger.repl.nrepl :as nrepl]
             [flow-storm.debugger.websocket]
@@ -6,15 +6,15 @@
             [flow-storm.utils :as utils]
             [clojure.java.io :as io]))
 
-(declare start-repl-connection)
-(declare close-repl-connection)
+(declare start-repl)
+(declare stop-repl)
 
 (def log-file-path "./repl-client-debug")
 
-(declare connection)
-(defstate connection
-  :start (start-repl-connection)
-  :stop (close-repl-connection))
+(declare repl)
+(defstate repl
+  :start (start-repl)
+  :stop (stop-repl))
 
 (defn default-repl-ns [{:keys [env-kind]}]
   (case env-kind :clj "user" :cljs "cljs.user"))
@@ -22,9 +22,19 @@
 (defn eval-code-str
   ([code-str] (eval-code-str code-str (default-repl-ns config)))
   ([code-str ns]
-   (if-let [repl-eval (:repl-eval connection)]
+   (if-let [repl-eval (:repl-eval repl)]
      (repl-eval code-str ns)
      (utils/log-error "No repl available"))))
+
+(defn safe-eval-code-str
+  ([code-str] (eval-code-str code-str (default-repl-ns config)))
+  ([code-str ns]
+
+   (try
+     (if-let [repl-eval (:repl-eval repl)]
+      (repl-eval code-str ns)
+      (utils/log-error "No repl available"))
+     (catch Exception e (utils/log-error (.getMessage e) e)))))
 
 (defn remote-connect-code [config]
   (format "(fsa/remote-connect %s)" (-> config
@@ -58,7 +68,7 @@
      fs-connect-command
      fs-require-dbg-command]))
 
-(defn start-repl-connection []
+(defn start-repl []
   (utils/log "[Starting Repl subsystem]")
   (when (:connect-to-repl? config)
     (let [{:keys [repl-kind]} config
@@ -68,26 +78,25 @@
 
           ;; repl here will be a map with :repl-eval (fn [code-str ns] ) and :close-connection (fn [])
           ;; :repl-eval fn will eval on the specific repl and return the value always as a string
-          repl (case repl-kind
+          srepl (case repl-kind
                  :nrepl (nrepl/connect config))
           repl-eval (fn [code-str ns]
-                      (try
+                      (when-not (= code-str ":watch-dog-ping")
+                        (.write log-output-stream (.getBytes (format "\n\n---- [ %s ] ---->\n" ns)))
+                        (.write log-output-stream (.getBytes (pr-str code-str)))
+                        (.flush log-output-stream))
+
+                      (let [response ((:repl-eval srepl) code-str ns)]
 
                         (when-not (= code-str ":watch-dog-ping")
-                          (.write log-output-stream (.getBytes (format "\n\n---- [ %s ] ---->\n" ns)))
-                          (.write log-output-stream (.getBytes (pr-str code-str)))
+                          (.write log-output-stream (.getBytes "\n<---------\n"))
+                          (.write log-output-stream (.getBytes (pr-str response)))
                           (.flush log-output-stream))
 
-                        (let [response ((:repl-eval repl) code-str ns)]
-
-                          (when-not (= code-str ":watch-dog-ping")
-                            (.write log-output-stream (.getBytes "\n<---------\n"))
-                            (.write log-output-stream (.getBytes (pr-str response)))
-                            (.flush log-output-stream))
-
-                          (read-string {} response))
-                        (catch Exception e
-                          (utils/log-error (.getMessage e)))))]
+                        (try
+                          (read-string {} response)
+                          (catch Exception e
+                            (utils/log-error (.getMessage e))))))]
 
       (utils/log "Initializing repl...")
 
@@ -100,10 +109,13 @@
 
       {:repl-eval repl-eval
        :close-connection (fn []
-                           (:close-connection repl)
+                           (:close-connection srepl)
                            (.close log-output-stream))})))
 
-(defn close-repl-connection []
+(defn repl-ok? []
+  (not ((:connection-closed? repl))))
+
+(defn stop-repl []
   (utils/log "[Stopping Repl subsystem]")
-  (when-let [close-conn (:close-connection connection)]
+  (when-let [close-conn (:close-connection repl)]
     (close-conn)))

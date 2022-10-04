@@ -55,12 +55,16 @@
     box))
 
 (defn set-repl-status-lbl [status]
-  (let [[repl-status-lbl] (obj-lookup "repl-status-lbl")]
-    (.setStyle repl-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" )))))
+  (try
+    (let [[repl-status-lbl] (obj-lookup "repl-status-lbl")]
+      (.setStyle repl-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" ))))
+    (catch Exception _))) ;; silently discarded because sometimes it is called one extra time when stopping the system
 
 (defn set-runtime-status-lbl [status]
-  (let [[runtime-status-lbl] (obj-lookup "runtime-status-lbl")]
-    (.setStyle runtime-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" )))))
+  (try
+    (let [[runtime-status-lbl] (obj-lookup "runtime-status-lbl")]
+      (.setStyle runtime-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" ))))
+    (catch Exception _))) ;; silently discarded because sometimes it is called one extra time when stopping the system
 
 (defn set-in-progress [in-progress?]
   (ui-utils/run-later
