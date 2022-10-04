@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.state-vars
   (:require [flow-storm.utils :refer [log]]
-            [mount.core :as mount :refer [defstate]]))
+            [mount.core :as mount :refer [defstate]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [alert-dialog]]))
 
 (def register-and-init-stage!
 
@@ -134,3 +135,12 @@
 
 (defn thread-callstack-tree-cell [thread-id idx]
   (format "callstack_tree_cell_%d_%d" thread-id idx))
+
+(defn show-message [msg msg-type]
+  (try
+    (ui-utils/run-later
+     (let [dialog (alert-dialog {:type msg-type
+                                 :message msg
+                                 :buttons [:close]})]
+       (.show dialog)))
+    (catch Exception _)))

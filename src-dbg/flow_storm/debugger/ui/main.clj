@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.main
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label icon-button event-handler h-box alert-dialog progress-indicator tab tab-pane border-pane]]
+             :refer [label icon-button event-handler h-box progress-indicator tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -76,15 +76,6 @@
          (.addAll (.getChildren box) [prog-ind]))
 
        (-> box .getChildren .clear)))))
-
-(defn show-message [msg msg-type]
-  (try
-    (ui-utils/run-later
-     (let [dialog (alert-dialog {:type msg-type
-                                 :message msg
-                                 :buttons [:close]})]
-       (.show dialog)))
-    (catch Exception _)))
 
 (defn select-main-tools-tab [tool]
   (let [[main-tools-tab] (obj-lookup "main-tools-tab")

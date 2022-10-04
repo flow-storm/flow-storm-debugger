@@ -1,8 +1,7 @@
 (ns flow-storm.debugger.ui.browser.screen
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
             [flow-storm.utils :refer [log-error]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.config :refer [config]]
+            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup show-message] :as ui-vars]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str])
   (:import [javafx.scene.control CheckBox SplitPane]
@@ -36,7 +35,7 @@
 
 (defn- instrument-function [var-ns var-name add?]
   (when (or (= var-ns "clojure.core") (= var-ns "cljs.core"))
-    ((:show-message config) "Instrumenting clojure.core is almost never a good idea since the debugger itself uses the namespace and you can easily end in a infinite recursion." :warning))
+    (show-message "Instrumenting clojure.core is almost never a good idea since the debugger itself uses the namespace and you can easily end in a infinite recursion." :warning))
   (runtime-api/get-and-eval-form rt-api (str var-ns) (str var-name) true)
 
   (when add?
@@ -59,7 +58,7 @@
 
 (defn- instrument-namespaces [inst-namespaces add?]
   (if (some (fn [{:keys [ns-name] :as ns}] (when (or (= ns-name "clojure.core") (= ns-name "cljs.core")) ns)) inst-namespaces)
-    ((:show-message config) "Instrumenting entire clojure.core is not a good idea. The debugger itself uses the namespace and you will end up in a infinite recursion" :warning)
+    (show-message "Instrumenting entire clojure.core is not a good idea. The debugger itself uses the namespace and you will end up in a infinite recursion" :warning)
 
     (do
       (runtime-api/instrument-namespaces rt-api (map :ns-name inst-namespaces) (:profile (first inst-namespaces)))
