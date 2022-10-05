@@ -169,11 +169,15 @@
 
 (defn- arm-interesting [flow-id thread-id ^Text token-text traces]
   (if (> (count traces) 1)
-    (let [ctx-menu-options (->> traces
-                                (map (fn [{:keys [idx result]}]
-                                       (let [v-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})]
-                                         {:text (format "%s" (utils/elide-string v-str 80))
-                                          :on-click #(jump-to-coord flow-id thread-id idx)}))))
+    (let [last-idx (get-in traces [(dec (count traces)) :idx])
+          make-menu-item (fn [{:keys [idx result]}]
+                          (let [v-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})]
+                            {:text (format "%s" (utils/elide-string v-str 80))
+                             :on-click #(jump-to-coord flow-id thread-id idx)}))
+          ctx-menu-options (->> traces
+                                (map make-menu-item)
+                                (into [{:text "Last"
+                                        :on-click #(jump-to-coord flow-id thread-id last-idx)}]))
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler
                                       [^MouseEvent ev]
