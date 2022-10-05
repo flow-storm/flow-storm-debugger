@@ -62,8 +62,12 @@
   (get-frame [_] frame)
   (get-node-immutable-frame [_] (get-immutable-frame frame))
   (has-childs? [_] (zero? (ml-count childs)))
-  (add-child [_ node] (ml-add childs node))
-  (get-childs [_] childs))
+  (add-child [_ node]
+    (locking childs
+      (ml-add childs node)))
+  (get-childs [_]
+    (locking childs
+      (doall (seq childs)))))
 
 (defprotocol FrameIndexP
   (timeline-count [_])
