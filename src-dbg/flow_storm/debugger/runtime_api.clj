@@ -307,7 +307,7 @@
                                       :ns var-ns
                                       :var-name var-name})
 
-      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var after instrumenting its namespace. Instrument the entire namespace again or use #trace instead." var-ns var-name)]
+      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var after instrumenting its namespace. Instrument the entire namespace again or use #trace instead. It is a know issue in Clojure if you are trying to instrument a fn you just wrote and eval but the file isn't saved." var-ns var-name)]
 
         (log-error err-msg)
         (show-message err-msg :error)))))
