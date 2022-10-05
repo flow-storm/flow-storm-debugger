@@ -5,9 +5,11 @@
 ## New Features
 	
 	- Add `Instrument form without bindings` to form context menu
+	- Add got to last trace on code loops context-menu
 	
 ### Changes
     
+	- Full [un]instrumentation synchronization between the browser and #trace (Clojure only)
 	- Now you can [un]instrument single vars from the browser, even if they where defined at the repl (Clojure only)
 	- Improved Single var [un]instrumentation from the browser (Clojure and ClojureScript)
 	

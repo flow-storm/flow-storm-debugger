@@ -25,13 +25,24 @@
   (let [[{:keys [clear]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (clear)))
 
+(defn- contains-var? [items var-ns var-name]
+  (some (fn [item]
+          (boolean
+           (and (= :var (:inst-type item))
+                (= (:var-ns item) var-ns)
+                (= (:var-name item) var-name))))
+        items))
+
 (defn add-to-var-instrumented-list [var-ns var-name]
-  (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
-    (add-all [(make-inst-var var-ns var-name)])))
+  (let [[{:keys [add-all get-all-items]}] (obj-lookup "browser-observable-instrumentations-list-data")
+        items (get-all-items)
+        already-added? (contains-var? items var-ns var-name)]
+    (when-not already-added?
+      (add-all [(make-inst-var (str var-ns) (str var-name))]))))
 
 (defn remove-from-var-instrumented-list [var-ns var-name]
   (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
-    (remove-all [(make-inst-var var-ns var-name)])))
+    (remove-all [(make-inst-var (str var-ns) (str var-name))])))
 
 (defn- instrument-function [var-ns var-name add?]
   (when (or (= var-ns "clojure.core") (= var-ns "cljs.core"))

@@ -199,7 +199,38 @@
 
 #?(:clj
    (defmacro instrument* [config form]
-     (inst-forms/instrument (assoc config :env &env) form)))
+     (let [env &env
+           compiler (inst-forms/compiler-from-env env)
+           instr-form (inst-forms/instrument (assoc config :env env) form)]
+       
+       (if (and (= compiler :clj)
+                (inst-forms/expanded-defn-form? instr-form))
+
+         ;; if we are in clojure and it is a (defn ...) or (def . (fn []))
+         ;; add a watch to its var to track when it is being instrumented/uninstrumented
+         (let [var-symb (second form)]
+           `(do
+              
+              ~instr-form
+              
+              (let [v# (var ~var-symb)
+                    [vns# vname#] ((juxt namespace name) (symbol v#))]
+                (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))
+                (add-watch v#
+                           :flow-storm/var-redef
+                           (fn [a1# a2# fn-before# fn-after#]
+                             (cond
+
+                               (and (:flow-storm/instrumented? (meta fn-before#))
+                                    (not (:flow-storm/instrumented? (meta fn-after#))))
+                               (rt-events/publish-event! (rt-events/make-var-uninstrumented-event vname# vns#))
+
+                               (and (not (:flow-storm/instrumented? (meta fn-before#)))
+                                    (:flow-storm/instrumented? (meta fn-after#)))
+                               (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))))))))
+
+
+         instr-form))))
 
 #?(:clj
     (defmacro cljs-get-all-ns []

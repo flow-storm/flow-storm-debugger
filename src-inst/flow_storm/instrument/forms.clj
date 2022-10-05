@@ -563,7 +563,17 @@
                         (println "Failed to instrument" name args (pr-str form)
                                  ", please file a bug report: " e))
                       args))]
-    (with-meta (cons name inst-args) (meta form))))
+    (with-meta (cons name inst-args)
+      (cond-> (meta form)
+
+        ;; for clojure lets add meta to the fn* so when can
+        ;; know if it has been instrumented.
+        ;; It can be done for ClojureScript but first we need to fix
+        ;; expanded-cljs-multi-arity-defn?
+        ;; We are just skipping for cljs since the functionality that depends on this
+        ;; flag (watch vars for inst/uninst) can't even be instrumented on ClojureScript
+        (and (= name 'fn*) (= compiler :clj))
+        (assoc :flow-storm/instrumented? true)))))
 
 
 (defn- instrument-function-call
@@ -893,14 +903,17 @@
      ~@(-> preamble
            (into [(instrument-expression-form (conj forms 'do) [] (assoc ctx :outer-form? true))]))))
 
+(defn compiler-from-env [env]
+  (if (contains? env :js-globals)
+    :cljs
+    :clj))
+
 (defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled? trace-bind trace-form-init trace-fn-call trace-expr-exec]} form-ns form env]
   (let [form-id (hash form)]
     (assert (or (nil? disable) (set? disable)) ":disable configuration should be a set")
     {:environment      env
      :tracing-disabled? tracing-disabled?
-     :compiler         (if (contains? env :js-globals)
-                         :cljs
-                         :clj)
+     :compiler         (compiler-from-env env)
      :orig-outer-form  form
      :form-id          form-id
      :form-ns          form-ns
