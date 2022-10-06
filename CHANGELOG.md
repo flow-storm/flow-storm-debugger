@@ -4,6 +4,15 @@
 	
 ## New Features
 	
+### Changes
+    
+### Bugs fixed
+        
+    
+## 3.0.231 (6-10-2022)
+	
+## New Features
+	
 	- Add `Instrument form without bindings` to form context menu
 	- Add got to last trace on code loops context-menu
 	
