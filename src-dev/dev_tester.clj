@@ -50,6 +50,7 @@
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
+        hh (range)
         *a (atom 10)
         _ (swap! *a inc)
         xx @*a

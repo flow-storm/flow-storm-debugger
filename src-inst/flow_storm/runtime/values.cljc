@@ -6,27 +6,61 @@
 
 (def values-references (atom nil))
 
+(defprotocol PValueRef
+  (ref-value [_ v])
+  (get-value [_ vid])
+  (get-value-id [_ v]))
+
+(defn maybe-wrapped [o]
+  (cond-> o
+    (not (counted? o)) utils/wrap))
+
+;; This is tricky.
+;; All this stuff in ValuesReferences is so we can assign unique stable ids to objects
+;; First I tried directly with utils/object-id but on the JVM it is using System/identityHashCode which isn't
+;; reliable since it is pretty easy to find collisions.
+;; The current approach is to keep two maps vid->v, v->vid and an incrementing id value.
+;; Also if the value we are about to store isn't counted? we need to wrap it, since we can only have hashable values
+;; as keys of a map, which infinite sequences are not.
+
+(defrecord ValuesReferences [vid->v v->vid max-vid]
+  PValueRef
+
+  (ref-value [this v]
+    (let [v (maybe-wrapped v)]
+      (if (contains? v->vid v)
+        this
+        (let [next-vid (inc max-vid)]
+          (-> this
+              (assoc :max-vid next-vid)
+              (update :vid->v assoc next-vid v)
+              (update :v->vid assoc v next-vid))))))
+  
+  (get-value [_ vid]
+    (let [maybe-wrapped-v (get vid->v vid)]
+      (if (utils/wrapped? maybe-wrapped-v)
+        (utils/unwrap maybe-wrapped-v)
+        maybe-wrapped-v)))
+
+  (get-value-id [_ v]
+    (let [v (maybe-wrapped v)]
+      (get v->vid v))))
+
+(defn get-reference-value [vid]  
+  (get-value @values-references vid))
+
+(defn reference-value! [v]
+  (swap! values-references ref-value v)
+  (get-value-id @values-references v))
+
+(defn clear-values-references []
+  (reset! values-references (map->ValuesReferences {:vid->v {} :v->vid {} :max-vid 0})))
+
 (defn snapshot-reference [x]  
   (if (utils/derefable? x)
     {:ref/snapshot (deref x)
      :ref/type (type x)}
     x))
-
-(defprotocol ValueRefP
-  (ref-value [_ v])
-  (get-value [_ val-id])
-  (clear-all [_]))
-
-(defn get-reference-value [vid]
-  (get @values-references vid))
-
-(defn reference-value! [v]
-  (let [vid (utils/object-id v)]
-    (swap! values-references assoc vid v)
-    vid))
-
-(defn clear-values-references []
-  (reset! values-references {}))
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [print-fn #?(:clj (if pprint? pp/pprint print) 

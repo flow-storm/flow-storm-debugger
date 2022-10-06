@@ -71,6 +71,41 @@
                                     :max-uuid)]
                    (aset o flow-storm-uuid-prop next-uid))))))
 
+(defprotocol PWrapped
+  (unwrap [_]))
+
+(deftype APWrapped [obj]
+  #?@(:clj
+      [clojure.lang.IHashEq
+       (hasheq [_] (object-id obj))
+       (hashCode [_] (object-id obj))
+       (equals [_ that]
+               (if (instance? APWrapped that)
+                 (identical? obj (unwrap that))
+                 false))]
+
+      :cljs
+      [IEquiv
+       (-equiv [_ that]
+               (if (instance? APWrapped that)
+                 (identical? obj (unwrap that))
+                 false))
+
+       IHash
+       (-hash [_]
+              (object-id obj))])
+  
+  PWrapped
+  (unwrap [_]
+    obj))
+
+(defn wrap [o]
+  (->APWrapped o))
+
+(defn wrapped? [o]
+  (instance? APWrapped o))
+
+
 #?(:clj (def out-print-writer *out*))
 
 #?(:clj
