@@ -176,7 +176,7 @@
                              :on-click #(jump-to-coord flow-id thread-id idx)}))
           ctx-menu-options (->> traces
                                 (map make-menu-item)
-                                (into [{:text "Last"
+                                (into [{:text "Goto Last Iteration"
                                         :on-click #(jump-to-coord flow-id thread-id last-idx)}]))
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler

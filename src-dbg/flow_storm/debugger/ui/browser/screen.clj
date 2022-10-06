@@ -68,7 +68,7 @@
     (remove-all ns-maps)))
 
 (defn- instrument-namespaces [inst-namespaces add?]
-  (if (some (fn [{:keys [ns-name] :as ns}] (when (or (= ns-name "clojure.core") (= ns-name "cljs.core")) ns)) inst-namespaces)
+  (if (some (fn [{:keys [ns-name] :as ns}] (when (= ns-name "clojure.core") ns)) inst-namespaces)
     (show-message "Instrumenting entire clojure.core is not a good idea. The debugger itself uses the namespace and you will end up in a infinite recursion" :warning)
 
     (do
