@@ -5,10 +5,22 @@
 ## New Features
 	
 ### Changes
-    
+
 ### Bugs fixed
-        
+
+## 3.0.236 (7-10-2022)
+	
+## New Features
+	
+### Changes
+    
+	- Improves theming
+	- Fix dynamic vars not being re-evaluated as dynamic in cljs
+	
+### Bugs fixed
+
     - Fix dynamic vars not being re-evalueated as dynamic in ClojureScript
+	- Fix timeout issues on remote connection
 	
 ## 3.0.231 (6-10-2022)
 	
