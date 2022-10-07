@@ -268,8 +268,9 @@
 
                            (pr-str form)))))))
          (catch Exception e
-           (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
-           (.printStackTrace e))))))
+           (binding [*out* *err*]
+             (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
+             (.printStackTrace e)))))))
 
 #?(:clj
    (defmacro cljs-sorted-namespaces-sources

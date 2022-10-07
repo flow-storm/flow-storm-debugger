@@ -120,8 +120,13 @@
                                               (log-error (format "Error processing remote message '%s', error msg %s" msg (.getMessage e))))))
 
                             :on-close (fn [code _ _]
+                                        (log-error (format "Connection closed with code %s" code))
                                         (cond
-                                          (= code CloseFrame/GOING_AWAY) (doseq [cb (:connection-going-away @events-callbacks)] (cb))
+
+                                          (or (= code CloseFrame/GOING_AWAY)
+                                              (= code CloseFrame/ABNORMAL_CLOSE))
+                                          (doseq [cb (:connection-going-away @events-callbacks)] (cb))
+
                                           :else nil)
 
                                         )})]
