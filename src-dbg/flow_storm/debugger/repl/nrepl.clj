@@ -6,9 +6,9 @@
   (let [transport (nrepl/connect :host runtime-host
                                  :port port
                                  :transport-fn #'transport/bencode)
-        ;; non of our commands should take longer than 3secs to execute
+        ;; non of our commands should take longer than 10secs to execute
         ;; if more, we consider it a repl timeout and give up
-        client (nrepl/client transport 3000)
+        client (nrepl/client transport 10000)
         session (nrepl/client-session client)]
 
     {:repl-eval (fn repl-eval [code-str ns]
