@@ -5,6 +5,7 @@
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
             [clojure.core.async :as async]
             #?@(:clj [[flow-storm.instrument.forms :as inst-forms]
+                      [clojure.string :as str]
                       [flow-storm.instrument.namespaces :as inst-ns]
                       [cljs.repl :as cljs-repl]
                       [cljs.analyzer :as ana]
@@ -248,14 +249,24 @@
 
 #?(:clj
    (defn- cljs-file-forms [ns-symb file-url]     
-     (let [found-ns (ana-api/find-ns ns-symb)]
+     (let [found-ns (ana-api/find-ns ns-symb)
+           def-dynamic? (fn [form]
+                          (and (= 'def (first form))
+                               (let [symb-name (str (second form))]
+                                 (and (str/starts-with? symb-name "*")
+                                      (str/ends-with? symb-name "*")))))]
        (try
          (binding [ana/*cljs-ns* ns-symb]           
            (let [file-str (slurp file-url)
                  file-forms (ana-api/forms-seq (StringReader. file-str))]
             (->> file-forms
                  rest ;; discard the (ns ...) form
-                 (mapv str))))
+                 (mapv (fn [form]
+                         (if (def-dynamic? form)
+
+                           (binding [*print-meta* true] (pr-str form))
+
+                           (pr-str form)))))))
          (catch Exception e
            (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
            (.printStackTrace e))))))

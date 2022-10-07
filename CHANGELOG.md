@@ -8,7 +8,8 @@
     
 ### Bugs fixed
         
-    
+    - Fix dynamic vars not being re-evalueated as dynamic in ClojureScript
+	
 ## 3.0.231 (6-10-2022)
 	
 ## New Features
