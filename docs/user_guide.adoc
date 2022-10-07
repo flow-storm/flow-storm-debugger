@@ -216,7 +216,7 @@ You can remotely debug any Clojure application the exposes a nrepl server to it 
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :runtime-host YOUR-REPL-IP-ADDRESS :debugger-host YOUR-IP-ADDRESS
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :runtime-host '"YOUR-REPL-IP-ADDRESS"' :debugger-host '"YOUR-IP-ADDRESS"'
 ----
 
 assuming your nrepl server is listening on port 9000.
