@@ -43,8 +43,8 @@
 
 (defn bottom-box []
   (let [progress-box (h-box [])
-        repl-status-lbl (label "REPL")
-        runtime-status-lbl (label "RUNTIME")
+        repl-status-lbl (label "REPL" "conn-status-lbl")
+        runtime-status-lbl (label "RUNTIME" "conn-status-lbl")
         box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl] "main-bottom-bar-box")
               (.setSpacing 5)
               (.setAlignment Pos/CENTER_RIGHT)
@@ -54,16 +54,18 @@
     (store-obj "runtime-status-lbl" runtime-status-lbl)
     box))
 
-(defn set-repl-status-lbl [status]
+(defn set-conn-status-lbl [lbl-key status]
   (try
-    (let [[repl-status-lbl] (obj-lookup "repl-status-lbl")]
-      (.setStyle repl-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" ))))
-    (catch Exception _))) ;; silently discarded because sometimes it is called one extra time when stopping the system
-
-(defn set-runtime-status-lbl [status]
-  (try
-    (let [[runtime-status-lbl] (obj-lookup "runtime-status-lbl")]
-      (.setStyle runtime-status-lbl (format "-fx-background-color: %s;" (case status :ok "#8cf446" :fail "red" ))))
+    (let [[status-lbl] (obj-lookup (case lbl-key
+                                     :runtime "runtime-status-lbl"
+                                     :repl    "repl-status-lbl"))]
+      (case status
+        :ok (do
+              (ui-utils/rm-class status-lbl "fail")
+              (ui-utils/add-class status-lbl "ok"))
+        :fail (do
+                (ui-utils/rm-class status-lbl "ok")
+                (ui-utils/add-class status-lbl "fail"))))
     (catch Exception _))) ;; silently discarded because sometimes it is called one extra time when stopping the system
 
 (defn set-in-progress [in-progress?]

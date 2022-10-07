@@ -44,7 +44,7 @@
 
             (if ws-ok?
 
-              (ui-main/set-runtime-status-lbl :ok)
+              (ui-main/set-conn-status-lbl :runtime :ok)
 
               (do
                 (try
@@ -67,13 +67,13 @@
 
     ;; WebSocket watchdog
 
-    (websocket/register-event-callback :connection-open (fn [] (ui-main/set-runtime-status-lbl :ok)))
+    (websocket/register-event-callback :connection-open (fn [] (ui-main/set-conn-status-lbl :runtime :ok)))
 
     (websocket/register-event-callback
      :connection-going-away
      (fn []
        (utils/log "WebSocket connection went away")
-       (ui-main/set-runtime-status-lbl :fail)
+       (ui-main/set-conn-status-lbl :runtime :fail)
 
        (utils/log "Clearing the UI because of websocket connection down")
        ;; clear the ui
@@ -105,10 +105,10 @@
 
               (if repl-ok?
 
-                (ui-main/set-repl-status-lbl :ok)
+                (ui-main/set-conn-status-lbl :repl :ok)
 
                 (do
-                  (ui-main/set-repl-status-lbl :fail)
+                  (ui-main/set-conn-status-lbl :repl :fail)
 
                   (utils/log "[WATCHDOG] repl looks down, trying to reconnect ...")
                   (mount/stop (mount/only [#'flow-storm.debugger.repl.core/repl]))

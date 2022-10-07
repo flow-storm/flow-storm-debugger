@@ -22,6 +22,8 @@
 	-fx-theme-extend-text:                        #369658;
 	-fx-theme-links:                              #9c0084;
 	-fx-theme-breadcrums:                         #9c0084;
+	-fx-theme-ok:                                 #00ff00;
+	-fx-theme-fail:                               #ff0000;
 }
 
 .root {
