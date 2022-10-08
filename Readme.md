@@ -25,7 +25,7 @@ Instrumentation artifact :
 
 # QuickStart and Documentation
 
-If you want to use it with Clojure cheackout the [Clojure QuickStart guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojure)
+If you want to use it with Clojure checkout the [Clojure QuickStart guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojure)
 or the [ClojureScript QuickStart Guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
 Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
@@ -53,7 +53,7 @@ In [this  talk](https://www.youtube.com/watch?v=A3AzlqNwUXc) I tried to argument
 
 So I want to stop guessing and want a tool that allows me to see what is happening when a program runs (small expression or entire code bases), for when I'm hunting a bug or when I just want to understand how something works.
 
-But also I think some Clojure constrains (immutability and being expression based) allows us to go beyond steppers.
+But also I think some Clojure constraints (immutability and being expression based) allows us to go beyond steppers.
 We can trace everything that happened when a program run and then inspect the execution using multiple tools, being a stepper one of them.
 
 ### How does it compare to other Clojure debuggers?
