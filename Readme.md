@@ -32,13 +32,15 @@ Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugge
 
 ## Some demo videos
 
-- Presentation at London Clojurians https://www.youtube.com/watch?v=A3AzlqNwUXc
-- Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
-- Instrumenting libraries https://youtu.be/YnpQMrkj4v8?t=332
-- Debugging the ClojureScript compiler https://youtu.be/YnpQMrkj4v8?t=533
-- Browser https://www.youtube.com/watch?v=cnLwRzxrKDk
-- Def button https://youtu.be/cnLwRzxrKDk?t=103
-- Conditional tracing https://youtu.be/cnLwRzxrKDk?t=133
+- [Debugging Clojure with FlowStorm](https://www.youtube.com/watch?v=PbGVTVs1yiU)
+- [Debugging ClojureScript with FlowStorm](https://www.youtube.com/watch?v=jMYl32lnMhI)
+- [Presentation at London Clojurians](https://www.youtube.com/watch?v=A3AzlqNwUXc)
+- [Flows basics](https://www.youtube.com/watch?v=YnpQMrkj4v8)
+- [Instrumenting libraries](https://youtu.be/YnpQMrkj4v8?t=332)
+- [Debugging the ClojureScript compiler](https://youtu.be/YnpQMrkj4v8?t=533)
+- [Browser](https://www.youtube.com/watch?v=cnLwRzxrKDk)
+- [Def button](https://youtu.be/cnLwRzxrKDk?t=103)
+- [Conditional tracing](https://youtu.be/cnLwRzxrKDk?t=133)
 
 ## FAQ
 

@@ -776,13 +776,15 @@ Then everything should work. The steps are:
 
 == Tutorials and demos
 
-- Presentation at London Clojurians https://www.youtube.com/watch?v=A3AzlqNwUXc
-- Flows basics https://www.youtube.com/watch?v=YnpQMrkj4v8
-- Instrumenting libraries https://youtu.be/YnpQMrkj4v8?t=332
-- Debugging the ClojureScript compiler https://youtu.be/YnpQMrkj4v8?t=533
-- Browser https://www.youtube.com/watch?v=cnLwRzxrKDk
-- Def button https://youtu.be/cnLwRzxrKDk?t=103
-- Conditional tracing https://youtu.be/cnLwRzxrKDk?t=133
+- https://www.youtube.com/watch?v=PbGVTVs1yiU[Debugging Clojure with FlowStorm]
+- https://www.youtube.com/watch?v=jMYl32lnMhI[Debugging ClojureScript with FlowStorm]
+- https://www.youtube.com/watch?v=A3AzlqNwUXc[Presentation at London Clojurians]
+- https://www.youtube.com/watch?v=YnpQMrkj4v8[Flows basics]
+- https://youtu.be/YnpQMrkj4v8?t=332[Instrumenting libraries]
+- https://youtu.be/YnpQMrkj4v8?t=533[Debugging the ClojureScript compiler]
+- https://www.youtube.com/watch?v=cnLwRzxrKDk[Browser]
+- https://youtu.be/cnLwRzxrKDk?t=103[Def button]
+- https://youtu.be/cnLwRzxrKDk?t=133[Conditional tracing]
 
 == Troubleshooting
 
