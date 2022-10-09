@@ -182,6 +182,9 @@
 (defn start-ui [config]
   (log "[Starting UI subsystem]")
   ;; Initialize the JavaFX toolkit
+
+  ;; Ensure a task bar icon is shown on MacOS.
+  (System/setProperty "apple.awt.UIElement" "false")
   (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
 
