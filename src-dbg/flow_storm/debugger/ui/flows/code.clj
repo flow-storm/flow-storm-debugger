@@ -202,9 +202,12 @@
             ;; because how frames are cached by trace, their pointers can't be compared
             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
             ;; a frame
-            changing-frame? (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
-                                  (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx)))
-            changing-form? (not= curr-form-id next-form-id)]
+            first-jump? (and (zero? curr-idx) (zero? next-idx))
+            changing-frame? (or first-jump?
+                                (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
+                                      (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx))))
+            changing-form? (or first-jump?
+                               (not= curr-form-id next-form-id))]
 
         ;; update thread current trace label and total traces
         (.setText curr-trace-text-field (str (inc next-idx)))
@@ -212,18 +215,17 @@
 
         (when changing-form?
           ;; we are leaving a form with this jump, so unhighlight all curr-form interesting tokens
-          (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
+          (when-not first-jump?
+            (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
+              (unhighlight-form flow-id thread-id curr-form-id)
+              (doseq [{:keys [coor]} expr-executions]
+                (let [token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id curr-form-id coor))]
+                  (doseq [text token-texts]
+                    (un-highlight text))))))
 
-            (unhighlight-form flow-id thread-id curr-form-id)
-            (highlight-form flow-id thread-id next-form-id)
+          (highlight-form flow-id thread-id next-form-id))
 
-            (doseq [{:keys [coor]} expr-executions]
-              (let [token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id curr-form-id coor))]
-                (doseq [text token-texts]
-                  (un-highlight text))))))
-
-        (when (or changing-frame?
-                  (zero? curr-idx))
+        (when changing-frame?
           ;; we are leaving a frame with this jump, or its the first trace
           ;; highlight all interesting tokens for the form we are currently in
           (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx)
@@ -238,15 +240,15 @@
                   (highlight-interesting text))))))
 
         ;; "unhighlight" prev executing tokens
-
-        (when (= :expr (:timeline/type curr-tentry))
-            (let [curr-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
-                                                                              (:form-id curr-tentry)
-                                                                              (:coor curr-tentry)))]
-           (doseq [text curr-token-texts]
-             (if (= curr-form-id next-form-id)
-               (highlight-interesting text)
-               (un-highlight text)))))
+        (when (and (= :expr (:timeline/type curr-tentry))
+                   (not first-jump?))
+          (let [curr-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
+                                                                            (:form-id curr-tentry)
+                                                                            (:coor curr-tentry)))]
+            (doseq [text curr-token-texts]
+              (if (= curr-form-id next-form-id)
+                (highlight-interesting text)
+                (un-highlight text)))))
 
         ;; highlight executing tokens
         (when (= :expr (:timeline/type next-tentry))

@@ -46,13 +46,10 @@
 
 (defn- thread-created-event [{:keys [flow-id thread-id]}]
   (dbg-state/create-thread flow-id thread-id)
-  (ui-utils/run-now
-   (flows-screen/create-empty-thread flow-id thread-id)))
-
-(defn- first-fn-call-event [{:keys [flow-id thread-id form-id]}]
   (dbg-state/set-idx flow-id thread-id 0)
   (ui-utils/run-now
-   (flow-code/highlight-form flow-id thread-id form-id)))
+   (flows-screen/create-empty-thread flow-id thread-id)
+   (flow-code/jump-to-coord flow-id thread-id 0)))
 
 (defn- task-result-event [{:keys [task-id result]}]
   (ui-vars/dispatch-task-event :result task-id result))
@@ -69,7 +66,6 @@
     :namespace-uninstrumented (namespace-uninstrumented-event ev-args-map)
     :flow-created (flow-created-event ev-args-map)
     :thread-created (thread-created-event ev-args-map)
-    :first-fn-call (first-fn-call-event ev-args-map)
     :tap (tap-event ev-args-map)
     :task-result (task-result-event ev-args-map)
     :task-progress (task-progress-event ev-args-map)))

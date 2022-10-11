@@ -150,7 +150,10 @@
     (binding [*ns* (find-ns (symbol ns-name))]
       (let [form (some->> (clj.repl/source-fn var-symb)
                           (read-string {:read-cond :allow}))
-            expanded-form (inst-forms/macroexpand-all macroexpand-1 form ::original-form)]
+            expanded-form (inst-forms/macroexpand-all macroexpand-1
+                                                      (fn [symb] (symbol (resolve symb)))
+                                                      form
+                                                      ::original-form)]
         (if form
 
           (if (inst-forms/expanded-def-form? expanded-form)

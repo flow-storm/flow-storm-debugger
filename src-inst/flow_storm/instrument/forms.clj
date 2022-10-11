@@ -13,9 +13,11 @@
    [clojure.walk :as walk]
    [clojure.string :as str]
    [cljs.analyzer :as ana]
+   [cljs.analyzer.api :as ana-api]
    [flow-storm.tracer :as tracer]
    [flow-storm.instrument.runtime :refer [*runtime-ctx*]]
-   [flow-storm.utils :as utils]))
+   [flow-storm.utils :as utils]
+   [clojure.core.async :as async]))
 
 
 (declare instrument-outer-form)
@@ -23,6 +25,7 @@
 (declare instrument-special-form)
 (declare instrument-function-call)
 (declare instrument-cljs-extend-type-form-types)
+(declare macroexpand-all)
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Some utilities ;;
@@ -72,30 +75,48 @@
     (outer form)
     (walk/walk inner outer form)))
 
+(defn core-async-go-form? [expand-symbol form]
+  (and (seq? form)
+       (let [[x] form]
+         (and
+          (symbol? x)
+          (= "go" (name x))
+          (#{'clojure.core.async/go 'cljs.core.async/go}  (expand-symbol x))))))
+
+(defn macroexpand-core-async-go [macroexpand-1-fn expand-symbol form original-key]
+  `(clojure.core.async/go ~@(map #(macroexpand-all macroexpand-1-fn expand-symbol % original-key) (rest form))))
+
 (defn macroexpand-all
 
   "Like `clojure.walk/macroexpand-all`, but preserves metadata.
   Also store the original form (unexpanded and stripped of
   metadata) in the metadata of the expanded form under original-key."
 
-  [macroexpand-1-fn form & [original-key]]
-  (let [md (meta form)
-        expanded (walk-unquoted #(macroexpand-all macroexpand-1-fn % original-key)
-                            identity
-                            (if (and (seq? form)
-                                     (not= (first form) 'quote))
-                              ;; Without this, `macroexpand-all`
-                              ;; throws if called on `defrecords`.
-                              (try (let [r (macroexpand+ macroexpand-1-fn form)]
-                                     r)
-                                   (catch ClassNotFoundException _ form))
-                              form))]
-    (utils/merge-meta expanded
-      md
-      (when original-key
-        ;; We have to quote this, or it will get evaluated by
-        ;; Clojure (even though it's inside meta).
-        {original-key (list 'quote (strip-meta form))}))))
+  [macroexpand-1-fn expand-symbol form & [original-key]]
+
+  (if (core-async-go-form? expand-symbol form)
+
+    (macroexpand-core-async-go macroexpand-1-fn expand-symbol form original-key)
+
+    (let [md (meta form)
+          expanded (walk-unquoted #(macroexpand-all macroexpand-1-fn expand-symbol % original-key)
+                                  identity
+                                  (if (and (seq? form)
+                                           (not= (first form) 'quote))
+                                    ;; Without this, `macroexpand-all`
+                                    ;; throws if called on `defrecords`.
+                                    (try (let [r (macroexpand+ macroexpand-1-fn form)]
+                                           r)
+                                         (catch ClassNotFoundException _ form))
+                                    form))
+          expanded-with-meta (utils/merge-meta expanded
+                               md
+                               (when original-key
+                                 ;; We have to quote this, or it will get evaluated by
+                                 ;; Clojure (even though it's inside meta).
+                                 {original-key (list 'quote (strip-meta form))}))]
+
+      expanded-with-meta)))
 
 (defn parse-defn-expansion [defn-expanded-form]
   ;; (def my-fn (fn* ([])))
@@ -388,6 +409,15 @@
     (cons inst-bindings-vec
           inst-body)))
 
+(defn- defkind-from-outer-form-kind [fn-ctx outer-form-kind]
+  (cond
+    (= outer-form-kind :extend-protocol) :extend-protocol
+    (= outer-form-kind :extend-type) :extend-type
+    (= outer-form-kind :defrecord) :extend-type
+    (= outer-form-kind :deftype) :extend-type
+    (= (:kind fn-ctx) :defmethod) :defmethod
+    (= (:kind fn-ctx) :defn) :defn))
+
 (defn- instrument-fn-arity-body
 
   "Instrument a (fn* ([] )) arity body. The core of functions body instrumentation."
@@ -409,13 +439,7 @@
         outer-preamble (-> []
                            (into [`(~trace-form-init {:form-id ~form-id
                                                       :ns ~form-ns
-                                                      :def-kind ~(cond
-                                                                   (= outer-form-kind :extend-protocol) :extend-protocol
-                                                                   (= outer-form-kind :extend-type) :extend-type
-                                                                   (= outer-form-kind :defrecord) :extend-type
-                                                                   (= outer-form-kind :deftype) :extend-type
-                                                                   (= (:kind fn-ctx) :defmethod) :defmethod
-                                                                   (= (:kind fn-ctx) :defn) :defn)
+                                                      :def-kind ~(defkind-from-outer-form-kind fn-ctx outer-form-kind)
                                                       :dispatch-val ~(:dispatch-val fn-ctx)}
                                     ~fn-form
                                     *runtime-ctx*)])
@@ -749,6 +773,10 @@
   (or (special-symbol? symb)
       (#{'defrecord* 'js*} symb)))
 
+(defn- instrument-core-async-go-block [form ctx]
+  `(clojure.core.async/go
+     ~@(map #(instrument-form-recursively % ctx) (rest form))))
+
 (defn- instrument-function-like-form
 
   "Instrument form representing a function call or special-form."
@@ -760,6 +788,10 @@
     (maybe-instrument (instrument-coll form ctx) ctx)
 
     (cond
+
+      (= name 'clojure.core.async/go)
+      (instrument-core-async-go-block form ctx)
+
       ;; If special form, thread with care.
       (special-symbol+? name)
       (if (dont-instrument? form)
@@ -926,7 +958,7 @@
      :trace-expr-exec (or trace-expr-exec `tracer/trace-expr-exec)
      }))
 
-(defn instrument
+#_(defn instrument
 
   "Recursively instrument a form for tracing."
 
@@ -935,11 +967,11 @@
         {:keys [compiler] :as ctx} (build-form-instrumentation-ctx config form-ns form env)
         macroexpand-1-fn (case compiler
                            :cljs (partial ana/macroexpand-1 env)
-                           :clj  macroexpand-1)
-        macroexpand-form-fn (partial macroexpand-all macroexpand-1-fn)
-        expanded-form (-> form
-                          (utils/tag-form-recursively ::coor)
-                          (macroexpand-form-fn ::original-form))
+                           :clj  (fn [f] (with-meta (macroexpand-1 f) (meta f))))
+        tagged-form (utils/tag-form-recursively form ::coor)
+        expanded-form (clojure.tools.analyzer.env/with-env (clojure.tools.analyzer.utils/mmerge @(clojure.tools.analyzer.jvm/global-env)
+                                                                                                {:passes-opts {:validate/unresolvable-symbol-handler (constantly nil)}})
+                        (macroexpand-all macroexpand-1-fn tagged-form ::original-form))
         ctx (update-context-for-top-level-form ctx expanded-form)
         inst-code (-> expanded-form
                       (instrument-top-level-form ctx)
@@ -954,6 +986,37 @@
     #_(let [pprint-on-err (fn [x]
                             (binding [*out* *err*] (pp/pprint x)))]
         (pprint-on-err (macroexpand-all form))
+        (pprint-on-err inst-code))
+
+    inst-code))
+
+(defn instrument
+
+  "Recursively instrument a form for tracing."
+
+  [{:keys [env] :as config} form]
+  (let [form-ns (or (:ns config) (str (ns-name *ns*)))
+        {:keys [compiler] :as ctx} (build-form-instrumentation-ctx config form-ns form env)
+        [macroexpand-1-fn expand-symbol] (case compiler
+                                           :cljs [(partial ana/macroexpand-1 env)
+                                                  (fn [symb] (:name (ana-api/resolve env symb)))]
+                                           :clj  [macroexpand-1
+                                                  (fn [symb] (symbol (resolve symb)))])
+        tagged-form (utils/tag-form-recursively form ::coor)
+        expanded-form (macroexpand-all macroexpand-1-fn expand-symbol tagged-form ::original-form)
+        ctx (update-context-for-top-level-form ctx expanded-form)
+        inst-code (-> expanded-form
+                      (instrument-top-level-form ctx)
+                      (strip-instrumentation-meta)
+                      ;; TODO: now that forms is a top level form
+                      ;; maybe we always need un unwrap instead of maybe?
+                      (maybe-unwrap-outer-form-instrumentation ctx))]
+
+    ;; Uncomment to debug
+    ;; Printing on the *err* stream is important since
+    ;; printing on standard output messes  with clojurescript macroexpansion
+    #_(let [pprint-on-err (fn [x] (binding [*out* *err*] (clojure.pprint/pprint x)))]
+        (pprint-on-err (macroexpand-all macroexpand-1-fn expand-symbol form ::original-form))
         (pprint-on-err inst-code))
 
     inst-code))

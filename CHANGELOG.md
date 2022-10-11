@@ -4,11 +4,16 @@
 	
 ## New Features
 	
+	- Add support for core.async/go blocks instrumentation
+	
 ### Changes
-
+	
+	- Immediately highlihgt the first trace when creating a flow in the debugger
+	- Remove unnecessary first-fn-call-event
+	
 ### Bugs fixed
 
-	- Alt+Tab now works on MacOs for switching between the debugger and the repl windows (thanks to Lucy Wang @lucywang000) 
+    - Alt+Tab now works on MacOs for switching between the debugger and the repl windows (thanks to Lucy Wang @lucywang000) 
 	
 ## 3.0.236 (7-10-2022)
 	

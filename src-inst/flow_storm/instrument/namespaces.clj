@@ -71,16 +71,6 @@
       {:type :known-error
        :msg "ClojureScript macroexpanding resolve. core.cljs has a macro called resolve, and also some local fns shadowing resolve with a local fn. When applying clojure.walk/macroexpand-all or our inst-forms/macroexpand-all it doesn't work."}
 
-      ;; clojure.core.async/go
-      ;; need to figure out a way of doing :
-      ;; (clojure.walk/macroexpand-all
-      ;;  '(go (+ a 2)))
-      ;; currently it complains it can't find `a` symbol
-      ;; don't know why macroexpanding checks for `a`, in what environment?
-      (str/includes? e-msg "Syntax error macroexpanding clojure.core.async/go")
-      {:type :known-error
-       :msg "We can't instrument clojure.core.async/go blocks yet since we can't clojure.walk/macroexpand-all them."}
-
       :else
       {:type :unknown-error
        :ns (ns-name ns)
@@ -99,7 +89,10 @@
         (contains? '#{"ns" "defmulti" "defprotocol" "defmacro" "comment" "import-macros"}
                     (name (first form))))
       (let [macro-expanded-form (try
-                                  (inst-forms/macroexpand-all macroexpand-1 form ::original-form)
+                                  (inst-forms/macroexpand-all macroexpand-1
+                                                              (fn [symb] (symbol (resolve symb)))
+                                                              form
+                                                              ::original-form)
                                   (catch Exception e
                                     (throw (ex-info "Error macroexpanding form" (macroexpansion-error-data ns form e)))))
             kind (inst-forms/expanded-form-type macro-expanded-form {:compiler :clj})]
@@ -153,6 +146,7 @@
                      (inst-forms/instrument (assoc config :ns (str (ns-name ns)))
                                             form)
                      (catch Exception e
+                       (.printStackTrace e)
                        (throw (ex-info "Error instrumenting form" {:type :unknown-error
                                                                    :msg (.getMessage e)}))))]
 
@@ -217,7 +211,7 @@
                 (if verbose?
                   (do
                     (println)
-                    (print (utils/colored-string e-data ex-type-color))
+                    (print (utils/colored-string (str (ex-message ei) " " e-data) ex-type-color))
                     (println))
 
                   ;; else, quiet mode
@@ -232,7 +226,10 @@
 
       (doseq [form file-forms]
         (try
-          (let [mexpanded-form (inst-forms/macroexpand-all macroexpand-1 form)]
+          (let [mexpanded-form (inst-forms/macroexpand-all macroexpand-1
+                                                           (fn [symb] (symbol (resolve symb)))
+                                                           form
+                                                           ::original-form)]
 
             (if (inst-forms/expanded-defn-form? mexpanded-form)
 
