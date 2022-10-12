@@ -83,6 +83,14 @@
           (= "go" (name x))
           (#{'clojure.core.async/go 'cljs.core.async/go}  (expand-symbol x))))))
 
+(defn core-async-go-loop-form? [expand-symbol form]
+  (and (seq? form)
+       (let [[x] form]
+         (and
+          (symbol? x)
+          (= "go-loop" (name x))
+          (#{'clojure.core.async/go-loop 'cljs.core.async/go-loop}  (expand-symbol x))))))
+
 (defn macroexpand-core-async-go [macroexpand-1-fn expand-symbol form original-key]
   `(clojure.core.async/go ~@(map #(macroexpand-all macroexpand-1-fn expand-symbol % original-key) (rest form))))
 
@@ -94,10 +102,14 @@
 
   [macroexpand-1-fn expand-symbol form & [original-key]]
 
-  (if (core-async-go-form? expand-symbol form)
-
+  (cond
+    (core-async-go-form? expand-symbol form)
     (macroexpand-core-async-go macroexpand-1-fn expand-symbol form original-key)
 
+    (core-async-go-loop-form? expand-symbol form)
+    (macroexpand-all macroexpand-1-fn expand-symbol (macroexpand-1 form) original-key)
+
+    :else
     (let [md (meta form)
           expanded (walk-unquoted #(macroexpand-all macroexpand-1-fn expand-symbol % original-key)
                                   identity

@@ -235,9 +235,9 @@
                  (async/<!! out-ch)
                  nil)
      :should-return nil
-     :print-collected? true
-     :tracing ['[:trace-form-init {:dispatch-val nil, :def-kind :defn, :ns "flow-storm.instrument.forms-test", :form-id 622089785} (defn some-async-fn [] (let [in-ch (async/chan) out-ch (async/go (loop [] (when-some [x (async/<! in-ch)] (recur))))] [in-ch out-ch])) nil]
-               '[:trace-fn-call 622089785 "flow-storm.instrument.forms-test" "some-async-fn" [] nil]
+     ;; :print-collected? true
+     :tracing [[:trace-form-init {:dispatch-val nil, :def-kind :defn, :ns "flow-storm.instrument.forms-test", :form-id 622089785} '(defn some-async-fn [] (let [in-ch (async/chan) out-ch (async/go (loop [] (when-some [x (async/<! in-ch)] (recur))))] [in-ch out-ch])) nil]
+               [:trace-fn-call 622089785 "flow-storm.instrument.forms-test" "some-async-fn" [] nil]
                [:trace-expr-exec async-chan? {:coor [3 1 1], :form-id 622089785} nil]
                [:trace-bind 'in-ch async-chan? {:coor [3], :form-id 622089785} nil]
                [:trace-bind 'out-ch async-chan? {:coor [3], :form-id 622089785} nil]
@@ -246,12 +246,47 @@
                [:trace-expr-exec async-chan-vec? {:coor [3], :form-id 622089785} nil]
                [:trace-expr-exec async-chan-vec? {:coor [], :form-id 622089785, :outer-form? true} nil]
                [:trace-expr-exec async-chan? {:coor [3 1 3 1 2 1 1 1], :form-id 622089785} nil]
-               '[:trace-expr-exec "hello" {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
-               '[:trace-bind x "hello" {:coor nil, :form-id 622089785} nil]
+               [:trace-expr-exec "hello" {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
+               [:trace-bind 'x "hello" {:coor nil, :form-id 622089785} nil]
                [:trace-expr-exec async-chan? {:coor [3 1 3 1 2 1 1 1], :form-id 622089785} nil]
-               '[:trace-expr-exec "bye" {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
-               '[:trace-bind x "bye" {:coor nil, :form-id 622089785} nil]
+               [:trace-expr-exec "bye" {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
+               [:trace-bind 'x "bye" {:coor nil, :form-id 622089785} nil]
                [:trace-expr-exec async-chan? {:coor [3 1 3 1 2 1 1 1], :form-id 622089785} nil]
-               '[:trace-expr-exec nil {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
-               '[:trace-expr-exec nil {:coor [3 1 3 1], :form-id 622089785} nil]]
+               [:trace-expr-exec nil {:coor [3 1 3 1 2 1 1], :form-id 622089785} nil]
+               [:trace-expr-exec nil {:coor [3 1 3 1], :form-id 622089785} nil]]
      ))
+
+#?(:clj
+   (def-instrumentation-test core-async-go-loop-test "Test clojure.core.async/go-loop instrumentation"
+
+     :form (defn some-other-async-fn []
+             (let [in-ch (async/chan)
+                   out-ch (async/go-loop []
+                            (when-some [x (async/<! in-ch)]          
+                              (recur)))]               
+               [in-ch out-ch]))
+     :run-form (let [[in-ch out-ch] (some-other-async-fn)]
+                 (async/>!! in-ch "hello")
+                 (async/>!! in-ch "bye")
+                 (async/close! in-ch)
+                 (async/<!! out-ch)
+                 nil)
+     :should-return nil
+     ;; :print-collected? true
+     :tracing [[:trace-form-init {:dispatch-val nil, :def-kind :defn, :ns "flow-storm.instrument.forms-test", :form-id -29619953} '(defn some-other-async-fn [] (let [in-ch (async/chan) out-ch (async/go-loop [] (when-some [x (async/<! in-ch)] (recur)))] [in-ch out-ch])) nil]
+               [:trace-fn-call -29619953 "flow-storm.instrument.forms-test" "some-other-async-fn" [] nil]
+               [:trace-expr-exec async-chan? {:coor [3 1 1], :form-id -29619953} nil]
+               [:trace-bind 'in-ch async-chan? {:coor [3], :form-id -29619953} nil]
+               [:trace-bind 'out-ch async-chan? {:coor [3], :form-id -29619953} nil]
+               [:trace-expr-exec async-chan? {:coor [3 2 0], :form-id -29619953} nil]
+               [:trace-expr-exec async-chan? {:coor [3 2 1], :form-id -29619953} nil]
+               [:trace-expr-exec async-chan-vec? {:coor [3], :form-id -29619953} nil]
+               [:trace-expr-exec async-chan-vec? {:coor [], :form-id -29619953, :outer-form? true} nil]
+               [:trace-expr-exec async-chan? {:coor [3 1 3 2 1 1 1], :form-id -29619953} nil]
+               [:trace-expr-exec "hello" {:coor [3 1 3 2 1 1], :form-id -29619953} nil]
+               [:trace-bind 'x "hello" {:coor nil, :form-id -29619953} nil]
+               [:trace-expr-exec async-chan? {:coor [3 1 3 2 1 1 1], :form-id -29619953} nil]
+               [:trace-expr-exec "bye" {:coor [3 1 3 2 1 1], :form-id -29619953} nil]
+               [:trace-bind 'x "bye" {:coor nil, :form-id -29619953} nil]
+               [:trace-expr-exec async-chan? {:coor [3 1 3 2 1 1 1], :form-id -29619953} nil]
+               [:trace-expr-exec nil {:coor [3 1 3 2 1 1], :form-id -29619953} nil]]))
