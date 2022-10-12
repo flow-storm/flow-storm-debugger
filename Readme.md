@@ -89,4 +89,4 @@ Big thanks to [Roam Research](https://roamresearch.com/) for sponsoring this and
 
 ![demo](./docs/images/roam_research_logo.jpg)
 
-Thanks to [Cider](https://github.com/clojure-emacs/cider/) debugger for inspiration and some cleaver ideas for code instrumentation.
+Thanks to [Cider](https://github.com/clojure-emacs/cider/) debugger for inspiration and some clever ideas for code instrumentation.
