@@ -736,6 +736,44 @@ Create a small stepper for the repl
 (step-prev)
 ----
 
+== Dealing with mutable values
+
+FlowStorm will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
+when your code uses mutable values like this :
+
+[,clojure]
+----
+#rtrace
+(let [a (java.util.ArrayList.)]
+  (count a)
+  (.add a "hello")
+  (count a)
+  (.add a "world")
+  (.add a "!"))
+----  
+
+then every time you step over `a` it will contain the last value ["hello" "world" "!"].
+
+You can fix this situation by implementing a multimethod like this :
+
+[,clojure]
+----
+(defmethod flow-storm.runtime.values/snapshot-value java.util.ArrayList
+    [a]	   
+    (into [] a))
+----
+
+to provide FlowStorm a way of creating a snapshot of the mutable value.
+
+Be aware that this is tricky in multithreading situations, as always with mutable values.
+
+[NOTE]
+.Atoms and derefable values
+====
+If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snapshot will be created automatically by derefing the object, 
+so no need to implement `flow-storm.runtime.values/snapshot-value`
+====
+
 == Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map

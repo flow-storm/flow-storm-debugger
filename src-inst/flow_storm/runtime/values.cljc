@@ -56,11 +56,18 @@
 (defn clear-values-references []
   (reset! values-references (map->ValuesReferences {:vid->v {} :v->vid {} :max-vid 0})))
 
+(defmulti snapshot-value type)
+
+(defmethod snapshot-value :default [v] v)
+
 (defn snapshot-reference [x]  
-  (if (utils/derefable? x)
+  (cond
+
+    (utils/derefable? x)
     {:ref/snapshot (deref x)
      :ref/type (type x)}
-    x))
+
+    :else (snapshot-value x)))
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [print-fn #?(:clj (if pprint? pp/pprint print) 
