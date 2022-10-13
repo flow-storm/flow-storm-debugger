@@ -175,7 +175,7 @@
 
 (defrecord BRecord [n])
 
-#_(def-instrumentation-test extend-protocol-test "Test extend-protocol instrumentation"
+(def-instrumentation-test extend-protocol-test "Test extend-protocol instrumentation"
 
   :form (extend-protocol FooP
           BRecord
@@ -183,25 +183,27 @@
           (proto-fn-2 [this] (dec (:n this))))
   :run-form (+ (proto-fn-1 (->BRecord 5)) (proto-fn-2 (->BRecord 5)))
   :should-return 10
-  :print-collected? true
-  :tracing ['[:trace-form-init {:dispatch-val nil, :def-kind :extend-protocol, :ns "flow-storm.instrument.forms-test", :form-id 969319502} (extend-protocol FooP BRecord (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
-            [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "proto-fn-1" [(->BRecord 5)] nil]
-            [:trace-bind 'this (->BRecord 5) {:coor nil, :form-id 969319502} nil]
+  ;; :print-collected? true
+  :tracing [[:trace-form-init {:dispatch-val nil, :def-kind :extend-protocol, :ns "flow-storm.instrument.forms-test", :form-id 969319502} '(extend-protocol FooP BRecord (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
+            #?(:clj [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "proto-fn-1" [(->BRecord 5)] nil]
+               :cljs [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_1$arity$1" [(->BRecord 5)] nil])
+            [:trace-bind 'this (->BRecord 5) any? nil]
             [:trace-expr-exec (->BRecord 5) {:coor [3 2 1 1], :form-id 969319502} nil]
-            '[:trace-expr-exec 5 {:coor [3 2 1], :form-id 969319502} nil]
-            '[:trace-expr-exec 6 {:coor [3 2], :form-id 969319502} nil]
-            '[:trace-expr-exec 6 {:coor [], :form-id 969319502, :outer-form? true} nil]
-            '[:trace-form-init {:dispatch-val nil, :def-kind :extend-protocol, :ns "flow-storm.instrument.forms-test", :form-id 969319502} (extend-protocol FooP BRecord (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
-            [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "proto-fn-2" [(->BRecord 5)] nil]
-            [:trace-bind 'this (->BRecord 5) {:coor nil, :form-id 969319502} nil]
+            [:trace-expr-exec 5 {:coor [3 2 1], :form-id 969319502} nil]
+            [:trace-expr-exec 6 {:coor [3 2], :form-id 969319502} nil]
+            [:trace-expr-exec 6 {:coor [], :form-id 969319502, :outer-form? true} nil]
+            [:trace-form-init {:dispatch-val nil, :def-kind :extend-protocol, :ns "flow-storm.instrument.forms-test", :form-id 969319502} '(extend-protocol FooP BRecord (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
+            #?(:clj [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "proto-fn-2" [(->BRecord 5)] nil]
+               :cljs [:trace-fn-call 969319502 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_2$arity$1" [(->BRecord 5)] nil])
+            [:trace-bind 'this (->BRecord 5) any? nil]
             [:trace-expr-exec (->BRecord 5) {:coor [4 2 1 1], :form-id 969319502} nil]
-            '[:trace-expr-exec 5 {:coor [4 2 1], :form-id 969319502} nil]
-            '[:trace-expr-exec 4 {:coor [4 2], :form-id 969319502} nil]
-            '[:trace-expr-exec 4 {:coor [], :form-id 969319502, :outer-form? true} nil]])
+            [:trace-expr-exec 5 {:coor [4 2 1], :form-id 969319502} nil]
+            [:trace-expr-exec 4 {:coor [4 2], :form-id 969319502} nil]
+            [:trace-expr-exec 4 {:coor [], :form-id 969319502, :outer-form? true} nil]])
 
 (defrecord CRecord [n])
 
-#_(def-instrumentation-test extend-type-test "Test extend-type instrumentation"
+(def-instrumentation-test extend-type-test "Test extend-type instrumentation"
 
   :form (extend-type CRecord            
           FooP
@@ -210,20 +212,22 @@
   :run-form (+ (proto-fn-1 (->CRecord 5)) (proto-fn-2 (->CRecord 5)))
   :should-return 10
   :print-collected? true
-  :tracing ['[:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id -1521217400} (extend-type CRecord FooP (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
-            [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "proto-fn-1" [(->CRecord 5)] nil]
-            [:trace-bind 'this (->CRecord 5) {:coor nil, :form-id -1521217400} nil]
+  :tracing [[:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id -1521217400} '(extend-type CRecord FooP (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
+            #?(:clj [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "proto-fn-1" [(->CRecord 5)] nil]
+               :cljs [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_1$arity$1" [(->CRecord 5)] nil])
+            [:trace-bind 'this (->CRecord 5) any? nil]
             [:trace-expr-exec (->CRecord 5) {:coor [3 2 1 1], :form-id -1521217400} nil]
-            '[:trace-expr-exec 5 {:coor [3 2 1], :form-id -1521217400} nil]
-            '[:trace-expr-exec 6 {:coor [3 2], :form-id -1521217400} nil]
-            '[:trace-expr-exec 6 {:coor [], :form-id -1521217400, :outer-form? true} nil]
-            '[:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id -1521217400} (extend-type CRecord FooP (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
-            [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "proto-fn-2" [(->CRecord 5)] nil]
-            [:trace-bind 'this (->CRecord 5) {:coor nil, :form-id -1521217400} nil]
+            [:trace-expr-exec 5 {:coor [3 2 1], :form-id -1521217400} nil]
+            [:trace-expr-exec 6 {:coor [3 2], :form-id -1521217400} nil]
+            [:trace-expr-exec 6 {:coor [], :form-id -1521217400, :outer-form? true} nil]
+            [:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id -1521217400} '(extend-type CRecord FooP (proto-fn-1 [this] (inc (:n this))) (proto-fn-2 [this] (dec (:n this)))) nil]
+            #?(:clj [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "proto-fn-2" [(->CRecord 5)] nil]
+               :cljs [:trace-fn-call -1521217400 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_2$arity$1" [(->CRecord 5)] nil])
+            [:trace-bind 'this (->CRecord 5) any? nil]
             [:trace-expr-exec (->CRecord 5) {:coor [4 2 1 1], :form-id -1521217400} nil]
-            '[:trace-expr-exec 5 {:coor [4 2 1], :form-id -1521217400} nil]
-            '[:trace-expr-exec 4 {:coor [4 2], :form-id -1521217400} nil]
-            '[:trace-expr-exec 4 {:coor [], :form-id -1521217400, :outer-form? true} nil]])
+            [:trace-expr-exec 5 {:coor [4 2 1], :form-id -1521217400} nil]
+            [:trace-expr-exec 4 {:coor [4 2], :form-id -1521217400} nil]
+            [:trace-expr-exec 4 {:coor [], :form-id -1521217400, :outer-form? true} nil]])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Only testing clojure.core.async/go on Clojure since we can't block in ClojureScript and our testing system ;;

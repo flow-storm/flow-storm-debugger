@@ -430,13 +430,28 @@
     (= (:kind fn-ctx) :defmethod) :defmethod
     (= (:kind fn-ctx) :defn) :defn))
 
+(defn- instrument-extend-type-fn-arity-body [arity-body-forms outer-preamble form-ns fn-trace-name ctx]
+  ;; All this nonsense is because inside type functions `this` behaves weirdly
+  ;; This       : (fn* ([this] (do (println (js* "this"))))) prints the type object
+  ;; while this : (fn* ([this] (+ 2 (do (println (js* "this")) 3)))) prints the window object on the browser
+  ;;
+  ;; Because of that, we can't instrument extend-type fn bodies normally and need to move the `this` binding
+  ;; to the outside
+  (let [[_ _ & this-inner-forms] (first arity-body-forms)
+        inst-this-inner (instrument-outer-form ctx
+                                               (instrument-coll this-inner-forms ctx)
+                                               outer-preamble
+                                               form-ns
+                                               fn-trace-name)]
+    `(let* [~'this (~'js* "this")]
+       ~inst-this-inner)))
+
 (defn- instrument-fn-arity-body
 
   "Instrument a (fn* ([] )) arity body. The core of functions body instrumentation."
 
-  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns trace-form-init trace-fn-call] :as ctx}]
-
-  (let [fn-trace-name (or (:trace-name fn-ctx) (gensym "fn-"))
+  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [compiler fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns trace-form-init trace-fn-call] :as ctx}]
+  (let [fn-trace-name (str (or (:trace-name fn-ctx) (gensym "fn-")))
         fn-form (cond
                   (= outer-form-kind :extend-protocol) outer-orig-form
                   (= outer-form-kind :extend-type) outer-orig-form
@@ -455,7 +470,7 @@
                                                       :dispatch-val ~(:dispatch-val fn-ctx)}
                                     ~fn-form
                                     *runtime-ctx*)])
-                           (into [`(~trace-fn-call ~form-id ~form-ns ~(str fn-trace-name) ~(expanded-fn-args-vec-symbols arity-args-vec) *runtime-ctx*)])
+                           (into [`(~trace-fn-call ~form-id ~form-ns ~fn-trace-name ~(expanded-fn-args-vec-symbols arity-args-vec) *runtime-ctx*)])
                            (into (args-bind-tracers arity-args-vec form-coor ctx)))
 
         ctx' (-> ctx
@@ -465,9 +480,9 @@
 
         inst-arity-body-form (cond (or (and (disable :anonymous-fn) (= :anonymous (:kind fn-ctx))) ;; don't instrument anonymous-fn if they are disabled
                                        (and (#{:deftype :defrecord} outer-form-kind)
-                                            (or (str/starts-with? (str fn-trace-name) "->")
-                                                (str/starts-with? (str fn-trace-name) "map->"))) ;; don't instrument record constructors
-                                       (excluding-fns (symbol form-ns (str fn-trace-name))))  ;; don't instrument if in excluding-fn
+                                            (or (str/starts-with? fn-trace-name "->")
+                                                (str/starts-with? fn-trace-name "map->"))) ;; don't instrument record constructors
+                                       (excluding-fns (symbol form-ns fn-trace-name)))  ;; don't instrument if in excluding-fn
 
                                ;; skip instrumentation
                                `(do ~@arity-body-forms)
@@ -479,13 +494,19 @@
                                (let [[a1 a2 fform] (first arity-body-forms)]
                                  `(~a1 ~a2 ~(instrument-form-recursively fform ctx')))
 
+                               ;; we need to make an exception for extend-type body functions
+                               ;; check the comments of `instrument-extend-type-fn-arity-body` for more details
+                               (and (= :cljs compiler)
+                                    (#{:extend-type} (:kind fn-ctx)))
+                               (instrument-extend-type-fn-arity-body arity-body-forms outer-preamble form-ns fn-trace-name ctx')
+
                                ;; else instrument fn body
                                :else
                                (instrument-outer-form ctx'
                                                       (instrument-coll arity-body-forms ctx')
                                                       outer-preamble
                                                       form-ns
-                                                      (str fn-trace-name)))]
+                                                      fn-trace-name))]
     (-> `(~arity-args-vec ~inst-arity-body-form)
         (utils/merge-meta (meta arity)))))
 
@@ -969,38 +990,6 @@
      :trace-fn-call (or trace-fn-call `tracer/trace-fn-call)
      :trace-expr-exec (or trace-expr-exec `tracer/trace-expr-exec)
      }))
-
-#_(defn instrument
-
-  "Recursively instrument a form for tracing."
-
-  [{:keys [env] :as config} form]
-  (let [form-ns (or (:ns config) (str (ns-name *ns*)))
-        {:keys [compiler] :as ctx} (build-form-instrumentation-ctx config form-ns form env)
-        macroexpand-1-fn (case compiler
-                           :cljs (partial ana/macroexpand-1 env)
-                           :clj  (fn [f] (with-meta (macroexpand-1 f) (meta f))))
-        tagged-form (utils/tag-form-recursively form ::coor)
-        expanded-form (clojure.tools.analyzer.env/with-env (clojure.tools.analyzer.utils/mmerge @(clojure.tools.analyzer.jvm/global-env)
-                                                                                                {:passes-opts {:validate/unresolvable-symbol-handler (constantly nil)}})
-                        (macroexpand-all macroexpand-1-fn tagged-form ::original-form))
-        ctx (update-context-for-top-level-form ctx expanded-form)
-        inst-code (-> expanded-form
-                      (instrument-top-level-form ctx)
-                      (strip-instrumentation-meta)
-                      ;; TODO: now that forms is a top level form
-                      ;; maybe we always need un unwrap instead of maybe?
-                      (maybe-unwrap-outer-form-instrumentation ctx))]
-
-    ;; Uncomment to debug
-    ;; Printing on the *err* stream is important since
-    ;; printing on standard output messes  with clojurescript macroexpansion
-    #_(let [pprint-on-err (fn [x]
-                            (binding [*out* *err*] (pp/pprint x)))]
-        (pprint-on-err (macroexpand-all form))
-        (pprint-on-err inst-code))
-
-    inst-code))
 
 (defn instrument
 
