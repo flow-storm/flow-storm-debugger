@@ -40,3 +40,6 @@
   (indexes-api/stop)
   (remote-websocket-client/stop-remote-websocket-client)
   (log "System stopped"))
+
+(defn current-stack-trace []
+  (rest (.split (.-stack (js/Error.)) "\n")))

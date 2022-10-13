@@ -3,7 +3,8 @@
 ## master (unreleased)
 	
 ## New Features
-	
+
+	- Add #tap-stack-trace, to tap the current stack trace wherever you add it
 	- Add support for core.async/go blocks instrumentation
 	
 ### Changes

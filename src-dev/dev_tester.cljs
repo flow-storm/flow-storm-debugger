@@ -1,4 +1,4 @@
-(ns dev)
+(ns dev-tester)
 
 (defn factorial [n]
   (if (zero? n)

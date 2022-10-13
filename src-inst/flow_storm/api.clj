@@ -13,7 +13,9 @@
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [clojure.repl :as clj.repl]))
+            [clojure.repl :as clj.repl]
+            [clojure.string :as str]
+            [clojure.stacktrace :as stacktrace]))
 
 ;; TODO: build script
 ;; Maybe we can figure out this ns names by scanning (all-ns) so
@@ -294,6 +296,17 @@
   `(let [form-val# ~form]
      (tap> form-val#)
      form-val# ))
+
+(defn current-stack-trace []
+  (try (throw (Exception. "Dummy"))
+       (catch Exception e (->> (with-out-str (stacktrace/print-stack-trace e))
+                               (str/split-lines)
+                               seq
+                               (drop 3)))))
+
+(defn read-tap-stack-trace-tag [form]
+  `(do (tap> (flow-storm.api/current-stack-trace))
+       ~form))
 
 (comment
 

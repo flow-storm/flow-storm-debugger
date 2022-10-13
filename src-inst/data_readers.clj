@@ -8,4 +8,4 @@
  rtrace4 flow-storm.api/read-rtrace4-tag
  rtrace5 flow-storm.api/read-rtrace5-tag
  tap flow-storm.api/read-tap-tag
- }
+ tap-stack-trace flow-storm.api/read-tap-stack-trace-tag}
