@@ -150,6 +150,29 @@
             '[:trace-expr-exec 4 {:coor [5 2], :form-id -1038078878} nil]
             '[:trace-expr-exec 4 {:coor [], :form-id -1038078878, :outer-form? true} nil]])
 
+(def-instrumentation-test deftype-test "Test deftype instrumentation"
+
+  :form (deftype AType [n]
+          FooP
+          (proto-fn-1 [_] (inc n))
+          (proto-fn-2 [_] (dec n)))
+  :run-form (+ (proto-fn-1 (->AType 5)) (proto-fn-2 (->AType 5)))
+  :should-return 10
+  ;; :print-collected? true
+  :tracing  [[:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id 279996188} '(deftype AType [n] FooP (proto-fn-1 [_] (inc n)) (proto-fn-2 [_] (dec n))) nil]
+             #?(:clj [:trace-fn-call 279996188 "flow-storm.instrument.forms-test" "proto-fn-1" any? nil]
+                :cljs [:trace-fn-call 279996188 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_1$arity$1" any? nil])
+             [:trace-expr-exec 5 {:coor [4 2 1], :form-id 279996188} nil]
+             [:trace-expr-exec 6 {:coor [4 2], :form-id 279996188} nil]
+             [:trace-expr-exec 6 {:coor [], :form-id 279996188, :outer-form? true} nil]
+             [:trace-form-init {:dispatch-val nil, :def-kind :extend-type, :ns "flow-storm.instrument.forms-test", :form-id 279996188} '(deftype AType [n] FooP (proto-fn-1 [_] (inc n)) (proto-fn-2 [_] (dec n))) nil]
+             #?(:clj [:trace-fn-call 279996188 "flow-storm.instrument.forms-test" "proto-fn-2" any? nil]
+                :cljs [:trace-fn-call 279996188 "flow-storm.instrument.forms-test" "-flow-storm$instrument$forms-test$FooP$proto_fn_2$arity$1" any? nil])
+             [:trace-expr-exec 5 {:coor [5 2 1], :form-id 279996188} nil]
+             [:trace-expr-exec 4 {:coor [5 2], :form-id 279996188} nil]
+             [:trace-expr-exec 4 {:coor [], :form-id 279996188, :outer-form? true} nil]])
+
+
 (defrecord BRecord [n])
 
 #_(def-instrumentation-test extend-protocol-test "Test extend-protocol instrumentation"
