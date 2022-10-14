@@ -204,6 +204,17 @@
            (every? #{'set! 'do}
                    (butlast xset))))))
 
+(defn- expanded-cljs-variadic-defn? [form]
+  (when (seq? form)
+    (let [[x1 x2 x3] form]
+      (and (= x1 'do)
+           (expanded-defn-form? x2)
+           (seq? x3)
+           (let [[_ xset1 xset2] x3]
+             (and (seq? xset1) (seq? xset2)
+                  (= (first xset1) 'set!)
+                  (= (first xset2) 'set!)))))))
+
 (defn expanded-form-type [form ctx]
   (when (seq? form)
     (cond
@@ -905,6 +916,11 @@
 
     (expanded-extend-protocol-form? form ctx)
     `(do ~@(map (fn [ext-form] (instrument-core-extend-form ext-form ctx)) (rest form)))
+
+    (and (= compiler :cljs) (expanded-cljs-variadic-defn? form))
+    (do
+      (println "Skipping variadic function definition since they aren't supported on ClojureScript yet." (:outer-orig-form ctx))
+      form)
 
     (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? form ctx))
     (instrument-cljs-multi-arity-defn form ctx)

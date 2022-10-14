@@ -18,6 +18,7 @@
 
     - Alt+Tab now works on MacOs for switching between the debugger and the repl windows (thanks to Lucy Wang @lucywang000) 
 	- Fix extend-protocol and extend-type instrumentations for ClojureScript
+	- Fix variadic function breaking in ClojureScript
 	
 ## 3.0.236 (7-10-2022)
 	

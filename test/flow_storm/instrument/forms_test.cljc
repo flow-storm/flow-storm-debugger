@@ -36,6 +36,22 @@
              [:trace-expr-exec 11 {:coor [3], :form-id -1653360108} nil]
              [:trace-expr-exec 11 {:coor [], :form-id -1653360108, :outer-form? true} nil]])
 
+;; Variadic functions instrumentation aren't supported on ClojureScript yet
+#?(:clj
+   (def-instrumentation-test function-variadic-test "Test variadic fn instrumentation"
+     
+     :form (defn foo1 [& args] (apply + args))
+     :run-form (foo1 5 6)
+     :should-return 11
+     :print-collected? true
+     :tracing [[:trace-form-init {:dispatch-val nil, :def-kind :defn, :ns "flow-storm.instrument.forms-test", :form-id 1367613401} '(defn foo1 [& args] (apply + args)) nil]
+               [:trace-fn-call 1367613401 "flow-storm.instrument.forms-test" "foo1" ['(5 6)] nil]
+               [:trace-bind 'args '(5 6) {:coor nil, :form-id 1367613401} nil]
+               [:trace-expr-exec any? {:coor [3 1], :form-id 1367613401} nil]
+               [:trace-expr-exec '(5 6) {:coor [3 2], :form-id 1367613401} nil]
+               [:trace-expr-exec 11 {:coor [3], :form-id 1367613401} nil]
+               [:trace-expr-exec 11 {:coor [], :form-id 1367613401, :outer-form? true} nil]]))
+
 (def-instrumentation-test function-definition-test2 "Test def fn* instrumentation"
   
   :form (def foo2 (fn [a b] (+ a b)))
