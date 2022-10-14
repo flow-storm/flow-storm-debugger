@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.indexes.utils
-  #?(:clj (:import [java.util ArrayList ArrayDeque])))
+  #?(:clj (:import [java.util ArrayList ArrayDeque HashMap])))
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mutable stack ;;
@@ -47,9 +47,29 @@
    :clj (defn ml-count [^ArrayList mlist]
           (.size mlist)))
 
+;;;;;;;;;;;;;;;;;;;;;
+;; Mutable hashmap ;;
+;;;;;;;;;;;;;;;;;;;;;
 
+#?(:clj (defn make-mutable-hashmap [] (HashMap.))
+   :cljs (defn make-mutable-hashmap [] (atom {})))
 
+#?(:clj (defn mh->immutable-map [^HashMap mh]
+          (into {} mh))
+   :cljs (defn mh->immutable-map [mh]
+           @mh))
 
+#?(:clj (defn mh-put [^HashMap mh k v]
+          (.put mh k v))
+   :cljs (defn mh-put [mh k v]
+           (swap! mh assoc k v)))
 
+#?(:clj (defn mh-contains? [^HashMap mh k]
+          (.containsKey mh k))
+   :cljs (defn mh-contains? [mh k]
+           (contains? @mh k)))
 
-
+#?(:clj (defn mh-get [^HashMap mh k]
+          (.get mh k))
+   :cljs (defn mh-get [mh k]
+           (get @mh k)))

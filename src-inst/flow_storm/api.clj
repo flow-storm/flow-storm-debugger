@@ -273,11 +273,15 @@
       (local-connect {:verbose? verbose? :styles styles :theme theme})
 
       (log (format "Instrumenting namespaces %s" ns-to-instrument))
-      (instrument-forms-for-namespaces ns-to-instrument inst-opts)
+      (time
+       (instrument-forms-for-namespaces ns-to-instrument inst-opts))
       (log "Instrumentation done.")
-      (if flow-id
-        (eval (runi* {:flow-id flow-id} `(~fn-symb ~@fn-args)))
-        (eval `(~fn-symb ~@fn-args))))))
+      (time
+       (if flow-id
+         (eval (runi* {:flow-id flow-id} `(~fn-symb ~@fn-args)))
+         (eval `(~fn-symb ~@fn-args))))
+      (log "Execution done, processing traces...")
+      (log "DONE"))))
 
 (defn read-trace-tag [form]
   `(dbg-api/instrument* {} ~form))

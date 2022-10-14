@@ -240,3 +240,21 @@
                  )))))
        (catch Exception _ nil))))
 
+#?(:clj
+ (defmacro deftype+
+   "Same as deftype, but: read mutable fields through ILookup: (:field instance)"
+   [name fields & body]
+   `(do
+      (deftype ~name ~fields
+        
+        clojure.lang.ILookup
+        (valAt [_# key# notFound#]
+          (case key#
+            ~@(mapcat #(vector (keyword %) %) fields)
+            notFound#))
+        (valAt [this# key#]
+          (.valAt this# key# nil)))
+      
+      (defn ~(symbol (str '-> name)) ~fields
+        (new ~name ~@fields))))
+ )
