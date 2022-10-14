@@ -281,7 +281,7 @@
   (let [box (doto (v-box [])
               (.setOnScroll (event-handler
                              [ev]
-                             (when (.isControlDown ev)
+                             (when (or (.isAltDown ev) (.isControlDown ev))
                                (.consume ev)
                                (cond
                                  (> (.getDeltaY ev) 0) (step-prev flow-id thread-id)

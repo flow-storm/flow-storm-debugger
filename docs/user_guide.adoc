@@ -432,7 +432,7 @@ positions you find and then use the text box to jump back to it if you need.
 
 The code tool allows you to step and "travel thought time" in two ways:
 
-- You can use the controls at the top or Ctrl+MouseWheel on the forms to move one step at a time.
+- You can use the controls at the top or [Ctrl | Alt]+MouseWheel on the forms to move one step at a time.
 
 - Or you can click on the highlighted forms to position the debugger at that point in time.
 
