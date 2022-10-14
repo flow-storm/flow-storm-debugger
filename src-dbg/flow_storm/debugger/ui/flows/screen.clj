@@ -57,9 +57,7 @@
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
                                         :on-click (fn [] (flow-code/jump-to-coord flow-id thread-id 0)))
         prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
-                                       :on-click (fn [] (flow-code/jump-to-coord flow-id
-                                                                                 thread-id
-                                                                                 (dec (dbg-state/current-idx flow-id thread-id)))))
+                                       :on-click (fn [] (flow-code/step-prev flow-id thread-id)))
 
         curr-trace-text-field (doto (text-field {:initial-text "1"
                                             :on-return-key (fn [idx-str]
@@ -77,10 +75,7 @@
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
         next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
-                                       :on-click (fn []
-                                                   (flow-code/jump-to-coord flow-id
-                                                                            thread-id
-                                                                            (inc (dbg-state/current-idx flow-id thread-id)))))
+                                       :on-click (fn [] (flow-code/step-next flow-id thread-id)))
 
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
                                        :on-click (fn []

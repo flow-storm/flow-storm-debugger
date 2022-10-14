@@ -256,5 +256,6 @@
           (.valAt this# key# nil)))
       
       (defn ~(symbol (str '-> name)) ~fields
-        (new ~name ~@fields))))
+        (new ~name ~@fields)
+        ~@body)))
  )

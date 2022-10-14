@@ -8,6 +8,7 @@
     - Add support for snapshoting mutable values via flow-storm.runtime.values/snapshot-value multimethod
 	- Add #tap-stack-trace, to tap the current stack trace wherever you add it
 	- Add support for core.async/go blocks instrumentation
+	- Add Ctrl+MouseWheel on forms to step prev/next
 	
 ### Changes
 	

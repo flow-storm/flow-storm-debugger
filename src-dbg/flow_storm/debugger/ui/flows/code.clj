@@ -11,6 +11,7 @@
   (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane]
            [javafx.scene Node]
            [javafx.geometry Orientation Pos]
+           [javafx.scene.layout Priority VBox]
            [javafx.scene.text TextFlow Text Font]
            [javafx.scene.input MouseEvent MouseButton]))
 
@@ -266,10 +267,28 @@
 
         (state/set-idx flow-id thread-id next-idx)))))
 
+(defn step-prev [flow-id thread-id]
+  (jump-to-coord flow-id
+                 thread-id
+                 (dec (state/current-idx flow-id thread-id))))
+
+(defn step-next [flow-id thread-id]
+  (jump-to-coord flow-id
+                 thread-id
+                 (inc (state/current-idx flow-id thread-id))))
+
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])
+              (.setOnScroll (event-handler
+                             [ev]
+                             (when (.isControlDown ev)
+                               (.consume ev)
+                               (cond
+                                 (> (.getDeltaY ev) 0) (step-prev flow-id thread-id)
+                                 (< (.getDeltaY ev) 0) (step-next flow-id thread-id)))))
               (.setSpacing 5))
         scroll-pane (ui-utils/scroll-pane "forms-scroll-container")]
+    (VBox/setVgrow box Priority/ALWAYS)
     (.setContent scroll-pane box)
     (store-obj flow-id (ui-vars/thread-forms-box-id thread-id) box)
     (store-obj flow-id (ui-vars/thread-forms-scroll-id thread-id) scroll-pane)
