@@ -774,6 +774,25 @@ If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snap
 so no need to implement `flow-storm.runtime.values/snapshot-value`
 ====
 
+== Dealing with infinite loops
+
+If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
+too many traces, making everything slow and where your only option is to restart it.
+
+For preventing this FlowStorm provides `:thread-trace-limit`, you can use it like this :
+
+[,clojure]
+----
+#rtrace ^{:thread-trace-limit 200} ;; set our fuse at 200
+(loop [i 0]
+  (if (> i 100)
+    42 ;; we will never reach here
+    (recur i)))
+----
+
+the infinite loop will be cut after 200 iterations by a thread-trace-limit exceeded exception, and you will have the traces on
+the debugger to figure out what went wrong.
+
 == Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map

@@ -4,6 +4,7 @@
 	
 ## New Features
 
+	- Add #rtrace ^{:thread-trace-limit X} where X can be a integer. Execution will throw after tracing X times for a trace. Useful for debugging possibly infinite loops.
     - Add support for snapshoting mutable values via flow-storm.runtime.values/snapshot-value multimethod
 	- Add #tap-stack-trace, to tap the current stack trace wherever you add it
 	- Add support for core.async/go blocks instrumentation

@@ -732,17 +732,18 @@ pre.rouge {
 </ul>
 </li>
 <li><a href="#_dealing_with_mutable_values">11. Dealing with mutable values</a></li>
-<li><a href="#_styling_and_theming">12. Styling and theming</a></li>
-<li><a href="#_key_bindings">13. Key bindings</a></li>
-<li><a href="#_working_on_windows_with_wsl2">14. Working on Windows with WSL2</a></li>
-<li><a href="#_tutorials_and_demos">15. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">16. Troubleshooting</a>
+<li><a href="#_dealing_with_infinite_loops">12. Dealing with infinite loops</a></li>
+<li><a href="#_styling_and_theming">13. Styling and theming</a></li>
+<li><a href="#_key_bindings">14. Key bindings</a></li>
+<li><a href="#_working_on_windows_with_wsl2">15. Working on Windows with WSL2</a></li>
+<li><a href="#_tutorials_and_demos">16. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">17. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">16.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">16.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">17.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">17.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">17. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">18. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -1917,7 +1918,30 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">12. Styling and theming</a></h3>
+<h3 id="_dealing_with_infinite_loops"><a class="anchor" href="#_dealing_with_infinite_loops"></a><a class="link" href="#_dealing_with_infinite_loops">12. Dealing with infinite loops</a></h3>
+<div class="paragraph">
+<p>If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
+too many traces, making everything slow and where your only option is to restart it.</p>
+</div>
+<div class="paragraph">
+<p>For preventing this FlowStorm provides <code>:thread-trace-limit</code>, you can use it like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="o">^</span><span class="p">{</span><span class="no">:thread-trace-limit</span><span class="w"> </span><span class="mi">200</span><span class="p">}</span><span class="w"> </span><span class="c1">;; set our fuse at 200</span><span class="w">
+</span><span class="p">(</span><span class="nb">loop</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w">
+    </span><span class="mi">42</span><span class="w"> </span><span class="c1">;; we will never reach here</span><span class="w">
+    </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="n">i</span><span class="p">)))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>the infinite loop will be cut after 200 iterations by a thread-trace-limit exceeded exception, and you will have the traces on
+the debugger to figure out what went wrong.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">13. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -1936,7 +1960,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">13. Key bindings</a></h3>
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">14. Key bindings</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1952,7 +1976,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">14. Working on Windows with WSL2</a></h3>
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">15. Working on Windows with WSL2</a></h3>
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -2001,7 +2025,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">15. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">16. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2035,16 +2059,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">16. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">17. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">16.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">17.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">16.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">17.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -2057,7 +2081,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">17. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">18. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2075,7 +2099,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-10-13 17:22:27 -0300
+Last updated 2022-10-14 08:18:06 -0300
 </div>
 </div>
 </body>

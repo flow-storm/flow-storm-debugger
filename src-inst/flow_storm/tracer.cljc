@@ -43,17 +43,20 @@
   
   "Send expression execution trace."
   
-  [result {:keys [coor outer-form? form-id]} {:keys [flow-id tracing-disabled?]}]
-
+  [result {:keys [coor outer-form? form-id]} {:keys [flow-id tracing-disabled? thread-trace-limit]}]
   (when-not tracing-disabled?
-    (let [trace {:trace/type :expr-exec
+    (let [thread-id (utils/get-current-thread-id)
+          trace {:trace/type :expr-exec
                  :flow-id flow-id
                  :form-id form-id
                  :coor coor
-                 :thread-id (utils/get-current-thread-id)
+                 :thread-id thread-id
                  :timestamp (utils/get-monotonic-timestamp)
                  :result (snapshot-reference result)
                  :outer-form? outer-form?}]
+      (when thread-trace-limit
+        (when (> (indexes-api/timeline-count flow-id thread-id) thread-trace-limit)
+          (throw (ex-info "thread-trace-limit exceeded" {}))))
       (indexes-api/add-expr-exec-trace trace)))
   
   result)

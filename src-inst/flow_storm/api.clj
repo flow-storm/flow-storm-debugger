@@ -169,7 +169,7 @@
 
           (log (format "Couldn't find source for %s" var-symb)))))))
 
-(defn- runi* [{:keys [ns flow-id tracing-disabled? env] :as opts} form]
+(defn- runi* [{:keys [ns flow-id thread-trace-limit tracing-disabled? env] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
   ;; doesn't work with fn* in clojurescript
   (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))
@@ -178,7 +178,8 @@
     `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
            curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))) (-> env :ns :name str))]
        (binding [inst-rt/*runtime-ctx* {:flow-id flow-id#
-                                        ::tracing-disabled? ~tracing-disabled?}]
+                                        :thread-trace-limit ~thread-trace-limit
+                                        :tracing-disabled? ~tracing-disabled?}]
          (tracer/trace-flow-init-trace flow-id# curr-ns# (quote (runi ~opts ~form)))
 
          (~(inst-forms/instrument opts wrapped-form))))))
@@ -284,13 +285,18 @@
 (defn read-ctrace-tag [form]
   `(dbg-api/instrument* {:tracing-disabled? true} ~form))
 
-(defn read-rtrace-tag [form]  `(runi {:flow-id 0} ~form))
-(defn read-rtrace0-tag [form] `(runi {:flow-id 0} ~form))
-(defn read-rtrace1-tag [form] `(runi {:flow-id 1} ~form))
-(defn read-rtrace2-tag [form] `(runi {:flow-id 2} ~form))
-(defn read-rtrace3-tag [form] `(runi {:flow-id 3} ~form))
-(defn read-rtrace4-tag [form] `(runi {:flow-id 4} ~form))
-(defn read-rtrace5-tag [form] `(runi {:flow-id 5} ~form))
+(defn- read-rtrace-tag* [config form]
+  (let [full-config (merge config
+                           (meta form))]
+    `(runi ~full-config ~form)))
+
+(defn read-rtrace-tag [form]  (read-rtrace-tag* {:flow-id 0} form))
+(defn read-rtrace0-tag [form] (read-rtrace-tag* {:flow-id 0} form))
+(defn read-rtrace1-tag [form] (read-rtrace-tag* {:flow-id 1} form))
+(defn read-rtrace2-tag [form] (read-rtrace-tag* {:flow-id 2} form))
+(defn read-rtrace3-tag [form] (read-rtrace-tag* {:flow-id 3} form))
+(defn read-rtrace4-tag [form] (read-rtrace-tag* {:flow-id 4} form))
+(defn read-rtrace5-tag [form] (read-rtrace-tag* {:flow-id 5} form))
 
 (defn read-tap-tag [form]
   `(let [form-val# ~form]
