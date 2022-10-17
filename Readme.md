@@ -5,6 +5,13 @@ A tracing debugger for Clojure and ClojureScript
 ![demo](./docs/images/screenshot-light.png)
 ![demo](./docs/images/screenshot-dark.png)
 
+The idea behind FlowStorm is pretty simple :
+
+	- Instrument any Clojure form 
+	- Run it
+	- Retain and index every immutable value pointer (snapshot mutable ones), function calls, etc
+	- Provide a GUI to explore your values and execution flow
+
 # Clojure has the repl, does it need a debugger?
 
 I gave a talk recently for the London Clojurians, the first slide goes about my answer to this :
@@ -12,10 +19,10 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 # Artifacts
 
-Debugger GUI and instrumentation artifact :
+Debugger GUI and instrumentation artifact (for Clojure local debugging) :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
 
-Only instrumentation artifact :
+Only instrumentation artifact (for remote and ClojureScript debugging) :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
 # Prerequisites
@@ -29,6 +36,27 @@ If you want to use it with Clojure checkout the [Clojure QuickStart guide](https
 or the [ClojureScript QuickStart Guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
 Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
+
+# Features
+
+Flow storm debugger is packed with a ton of features, here is a non-comprehensive list in no particular order :
+
+- Instrument any Clojure and ClojureScript form (single, namespace or entire codebases)
+- A time travel stepper allows you to jump arround your execution
+- Execution call tree explorer
+- Functions calls explorer
+- Inspect any values with the value inspector
+- Define any value and take it to your repl
+- Multithreaded execution support
+- Tap values to the inspector (via `tap>`, `#tap`, and `#tap-stack-trace`)
+- Loop debugging
+- Infinite loop fuse (via `:thread-trace-limit`)
+- Remote Clojure and ClojureScript debugging
+- A namespace browser
+- Mutable value debugging
+- Two instrumentation profiles (:light, :full)
+- Conditional tracing
+- Customizable mutable value snapshoting (via `flow-storm.runtime.values/snapshot-value` multi-method)
 
 ## Some demo videos
 
