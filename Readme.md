@@ -12,10 +12,10 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 # Artifacts
 
-Debugger GUI artifact :
+Debugger GUI and instrumentation artifact :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
 
-Instrumentation artifact :
+Only instrumentation artifact :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
 # Prerequisites

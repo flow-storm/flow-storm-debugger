@@ -34,10 +34,10 @@ If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a 
 [,bash]
 ----
 ;; on linux and mac-os
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'
 
 ;; on windows
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-inst {:mvn/version """RELEASE"""}}}'
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'
 ----
 
 If you are a https://leiningen.org/[lein] user add both dependencies to your project.clj `:dependencies` and run `lein repl`.

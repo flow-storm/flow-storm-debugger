@@ -1,7 +1,6 @@
 (ns flow-storm.runtime.indexes.api
-  (:require [flow-storm.runtime.indexes.protocols :as protos]
+  (:require [flow-storm.runtime.indexes.protocols :as indexes]
             [flow-storm.runtime.indexes.frame-index :as frame-index]
-            [flow-storm.runtime.indexes.forms-index :as forms-index]
             [flow-storm.runtime.values :refer [val-pprint]]
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]
@@ -17,11 +16,29 @@
   
   (atom {}))
 
+(def forms-registry
+
+  "A map of form-id -> {:form/id :form/flow-id :form/ns :form/form :form/def-kind}"
+  
+  (atom {}))
+
+(defn register-form [{:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
+  (let [form-data (cond-> {:form/id form-id
+                           :form/flow-id flow-id
+                           :form/ns ns
+                           :form/form form
+                           :form/def-kind def-kind}
+                    (= def-kind :defmethod)
+                    (assoc :multimethod/dispatch-val mm-dispatch-val))]
+    (swap! forms-registry assoc form-id form-data)))
+
 (defn start []
-  (reset! flow-thread-indexes {}))
+  (reset! flow-thread-indexes {})
+  (reset! forms-registry {}))
 
 (defn stop []
-  (reset! flow-thread-indexes {}))
+  (reset! flow-thread-indexes {})
+  (reset! forms-registry {}))
 
 (defn flow-exists? [flow-id]
   (some (fn [[fid _]] (= fid flow-id)) (keys @flow-thread-indexes)))
@@ -32,8 +49,7 @@
 
 (defn create-thread-indexes! [flow-id thread-id form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
-                        :fn-call-stats-index (fn-call-stats-index/make-index)
-                        :forms-index (forms-index/make-index)}]
+                        :fn-call-stats-index (fn-call-stats-index/make-index)}]
 
     (events/publish-event! (events/make-thread-created-event flow-id thread-id form-id))
     
@@ -61,51 +77,35 @@
 (defn add-flow-init-trace [trace]
   (create-flow trace))
 
-(defn add-form-init-trace [{:keys [flow-id thread-id form-id] :as trace}]
-  (let [thread-indexes (get-or-create-thread-indexes flow-id thread-id form-id)]
-    
-    (doseq [[_ thread-index] thread-indexes]
-      (protos/add-form-init thread-index trace))))
+(defn add-form-init-trace [trace]
+  (register-form trace))
 
 (defn add-fn-call-trace [{:keys [flow-id thread-id form-id] :as trace}]
   (let [thread-indexes (get-or-create-thread-indexes flow-id thread-id form-id)]
 
     (doseq [[_ thread-index] thread-indexes]
-      (protos/add-fn-call thread-index trace))))
+      (indexes/add-fn-call thread-index trace))))
 
 (defn add-expr-exec-trace [{:keys [flow-id thread-id form-id] :as trace}]
   (doseq [[_ thread-index] (get-or-create-thread-indexes flow-id thread-id form-id)]
-    (protos/add-expr-exec thread-index trace)))
+    (indexes/add-expr-exec thread-index trace)))
 
 (defn add-bind-trace [{:keys [flow-id thread-id] :as trace}]
   (doseq [[_ thread-index] (get-thread-indexes flow-id thread-id)]
-    (protos/add-bind thread-index trace)))
+    (indexes/add-bind thread-index trace)))
 
 ;;;;;;;;;;;;;;;;;
 ;; Indexes API ;;
 ;;;;;;;;;;;;;;;;;
 
-(defn get-form [flow-id thread-id form-id]
-  (when-let [{:keys [forms-index]} (get-thread-indexes flow-id thread-id)]
-    (let [form (forms-index/get-form forms-index form-id)
-          flow-threads (filter (fn [[fid _]] (= fid flow-id)) (keys @flow-thread-indexes))]
-      (if form
-        form
-
-        ;; if we didn't find the form, lets try looking it other threads of
-        ;; the same flow. This is just for core.async/go blocks
-        (some (fn [[fid tid]]
-                (when-let [{:keys [forms-index]} (get-thread-indexes fid tid)]
-                  (when-let [form (forms-index/get-form forms-index form-id)]
-                    form)))
-              flow-threads)))))
+(defn get-form [_ _ form-id]
+  (get @forms-registry form-id))
 
 (defn all-threads []
   (keys @flow-thread-indexes))
 
-(defn all-forms [flow-id thread-id]
-  (let [{:keys [forms-index]} (get-thread-indexes flow-id thread-id)]
-    (forms-index/all-forms forms-index)))
+(defn all-forms [_ _]
+  (vals @forms-registry))
 
 (defn timeline-count [flow-id thread-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
@@ -152,12 +152,12 @@
   (frame-index/get-node-immutable-frame node))
 
 (defn fn-call-stats [flow-id thread-id]
-  (let [{:keys [forms-index fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
+  (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
     (->> (fn-call-stats-index/all-stats fn-call-stats-index)
          (keep (fn [[fn-call cnt]]
                  (when (and (= (:flow-id fn-call) flow-id)
                             (= (:thread-id fn-call) thread-id))                   
-                   (let [form (forms-index/get-form forms-index (:form-id fn-call))]
+                   (let [form (get-form flow-id thread-id (:form-id fn-call))]
                      (cond-> {:fn-ns (:fn-ns fn-call)
                               :fn-name (:fn-name fn-call)
                               :form-id (:form-id fn-call)
@@ -221,8 +221,7 @@
                           (filter (fn [[fid _]] (= fid flow-id))))]
     (swap! flow-thread-indexes
            (fn [flows-threads]
-             (apply dissoc flows-threads discard-keys))))) 
-
+             (apply dissoc flows-threads discard-keys)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

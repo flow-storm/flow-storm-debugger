@@ -153,11 +153,11 @@
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
-        version (format "3.0.%s" (b/git-count-revs nil))
+        version (format "3.1.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
-                               :aliases [:dbg]})
+                               :aliases [:dbg :inst]})
         jar-file (format "target/%s.jar" (name lib))
-        src-dirs ["src-dbg" "src-shared"]]
+        src-dirs ["src-dbg" "src-shared" "src-inst"]]
     (b/write-pom {:class-dir class-dir
                   :lib lib
                   :version version
@@ -173,7 +173,7 @@
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "3.0.%s" (b/git-count-revs nil))
+        version (format "3.1.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:inst]})
         jar-file (format "target/%s.jar" (name lib))

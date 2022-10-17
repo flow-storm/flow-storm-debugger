@@ -251,15 +251,6 @@
                  (= 'js* a0))
                (rest form))))
 
-(defn- cljs-extend-protocol-form? [form _]
-  (= "extend-protocol" (original-form-first-symb-name form)))
-
-(defn- cljs-deftype-form? [form _]
-  (= "deftype" (original-form-first-symb-name form)))
-
-(defn- cljs-defrecord-form? [form _]
-  (= "defrecord" (original-form-first-symb-name form)))
-
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Instrumentation ;;
 ;;;;;;;;;;;;;;;;;;;;;
@@ -432,15 +423,6 @@
     (cons inst-bindings-vec
           inst-body)))
 
-(defn- defkind-from-outer-form-kind [fn-ctx outer-form-kind]
-  (cond
-    (= outer-form-kind :extend-protocol) :extend-protocol
-    (= outer-form-kind :extend-type) :extend-type
-    (= outer-form-kind :defrecord) :extend-type
-    (= outer-form-kind :deftype) :extend-type
-    (= (:kind fn-ctx) :defmethod) :defmethod
-    (= (:kind fn-ctx) :defn) :defn))
-
 (defn- instrument-extend-type-fn-arity-body [arity-body-forms outer-preamble form-ns fn-trace-name ctx]
   ;; All this nonsense is because inside type functions `this` behaves weirdly
   ;; This       : (fn* ([this] (do (println (js* "this"))))) prints the type object
@@ -461,26 +443,9 @@
 
   "Instrument a (fn* ([] )) arity body. The core of functions body instrumentation."
 
-  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [compiler fn-ctx outer-form-kind outer-orig-form form-id form-ns disable excluding-fns trace-form-init trace-fn-call] :as ctx}]
+  [form-coor [arity-args-vec & arity-body-forms :as arity] {:keys [compiler fn-ctx outer-form-kind form-id form-ns disable excluding-fns trace-fn-call] :as ctx}]
   (let [fn-trace-name (str (or (:trace-name fn-ctx) (gensym "fn-")))
-        fn-form (cond
-                  (= outer-form-kind :extend-protocol) outer-orig-form
-                  (= outer-form-kind :extend-type) outer-orig-form
-                  (= outer-form-kind :defrecord) outer-orig-form
-                  (= outer-form-kind :deftype) outer-orig-form
-                  (= (:kind fn-ctx) :reify) outer-orig-form
-                  (= (:kind fn-ctx) :defmethod) outer-orig-form
-                  (= (:kind fn-ctx) :defn) outer-orig-form
-                  (= (:kind fn-ctx) :anonymous) outer-orig-form
-                  :else (let [err-msg (utils/format "Don't know how to handle functions of this type. %s %s" fn-ctx outer-form-kind)]
-                          (throw (Exception. err-msg))))
         outer-preamble (-> []
-                           (into [`(~trace-form-init {:form-id ~form-id
-                                                      :ns ~form-ns
-                                                      :def-kind ~(defkind-from-outer-form-kind fn-ctx outer-form-kind)
-                                                      :dispatch-val ~(:dispatch-val fn-ctx)}
-                                    ~fn-form
-                                    *runtime-ctx*)])
                            (into [`(~trace-fn-call ~form-id ~form-ns ~fn-trace-name ~(expanded-fn-args-vec-symbols arity-args-vec) *runtime-ctx*)])
                            (into (args-bind-tracers arity-args-vec form-coor ctx)))
 
@@ -900,82 +865,103 @@
        f))
    form))
 
-(defn- instrument-top-level-form
-
-  "Like instrument-form-recursively but meant to be used around outer forms, not in recursions
-  since it will do some checks that are only important in outer forms.
-  `form` here should be the expanded form."
-
-  [form {:keys [compiler] :as ctx}]
-  (cond
-    (expanded-defmethod-form? form ctx)
-    (instrument-defmethod-form form ctx)
-
-    (expanded-clojure-core-extend-form? form ctx)
-    (instrument-core-extend-form form ctx)
-
-    (expanded-extend-protocol-form? form ctx)
-    `(do ~@(map (fn [ext-form] (instrument-core-extend-form ext-form ctx)) (rest form)))
-
-    (and (= compiler :cljs) (expanded-cljs-variadic-defn? form))
-    (do
-      (println "Skipping variadic function definition since they aren't supported on ClojureScript yet." (:outer-orig-form ctx))
-      form)
-
-    (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? form ctx))
-    (instrument-cljs-multi-arity-defn form ctx)
-
-    (and (= compiler :cljs) (cljs-extend-type-form-types? form ctx))
-    (instrument-cljs-extend-type-form-types form ctx)
-
-    (and (= compiler :cljs) (cljs-extend-type-form-basic? form ctx))
-    (instrument-cljs-extend-type-form-basic form ctx)
-
-    (and (= compiler :cljs) (cljs-extend-protocol-form? form ctx))
-    (instrument-cljs-extend-protocol-form form ctx)
-
-    (and (= compiler :cljs) (cljs-deftype-form? form ctx))
-    (instrument-cljs-deftype-form form ctx)
-
-    (and (= compiler :cljs) (cljs-defrecord-form? form ctx))
-    (instrument-cljs-defrecord-form form ctx)
-
-    :else (instrument-form-recursively form ctx)))
-
 (defn- update-context-for-top-level-form
 
   "Set the context for instrumenting fn*s down the road."
 
-  [{:keys [compiler] :as ctx} expanded-form]
+  [{:keys [orig-outer-form] :as ctx} expanded-form qualified-first-symb]
 
-  ;; NOTE: we "pattern match" on expanded forms instead of ctx :outer-orig-form because
-  ;; :outer-orig-form can be like (somens/defmethod ...) (core/defmethod ...) etc
+  (cond-> ctx
 
-  (let [ctx' (assoc ctx :outer-orig-form (::original-form (meta expanded-form)))]
-    (cond-> ctx'
+    (#{'clojure.core/defmethod 'cljs.core/defmethod} qualified-first-symb)
+    (assoc :fn-ctx {:trace-name (nth orig-outer-form 1)
+                    :kind :defmethod
+                    :dispatch-val (pr-str (nth orig-outer-form 2))}
+           :outer-form-kind :defmethod)
 
-      (expanded-defmethod-form? expanded-form ctx')
-      (assoc :fn-ctx {:trace-name (nth expanded-form 1)
-                      :kind :defmethod
-                      :dispatch-val (pr-str (nth expanded-form (case compiler :clj 3 :cljs 2)))})
+    (#{'clojure.core/extend-protocol 'cljs.core/extend-protocol} qualified-first-symb)
+    (assoc :outer-form-kind :extend-protocol)
 
-      (or (expanded-extend-protocol-form? expanded-form ctx')
-          (and (= compiler :cljs) (cljs-extend-protocol-form? expanded-form ctx')))
-      (assoc :outer-form-kind :extend-protocol)
+    (#{'clojure.core/extend-type 'cljs.core/extend-type} qualified-first-symb)
+    (assoc :outer-form-kind :extend-type)
 
-      (or (expanded-clojure-core-extend-form? expanded-form ctx')
-          (and (= compiler :cljs) (or (cljs-extend-type-form-types? expanded-form ctx')
-                                      (cljs-extend-type-form-basic? expanded-form ctx'))))
-      (assoc :outer-form-kind :extend-type)
+    (#{'clojure.core/defrecord 'cljs.core/defrecord} qualified-first-symb)
+    (assoc :outer-form-kind :defrecord)
 
-      (expanded-deftype-form expanded-form ctx')
-      (assoc :outer-form-kind (expanded-deftype-form expanded-form ctx'))
+    (#{'clojure.core/deftype 'cljs.core/deftype} qualified-first-symb)
+    (assoc :outer-form-kind :deftype)
 
-      (and (= compiler :cljs) (cljs-deftype-form? expanded-form ctx'))
-      (assoc :outer-form-kind :deftype)
+    (or (#{'clojure.core/defn 'cljs.core/defn} qualified-first-symb)
+        (expanded-defn-form? expanded-form))
+    (assoc :outer-form-kind :defn)
 
-      (and (= compiler :cljs) (cljs-defrecord-form? expanded-form ctx'))
-      (assoc :outer-form-kind :defrecord))))
+    (#{'clojure.core/def 'cljs.core/def} qualified-first-symb)
+    (assoc :outer-form-kind :def)))
+
+(defn- instrument-top-level-form
+
+  "Like instrument-form-recursively but meant to be used around outer forms, not in recursions
+  since it will do some checks that are only important in outer forms. "
+
+  [expanded-form {:keys [form-id form-ns trace-form-init orig-outer-form expand-symbol compiler] :as ctx}]
+  (let [qualified-first-symb (when (and (seq? orig-outer-form)
+                                        (symbol? (first orig-outer-form)))
+                               (expand-symbol (first orig-outer-form)))
+
+        ctx (update-context-for-top-level-form ctx expanded-form qualified-first-symb)
+
+        inst-form
+        (cond
+
+          ;; defmethod
+          (#{'clojure.core/defmethod 'cljs.core/defmethod} qualified-first-symb)
+          (instrument-defmethod-form expanded-form ctx)
+
+          ;; extend-protocol
+          (#{'clojure.core/extend-protocol 'cljs.core/extend-protocol} qualified-first-symb)
+          (case compiler
+            :clj `(do ~@(map (fn [ext-form] (instrument-core-extend-form ext-form ctx)) (rest expanded-form)))
+            :cljs (instrument-cljs-extend-protocol-form expanded-form ctx))
+
+          ;; extend-type
+          (#{'clojure.core/extend-type 'cljs.core/extend-type} qualified-first-symb)
+          (case compiler
+            :clj (instrument-core-extend-form expanded-form ctx)
+            :cljs (instrument-cljs-extend-type-form-types expanded-form ctx))
+
+          ;; defrecord
+          (#{'clojure.core/defrecord 'cljs.core/defrecord} qualified-first-symb)
+          (case compiler
+            :clj (instrument-form-recursively expanded-form ctx)
+            :cljs (instrument-cljs-defrecord-form expanded-form ctx))
+
+          ;; deftype
+          (#{'clojure.core/deftype 'cljs.core/deftype} qualified-first-symb)
+          (case compiler
+            :clj (instrument-form-recursively expanded-form ctx)
+            :cljs (instrument-cljs-deftype-form expanded-form ctx))
+
+          ;; different kind of functions definitions, like (defn ...), (def ... (fn* [])), etc
+          (and (= compiler :cljs) (expanded-cljs-variadic-defn? expanded-form))
+          (do
+            (println "Skipping variadic function definition since they aren't supported on ClojureScript yet." (:outer-orig-form ctx))
+            expanded-form)
+
+          (and (= compiler :cljs) (expanded-cljs-multi-arity-defn? expanded-form ctx))
+          (instrument-cljs-multi-arity-defn expanded-form ctx)
+
+          :else (instrument-form-recursively expanded-form ctx))
+        inst-form-stripped (-> inst-form
+                               (strip-instrumentation-meta)
+                               (maybe-unwrap-outer-form-instrumentation ctx))]
+    `(do
+       (~trace-form-init ~(cond-> {:form-id form-id
+                                   :ns form-ns
+                                   :def-kind (:outer-form-kind ctx)}
+                            (= :defmethod (:outer-form-kind ctx)) (assoc :dispatch-val (-> ctx :fn-ctx :dispatch-val)))
+        '~orig-outer-form
+        ~*runtime-ctx*)
+       ~inst-form-stripped)))
 
 (defn- instrument-outer-form
   "Add some special instrumentation that is needed only on the outer form."
@@ -990,11 +976,22 @@
     :clj))
 
 (defn- build-form-instrumentation-ctx [{:keys [disable excluding-fns tracing-disabled? trace-bind trace-form-init trace-fn-call trace-expr-exec]} form-ns form env]
-  (let [form-id (hash form)]
+  (let [form-id (hash form)
+        compiler (compiler-from-env env)
+        [macroexpand-1-fn expand-symbol] (case compiler
+                                           :cljs [(partial ana/macroexpand-1 env)
+                                                  (fn [symb]
+                                                    (or (:name (ana-api/resolve env symb))
+                                                        symb))]
+                                           :clj  [macroexpand-1
+                                                  (fn [symb]
+                                                    (if-let [v (resolve symb)]
+                                                      (symbol v)
+                                                      symb))])]
     (assert (or (nil? disable) (set? disable)) ":disable configuration should be a set")
     {:environment      env
      :tracing-disabled? tracing-disabled?
-     :compiler         (compiler-from-env env)
+     :compiler         compiler
      :orig-outer-form  form
      :form-id          form-id
      :form-ns          form-ns
@@ -1005,7 +1002,9 @@
      :trace-form-init (or trace-form-init `tracer/trace-form-init)
      :trace-fn-call (or trace-fn-call `tracer/trace-fn-call)
      :trace-expr-exec (or trace-expr-exec `tracer/trace-expr-exec)
-     }))
+
+     :macroexpand-1-fn macroexpand-1-fn
+     :expand-symbol expand-symbol}))
 
 (defn instrument
 
@@ -1013,21 +1012,10 @@
 
   [{:keys [env] :as config} form]
   (let [form-ns (or (:ns config) (str (ns-name *ns*)))
-        {:keys [compiler] :as ctx} (build-form-instrumentation-ctx config form-ns form env)
-        [macroexpand-1-fn expand-symbol] (case compiler
-                                           :cljs [(partial ana/macroexpand-1 env)
-                                                  (fn [symb] (:name (ana-api/resolve env symb)))]
-                                           :clj  [macroexpand-1
-                                                  (fn [symb] (symbol (resolve symb)))])
+        {:keys [macroexpand-1-fn expand-symbol] :as ctx} (build-form-instrumentation-ctx config form-ns form env)
         tagged-form (utils/tag-form-recursively form ::coor)
         expanded-form (macroexpand-all macroexpand-1-fn expand-symbol tagged-form ::original-form)
-        ctx (update-context-for-top-level-form ctx expanded-form)
-        inst-code (-> expanded-form
-                      (instrument-top-level-form ctx)
-                      (strip-instrumentation-meta)
-                      ;; TODO: now that forms is a top level form
-                      ;; maybe we always need un unwrap instead of maybe?
-                      (maybe-unwrap-outer-form-instrumentation ctx))]
+        inst-code (instrument-top-level-form expanded-form ctx)]
 
     ;; Uncomment to debug
     ;; Printing on the *err* stream is important since

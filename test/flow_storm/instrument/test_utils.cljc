@@ -10,8 +10,7 @@
                           v1 v2))))
 #?(:clj
    (defmacro def-instrumentation-test [tname tdesc & {:keys [form print-collected? run-form should-return tracing]}]
-     `(do
-        (dbg-api/instrument* {} ~form)
+     `(do        
         (clojure.test/deftest ~tname
           (clojure.test/testing ~tdesc
             (let [collected-traces# (atom [])]
@@ -20,6 +19,8 @@
                             flow-storm.tracer/trace-bind (fn [& args#] (swap! collected-traces# conj (into [:trace-bind] args#)))
                             flow-storm.tracer/trace-expr-exec (fn [r# & args#] (swap! collected-traces# conj (into [:trace-expr-exec r#] args#)) r#)]
 
+                (dbg-api/instrument* {} ~form)
+                
                 (let [form-return# ~run-form]
                   
                   (when ~print-collected?
