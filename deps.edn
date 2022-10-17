@@ -1,11 +1,11 @@
-{:paths ["src-inst" "src-dbg" "src-shared" "resources" ]
+{:paths [
+         ;; Comment out for releasing ------------------------------------------------
+         "src-inst" "src-dbg" "src-shared" "resources"
+         ]
  :deps {
-        ;; Remote debugging
+        ;; Dependencies needed by both
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
-
-        ;; Traces serialization/deserialization
         com.cognitect/transit-clj {:mvn/version "1.0.329"}
-
         org.clojure/core.async {:mvn/version "1.5.648"}
 
         ;; Comment out for releasing ------------------------------------------------
@@ -20,13 +20,13 @@
         nrepl/nrepl {:mvn/version "1.0.0"}
         org.clojure/tools.namespace {:mvn/version "1.2.0"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-        org.clojure/clojurescript {:mvn/version "1.11.57"}
+        org.clojure/clojurescript {:mvn/version "1.11.60"}
         ;---------------------------------------------------------------------
 
         }
 
  :jvm-opts []
- :aliases {:dbg {:extra-paths ["src-dbg" "src-shared" "resources"]
+ :aliases {:dbg {:extra-paths ["src-dbg" "src-inst" "src-shared" "resources"]
                  :extra-deps {;; JavaFx
                               org.openjfx/javafx-controls {:mvn/version "18"}
                               org.openjfx/javafx-base {:mvn/version "18"}
@@ -49,7 +49,7 @@
                   :extra-deps {;; Namespaces instrumentation
                                org.clojure/tools.namespace {:mvn/version "1.2.0"}
                                com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-                               org.clojure/clojurescript {:mvn/version "1.11.57"
+                               org.clojure/clojurescript {:mvn/version "1.11.60"
                                                           ;;:local/root "/home/jmonetta/my-projects/clojurescript"
                                                           }
                                }}
@@ -61,7 +61,7 @@
                               com.github.jpmonettas/flow-storm-inst {:mvn/version "2.0.38"}
                               }
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
-                            ;;"-Xmx18500m" ;; for instrumenting big codebases
+                            "-Xmx10500m" ;; for instrumenting big codebases
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
