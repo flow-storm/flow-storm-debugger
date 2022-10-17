@@ -4,7 +4,15 @@
 	
 ## New Features
 
-	- Add #rtrace ^{:thread-trace-limit X} where X can be a integer. Execution will throw after tracing X times for a trace. Useful for debugging possibly infinite loops.
+### Changes
+	
+### Bugs fixed
+
+## 3.1.259 (17-10-2022)
+	
+## New Features
+
+	- Add #rtrace ^{:thread-trace-limit X} where X can be a integer. Execution will throw after tracing X times for a trace. Useful for debugging possibly infinite loops
     - Add support for snapshoting mutable values via flow-storm.runtime.values/snapshot-value multimethod
 	- Add #tap-stack-trace, to tap the current stack trace wherever you add it
 	- Add support for core.async/go blocks instrumentation
@@ -19,7 +27,7 @@
 
     - Alt+Tab now works on MacOs for switching between the debugger and the repl windows (thanks to Lucy Wang @lucywang000) 
 	- Fix extend-protocol and extend-type instrumentations for ClojureScript
-	- Fix variadic function breaking in ClojureScript
+	- Fix instrumentation breaking variadic functions in ClojureScript
 	
 ## 3.0.236 (7-10-2022)
 	
