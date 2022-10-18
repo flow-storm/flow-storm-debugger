@@ -7,6 +7,8 @@
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.329"}
         org.clojure/core.async {:mvn/version "1.5.648"}
+        org.clojure/tools.namespace {:mvn/version "1.2.0"}
+        com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
         ;; Comment out for releasing ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "18"}
@@ -18,8 +20,6 @@
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
         mount/mount {:mvn/version "0.1.16"}
         nrepl/nrepl {:mvn/version "1.0.0"}
-        org.clojure/tools.namespace {:mvn/version "1.2.0"}
-        com.cognitect/transit-cljs {:mvn/version "0.8.280"}
         ;---------------------------------------------------------------------
 
         }
@@ -45,10 +45,7 @@
 
 
            :inst {:extra-paths ["src-inst" "src-shared"]
-                  :extra-deps {;; Namespaces instrumentation
-                               org.clojure/tools.namespace {:mvn/version "1.2.0"}
-                               com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-                               }}
+                  :extra-deps {}}
 
            :dev {:extra-paths ["src-dev"]
                  :extra-deps {}
