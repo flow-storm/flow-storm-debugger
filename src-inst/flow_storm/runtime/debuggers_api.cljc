@@ -7,9 +7,6 @@
             #?@(:clj [[flow-storm.instrument.forms :as inst-forms]
                       [clojure.string :as str]
                       [flow-storm.instrument.namespaces :as inst-ns]
-                      [cljs.repl :as cljs-repl]
-                      [cljs.analyzer :as ana]
-                      [cljs.analyzer.api :as ana-api]
                       [clojure.java.io :as io]                      
                       [clojure.set :as set]
                       [clojure.tools.namespace.parse :as tools-ns-parse]
@@ -234,39 +231,44 @@
          instr-form))))
 
 #?(:clj
-    (defmacro cljs-get-all-ns []
-      (mapv str (ana-api/all-ns))))
+   (defmacro cljs-get-all-ns []     
+     (let [all-ns (requiring-resolve 'cljs.analyzer.api/all-ns)]
+       (mapv str (all-ns)))))
 
 #?(:clj
-   (defmacro cljs-get-ns-interns [ns-symb]
-     (->> (ana-api/ns-interns ns-symb)
-          keys
-          (mapv str))))
+   (defmacro cljs-get-ns-interns [ns-symb]     
+     (let [ns-interns (requiring-resolve 'cljs.analyzer.api/ns-interns)]
+       (->> (ns-interns ns-symb)
+            keys
+            (mapv str)))))
 
 #?(:clj
    (defmacro cljs-source-fn [symb]
-     (cljs-repl/source-fn &env symb)))
+     (let [source-fn (requiring-resolve 'cljs.repl/source-fn)]
+       (source-fn &env symb))))
 
 #?(:clj
    (defn- cljs-file-forms [ns-symb file-url]     
-     (let [found-ns (ana-api/find-ns ns-symb)
+     (let [find-ns (requiring-resolve 'cljs.analyzer.api/find-ns)
+           forms-seq (requiring-resolve 'cljs.analyzer.api/forms-seq)
+           found-ns (find-ns ns-symb)           
            def-dynamic? (fn [form]
                           (and (= 'def (first form))
                                (let [symb-name (str (second form))]
                                  (and (str/starts-with? symb-name "*")
                                       (str/ends-with? symb-name "*")))))]
        (try
-         (binding [ana/*cljs-ns* ns-symb]           
-           (let [file-str (slurp file-url)
-                 file-forms (ana-api/forms-seq (StringReader. file-str))]
-            (->> file-forms
-                 rest ;; discard the (ns ...) form
-                 (mapv (fn [form]
-                         (if (def-dynamic? form)
+         (utils/lazy-binding [cljs.analyzer/*cljs-ns* ns-symb]           
+                             (let [file-str (slurp file-url)
+                                   file-forms (forms-seq (StringReader. file-str))]
+                               (->> file-forms
+                                    rest ;; discard the (ns ...) form
+                                    (mapv (fn [form]
+                                            (if (def-dynamic? form)
 
-                           (binding [*print-meta* true] (pr-str form))
+                                              (binding [*print-meta* true] (pr-str form))
 
-                           (pr-str form)))))))
+                                              (pr-str form)))))))
          (catch Exception e
            (binding [*out* *err*]
              (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
@@ -282,9 +284,10 @@
   Used by tools from the repl to retrieve namespaces forms to instrument/uninstrument"
      
      [ns-symbs]
-     (let [all-ns-info (->> ns-symbs
+     (let [find-ns (requiring-resolve 'cljs.analyzer.api/find-ns)
+           all-ns-info (->> ns-symbs
                             (map (fn [ns-symb]
-                                   (let [file-name (-> (ana-api/find-ns ns-symb) :meta :file)
+                                   (let [file-name (-> (find-ns ns-symb) :meta :file)
                                          file (try (io/resource file-name) (catch Exception _ nil))
                                          ns-decl-form (try (tools-ns-file/read-file-ns-decl file) (catch Exception _ nil))
                                          deps (try (tools-ns-parse/deps-from-ns-decl ns-decl-form) (catch Exception _ nil))]

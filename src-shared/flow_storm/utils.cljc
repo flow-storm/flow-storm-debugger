@@ -259,3 +259,18 @@
         (new ~name ~@fields)
         ~@body)))
  )
+
+#?(:clj
+   (defmacro lazy-binding
+     "Like clojure.core/binding but instead of a vec of vars it accepts a vec
+  of symbols, and will resolve the vars with requiring-resolve"
+     [bindings & body]     
+     (let [vars-binds (mapcat (fn [[var-symb var-val]]
+                                [`(clojure.core/requiring-resolve '~var-symb) var-val])
+                              (partition 2 bindings))]
+       `(let []
+          (push-thread-bindings (hash-map ~@vars-binds))
+         (try
+           ~@body
+           (finally
+             (pop-thread-bindings)))))))

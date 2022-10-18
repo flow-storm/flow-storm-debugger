@@ -6,6 +6,8 @@
 
 ### Changes
 	
+	- Remove flow-storm hard dependency on org.clojure/clojurescript artifact. Will lazy require when needed for ClojureScript, assuming the dependency will be provided
+
 ### Bugs fixed
 
 ## 3.1.259 (17-10-2022)

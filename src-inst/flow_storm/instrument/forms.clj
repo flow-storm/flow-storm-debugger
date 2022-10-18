@@ -12,8 +12,6 @@
   (:require
    [clojure.walk :as walk]
    [clojure.string :as str]
-   [cljs.analyzer :as ana]
-   [cljs.analyzer.api :as ana-api]
    [flow-storm.tracer :as tracer]
    [flow-storm.instrument.runtime :refer [*runtime-ctx*]]
    [flow-storm.utils :as utils]
@@ -979,10 +977,12 @@
   (let [form-id (hash form)
         compiler (compiler-from-env env)
         [macroexpand-1-fn expand-symbol] (case compiler
-                                           :cljs [(partial ana/macroexpand-1 env)
-                                                  (fn [symb]
-                                                    (or (:name (ana-api/resolve env symb))
-                                                        symb))]
+                                           :cljs (let [cljs-macroexpand-1 (requiring-resolve 'cljs.analyzer/macroexpand-1)
+                                                       cljs-resolve (requiring-resolve 'cljs.analyzer.api/resolve)]
+                                                   [(partial cljs-macroexpand-1 env)
+                                                    (fn [symb]
+                                                      (or (:name (cljs-resolve env symb))
+                                                          symb))])
                                            :clj  [macroexpand-1
                                                   (fn [symb]
                                                     (if-let [v (resolve symb)]
