@@ -735,15 +735,16 @@ pre.rouge {
 <li><a href="#_dealing_with_infinite_loops">12. Dealing with infinite loops</a></li>
 <li><a href="#_styling_and_theming">13. Styling and theming</a></li>
 <li><a href="#_key_bindings">14. Key bindings</a></li>
-<li><a href="#_working_on_windows_with_wsl2">15. Working on Windows with WSL2</a></li>
-<li><a href="#_tutorials_and_demos">16. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">17. Troubleshooting</a>
+<li><a href="#_debugging_react_native_applications">15. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></li>
+<li><a href="#_tutorials_and_demos">17. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">18. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">17.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">17.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">18.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">18.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">18. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">19. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -1976,7 +1977,38 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">15. Working on Windows with WSL2</a></h3>
+<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">15. Debugging react native applications</a></h3>
+<div class="paragraph">
+<p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
+</div>
+<div class="paragraph">
+<p>Assuming you are using shadow-cljs, have added the <code>flow-storm-inst</code> dependency, and that it started a nrepl server on port 9000, you
+can start a debugger and connect to it by running :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host <span class="s1">'"YOUR_DEV_MACHINE_IP"'</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You also need to make it possible for the device to connect back to the debugger on port 7722. You can accomplish this by running :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">adb reverse tcp:7722 tcp:7722</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also remember that you need to have installed the <code>websocket</code> npm library. You can do this like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">npm <span class="nb">install </span>websocket <span class="nt">--save</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></h3>
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -2025,7 +2057,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">16. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">17. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2059,16 +2091,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">17. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">18. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">17.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">18.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">17.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">18.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -2081,7 +2113,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">18. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">19. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2099,7 +2131,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-10-17 06:15:37 -0300
+Last updated 2022-10-18 16:37:00 -0300
 </div>
 </div>
 </body>

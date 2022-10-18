@@ -814,6 +814,32 @@ You can overwrite all the styles defined here https://github.com/jpmonettas/flow
 - `Ctrl-l` Clean all debugger state
 - `Ctrl-d` Toggle debug-mode. Will log useful debugging information to the console.
 
+== Debugging react native applications
+
+Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.
+
+Assuming you are using shadow-cljs, have added the `flow-storm-inst` dependency, and that it started a nrepl server on port 9000, you 
+can start a debugger and connect to it by running :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host '"YOUR_DEV_MACHINE_IP"'
+----
+
+You also need to make it possible for the device to connect back to the debugger on port 7722. You can accomplish this by running :
+
+[,bash]
+----
+adb reverse tcp:7722 tcp:7722
+----
+
+Also remember that you need to have installed the `websocket` npm library. You can do this like :
+
+[,bash]
+----
+npm install websocket --save
+----
+
 == Working on Windows with WSL2
 
 For those using WSL2 on Windows. You'll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.
