@@ -57,7 +57,8 @@
             (let [ns-vars (vals (ns-interns ns))]
               (into r (keep (fn [v]
                               (when-let [file (:file (meta v))]
-                                (io/resource file)))
+                                (or (io/resource file)
+                                    (.toURL (io/file file)))))
                             ns-vars))))
           #{}
           ns-set))

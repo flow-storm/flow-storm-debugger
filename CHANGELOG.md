@@ -8,6 +8,8 @@
 	    
 ### Bugs fixed
 
+	- Fix clojure instrument entire namespace for non libraries
+	
 ## 3.1.261 (18-10-2022)
 	
 ## New Features
