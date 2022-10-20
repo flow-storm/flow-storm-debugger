@@ -8,6 +8,8 @@
 	    
 ### Bugs fixed
     
+	- Fix automatic [un]instrumentation watcher
+	
 ## 3.1.263 (18-10-2022)
 	
 ## New Features

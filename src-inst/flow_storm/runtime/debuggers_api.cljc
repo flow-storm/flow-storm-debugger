@@ -199,7 +199,9 @@
    (defmacro instrument* [config form]
      (let [env &env
            compiler (inst-forms/compiler-from-env env)
-           instr-form (inst-forms/instrument (assoc config :env env) form)]
+           ;; full-instr-form contains (do (trace-init-form ...) instr-form)
+           full-instr-form (inst-forms/instrument (assoc config :env env) form)
+           [_ _ instr-form] full-instr-form]
        
        (if (and (= compiler :clj)
                 (inst-forms/expanded-defn-form? instr-form))
@@ -209,7 +211,7 @@
          (let [var-symb (second form)]
            `(do
               
-              ~instr-form
+              ~full-instr-form
               
               (let [v# (var ~var-symb)
                     [vns# vname#] ((juxt namespace name) (symbol v#))]
@@ -228,7 +230,7 @@
                                (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))))))))
 
 
-         instr-form))))
+         full-instr-form))))
 
 #?(:clj
    (defmacro cljs-get-all-ns []     
