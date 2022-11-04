@@ -61,6 +61,7 @@
 
 (defn- reference-frame-data! [frame-data]
   (-> frame-data
+      (dissoc :frame)
       (update :dispatch-val reference-value!)
       (update :args-vec reference-value!)
       (update :ret reference-value!)
