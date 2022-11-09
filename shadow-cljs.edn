@@ -1,27 +1,13 @@
 ;; shadow-cljs configuration
-{:source-paths
- ["src-inst"
-  "src-dev"
-  "src-shared"]
+{:deps {:aliases [:cljs :dev]}
 
- :dependencies
- [[nrepl/nrepl"0.9.0"]
-  [cider/cider-nrepl"0.28.3"]
-  [refactor-nrepl/refactor-nrepl"3.5.2"]
-  [cider/piggieback"0.5.2"]
-  [mount/mount "0.1.16"]
-
-  [org.java-websocket/Java-WebSocket "1.5.2"]
-  [org.clojure/tools.namespace "1.2.0"]
-  [com.cognitect/transit-cljs "0.8.269"]]
-
-  :builds
+ :builds
  {:dev-test {:target :node-script
              :main dev/-main
              :output-to "public/dev-test.js"}}
 
-  :nrepl {:port 9000
-          :middleware [refactor-nrepl.middleware/wrap-refactor
-                       cider.nrepl/cider-middleware
-                       cider.piggieback/wrap-cljs-repl]}
-  }
+ :nrepl {:port 9000
+         :middleware [refactor-nrepl.middleware/wrap-refactor
+                      cider.nrepl/cider-middleware
+                      cider.piggieback/wrap-cljs-repl]}
+ }

@@ -1,7 +1,7 @@
 (ns dev
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.main :as main]
-            [flow-storm.instrument.forms :as inst-forms]
+            [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.runtime.indexes.frame-index :as frame-index]
@@ -27,8 +27,7 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn start-local []
-  (fs-api/local-connect))
+(defn start-local [] (fs-api/local-connect))
 
 (defn start-remote []
 
@@ -82,7 +81,9 @@
 
   (fs-api/instrument-forms-for-namespaces
    #{"dev-tester"}
-   {:disable #{} #_#{:expr :anonymous-fn :binding}})
+   {:disable #{} #_#{:expr-exec :anonymous-fn :bind}})
+
+  (fs-api/uninstrument-forms-for-namespaces #{"dev-tester"})
 
   #rtrace (dev-tester/boo [2 "hello" 6])
 

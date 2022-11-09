@@ -20,8 +20,11 @@
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
         mount/mount {:mvn/version "0.1.16"}
         nrepl/nrepl {:mvn/version "1.0.0"}
+        com.github.jpmonettas/hansel {
+                                      ;; :local/root "/home/jmonetta/my-projects/hansel"
+                                      :mvn/version "0.1.17"
+                                      }
         ;---------------------------------------------------------------------
-
         }
 
  :jvm-opts []
@@ -36,7 +39,7 @@
                               org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
                               org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
 
-                              ;; Dark mode
+                              ;; Host theme detection
                               com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
 
                               mount/mount {:mvn/version "0.1.16"}
@@ -45,8 +48,16 @@
 
 
            :inst {:extra-paths ["src-inst" "src-shared"]
-                  :extra-deps {}}
+                  :extra-deps {com.github.jpmonettas/hansel {
+                                                             ;;:local/root "/home/jmonetta/my-projects/hansel"
+                                                             :mvn/version "0.1.17"
+                                                             }}}
 
+           :cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
+                               cider/cider-nrepl {:mvn/version "0.28.3"}
+                               refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
+                               cider/piggieback {:mvn/version "0.5.2"}
+                               thheller/shadow-cljs {:mvn/version "2.20.10"}}}
            :dev {:extra-paths ["src-dev"]
                  :extra-deps {}
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
@@ -59,7 +70,9 @@
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
 
            :test-clj {:extra-paths ["test"]
-                      :extra-deps {lambdaisland/kaocha {:mvn/version "1.70.1086"}}
+                      :extra-deps {lambdaisland/kaocha {:mvn/version "1.70.1086"}
+                                   org.clojure/clojurescript {:mvn/version "1.11.60"}}
+                      :jvm-opts ["-Xmx10500m"]
                       :main-opts ["-m" "kaocha.runner"]}
            :test-cljs {:extra-paths ["test"]
                        :extra-deps {com.lambdaisland/kaocha-cljs {:mvn/version "1.4.130"}}

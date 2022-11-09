@@ -39,7 +39,7 @@
                           (map (fn [{:keys [fn-name fn-ns]}]
                                  (symbol fn-ns fn-name))))]
       (doseq [vs vars-symbs]
-        (runtime-api/get-and-eval-form rt-api (namespace vs) (name vs) false)))
+        (runtime-api/uninstrument-var rt-api (namespace vs) (name vs) {})))
 
     (let [forms (->> (:forms groups)
                      (map (fn [{:keys [fn-ns form]}]

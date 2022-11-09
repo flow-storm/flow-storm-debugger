@@ -4,15 +4,9 @@
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
             [clojure.core.async :as async]
-            #?@(:clj [[flow-storm.instrument.forms :as inst-forms]
-                      [clojure.string :as str]
-                      [flow-storm.instrument.namespaces :as inst-ns]
-                      [clojure.java.io :as io]                      
-                      [clojure.set :as set]
-                      [clojure.tools.namespace.parse :as tools-ns-parse]
-                      [clojure.tools.namespace.file :as tools-ns-file]
-                      [clojure.tools.namespace.dependency :as tools-ns-deps]]))
-  #?(:clj (:import [java.io StringReader])))
+            #?@(:clj [[hansel.api :as hansel]
+                      [flow-storm.tracer :as tracer]
+                      [hansel.instrument.utils :as hansel-inst-utils]])))
 
 ;; Utilities for long interruptible tasks
 
@@ -59,16 +53,16 @@
 (def all-forms indexes-api/all-forms)
 (def timeline-count indexes-api/timeline-count)
 
-(defn- reference-frame-data! [frame-data]
-  (-> frame-data
-      (dissoc :frame)
-      (update :dispatch-val reference-value!)
-      (update :args-vec reference-value!)
-      (update :ret reference-value!)
-      (update :bindings (fn [bs]
-                          (mapv #(update % :value reference-value!) bs)))
-      (update :expr-executions (fn [ee]
-                                 (mapv #(update % :result reference-value!) ee)))))
+(defn- reference-frame-data! [{:keys [dispatch-val] :as frame-data}]
+  (cond-> frame-data
+    true         (dissoc :frame)
+    dispatch-val (update :dispatch-val reference-value!)
+    true         (update :args-vec reference-value!)
+    true         (update :ret reference-value!)
+    true         (update :bindings (fn [bs]
+                                     (mapv #(update % :value reference-value!) bs)))
+    true         (update :expr-executions (fn [ee]
+                                            (mapv #(update % :result reference-value!) ee)))))
 
 (defn timeline-entry [flow-id thread-id idx]
   (let [entry (indexes-api/timeline-entry flow-id thread-id idx)
@@ -137,29 +131,98 @@
 
 (defn ping [] :pong)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Used by clojure only ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; To be used form the repl connections ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #?(:clj
-   (defn instrument-namespaces
-     ([ns-prefixes opts] (instrument-namespaces ns-prefixes opts false))
-     ([ns-prefixes opts publish-events?]
-      (let [inst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes (assoc opts
-                                                                                        :prefixes? true))]
-        (when publish-events?
-          (doseq [ns-symb inst-namespaces]
-            (rt-events/publish-event! (rt-events/make-ns-instrumented-event (str ns-symb)))))))))
+   (defn publish-event! [kind ev config]
+     ;; do it on a different thread since we
+     ;; don't want to block for event publication
+     (future
+       (case kind
+         :clj (rt-events/publish-event! ev)
+
+         ;; sending a event for ClojureScript from the Clojure (shadow) side is kind of
+         ;; hacky. We evaluate the publish-event! expresion in the cljs runtime.
+         :cljs (hansel-inst-utils/eval-in-ns-fn-cljs 'cljs-user
+                                                     `(flow-storm.runtime.events/publish-event! ~ev)
+                                                     config)))
+     nil))
 
 #?(:clj
-   (defn uninstrument-namespaces
-     ([ns-prefixes] (uninstrument-namespaces ns-prefixes false))
-     ([ns-prefixes publish-events?]
-      (let [uninst-namespaces (inst-ns/instrument-files-for-namespaces ns-prefixes {:prefixes? true
-                                                                                    :uninstrument? true})]        
-        (when publish-events?
-          (doseq [ns-symb uninst-namespaces]
-            (rt-events/publish-event! (rt-events/make-ns-uninstrumented-event (str ns-symb)))))))))
+   (defn instrument-var [kind var-symb {:keys [disable-events?] :as config}]
+     (let [inst-fn (case kind
+                     :clj  hansel/instrument-var-clj
+                     :cljs hansel/instrument-var-shadow-cljs)]
+       
+       (log (format "Instrumenting var %s %s" var-symb config))
+       (inst-fn var-symb (merge (tracer/hansel-config config)
+                                config))
+       
+       (when-not disable-events?
+         (publish-event! kind (rt-events/make-var-instrumented-event (name var-symb) (namespace var-symb)) config)))))
+
+#?(:clj
+   (defn uninstrument-var [kind var-symb {:keys [disable-events?] :as config}]
+     (let [inst-fn (case kind
+                     :clj  hansel/uninstrument-var-clj
+                     :cljs hansel/uninstrument-var-shadow-cljs)]
+
+       (log (format "Uninstrumenting var %s %s" var-symb config))
+       (inst-fn var-symb (merge (tracer/hansel-config config)
+                                config))
+       (when-not disable-events?
+         (publish-event! kind (rt-events/make-var-uninstrumented-event (name var-symb) (namespace var-symb)) config)))))
+
+#?(:clj
+   (defn instrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
+     (log (format "Instrumenting namespaces %s" (pr-str ns-prefixes)))
+     (let [inst-fn (case kind
+                     :clj  hansel/instrument-namespaces-clj
+                     :cljs hansel/instrument-namespaces-shadow-cljs)
+           namespaces (inst-fn ns-prefixes (merge (tracer/hansel-config config)
+                                                  config))]
+       
+       (when-not disable-events?
+         (doseq [ns-symb namespaces]
+           (publish-event! kind (rt-events/make-ns-instrumented-event (str ns-symb)) config))))))
+
+#?(:clj
+   (defn uninstrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
+     (log (format "Uninstrumenting namespaces %s" (pr-str ns-prefixes)))
+     (let [inst-fn (case kind
+                     :clj  hansel/uninstrument-namespaces-clj
+                     :cljs hansel/uninstrument-namespaces-shadow-cljs)
+           namespaces (inst-fn ns-prefixes (merge (tracer/hansel-config config)
+                                                  config))]
+       (when-not disable-events?
+         (doseq [ns-symb namespaces]
+           (publish-event! kind (rt-events/make-ns-uninstrumented-event (str ns-symb)) config))))))
+
+#?(:clj
+   (defn all-namespaces
+     ([kind] (all-namespaces kind nil))
+     ([kind build-id]
+      (case kind
+        :clj (mapv (comp str ns-name) (all-ns))
+        :cljs (hansel-inst-utils/cljs-get-all-ns build-id)))))
+
+#?(:clj
+   (defn all-vars-for-namespace
+     ([kind ns-name] (all-vars-for-namespace kind ns-name nil))
+     ([kind ns-name build-id]
+      (case kind
+        :clj (->> (ns-interns (symbol ns-name)) keys (mapv str))
+        :cljs (hansel-inst-utils/cljs-get-ns-interns (symbol ns-name) build-id)))))
+
+#?(:clj
+   (defn get-var-meta
+     ([kind var-symb] (get-var-meta kind var-symb {}))
+     ([kind var-symb {:keys [build-id]}]
+      (case kind
+        :clj (-> (meta (find-var var-symb)) (update :ns (comp str ns-name)))
+        :cljs (hansel-inst-utils/eval-in-ns-fn-cljs 'cljs.user `(meta (var ~var-symb)) {:build-id build-id})))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utils for calling by name, used by the websocket api calls ;;
@@ -185,141 +248,14 @@
              :clear-values-references clear-values-references
              :ping ping
              #?@(:clj
-                 [:instrument-namespaces instrument-namespaces
+                 [:all-namespaces all-namespaces
+                  :all-vars-for-namespace all-vars-for-namespace
+                  :get-var-meta get-var-meta
+                  :instrument-var instrument-var
+                  :uninstrument-var uninstrument-var
+                  :instrument-namespaces instrument-namespaces
                   :uninstrument-namespaces uninstrument-namespaces])})
 
 (defn call-by-name [fun-key args]  
   (let [f (get api-fn fun-key)]
     (apply f args)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; This are helpers for the ClojureScript repl ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-#?(:clj
-   (defmacro instrument* [config form]
-     (let [env &env
-           compiler (inst-forms/compiler-from-env env)
-           ;; full-instr-form contains (do (trace-init-form ...) instr-form)
-           full-instr-form (inst-forms/instrument (assoc config :env env) form)
-           [_ _ instr-form] full-instr-form]
-       
-       (if (and (= compiler :clj)
-                (inst-forms/expanded-defn-form? instr-form))
-
-         ;; if we are in clojure and it is a (defn ...) or (def . (fn []))
-         ;; add a watch to its var to track when it is being instrumented/uninstrumented
-         (let [var-symb (second form)]
-           `(do
-              
-              ~full-instr-form
-              
-              (let [v# (var ~var-symb)
-                    [vns# vname#] ((juxt namespace name) (symbol v#))]
-                (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))
-                (add-watch v#
-                           :flow-storm/var-redef
-                           (fn [a1# a2# fn-before# fn-after#]
-                             (cond
-
-                               (and (:flow-storm/instrumented? (meta fn-before#))
-                                    (not (:flow-storm/instrumented? (meta fn-after#))))
-                               (rt-events/publish-event! (rt-events/make-var-uninstrumented-event vname# vns#))
-
-                               (and (not (:flow-storm/instrumented? (meta fn-before#)))
-                                    (:flow-storm/instrumented? (meta fn-after#)))
-                               (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))))))))
-
-
-         full-instr-form))))
-
-#?(:clj
-   (defmacro cljs-get-all-ns []     
-     (let [all-ns (requiring-resolve 'cljs.analyzer.api/all-ns)]
-       (mapv str (all-ns)))))
-
-#?(:clj
-   (defmacro cljs-get-ns-interns [ns-symb]     
-     (let [ns-interns (requiring-resolve 'cljs.analyzer.api/ns-interns)]
-       (->> (ns-interns ns-symb)
-            keys
-            (mapv str)))))
-
-#?(:clj
-   (defmacro cljs-source-fn [symb]
-     (let [source-fn (requiring-resolve 'cljs.repl/source-fn)]
-       (source-fn &env symb))))
-
-#?(:clj
-   (defn- cljs-file-forms [ns-symb file-url]     
-     (let [find-ns (requiring-resolve 'cljs.analyzer.api/find-ns)
-           forms-seq (requiring-resolve 'cljs.analyzer.api/forms-seq)
-           found-ns (find-ns ns-symb)           
-           def-dynamic? (fn [form]
-                          (and (= 'def (first form))
-                               (let [symb-name (str (second form))]
-                                 (and (str/starts-with? symb-name "*")
-                                      (str/ends-with? symb-name "*")))))]
-       (try
-         (utils/lazy-binding [cljs.analyzer/*cljs-ns* ns-symb]           
-                             (let [file-str (slurp file-url)
-                                   file-forms (forms-seq (StringReader. file-str))]
-                               (->> file-forms
-                                    rest ;; discard the (ns ...) form
-                                    (mapv (fn [form]
-                                            (if (def-dynamic? form)
-
-                                              (binding [*print-meta* true] (pr-str form))
-
-                                              (pr-str form)))))))
-         (catch Exception e
-           (binding [*out* *err*]
-             (println "Error reading forms for " ns-symb file-url "after finding ns" found-ns)
-             (.printStackTrace e)))))))
-
-#?(:clj
-   (defmacro cljs-sorted-namespaces-sources
-
-     "Given `ns-symbs` will return :
-      [[\"ns-name-1\" [\"form-1\" \"form-2\"]]
-       [\"ns-name-2\" [\"form-1\" \"form-2\"]]]
-
-  Used by tools from the repl to retrieve namespaces forms to instrument/uninstrument"
-     
-     [ns-symbs]
-     (let [find-ns (requiring-resolve 'cljs.analyzer.api/find-ns)
-           all-ns-info (->> ns-symbs
-                            (map (fn [ns-symb]
-                                   (let [file-name (-> (find-ns ns-symb) :meta :file)
-                                         file (try (io/resource file-name) (catch Exception _ nil))
-                                         ns-decl-form (try (tools-ns-file/read-file-ns-decl file) (catch Exception _ nil))
-                                         deps (try (tools-ns-parse/deps-from-ns-decl ns-decl-form) (catch Exception _ nil))]
-                                     [ns-symb {:ns-symb ns-symb
-                                               :file-name file-name
-                                               :file file
-                                               :ns-decl-form ns-decl-form
-                                               :deps deps}])))
-                            (into {}))
-           ns-graph (reduce (fn [g {:keys [deps ns-symb]}]
-                              (reduce (fn [gg dep-ns-symb]
-                                        (tools-ns-deps/depend gg ns-symb dep-ns-symb))
-                                      g
-                                      deps))
-                            (tools-ns-deps/graph)
-                            (vals all-ns-info))
-           dependent-files-vec (->> (tools-ns-deps/topo-sort ns-graph)
-                                    (keep (fn [ns-symb]
-                                            (when-let [file (get-in all-ns-info [ns-symb :file])]
-                                              [ns-symb file])))
-                                    (into []))
-           all-files-set (into #{} (map (fn [[ns-name {:keys [file]}]] [ns-name file]) all-ns-info))
-           independent-files (set/difference all-files-set
-                                             (into #{} dependent-files-vec))
-
-           
-           to-instrument-vec (into dependent-files-vec independent-files)]
-       
-       (mapv (fn [[ns-symb ns-file]]
-               [(str ns-symb) (cljs-file-forms ns-symb ns-file)])
-             to-instrument-vec))))
-

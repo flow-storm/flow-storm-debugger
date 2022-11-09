@@ -9,9 +9,8 @@
 
 (defn disable-from-profile [profile]
   (case profile
-    :full  #{}
-    :light #{:expr :binding}
-    {}))
+    :light #{:expr-exec :bind}
+    #{}))
 
 (defn elide-string [s max-len]
   (let [len (count s)]

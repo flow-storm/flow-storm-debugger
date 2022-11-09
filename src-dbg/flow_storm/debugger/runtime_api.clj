@@ -1,11 +1,11 @@
 (ns flow-storm.debugger.runtime-api
   (:require [mount.core :as mount :refer [defstate]]
-            [flow-storm.utils :as utils :refer [log-error log]]
-            [flow-storm.debugger.ui.state-vars :refer [show-message]]
-            [flow-storm.debugger.repl.core :refer [safe-eval-code-str stop-repl]]
+            [flow-storm.utils :as utils :refer [log log-error]]
+            [flow-storm.debugger.repl.core :refer [safe-eval-code-str safe-cljs-eval-code-str stop-repl]]
             [flow-storm.debugger.websocket :as websocket]
-            [flow-storm.debugger.config :refer [config debug-mode]]
-            [clojure.string :as str])
+            [flow-storm.debugger.ui.state-vars :refer [show-message]]
+            [clojure.string :as str]
+            [flow-storm.debugger.config :refer [config debug-mode]])
   (:import [java.io Closeable]))
 
 (declare ->LocalRuntimeApi)
@@ -46,14 +46,19 @@
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
-  (get-var-form-str [_ var-ns var-name])
-  (eval-form [_ form-str opts])
   (def-value [_ v-name v])
+
   (get-all-namespaces [_])
   (get-all-vars-for-ns [_ nsname])
   (get-var-meta [_ var-ns var-name])
-  (instrument-namespaces [_ nsnames profile])
-  (uninstrument-namespaces [_ nanames])
+
+  (instrument-var [_ var-ns var-name opts])
+  (uninstrument-var [_ var-ns var-name opts])
+  (instrument-namespaces [_ nsnames opts])
+  (uninstrument-namespaces [_ nanames opts])
+
+  (eval-form [_ form-str opts])
+
   (interrupt-all-tasks [_])
   (clear-values-references [_])
   (clear-api-cache [_]))
@@ -92,26 +97,6 @@
          (when debug-mode (log (utils/colored-string "CALLED" :red)))
          (apply f args))))))
 
-(defn eval-code-str
-  ([form] (eval-code-str nil form nil))
-  ([form ns] (eval-code-str nil form ns))
-  ([cache form ns]
-   (let [cache-key form]
-     (if cache
-       (let [val (get @cache cache-key :flow-storm/cache-miss)]
-         (if (= val :flow-storm/cache-miss)
-
-           ;; re eval the form if it is a miss
-           (let [val (safe-eval-code-str form ns)]
-             (swap! cache assoc cache-key val)
-             val)
-
-           ;; if a hit, return the cached val
-           val))
-
-       (safe-eval-code-str form ns)))))
-
-
 (defrecord LocalRuntimeApi [api-cache repl-cache]
 
   RuntimeApiP
@@ -132,14 +117,33 @@
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :local "def-value" [v-name vref]))
 
-  (get-var-form-str [_ var-ns var-name] (utils/source-fn (symbol var-ns var-name)))
+  (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
+  (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
+  (get-var-meta [_ var-ns var-name]
+    (-> (meta (resolve (symbol var-ns var-name)))
+        (update :ns (comp str ns-name))))
+
+  (instrument-var [_ var-ns var-name opts]
+    (api-call :local "instrument-var" [:clj (symbol var-ns var-name) opts]))
+
+  (uninstrument-var [_ var-ns var-name opts]
+    (api-call :local "uninstrument-var" [:clj (symbol var-ns var-name) opts]))
+
+  (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
+    (let [disable-set (utils/disable-from-profile profile)]
+      (api-call :local "instrument-namespaces" [:clj nsnames (assoc opts :disable disable-set)])))
+
+  (uninstrument-namespaces [_ nsnames opts]
+    (api-call :local "uninstrument-namespaces" [:clj nsnames opts]))
+
   (eval-form [_ form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [ns-to-eval (find-ns (symbol ns))]
+
       (binding [*ns* ns-to-eval]
 
         (let [form (read-string
                     (if instrument?
-                      (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
+                      (format "(flow-storm.api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str))
               [v vmeta] (when var-name
                           (let [v (find-var (symbol ns var-name))]
@@ -165,21 +169,6 @@
                 ;; so when re-evaluating a var (probably a function) store and restore its meta
                 (when v (reset-meta! v vmeta))))))))))
 
-
-  (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
-  (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
-
-  (get-var-meta [_ var-ns var-name]
-    (-> (meta (resolve (symbol var-ns var-name)))
-        (update :ns (comp str ns-name))))
-
-  (instrument-namespaces [_ nsnames profile]
-    (let [disable-set (utils/disable-from-profile profile)]
-      (api-call :local "instrument-namespaces" [nsnames {:disable disable-set}])))
-
-  (uninstrument-namespaces [_ nsnames]
-    (api-call :local "uninstrument-namespaces" [nsnames]))
-
   (interrupt-all-tasks [_]
     (api-call :local "interrupt-all-tasks" []))
 
@@ -189,48 +178,9 @@
   (clear-api-cache [_]
     (reset! api-cache {})))
 
-(defmulti make-repl-expression (fn [env-kind fn-symb & _] [env-kind fn-symb]))
-
-(defmethod make-repl-expression :default [& _] "")
-
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod make-repl-expression [:clj 'get-var-form-str] [_ _ var-ns var-name] (format "(clojure.repl/source-fn (symbol %s %s))" (pr-str var-ns) (pr-str var-name)))
-(defmethod make-repl-expression [:clj 'get-all-namespaces] [_ _] "(mapv (comp str ns-name) (all-ns))")
-(defmethod make-repl-expression [:clj 'get-all-vars-for-ns] [_ _ nsname] (format "(->> (ns-interns '%s) keys (mapv str))" nsname))
-(defmethod make-repl-expression '[:clj get-var-meta] [_ _ var-ns var-name] (format "(-> (meta #'%s/%s) (update :ns (comp str ns-name)))" var-ns var-name))
-
-(defmethod make-repl-expression '[:clj instrument-namespaces]
-  [_ _ nsnames profile]
-  (let [nss-str (str/join " " nsnames)
-        disable-set-str (pr-str (utils/disable-from-profile profile))]
-    (format "(flow-storm.api/instrument-forms-for-namespaces #{%s} {:disable %s})" nss-str disable-set-str)))
-
-(defmethod make-repl-expression '[:clj uninstrument-namespaces]
-  [_ _ nsnames]
-  (let [nss-str (str/join " " nsnames)]
-    (format "(flow-storm.api/uninstrument-forms-for-namespaces #{%s})" nss-str)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; For ClojureScript repl ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmethod make-repl-expression [:cljs 'get-var-form-str] [_ _ var-ns var-name] (format "(dbg-api/cljs-source-fn %s/%s)" var-ns var-name))
-(defmethod make-repl-expression [:cljs 'get-all-namespaces] [_ _] "(dbg-api/cljs-get-all-ns)")
-(defmethod make-repl-expression [:cljs 'get-all-vars-for-ns] [_ _ nsname] (format "(dbg-api/cljs-get-ns-interns %s)" nsname))
-(defmethod make-repl-expression [:cljs 'get-var-meta] [_ _ var-ns var-name] (format "(meta #'%s/%s)" var-ns var-name))
-
-(defn- re-eval-all-ns-forms [eval-fn ns-names {:keys [instrument?] :as eval-opts}]
-  (let [all-ns-forms (eval-fn (format "(dbg-api/cljs-sorted-namespaces-sources %s)" (mapv symbol ns-names)))]
-    (doseq [[ns-name ns-forms] all-ns-forms]
-      (doseq [form-str ns-forms]
-        (log (format "%s ns: %s form: %s"
-                     (if instrument? "Instrumenting" "Uninstrumenting")
-                     ns-name
-                     (utils/elide-string form-str 50)))
-        (eval-form rt-api form-str (assoc eval-opts :ns ns-name))))))
 
 (defrecord RemoteRuntimeApi [env-kind api-cache repl-cache]
 
@@ -252,39 +202,61 @@
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :remote "def-value" [v-name vref]))
 
-  ;; caching this not for performace reasons but because after we re-eval a form once we don't have
-  ;; access to its source anymore because the meta get lost and can't be restored in ClojureScript
-  (get-var-form-str [_ var-ns var-name] (eval-code-str repl-cache (make-repl-expression env-kind 'get-var-form-str var-ns var-name) nil)) ;; CACHED
+  (get-all-namespaces [_]
+    (case env-kind
+      :clj  (api-call :remote "all-namespaces" [:clj])
+      :cljs (safe-eval-code-str (format "(dbg-api/all-namespaces :cljs %s)" (:build-id config)))))
+
+  (get-all-vars-for-ns [_ nsname]
+    (case env-kind
+      :clj  (api-call :remote "all-vars-for-namespace" [:clj (symbol nsname)])
+      :cljs (safe-eval-code-str (format "(dbg-api/all-vars-for-namespace :cljs '%s %s)" nsname (:build-id config)))))
+
+  (get-var-meta [_ var-ns var-name]
+    (case env-kind
+      :clj  (api-call :remote "get-var-meta" [:clj (symbol var-ns var-name)])
+      :cljs (safe-eval-code-str (format "(dbg-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name (select-keys config [:build-id])))))
+
+  (instrument-var [_ var-ns var-name opts]
+    (case env-kind
+      :clj (api-call :remote "instrument-var" [:clj (symbol var-ns var-name) opts])
+      :cljs (let [opts (assoc opts :build-id (:build-id config))]
+              (safe-eval-code-str (format "(dbg-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+
+  (uninstrument-var [_ var-ns var-name opts]
+    (case env-kind
+      :clj (api-call :remote "uninstrument-var" [:clj (symbol var-ns var-name) opts])
+      :cljs (let [opts (assoc opts :build-id (:build-id config))]
+              (safe-eval-code-str (format "(dbg-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+
+  (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
+    (let [opts (assoc opts :disable (utils/disable-from-profile profile))]
+      (case env-kind
+        :cljs (let [opts (assoc opts :build-id (:build-id config))]
+                (safe-eval-code-str (format "(dbg-api/instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+        :clj (api-call :remote "instrument-namespaces" [:clj nsnames opts]))))
+
+  (uninstrument-namespaces [_ nsnames opts]
+    (case env-kind
+      :cljs (let [opts (assoc opts :build-id (:build-id config))]
+              (safe-eval-code-str (format "(dbg-api/uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote "uninstrument-namespaces" [:clj nsnames opts])))
 
   (eval-form [this form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [var-meta (when var-name (select-keys (get-var-meta this ns var-name) [:file :column :end-column :line :end-line]))
           form-expr (if instrument?
-                      (format "(flow-storm.runtime.debuggers-api/instrument* %s %s)" (pr-str instrument-options) form-str)
+                      (format "(flow-storm.api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str)
-          expr-res (eval-code-str (format "(do %s nil)" form-expr) ns)]
-      (when var-meta
+          expr-res (case env-kind
+                     :clj  (safe-eval-code-str form-expr ns)
+                     :cljs (safe-cljs-eval-code-str form-expr ns) )]
+      (when (and (= :clj env-kind)
+                 var-meta)
         ;; for vars restore the meta attributes that get lost when we re eval from the repl
-        (eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
+        (safe-eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
-
-  (get-all-namespaces [_] (eval-code-str (make-repl-expression env-kind 'get-all-namespaces)))
-  (get-all-vars-for-ns [_ nsname] (eval-code-str (make-repl-expression env-kind 'get-all-vars-for-ns nsname)))
-  (get-var-meta [_ var-ns var-name] (eval-code-str (make-repl-expression env-kind 'get-var-meta var-ns var-name)))
-
-  (instrument-namespaces [_ nsnames profile]
-    (let [opts {:disable (utils/disable-from-profile profile)}]
-      (case env-kind
-        :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? true
-                                                           :instrument-options opts})
-
-        :clj (api-call :remote "instrument-namespaces" [nsnames opts]))))
-
-  (uninstrument-namespaces [_ nsnames]
-    (case env-kind
-      :cljs (re-eval-all-ns-forms eval-code-str nsnames {:instrument? false})
-
-      ;; for Clojure just call the api
-      :clj (api-call :remote "uninstrument-namespaces" [nsnames])))
 
   (interrupt-all-tasks [_]
     (api-call :remote "interrupt-all-tasks" []))
@@ -298,16 +270,3 @@
   Closeable
   (close [_] (stop-repl))
   )
-
-(defn get-and-eval-form [api var-ns var-name instrument?]
-  (let [var-form-str (get-var-form-str api var-ns var-name)]
-
-    (if var-form-str
-      (eval-form rt-api var-form-str {:instrument? instrument?
-                                      :ns var-ns
-                                      :var-name var-name})
-
-      (let [err-msg (utils/format "Couldn't retrieve the source for #'%s/%s. It is a known issue in ClojureScript if you are trying to instrument a individual var after instrumenting its namespace. Instrument the entire namespace again or use #trace instead. It is a know issue in Clojure if you are trying to instrument a fn you just wrote and eval but the file isn't saved." var-ns var-name)]
-
-        (log-error err-msg)
-        (show-message err-msg :error)))))

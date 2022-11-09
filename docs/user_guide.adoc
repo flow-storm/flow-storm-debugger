@@ -307,19 +307,19 @@ functions can be instrumented normally.
 
 ==== Instrument namespaces
 
-FlowStorm allows you to instrument entire namespaces by providing `flow-strom.api/instrument-forms-for-namespaces`.
+FlowStorm allows you to instrument entire namespaces by providing `flow-strom.api/instrument-namespaces-clj`.
 
 You call it like this :
 
 [,clojure]
 ----
-(instrument-forms-for-namespaces #{"org.my-app.core" "cljs."} {})
+(instrument-namespaces-clj #{"org.my-app.core" "cljs."})
 ----
 
 The first argument is a set of namespaces prefixes to instrument. In the previous example it means
 instrument all namespaces starting with `org.my-app.core`, and all starting with `cljs.`
 
-The second argument is a map supporting the following options :
+The second argument can be a map supporting the following options :
 
 - `:excluding-ns` a set of strings with namespaces that should be excluded
 - `:disable` a set containing any of #{`:expr` `:binding` `:anonymous-fn`} useful for disabling unnecessary traces in code that generate too many
@@ -341,7 +341,7 @@ and FlowStorm automatically tries to instrument it with a lighter profile, by di
 
 Un-instrumenting code that has been instrumented with `#trace` or `#ctrace` is straight forward, just remove the tag and re evaluate the form.
 
-To un-instrument entire namespaces you can use `flow-storm.api/uninstrument-forms-for-namespaces` which accept a set of namespaces prefixes.
+To un-instrument entire namespaces you can use `flow-storm.api/uninstrument-namespaces-clj` which accept a set of namespaces prefixes.
 
 === Instrument with the browser
 
@@ -875,7 +875,7 @@ Then everything should work. The steps are:
 
 === Instrument verbose
 
-By default functions like `flow-storm.api/instrument-form-for-namespaces` will not print warnings on the console. You can log extra information
+By default functions like `flow-storm.api/instrument-namespaces-clj` will not print warnings on the console. You can log extra information
 by providing `:verbose? true` to the options map.
 
 === Run verbose

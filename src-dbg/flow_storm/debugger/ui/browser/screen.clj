@@ -44,20 +44,17 @@
   (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (remove-all [(make-inst-var (str var-ns) (str var-name))])))
 
-(defn- instrument-function [var-ns var-name add?]
-  (when (or (= var-ns "clojure.core") (= var-ns "cljs.core"))
-    (show-message "Instrumenting clojure.core is almost never a good idea since the debugger itself uses the namespace and you can easily end in a infinite recursion." :warning))
-  (runtime-api/get-and-eval-form rt-api (str var-ns) (str var-name) true)
+(defn- instrument-function
+  ([var-ns var-name] (instrument-function var-ns var-name {}))
+  ([var-ns var-name config]
+   (when (or (= var-ns "clojure.core") (= var-ns "cljs.core"))
+     (show-message "Instrumenting clojure.core is almost never a good idea since the debugger itself uses the namespace and you can easily end in a infinite recursion." :warning))
+   (runtime-api/instrument-var rt-api (str var-ns) (str var-name) config)))
 
-  (when add?
-    (add-to-var-instrumented-list var-ns var-name)))
-
-(defn- uninstrument-function [var-ns var-name remove?]
-
-  (runtime-api/get-and-eval-form rt-api (str var-ns) (str var-name) false)
-
-  (when remove?
-    (remove-from-var-instrumented-list var-ns var-name)))
+(defn- uninstrument-function
+  ([var-ns var-name] (uninstrument-function var-ns var-name {}))
+  ([var-ns var-name config]
+   (runtime-api/uninstrument-var rt-api (str var-ns) (str var-name) config)))
 
 (defn add-to-namespace-instrumented-list [ns-maps]
   (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
@@ -67,20 +64,18 @@
   (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (remove-all ns-maps)))
 
-(defn- instrument-namespaces [inst-namespaces add?]
-  (if (some (fn [{:keys [ns-name] :as ns}] (when (= ns-name "clojure.core") ns)) inst-namespaces)
-    (show-message "Instrumenting entire clojure.core is not a good idea. The debugger itself uses the namespace and you will end up in a infinite recursion" :warning)
+(defn- instrument-namespaces
+  ([namepsaces] (instrument-namespaces namepsaces {}))
+  ([namepsaces config]
+   (if (some (fn [{:keys [ns-name] :as ns}] (when (= ns-name "clojure.core") ns)) namepsaces)
+     (show-message "Instrumenting entire clojure.core is not a good idea. The debugger itself uses the namespace and you will end up in a infinite recursion" :warning)
 
-    (do
-      (runtime-api/instrument-namespaces rt-api (map :ns-name inst-namespaces) (:profile (first inst-namespaces)))
-      (when add?
-        (add-to-namespace-instrumented-list inst-namespaces)))))
+     (runtime-api/instrument-namespaces rt-api (map :ns-name namepsaces) (assoc config :profile (-> namepsaces first :profile))))))
 
-(defn- uninstrument-namespaces [inst-namespaces remove?]
-  (runtime-api/uninstrument-namespaces rt-api (map :ns-name inst-namespaces))
-
-  (when remove?
-    (remove-from-namespace-instrumented-list inst-namespaces)))
+(defn- uninstrument-namespaces
+  ([namespaces] (uninstrument-namespaces namespaces {}))
+  ([namespaces config]
+   (runtime-api/uninstrument-namespaces rt-api (map :ns-name namespaces) config)))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
@@ -94,7 +89,7 @@
         args-lists-labels (map (fn [al] (label (str al))) arglists)]
 
     (add-class browser-instrument-button "enable")
-    (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name true)))
+    (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
       (.setText selected-fn-added-label (format "Added: %s" added)))
@@ -145,10 +140,10 @@
                                       (= MouseButton/SECONDARY (.getButton mev))
                                       (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
                                                                           :on-click (fn []
-                                                                                      (instrument-namespaces (map #(make-inst-ns % :light) sel-items) true))}
+                                                                                      (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
                                             ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
                                                                          :on-click (fn []
-                                                                                     (instrument-namespaces (map #(make-inst-ns % :full) sel-items) true))}
+                                                                                     (instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}
                                             ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
                                                                                   ctx-menu-instrument-ns-full])]
 
@@ -216,7 +211,7 @@
                                            (.setSpacing 10))
                                 inst-del-btn (button :label "del"
                                                      :class "browser-instr-del-btn"
-                                                     :on-click (fn [] (uninstrument-function var-ns var-name true)))]
+                                                     :on-click (fn [] (uninstrument-function var-ns var-name)))]
                             (doto (h-box [inst-lbl inst-del-btn])
                               (.setSpacing 10)
                               (.setAlignment Pos/CENTER_LEFT)))
@@ -226,7 +221,7 @@
                                           (.setSpacing 10))
                                inst-del-btn (button :label "del"
                                                     :class "browser-instr-del-btn"
-                                                    :on-click (fn [] (uninstrument-namespaces [inst-ns] true)))]
+                                                    :on-click (fn [] (uninstrument-namespaces [inst-ns])))]
                            (doto (h-box [inst-lbl inst-del-btn])
                              (.setSpacing 10)
                              (.setAlignment Pos/CENTER_LEFT))))]
@@ -243,10 +238,10 @@
                                                  del-namespaces   (:ns type-groups)
                                                  del-vars (:var type-groups)]
 
-                                             (uninstrument-namespaces del-namespaces true)
+                                             (uninstrument-namespaces del-namespaces)
 
                                              (doseq [v del-vars]
-                                               (uninstrument-function (:var-ns v) (:var-name v) true)))))
+                                               (uninstrument-function (:var-ns v) (:var-name v))))))
         en-dis-chk (doto (CheckBox.)
                      (.setSelected true))
         _ (.setOnAction en-dis-chk
@@ -256,14 +251,15 @@
                                change-namespaces   (:ns type-groups)
                                change-vars (:var type-groups)]
 
-                           (if (.isSelected en-dis-chk)
-                             (instrument-namespaces change-namespaces false)
-                             (uninstrument-namespaces change-namespaces false))
+                           (when (seq change-namespaces)
+                             (if (.isSelected en-dis-chk)
+                               (instrument-namespaces change-namespaces {:disable-events? true})
+                               (uninstrument-namespaces change-namespaces {:disable-events? true})))
 
                            (doseq [v change-vars]
                              (if (.isSelected en-dis-chk)
-                               (instrument-function (:var-ns v) (:var-name v) false)
-                               (uninstrument-function (:var-ns v) (:var-name v) false))))))
+                               (instrument-function (:var-ns v) (:var-name v) {:disable-events? true})
+                               (uninstrument-function (:var-ns v) (:var-name v) {:disable-events? true}))))))
         instrumentations-tools (doto (h-box [(label "Enable all")
                                              en-dis-chk
                                              delete-all-btn]

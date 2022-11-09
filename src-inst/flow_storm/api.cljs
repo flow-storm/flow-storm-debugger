@@ -8,7 +8,7 @@
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.tracer]
-            [flow-storm.instrument.runtime])
+            [hansel.instrument.runtime])
   (:require-macros [flow-storm.api]))
 
 (def api-loaded?
@@ -16,6 +16,8 @@
   true)
 
 (defn remote-connect [config]
+
+  (println "About to remote-connect ClojureScript with " config)
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client

@@ -8,6 +8,7 @@
 
 (declare start-repl)
 (declare stop-repl)
+(declare init-repl)
 
 (def log-file-path "./repl-client-debug")
 
@@ -17,7 +18,7 @@
   :stop (stop-repl))
 
 (defn default-repl-ns [{:keys [env-kind]}]
-  (case env-kind :clj "user" :cljs "cljs.user"))
+  (case env-kind :clj "user" :cljs "shadow.user"))
 
 (defn eval-code-str
   ([code-str] (eval-code-str code-str nil))
@@ -32,37 +33,43 @@
     (apply eval-code-str args)
     (catch Exception e (utils/log-error (.getMessage e) e))))
 
-(defn remote-connect-code [config]
-  (format "(fsa/remote-connect %s)" (-> config
-                                        (select-keys [:port :debugger-host])
-                                        (pr-str))))
+(defn safe-cljs-eval-code-str
+  ([code-str] (safe-cljs-eval-code-str code-str nil))
+  ([code-str ns]
+   (try
+     (let [ns (or ns "cljs.user")]
+       (if-let [repl-eval-cljs (:repl-eval-cljs repl)]
+         (repl-eval-cljs code-str ns)
+         (utils/log-error "No cljs repl available")))
+     (catch Exception e (utils/log-error (.getMessage e) e)))))
 
-(defn make-specific-repl-init-sequence [{:keys [repl-type build-id]}]
-  (case repl-type
-    :shadow [{:code (format "(do (require '[shadow.cljs.devtools.api :as shadow]) (require '[flow-storm.runtime.debuggers-api :include-macros true]) (shadow/nrepl-select %s))" build-id)
-              :ns nil}]
+(defn make-cljs-repl-init-sequence [config]
+  (let [remote-opts (select-keys config [:port :debugger-host])]
 
-    ;; else it is a clj remote repl
-    [{:code "(require '[flow-storm.runtime.debuggers-api])"
-      :ns nil}]))
+    [{:code "(do (in-ns 'shadow.user) nil)"                                                  :ns nil           :repl :clj}
+     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api])"                      :ns "shadow.user" :repl :clj}
+     {:code "(require '[flow-storm.api :as fsa :include-macros true])"                       :ns "cljs.user"   :repl :cljs}
+     {:code (format "(fsa/remote-connect %s)" (pr-str remote-opts))                          :ns "cljs.user"   :repl :cljs}
+     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "cljs.user"   :repl :cljs}]))
 
-(defn make-general-repl-init-sequence [{:keys [env-kind] :as config}]
-  (let [default-ns (default-repl-ns config)
+(defn make-clj-repl-init-sequence [config]
+  (let [remote-opts (select-keys config [:port :debugger-host])]
 
-        ns-ensure-command (case env-kind
-                            :clj {:code "(do (in-ns 'user) nil)" :ns nil}
-                            :cljs {:code "(in-ns 'cljs.user)" :ns nil})
-        fs-require-api-command {:code "(require '[flow-storm.api :as fsa :include-macros true])"
-                                :ns default-ns}
-        fs-connect-command {:code (remote-connect-code config)
-                            :ns default-ns}
-        fs-require-dbg-command {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])"
-                                :ns default-ns}]
+    [{:code "(do (in-ns 'user) nil)"                                                         :ns nil    :repl :clj}
+     {:code "(require '[flow-storm.api :as fsa])"                                            :ns "user" :repl :clj}
+     {:code (format "(fsa/remote-connect %s)" (pr-str remote-opts))                          :ns "user" :repl :clj}
+     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "user" :repl :clj}]))
 
-    [ns-ensure-command
-     fs-require-api-command
-     fs-connect-command
-     fs-require-dbg-command]))
+(defn init-repl
+  ([config] (init-repl config (:repl-eval repl) (:repl-eval-cljs repl)))
+  ([{:keys [env-kind] :as config} repl-eval repl-eval-cljs]
+   (let [repl-init-sequence (case env-kind
+                              :clj  (make-clj-repl-init-sequence config)
+                              :cljs (make-cljs-repl-init-sequence config))]
+     (doseq [{:keys [code ns repl]} repl-init-sequence]
+       (case repl
+         :clj  (repl-eval code ns)
+         :cljs (repl-eval-cljs code ns))))))
 
 (defn start-repl []
   (utils/log "[Starting Repl subsystem]")
@@ -92,18 +99,20 @@
                         (try
                           (read-string {} response)
                           (catch Exception e
-                            (utils/log-error (.getMessage e))))))]
+                            (utils/log-error (.getMessage e))))))
+          repl-eval-cljs (fn [code-str ns]
+                           (repl-eval (format "((requiring-resolve 'hansel.instrument.utils/eval-in-ns-fn-cljs) '%s '%s %s)"
+                                              ns
+                                              code-str
+                                              (pr-str (select-keys config [:build-id])))
+                                      "shadow.user"))]
 
       (utils/log "Initializing repl...")
 
-      ;; initialize the repl
-      (doseq [{:keys [code ns]} (make-specific-repl-init-sequence config)]
-        (repl-eval code ns))
-
-      (doseq [{:keys [code ns]} (make-general-repl-init-sequence config)]
-        (repl-eval code ns))
+      (init-repl config repl-eval repl-eval-cljs)
 
       {:repl-eval repl-eval
+       :repl-eval-cljs repl-eval-cljs
        :close-connection (fn []
                            (:close-connection srepl)
                            (.close log-output-stream))})))

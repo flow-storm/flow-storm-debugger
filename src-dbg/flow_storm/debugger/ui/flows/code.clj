@@ -146,7 +146,7 @@
                                        (runtime-api/eval-form rt-api
                                                               (pr-str (:form/form form))
                                                               {:instrument? true
-                                                               :instrument-options {:disable #{:binding}}
+                                                               :instrument-options {:disable #{:bind}}
                                                                :ns (:form/ns form)}))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 

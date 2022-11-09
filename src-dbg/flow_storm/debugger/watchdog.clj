@@ -49,10 +49,9 @@
               (do
                 (try
                   ;; if we lost the connection to the runtime, and we are connected to a repl,
-                  ;; we also lost runtime initialization, so we need to re init the runtime bef
+                  ;; we also lost runtime initialization, so we need to re init the runtime
                   (when (:connect-to-repl? config)
-                    (doseq [{:keys [code ns]} (repl-core/make-general-repl-init-sequence config)]
-                      (repl-core/safe-eval-code-str code ns)))
+                    (repl-core/init-repl config))
 
                   ;; if we started, lets wait some time before checking again
                   (async/<! (async/timeout 5000))

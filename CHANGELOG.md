@@ -5,7 +5,9 @@
 ## New Features
 
 ### Changes
-	    
+
+    - Migrate to hansel for instrumentation (should be much better than previous instrumentation system)
+	
 ### Bugs fixed
     
 	- Fix automatic [un]instrumentation watcher
