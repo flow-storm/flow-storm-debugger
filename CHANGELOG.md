@@ -4,6 +4,14 @@
 	
 ## New Features
     
+### Changes
+
+### Bugs fixed
+    
+## 3.2.271 (16-11-2022)
+	
+## New Features
+    
 	- New tap button allows you to tap> any value from the UI (nice to integrate with other tooling like portal)
 	- New locals "tap value" allows you to tap> any locals
 	

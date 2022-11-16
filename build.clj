@@ -153,7 +153,7 @@
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
-        version (format "3.1.%s" (b/git-count-revs nil))
+        version (format "3.2.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:dbg :inst]})
         jar-file (format "target/%s.jar" (name lib))
@@ -173,7 +173,7 @@
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "3.1.%s" (b/git-count-revs nil))
+        version (format "3.2.%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases [:inst]})
         jar-file (format "target/%s.jar" (name lib))
