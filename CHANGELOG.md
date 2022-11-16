@@ -3,13 +3,14 @@
 ## master (unreleased)
 	
 ## New Features
-	
+    
 	- New tap button allows you to tap> any value from the UI (nice to integrate with other tooling like portal)
 	- New locals "tap value" allows you to tap> any locals
 	
 ### Changes
 
     - Migrate to hansel for instrumentation (should be much better than previous instrumentation system)
+	- Value inspector navigation bar now shows keys instead of val text
 	
 ### Bugs fixed
     

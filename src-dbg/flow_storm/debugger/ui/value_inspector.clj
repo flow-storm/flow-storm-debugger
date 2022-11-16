@@ -47,16 +47,23 @@
                        (update-stack-bar-pane ctx)))))
                  @vals-panes-stack)))
 
-(defn dig-node [v]
-  (when (and (vector? v) (= :val/dig-node (first v)))
+(defn dig-node? [x]
+  (and (vector? x)
+       (= :val/dig-node (first x))))
+
+(defn dig-node-val [v]
+  (when (dig-node? v)
     (second v)))
 
-(defn- create-dig-node [ctx v]
-  (if-let [v (dig-node v)]
+(defn- create-dig-node [ctx k v]
+  (if-let [v (dig-node-val v)]
     (let [stack-txt-len 20
           node-txt-len 80
           val-txt (runtime-api/val-pprint rt-api v {:print-level 4 :pprint? false :print-length 20})
-          stack-txt (utils/elide-string val-txt stack-txt-len)
+          stack-txt (utils/elide-string (if (dig-node? k)
+                                          val-txt
+                                          (str k))
+                                        stack-txt-len)
           node-txt (utils/elide-string val-txt node-txt-len)]
       (doto (label node-txt "link-lbl")
         (.setOnMouseClicked
@@ -70,17 +77,24 @@
     (label (pr-str v))))
 
 (defn- create-shallow-map-pane [ctx shallow-v]
-  (table-view {:columns ["Key" "Value"]
-               :cell-factory-fn (fn [item]
-                                  (create-dig-node ctx item))
-               :items (:val/map-entries shallow-v)}))
+  (let [item->key (reduce (fn [r [k v]]
+                            (assoc r v k))
+                          {}
+                          (:val/map-entries shallow-v))]
+    (table-view {:columns ["Key" "Value"]
+                 :cell-factory-fn (fn [item]
+                                    (create-dig-node ctx (item->key item) item))
+                 :items (:val/map-entries shallow-v)})))
 
 (defn- create-shallow-seq-pane [ctx shallow-v]
   (let [{:keys [list-view-pane add-all]} (ui-utils/list-view
                                           {:editable? false
-                                           :cell-factory-fn (fn [list-cell elem]
+                                           :cell-factory-fn (fn [list-cell {:keys [val idx]}]
                                                               (.setText list-cell nil)
-                                                              (.setGraphic list-cell (create-dig-node ctx elem)))})
+                                                              (.setGraphic list-cell (create-dig-node ctx idx val)))})
+        add-shallow-page-to-list (fn [{:keys [val/page page/offset]}]
+                                   (add-all (->> page
+                                                 (map-indexed (fn [i v] {:val v :idx (+ offset i)})))))
         header-lbl (label (format "Count : %s" (if-let [cnt (:total-count shallow-v)] cnt "unknown")))
         more-button (when (:val/more shallow-v) (button :label "More.."))
         change-more-handler-for-shallow (fn change-more-handler-for-shallow [{:keys [val/more]}]
@@ -88,9 +102,9 @@
                                             (doto more-button
                                               (.setOnAction (event-handler
                                                              [_]
-                                                             (let [new-val (runtime-api/shallow-val rt-api more)]
-                                                               (add-all (:val/page new-val))
-                                                               (change-more-handler-for-shallow new-val)))))
+                                                             (let [new-shallow-v (runtime-api/shallow-val rt-api more)]
+                                                               (add-shallow-page-to-list new-shallow-v)
+                                                               (change-more-handler-for-shallow new-shallow-v)))))
                                             (doto more-button
                                               (.setDisable true)
                                               (.setOnAction (event-handler [_])))
@@ -100,7 +114,7 @@
                                   list-view-pane]
                            more-button (conj (change-more-handler-for-shallow shallow-v))))]
     (HBox/setHgrow container Priority/ALWAYS)
-    (add-all (:val/page shallow-v))
+    (add-shallow-page-to-list shallow-v)
 
     container))
 

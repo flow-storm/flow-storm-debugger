@@ -106,7 +106,8 @@
      :val/map-entries entries}))
 
 (defn- build-shallow-seq [data]  
-  (let [page-size 50
+  (let [{:keys [page/offset] :or {offset 0}} (meta data)
+        page-size 50
         cnt (when (counted? data) (count data))
         shallow-page (->> data
                           (map #(maybe-dig-node! %))
@@ -115,12 +116,15 @@
         shallow-page-cnt (count shallow-page)
         more-elems (drop shallow-page-cnt data)]
     (cond-> {:val/kind :seq
-             :val/page shallow-page             
+             :val/page shallow-page
+             :page/offset offset
              :total-count cnt}
-      (seq more-elems) (assoc :val/more (reference-value! more-elems)))))
+      (seq more-elems) (assoc :val/more (reference-value! (with-meta more-elems {:page/offset (+ offset shallow-page-cnt)}))))))
 
 (defn shallow-val [v]
-  (let [data (datafy/datafy v)
+  (let [v-meta (meta v)
+        data (cond-> (datafy/datafy v) ;; forward meta since we are storing meta like :page/offset in references
+               v-meta (with-meta v-meta))
         type-name (pr-str (type v))
         shallow-data (cond
                        (utils/map-like? data)
