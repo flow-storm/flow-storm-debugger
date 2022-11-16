@@ -108,8 +108,13 @@
   (let [def-btn (button :label "def"
                         :class "def-btn"
                         :on-click (fn [] (def-val (:val/full shallow-v))))
+        tap-btn (button :label "tap"
+                        :class "def-btn"
+                        :on-click (fn [] (runtime-api/tap-value rt-api (:val/full shallow-v))))
+        buttons-box (doto (h-box [def-btn tap-btn])
+                      (.setSpacing 5))
         frame-pane (border-pane {:top (border-pane {:left (label (format "Type: %s" (:val/type shallow-v)))
-                                                    :right def-btn}
+                                                    :right buttons-box}
                                                    "value-inspector-header")
                                  :center (h-box [(case (:val/kind shallow-v)
                                                    :simple (h-box [(label (:val/str shallow-v))])

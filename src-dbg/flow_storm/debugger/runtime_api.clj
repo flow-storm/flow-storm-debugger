@@ -47,6 +47,7 @@
   (discard-flow [_ flow-id])
 
   (def-value [_ v-name v])
+  (tap-value [_ v])
 
   (get-all-namespaces [_])
   (get-all-vars-for-ns [_ nsname])
@@ -116,6 +117,7 @@
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-frame-idx" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :local "def-value" [v-name vref]))
+  (tap-value [_ vref] (api-call :local "tap-value" [vref]))
 
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
   (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
@@ -201,6 +203,7 @@
   (search-next-frame-idx [_ flow-id thread-id query-str from-idx opts] (api-call :remote "search-next-frame-idx" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ v-name vref] (api-call :remote "def-value" [v-name vref]))
+  (tap-value [_ vref] (api-call :remote "tap-value" [vref]))
 
   (get-all-namespaces [_]
     (case env-kind

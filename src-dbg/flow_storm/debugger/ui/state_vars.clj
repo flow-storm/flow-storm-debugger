@@ -115,6 +115,9 @@
 (defn thread-pprint-inspect-btn-id [thread-id pane-id]
   (format "pprint_inspect_btn_id_%d_%s" thread-id pane-id))
 
+(defn thread-pprint-tap-btn-id [thread-id pane-id]
+  (format "pprint_tap_btn_id_%d_%s" thread-id pane-id))
+
 (defn thread-pprint-level-txt-id [thread-id pane-id]
   (format "pprint_level_txt_id_%d_%s" thread-id pane-id))
 

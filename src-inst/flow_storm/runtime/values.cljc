@@ -135,6 +135,10 @@
            :val/type type-name
            :val/full (reference-value! v))))
 
+(defn tap-value [vref]
+  (let [v (get-reference-value vref)]
+    (tap> v)))
+
 #?(:clj
    (defn def-value [val-name vref]
      (intern 'user (symbol val-name) (get-reference-value vref)))

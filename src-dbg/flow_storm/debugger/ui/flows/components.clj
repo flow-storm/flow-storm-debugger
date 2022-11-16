@@ -25,10 +25,12 @@
                           (.setAlignment Pos/CENTER))
         def-btn (button :label "def" :class "def-btn")
         inspect-btn (button :label "ins" :class "def-btn")
+        tap-btn (button :label "tap" :class "def-btn")
         tools-box (doto (h-box [(label "*print-level*") print-level-txt
                                 (label "*print-meta*") print-meta-chk
                                 def-btn
-                                inspect-btn])
+                                inspect-btn
+                                tap-btn])
                     (.setAlignment Pos/CENTER_RIGHT)
                     (.setSpacing 3.0))
         box (v-box [tools-box result-text-area])]
@@ -38,6 +40,7 @@
     (store-obj flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id) print-meta-chk)
     (store-obj flow-id (ui-vars/thread-pprint-def-btn-id thread-id pane-id) def-btn)
     (store-obj flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id) inspect-btn)
+    (store-obj flow-id (ui-vars/thread-pprint-tap-btn-id thread-id pane-id) tap-btn)
     box))
 
 (defn update-pprint-pane [flow-id thread-id pane-id val]
@@ -46,6 +49,7 @@
         [print-meta-chk]  (obj-lookup flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id))
         [def-btn] (obj-lookup flow-id (ui-vars/thread-pprint-def-btn-id thread-id pane-id))
         [inspect-btn] (obj-lookup flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id))
+        [tap-btn] (obj-lookup flow-id (ui-vars/thread-pprint-tap-btn-id thread-id pane-id))
         val-str (when val
                   (runtime-api/val-pprint rt-api val {:print-length 50
                                                       :print-level (Integer/parseInt (.getText print-level-txt))
@@ -53,4 +57,5 @@
                                                       :pprint? true}))]
     (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
     (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val)))
+    (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val)))
     (.setText text-area val-str)))

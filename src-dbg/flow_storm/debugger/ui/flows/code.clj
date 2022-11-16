@@ -87,6 +87,9 @@
           ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
                                                  :on-click (fn []
                                                              (value-inspector/def-val val))}
+                                                {:text "Tap val"
+                                                 :on-click (fn []
+                                                             (runtime-api/tap-value rt-api val))}
                                                 {:text "Inspect"
                                                  :on-click (fn []
                                                              (value-inspector/create-inspector val))}])]

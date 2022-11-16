@@ -42,6 +42,7 @@
     (runtime-values/shallow-val v)))
 
 (def def-value runtime-values/def-value)
+(def tap-value runtime-values/tap-value)
 
 (defn get-form [flow-id thread-id form-id]
   (let [form (indexes-api/get-form flow-id thread-id form-id)]
@@ -243,6 +244,7 @@
              :search-next-frame-idx search-next-frame-idx
              :discard-flow discard-flow
              :def-value def-value
+             :tap-value tap-value
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
              :clear-values-references clear-values-references
