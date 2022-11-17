@@ -1,0 +1,30 @@
+* Test cases
+
+| Name                            | Local Clj | Remote Clj | ClojureScript        |
+|---------------------------------+-----------+------------+----------------------|
+| Basic #rtrace                   | OK        | OK         | OK                   |
+| Basic #trace                    | OK        | OK         | OK                   |
+| Def val                         | OK        | OK         | OK                   |
+| Inspect val                     | OK        | OK         | OK                   |
+| REPL [un]instrument var         | OK        | OK         | OK / ~UN-FAIL-known~ |
+| REPL [un]instrument namespaces  | OK        | OK         | OK                   |
+| Correct stepping                | OK        | OK         | OK                   |
+| Goto trace by typing idx        | OK        | OK         | OK                   |
+| Browser navigation              | OK        | OK         | OK                   |
+| Browser [un]instrument var      | OK        | OK         | ~UN-FAIL-known~      |
+| Browser [un]instrument ns       | OK        | OK         | OK                   |
+| Browser enable/disable instr    | OK        | OK         | OK                   |
+| Browser [un]instr sync          | OK        | OK         | N/A                  |
+| Cli-run                         | OK        | N/A        | N/A                  |
+| Re-run flow                     | OK        | OK         | OK                   |
+| Call tree                       | OK        | OK         | OK                   |
+| Call tree goto trace            | OK        | OK         | OK                   |
+| Call search                     | OK        | OK         | OK                   |
+| Functions list                  | OK        | OK         | OK                   |
+| Functions list goto trace       | OK        | OK         | OK                   |
+| Fully instrument form           | OK        | OK         | OK                   |
+| UnInstrument forms from fn list | OK        | OK         | ~UN-FAIL-FAIL~       |
+| Taps                            | OK        | OK         | OK                   |
+| Themes                          | OK        | OK         | OK                   |
+| Auto reconnect                  | N/A       | OK         | OK                   |
+|                                 |           |            |                      |
