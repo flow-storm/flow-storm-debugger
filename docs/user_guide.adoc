@@ -859,6 +859,10 @@ Then everything should work. The steps are:
     . That should get you into the REPL, where you should type (require '[flow-storm.api :as fs-api])
     . Finally, type (fs-api/local-connect) and you're done!
 
+== Editors/IDEs integration
+
+https://github.com/jpmonettas/flow-storm-debugger/tree/master/editors[This document] will track information on different ways to integrate editors/IDEs with FlowStorm.
+
 == Tutorials and demos
 
 - https://www.youtube.com/watch?v=PbGVTVs1yiU[Debugging Clojure with FlowStorm]

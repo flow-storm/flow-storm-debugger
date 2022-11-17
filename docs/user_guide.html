@@ -737,14 +737,15 @@ pre.rouge {
 <li><a href="#_key_bindings">14. Key bindings</a></li>
 <li><a href="#_debugging_react_native_applications">15. Debugging react native applications</a></li>
 <li><a href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></li>
-<li><a href="#_tutorials_and_demos">17. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">18. Troubleshooting</a>
+<li><a href="#_editorsides_integration">17. Editors/IDEs integration</a></li>
+<li><a href="#_tutorials_and_demos">18. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">19. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">18.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">18.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">19.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">19.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">19. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">20. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -1197,14 +1198,14 @@ functions can be instrumented normally.</p>
 <div class="sect4">
 <h5 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">Instrument namespaces</a></h5>
 <div class="paragraph">
-<p>FlowStorm allows you to instrument entire namespaces by providing <code>flow-strom.api/instrument-forms-for-namespaces</code>.</p>
+<p>FlowStorm allows you to instrument entire namespaces by providing <code>flow-strom.api/instrument-namespaces-clj</code>.</p>
 </div>
 <div class="paragraph">
 <p>You call it like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">instrument-forms-for-namespaces</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">"org.my-app.core"</span><span class="w"> </span><span class="s">"cljs."</span><span class="p">}</span><span class="w"> </span><span class="p">{})</span></code></pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">instrument-namespaces-clj</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">"org.my-app.core"</span><span class="w"> </span><span class="s">"cljs."</span><span class="p">})</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1212,7 +1213,7 @@ functions can be instrumented normally.</p>
 instrument all namespaces starting with <code>org.my-app.core</code>, and all starting with <code>cljs.</code></p>
 </div>
 <div class="paragraph">
-<p>The second argument is a map supporting the following options :</p>
+<p>The second argument can be a map supporting the following options :</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1255,7 +1256,7 @@ and FlowStorm automatically tries to instrument it with a lighter profile, by di
 <p>Un-instrumenting code that has been instrumented with <code>#trace</code> or <code>#ctrace</code> is straight forward, just remove the tag and re evaluate the form.</p>
 </div>
 <div class="paragraph">
-<p>To un-instrument entire namespaces you can use <code>flow-storm.api/uninstrument-forms-for-namespaces</code> which accept a set of namespaces prefixes.</p>
+<p>To un-instrument entire namespaces you can use <code>flow-storm.api/uninstrument-namespaces-clj</code> which accept a set of namespaces prefixes.</p>
 </div>
 </div>
 </div>
@@ -1290,7 +1291,7 @@ and then a right click should show you a menu with two instrumentation commands.
 <div class="ulist">
 <ul>
 <li>
-<p><code>Instrument namespace :light</code> (disables expressions, bindings tracing)</p>
+<p><code>Instrument namespace :light</code> - record function arguments and return values (not expressions, no bindings tracing)</p>
 </li>
 <li>
 <p><code>Instrument namespace :full</code> fully instrument everything</p>
@@ -2057,7 +2058,13 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">17. Tutorials and demos</a></h3>
+<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">17. Editors/IDEs integration</a></h3>
+<div class="paragraph">
+<p><a href="https://github.com/jpmonettas/flow-storm-debugger/tree/master/editors">This document</a> will track information on different ways to integrate editors/IDEs with FlowStorm.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">18. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2091,16 +2098,16 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">18. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">19. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">18.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">19.1. Instrument verbose</a></h4>
 <div class="paragraph">
-<p>By default functions like <code>flow-storm.api/instrument-form-for-namespaces</code> will not print warnings on the console. You can log extra information
+<p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">18.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">19.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -2113,7 +2120,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">19. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">20. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2131,7 +2138,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-10-18 16:37:00 -0300
+Last updated 2022-11-17 13:28:17 -0300
 </div>
 </div>
 </body>
