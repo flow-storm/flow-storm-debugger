@@ -2,6 +2,8 @@
 
 ## Emacs
 
+*Important: requires flow-storm >= 3.2.275*
+
 *Support if for Clojure only so far*, ClojureScript comming soon.
 
 There is currently a very minimal Emacs integration defined in flow-storm.el.
