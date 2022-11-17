@@ -79,11 +79,11 @@
 ;; instrument and run dev-tester namespaces
 (comment
 
-  (fs-api/instrument-forms-for-namespaces
+  (fs-api/instrument-namespaces-clj
    #{"dev-tester"}
    {:disable #{} #_#{:expr-exec :anonymous-fn :bind}})
 
-  (fs-api/uninstrument-forms-for-namespaces #{"dev-tester"})
+  (fs-api/uninstrument-namespaces-clj #{"dev-tester"})
 
   #rtrace (dev-tester/boo [2 "hello" 6])
 
@@ -102,7 +102,7 @@
 (comment
 
   (index-api/print-threads)
-  (index-api/select-thread 0 16)
+  (index-api/select-thread 0 18)
   (index-api/print-forms)
 
   ;; Synthesizing all the spec information for parameters that flow into a function

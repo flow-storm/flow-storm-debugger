@@ -170,8 +170,9 @@
 
   "Undo instrumentation made by `flow-storm.api/instrument-namespaces-clj`"
 
-  [prefixes]
-  (dbg-api/uninstrument-namespaces :clj prefixes {}))
+  ([prefixes] (uninstrument-namespaces-clj prefixes {}))
+  ([prefixes opts]
+   (dbg-api/uninstrument-namespaces :clj prefixes opts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ClojureScript instrumentation ;;
