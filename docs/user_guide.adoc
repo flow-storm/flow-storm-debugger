@@ -71,7 +71,7 @@ your code, and many ways to explore its executions.
 === ClojureScript
 
 Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
-will run in a separate process and connect to the debuggee by connecting to a ClojureScript repl.
+will run in a separate process and connect to the debuggee by connecting to a repl.
 
 For enabling every debugger feature, remote connections needs a repl. If you don't connect to a repl you
 can still use the debugger but you will have to call `flow-storm.api/remote-connect` by hand on your app.
@@ -86,13 +86,16 @@ Lets say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to s
 
 First you need to add FlowStorm dependency to your project dependencies, like this :
 
-[,bash]
+[,clojure]
 ----
 $ cat shadow-cljs.edn
 
 {...
  :dependencies [... [com.github.jpmonettas/flow-storm-inst "RELEASE"]]
+
+ ;; the next two lines aren't needed but pretty convenient
  :nrepl {:port 9000}
+ :your-build-id {:devtools {:preloads [flow-storm.api]}}
  ...} 
 ----
 
