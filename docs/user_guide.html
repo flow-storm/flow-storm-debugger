@@ -879,7 +879,7 @@ can still use the debugger but you will have to call <code>flow-storm.api/remote
 
  </span><span class="c1">;; the next two lines aren't needed but pretty convenient</span><span class="w">
  </span><span class="no">:nrepl</span><span class="w"> </span><span class="p">{</span><span class="no">:port</span><span class="w"> </span><span class="mi">9000</span><span class="p">}</span><span class="w">
- </span><span class="no">:your-build-id</span><span class="w"> </span><span class="p">{</span><span class="no">:devtools</span><span class="w"> </span><span class="p">{</span><span class="no">:preloads</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.api</span><span class="p">]}}</span><span class="w">
+ </span><span class="no">:my-build-id</span><span class="w"> </span><span class="p">{</span><span class="no">:devtools</span><span class="w"> </span><span class="p">{</span><span class="no">:preloads</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.api</span><span class="p">]}}</span><span class="w">
  </span><span class="n">...</span><span class="p">}</span></code></pre>
 </div>
 </div>
@@ -888,14 +888,15 @@ can still use the debugger but you will have to call <code>flow-storm.api/remote
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">npx shadow-cljs browser-repl
+<pre class="rouge highlight"><code data-lang="bash">npx shadow-cljs watch :my-build-id
 
 shadow-cljs - config: /home/jmonetta/demo/shadow-cljs.edn
 shadow-cljs - server version: 2.19.0 running at http://localhost:9630
 shadow-cljs - nREPL server started on port 9000
-<span class="o">[</span>:browser-repl] Configuring build.
-<span class="o">[</span>:browser-repl] Compiling ...
-<span class="o">[</span>:browser-repl] Build completed. <span class="o">(</span>127 files, 0 compiled, 0 warnings, 6.19s<span class="o">)</span>
+shadow-cljs - watching build :my-build-id
+<span class="o">[</span>:my-build-id] Configuring build.
+<span class="o">[</span>:my-build-id] Compiling ...
+<span class="o">[</span>:my-build-id] Build completed. <span class="o">(</span>127 files, 0 compiled, 0 warnings, 6.19s<span class="o">)</span>
 
 cljs.user<span class="o">=&gt;</span></code></pre>
 </div>
@@ -907,10 +908,10 @@ so to start the debugger and connect to it you run :</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 
 <span class="p">;;</span> on windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2141,7 +2142,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-22 09:16:14 -0300
+Last updated 2022-11-22 09:36:46 -0300
 </div>
 </div>
 </body>

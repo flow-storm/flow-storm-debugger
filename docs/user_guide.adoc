@@ -95,7 +95,7 @@ $ cat shadow-cljs.edn
 
  ;; the next two lines aren't needed but pretty convenient
  :nrepl {:port 9000}
- :your-build-id {:devtools {:preloads [flow-storm.api]}}
+ :my-build-id {:devtools {:preloads [flow-storm.api]}}
  ...} 
 ----
 
@@ -103,14 +103,15 @@ Then lets say you start your repl like :
 
 [,bash]
 ----
-npx shadow-cljs browser-repl
+npx shadow-cljs watch :my-build-id
 
 shadow-cljs - config: /home/jmonetta/demo/shadow-cljs.edn
 shadow-cljs - server version: 2.19.0 running at http://localhost:9630
 shadow-cljs - nREPL server started on port 9000
-[:browser-repl] Configuring build.
-[:browser-repl] Compiling ...
-[:browser-repl] Build completed. (127 files, 0 compiled, 0 warnings, 6.19s)
+shadow-cljs - watching build :my-build-id
+[:my-build-id] Configuring build.
+[:my-build-id] Compiling ...
+[:my-build-id] Build completed. (127 files, 0 compiled, 0 warnings, 6.19s)
 
 cljs.user=> 
 ----
@@ -121,10 +122,10 @@ so to start the debugger and connect to it you run :
 [,bash]
 ----
 ;; on linux and mac-os
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 
 ;; on windows
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 ----
 
 And that is all you need, the debugger GUI will pop up and everything will be ready.
