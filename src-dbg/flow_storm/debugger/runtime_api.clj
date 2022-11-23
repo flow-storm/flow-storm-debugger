@@ -224,13 +224,15 @@
     (case env-kind
       :clj (api-call :remote "instrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [opts (assoc opts :build-id (:build-id config))]
+              (show-message "FlowStorm ClojureScript single var instrumentation is pretty limited. You can instrument them only once, and the only way of uninstrumenting them is by reloading your page or restarting your node process. Also deep instrumentation is missing some cases. So for most cases you are going to be better with [un]instrumenting entire namespaces." :warning)
               (safe-eval-code-str (format "(dbg-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (uninstrument-var [_ var-ns var-name opts]
     (case env-kind
       :clj (api-call :remote "uninstrument-var" [:clj (symbol var-ns var-name) opts])
-      :cljs (let [opts (assoc opts :build-id (:build-id config))]
-              (safe-eval-code-str (format "(dbg-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+      :cljs (let [_opts (assoc opts :build-id (:build-id config))]
+              (show-message "FlowStorm currently can't uninstrument single vars in ClojureScript. You can only [un]instrument entire namespaces. If you want to get rid of the current vars instrumentation please reload your browser page, or restart your node process." :warning)
+              #_(safe-eval-code-str (format "(dbg-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
     (let [opts (assoc opts :disable (utils/disable-from-profile profile))]

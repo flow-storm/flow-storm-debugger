@@ -358,6 +358,11 @@ Using the browser you can navigate to the var you are interested in and then use
 
 image::user_guide_images/browser_var_instrumentation.png[]
 
+There are two ways of instrumenting a var :
+
+- Instrument (instrument just the var source code)
+- Instrument recursively (recursively instrument the var and all vars refered by it)
+
 ==== Instrument namespaces
 
 Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in

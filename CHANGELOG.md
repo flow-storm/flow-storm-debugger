@@ -4,6 +4,8 @@
 	
 ## New Features
     
+	- Add browser var recursive instrumentation
+	
 ### Changes
 
 ### Bugs fixed

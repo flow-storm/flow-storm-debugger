@@ -169,6 +169,10 @@
 	visibility: visible;
 }
 
+.browser-var-buttons {
+	-fx-padding: 10;
+}
+
 .browser-instr-del-btn {
     -fx-font-size: 10;
 }

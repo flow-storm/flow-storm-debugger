@@ -78,18 +78,22 @@
    (runtime-api/uninstrument-namespaces rt-api (map :ns-name namespaces) config)))
 
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
-  (let [[browser-instrument-button]   (obj-lookup "browser-instrument-button")
-        [selected-fn-fq-name-label]   (obj-lookup "browser-selected-fn-fq-name-label")
-        [selected-fn-added-label]     (obj-lookup "browser-selected-fn-added-label")
-        [selected-fn-file-label]      (obj-lookup "browser-selected-fn-file-label")
-        [selected-fn-static-label]    (obj-lookup "browser-selected-fn-static-label")
-        [selected-fn-args-list-v-box] (obj-lookup "browser-selected-fn-args-list-v-box")
-        [selected-fn-doc-label]       (obj-lookup "browser-selected-fn-doc-label")
+  (let [[browser-instrument-button]       (obj-lookup "browser-instrument-button")
+        [browser-instrument-rec-button]   (obj-lookup "browser-instrument-rec-button")
+        [selected-fn-fq-name-label]       (obj-lookup "browser-selected-fn-fq-name-label")
+        [selected-fn-added-label]         (obj-lookup "browser-selected-fn-added-label")
+        [selected-fn-file-label]          (obj-lookup "browser-selected-fn-file-label")
+        [selected-fn-static-label]        (obj-lookup "browser-selected-fn-static-label")
+        [selected-fn-args-list-v-box]     (obj-lookup "browser-selected-fn-args-list-v-box")
+        [selected-fn-doc-label]           (obj-lookup "browser-selected-fn-doc-label")
 
         args-lists-labels (map (fn [al] (label (str al))) arglists)]
 
     (add-class browser-instrument-button "enable")
+    (add-class browser-instrument-rec-button "enable")
     (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
+    (.setOnAction browser-instrument-rec-button (event-handler [_] (instrument-function ns name {:deep? true})))
+
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
       (.setText selected-fn-added-label (format "Added: %s" added)))
@@ -180,7 +184,10 @@
 (defn create-fn-details-pane []
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
         inst-button (button :label "Instrument" :class "browser-instrument-btn")
-        name-box (doto (h-box [selected-fn-fq-name-label inst-button])
+        inst-rec-button (button :label "Instrument recursively" :class "browser-instrument-btn")
+        btns-box (doto (h-box [inst-button inst-rec-button] "browser-var-buttons")
+                   (.setSpacing 5))
+        name-box (doto (h-box [selected-fn-fq-name-label])
                    (.setAlignment Pos/CENTER_LEFT))
         selected-fn-added-label (label "" "browser-fn-attr")
         selected-fn-file-label (label "" "browser-fn-attr")
@@ -188,11 +195,16 @@
         selected-fn-args-list-v-box (v-box [] "browser-fn-args-box")
         selected-fn-doc-label (label "" "browser-fn-attr")
 
-        selected-fn-detail-pane (v-box [name-box selected-fn-args-list-v-box
-                                        selected-fn-added-label selected-fn-doc-label
-                                        selected-fn-file-label selected-fn-static-label])]
+        selected-fn-detail-pane (v-box [name-box
+                                        btns-box
+                                        selected-fn-args-list-v-box
+                                        selected-fn-added-label
+                                        selected-fn-doc-label
+                                        selected-fn-file-label
+                                        selected-fn-static-label])]
 
     (store-obj "browser-instrument-button" inst-button)
+    (store-obj "browser-instrument-rec-button" inst-rec-button)
     (store-obj "browser-selected-fn-fq-name-label" selected-fn-fq-name-label)
     (store-obj "browser-selected-fn-added-label" selected-fn-added-label)
     (store-obj "browser-selected-fn-file-label" selected-fn-file-label)
