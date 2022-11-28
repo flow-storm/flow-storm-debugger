@@ -4,6 +4,7 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.events-queue :as events-queue]
             [flow-storm.debugger.watchdog]
+            [flow-storm.debugger.docs]
             [flow-storm.debugger.runtime-api]
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.repl.core]
@@ -23,6 +24,7 @@
    #'flow-storm.debugger.ui.state-vars/ui-objs
    #'flow-storm.debugger.ui.state-vars/flows-ui-objs
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
+   #'flow-storm.debugger.docs/fn-docs
    #'flow-storm.debugger.state/state
    #'flow-storm.debugger.ui.main/ui
    #'flow-storm.debugger.runtime-api/rt-api])

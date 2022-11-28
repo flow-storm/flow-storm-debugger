@@ -6,10 +6,10 @@ clean:
 	clj -T:build clean
 
 test-clj:
-	clj -M:test-clj:inst unit-clj
+	clj -M:test-clj unit-clj
 
 test-cljs:
-	rm .cljs_node_repl -rf; clj -M:test-cljs:inst unit-cljs
+	rm .cljs_node_repl -rf; clj -M:test-cljs unit-cljs
 
 test-all: test-clj test-cljs
 
@@ -17,22 +17,22 @@ lint:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst
 
 connect-to-shadow:
-	clj -X:dbg flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
+	clj -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :browser-repl
 
 connect-to-clj:
-	clj -X:dbg flow-storm.debugger.main/start-debugger :port 9000
+	clj -X flow-storm.debugger.main/start-debugger :port 9000
 
 test-instrument-own-cljs-light:
-	clj -X:dbg:inst:test-clj flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':light' :flow-id 0 :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.core"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
+	clj -X:test-clj flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':light' :flow-id 0 :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.core"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
 
 test-instrument-own-cljs-full:
-	clj -X:dbg:inst:test-clj flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':full'  :flow-id 0 :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.core"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
+	clj -X:test-clj flow-storm.api/cli-run :instrument-ns '#{"cljs."}' :profile ':full'  :flow-id 0 :require-before '#{"cljs.repl.node"}' :excluding-ns '#{"cljs.core"}' :fn-symb 'cljs.main/-main' :fn-args '["-t" "nodejs" "/home/jmonetta/flow-storm-testers/cljs/src/org/foo/myscript.cljs"]';
 
 test-local:
-	clj -X:dbg:inst:dev dev/start-and-add-data
+	clj -X:dev dev/start-and-add-data
 
 test-remote:
-	clj -X:dbg:inst:dev dev/run-remote-test
+	clj -X:dev dev/run-remote-test
 
 flow-storm-dbg.jar:
 	clj -T:build jar-dbg

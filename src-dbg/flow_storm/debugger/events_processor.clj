@@ -7,32 +7,39 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.config :refer [debug-mode]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.utils :refer [log]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]))
+            [flow-storm.debugger.ui.state-vars :as ui-vars]
+            [flow-storm.debugger.docs :as docs]))
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
-   (browser-screen/add-to-var-instrumented-list var-ns var-name)))
+   (browser-screen/add-to-var-instrumented-list var-ns var-name)
+   (ui-main/select-main-tools-tab :browser)))
 
 (defn- var-uninstrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
-   (browser-screen/remove-from-var-instrumented-list var-ns var-name)))
+   (browser-screen/remove-from-var-instrumented-list var-ns var-name)
+   (ui-main/select-main-tools-tab :browser)))
 
 (defn- namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/add-to-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])))
+   (browser-screen/add-to-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])
+   (ui-main/select-main-tools-tab :browser)))
 
 (defn- namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/remove-from-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])))
+   (browser-screen/remove-from-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])
+   (ui-main/select-main-tools-tab :browser)))
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
-   (taps-screen/add-tap-value value)))
+   (taps-screen/add-tap-value value)
+   (ui-main/select-main-tools-tab :taps)))
 
 (defn- flow-created-event [{:keys [flow-id form-ns form timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
@@ -57,6 +64,11 @@
 (defn- task-progress-event [{:keys [task-id progress]}]
   (ui-vars/dispatch-task-event :progress task-id progress))
 
+(defn- show-doc-event [{:keys [var-symbol]}]
+  (ui-utils/run-now
+   (ui-main/select-main-tools-tab :docs)
+   (docs-screen/show-doc var-symbol)))
+
 (defn process-event [[ev-type ev-args-map]]
   (when debug-mode (log (format "Processing event: %s" [ev-type ev-args-map])))
   (case ev-type
@@ -68,4 +80,5 @@
     :thread-created (thread-created-event ev-args-map)
     :tap (tap-event ev-args-map)
     :task-result (task-result-event ev-args-map)
-    :task-progress (task-progress-event ev-args-map)))
+    :task-progress (task-progress-event ev-args-map)
+    :show-doc (show-doc-event ev-args-map)))

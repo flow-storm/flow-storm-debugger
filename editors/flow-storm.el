@@ -69,6 +69,18 @@
    (cider-interactive-eval "(tap> *1)")))
 
 
+(defun flow-storm-show-current-var-doc ()
+
+  "Show doc for var under point"
+
+  (interactive)
+
+  (let* ((current-ns (cider-current-ns))
+		 (fn-name (clojure-current-defun-name))
+		 (fn-ns (clojure-find-ns))
+		 (clj-cmd (format "(flow-storm.api/show-doc '%s/%s)" fn-ns fn-name)))
+	(cider-interactive-eval clj-cmd nil nil `(("ns" ,current-ns)))))
+
 (defvar cider-flow-storm-map
   (let (cider-flow-storm-map)
     (define-prefix-command 'cider-flow-storm-map)
@@ -81,6 +93,8 @@
 	(define-key cider-flow-storm-map (kbd "f") #'flow-storm-instrument-current-form)
 
 	(define-key cider-flow-storm-map (kbd "t") #'flow-storm-tap-last-result)
+
+	(define-key cider-flow-storm-map (kbd "d") #'flow-storm-show-current-var-doc)
 	
     cider-flow-storm-map)
   "CIDER flow-storm keymap.")

@@ -213,3 +213,37 @@
 .value-inspector-stack-pane .stack-bar-btn {
 	-fx-background-color: -fx-theme-breadcrums; 
 }
+
+/****************/
+/* Docs browser */
+/****************/
+
+.docs-fn-name {
+	-fx-font-weight: bold;
+	-fx-font-size: 15;
+	-fx-text-fill: -fx-theme-title-label;
+	-fx-padding: 5;
+}
+
+.docs-label {
+	-fx-text-fill: -fx-theme-field-label;
+	-fx-padding: 5;
+}
+
+.docs-example-box {
+	-fx-padding: 10;
+}
+
+.docs-box {
+	-fx-padding: 10;
+	-fx-background-color: -fx-theme-base2;
+}
+
+.docs-types-set {
+	-fx-text-fill: -fx-theme-extend-text;    
+}
+
+.hidden-pane {
+	-fx-display: none;
+	visibility: hidden;
+}

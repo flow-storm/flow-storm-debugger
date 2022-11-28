@@ -158,12 +158,12 @@
                      :cljs hansel/instrument-var-shadow-cljs)]
        
        (log (format "Instrumenting var %s %s" var-symb config))
-       (let [inst-set (inst-fn var-symb (merge (tracer/hansel-config config)
-                                               config))]
-         
-         (when-not disable-events?
-           (doseq [v inst-set]
-             (publish-event! kind (rt-events/make-var-instrumented-event (name v) (namespace v)) config)))))))
+
+       (inst-fn var-symb (merge (tracer/hansel-config config)
+                                config))
+       
+       (when-not disable-events?
+         (publish-event! kind (rt-events/make-var-instrumented-event (name var-symb) (namespace var-symb)) config)))))
 
 #?(:clj
    (defn uninstrument-var [kind var-symb {:keys [disable-events?] :as config}]
@@ -172,11 +172,10 @@
                      :cljs hansel/uninstrument-var-shadow-cljs)]
 
        (log (format "Uninstrumenting var %s %s" var-symb config))
-       (let [un-inst-set (inst-fn var-symb (merge (tracer/hansel-config config)
-                                                  config))]
-         (when-not disable-events?
-           (doseq [v un-inst-set]
-             (publish-event! kind (rt-events/make-var-uninstrumented-event (name v) (namespace v)) config)))))))
+       (inst-fn var-symb (merge (tracer/hansel-config config)
+                                config))
+       (when-not disable-events?
+         (publish-event! kind (rt-events/make-var-uninstrumented-event (name var-symb) (namespace var-symb)) config)))))
 
 #?(:clj
    (defn instrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
@@ -184,12 +183,12 @@
      (let [inst-fn (case kind
                      :clj  hansel/instrument-namespaces-clj
                      :cljs hansel/instrument-namespaces-shadow-cljs)
-           namespaces (inst-fn ns-prefixes (merge (tracer/hansel-config config)
-                                                  config))]
+           {:keys [affected-namespaces]} (inst-fn ns-prefixes (merge (tracer/hansel-config config)
+                                                                     config))]
        
        (when-not disable-events?
-         (doseq [ns-symb namespaces]
-           (publish-event! kind (rt-events/make-ns-instrumented-event (str ns-symb)) config))))))
+         (doseq [ns-symb affected-namespaces]
+           (publish-event! kind (rt-events/make-ns-instrumented-event (name ns-symb)) config))))))
 
 #?(:clj
    (defn uninstrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
@@ -197,11 +196,12 @@
      (let [inst-fn (case kind
                      :clj  hansel/uninstrument-namespaces-clj
                      :cljs hansel/uninstrument-namespaces-shadow-cljs)
-           namespaces (inst-fn ns-prefixes (merge (tracer/hansel-config config)
-                                                  config))]
+           {:keys [affected-namespaces]} (inst-fn ns-prefixes (merge (tracer/hansel-config config)
+                                                                     config))]
+       
        (when-not disable-events?
-         (doseq [ns-symb namespaces]
-           (publish-event! kind (rt-events/make-ns-uninstrumented-event (str ns-symb)) config))))))
+         (doseq [ns-symb affected-namespaces]
+           (publish-event! kind (rt-events/make-ns-uninstrumented-event (name ns-symb)) config))))))
 
 #?(:clj
    (defn all-namespaces

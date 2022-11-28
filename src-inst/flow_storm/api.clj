@@ -13,6 +13,7 @@
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as indexes-api]
+            [flow-storm.fn-sampler.core :as fn-sampler]
             [clojure.string :as str]
             [clojure.stacktrace :as stacktrace]))
 
@@ -133,10 +134,7 @@
   ([var-symb] (instrument-var-clj var-symb {}))
   ([var-symb config]
 
-   (hansel/instrument-var-clj var-symb (merge (tracer/hansel-config config)
-                                              config))
-   (rt-events/publish-event! (rt-events/make-var-instrumented-event (name var-symb)
-                                                                    (namespace var-symb)))))
+   (dbg-api/instrument-var :clj var-symb config)))
 
 (defn uninstrument-var-clj
 
@@ -146,9 +144,7 @@
 
   [var-symb]
 
-  (hansel/uninstrument-var-clj var-symb)
-  (rt-events/publish-event! (rt-events/make-var-uninstrumented-event (name var-symb)
-                                                                     (namespace var-symb))))
+  (dbg-api/uninstrument-var :clj var-symb {}))
 
 (defn instrument-namespaces-clj
 
@@ -187,12 +183,7 @@
   ([var-symb] (instrument-var-clj var-symb {}))
   ([var-symb config]
 
-   (hansel/instrument-var-shadow-cljs var-symb (merge (tracer/hansel-config config)
-                                                      config))
-   (dbg-api/publish-event! :cljs
-                           (rt-events/make-var-instrumented-event (name var-symb)
-                                                                  (namespace var-symb))
-                           config)))
+   (dbg-api/instrument-var :cljs var-symb config)))
 
 (defn uninstrument-var-cljs
 
@@ -202,11 +193,7 @@
 
   [var-symb config]
 
-  (hansel/uninstrument-var-shadow-cljs var-symb config)
-  (dbg-api/publish-event! :cljs
-                          (rt-events/make-var-uninstrumented-event (name var-symb)
-                                                                   (namespace var-symb))
-                          config))
+  (dbg-api/uninstrument-var :cljs var-symb config))
 
 (defn instrument-namespaces-cljs
 
@@ -317,6 +304,43 @@
       (log "Execution done, processing traces...")
       (log "DONE"))))
 
+(defn cli-doc
+
+  "TODO: document this"
+
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args verbose? excluding-fns result-name print-unsampled?] :as opts}]
+
+  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :verbose? :excluding-fns :result-name :print-unsampled?}]
+
+    (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
+    (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
+    (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
+    (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
+    (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
+    (assert (vector? fn-args) "fn-args should be a vector")
+
+    (let [fn-ns-name (namespace fn-symb)
+          _ (require (symbol fn-ns-name))
+          _ (resolve fn-symb)
+          ns-to-instrument (into #{fn-ns-name} instrument-ns)]
+
+      (when (seq require-before)
+        (doseq [ns-name require-before]
+          (log (format "Requiring ns %s" ns-name))
+          (require (symbol ns-name))))
+
+      (eval
+       `(fn-sampler/sample
+         ~{:result-name result-name
+           :inst-ns-prefixes ns-to-instrument
+           :excluding-fns excluding-fns
+           :excluding-ns excluding-ns
+           :verbose? verbose?
+           :print-unsampled? print-unsampled?
+           :uninstrument? false}
+
+         (~fn-symb ~@fn-args))))))
+
 (defmacro instrument* [config form]
   (let [env &env
         compiler (inst-utils/compiler-from-env env)
@@ -357,6 +381,9 @@
       `(do
          ~@init-forms
          ~inst-form))))
+
+(defn show-doc [var-symb]
+  (rt-events/publish-event! (rt-events/show-doc-event var-symb)))
 
 (defn read-trace-tag [form]
   `(instrument* {} ~form))

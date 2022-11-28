@@ -1,6 +1,8 @@
 {:paths [
-         ;; Comment out for releasing ------------------------------------------------
-         "src-inst" "src-dbg" "src-shared" "resources"
+         "src-inst"
+         "src-dbg" ;; Comment out for releasing inst
+         "src-shared"
+         "resources"
          ]
  :deps {
         ;; Dependencies needed by both
@@ -10,7 +12,13 @@
         org.clojure/tools.namespace {:mvn/version "1.2.0"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
-        ;; Comment out for releasing inst ------------------------------------------------
+        io.github.clojure/tools.build {:git/tag "v0.8.5" :git/sha "9c738da"}
+        com.github.jpmonettas/hansel {
+                                      ;;:local/root "/home/jmonetta/my-projects/hansel"
+                                      :mvn/version "0.1.29"
+                                      }
+
+        ;; Comment out for releasing INST ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "18"}
         org.openjfx/javafx-base {:mvn/version "18"}
         org.openjfx/javafx-graphics {:mvn/version "18"}
@@ -20,46 +28,20 @@
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
         mount/mount {:mvn/version "0.1.16"}
         nrepl/nrepl {:mvn/version "1.0.0"}
-        com.github.jpmonettas/hansel {
-                                      ;;:local/root "/home/jmonetta/my-projects/hansel"
-                                      :mvn/version "0.1.24"
-                                      }
         ;---------------------------------------------------------------------
         }
 
  :jvm-opts []
- :aliases {:dbg {:extra-paths ["src-dbg" "src-inst" "src-shared" "resources"]
-                 :extra-deps {;; JavaFx
-                              org.openjfx/javafx-controls {:mvn/version "18"}
-                              org.openjfx/javafx-base {:mvn/version "18"}
-                              org.openjfx/javafx-graphics {:mvn/version "18"}
-                              org.openjfx/javafx-swing {:mvn/version "18"}
-
-                              ;; Icon fonts
-                              org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
-                              org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
-
-                              ;; Host theme detection
-                              com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
-
-                              mount/mount {:mvn/version "0.1.16"}
-                              nrepl/nrepl {:mvn/version "1.0.0"}
-                              }}
-
-
-           :inst {:extra-paths ["src-inst" "src-shared"]
-                  :extra-deps {com.github.jpmonettas/hansel {
-                                                             ;; :local/root "/home/jmonetta/my-projects/hansel"
-                                                             :mvn/version "0.1.24"
-                                                             }}}
-
-           :cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
+ :aliases {:cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
                                cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
                                cider/piggieback {:mvn/version "0.5.2"}
                                thheller/shadow-cljs {:mvn/version "2.20.10"}}}
            :dev {:extra-paths ["src-dev"]
-                 :extra-deps {}
+                 :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
+                              ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}
+                              ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
+                              }
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
                             "-Xmx10500m" ;; for instrumenting big codebases
                             ]}

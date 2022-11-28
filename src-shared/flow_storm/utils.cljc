@@ -4,7 +4,7 @@
                      [goog :as g])
      :clj (:require [clojure.java.io :as io]))
   #?(:clj (:refer-clojure :exclude [format]))
-  #?(:clj (:import [java.io LineNumberReader InputStreamReader PushbackReader]
+  #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
                    [clojure.lang RT])))
 
 (defn disable-from-profile [profile]
@@ -273,3 +273,39 @@
            ~@body
            (finally
              (pop-thread-bindings)))))))
+
+#?(:clj
+   (defn mk-tmp-dir!
+     "Creates a unique temporary directory on the filesystem. Typically in /tmp on
+  *NIX systems. Returns a File object pointing to the new directory. Raises an
+  exception if the directory couldn't be created after 10000 tries."
+     []
+     (let [base-dir     (io/file (System/getProperty "java.io.tmpdir"))
+           base-name    (str (System/currentTimeMillis) "-" (long (rand 1000000000)) "-")
+           tmp-base     (doto (File. (str base-dir "/" base-name)) (.mkdir))
+           max-attempts 10000]
+       (loop [num-attempts 1]
+         (if (= num-attempts max-attempts)
+           (throw (Exception. (str "Failed to create temporary directory after " max-attempts " attempts.")))
+           (let [tmp-dir-name (str tmp-base num-attempts)
+                 tmp-dir      (io/file tmp-dir-name)]
+             (if (.mkdir tmp-dir)
+               tmp-dir
+               (recur (inc num-attempts)))))))))
+
+;; So we don't depend on clojure 1.11
+(defn update-vals
+  "m f => {k (f v) ...}
+
+  Given a map m and a function f of 1-argument, returns a new map where the keys of m
+  are mapped to result of applying f to the corresponding values of m."
+  
+  [m f]
+  (with-meta
+    (persistent!
+     (reduce-kv (fn [acc k v] (assoc! acc k (f v)))
+                (if (instance? clojure.lang.IEditableCollection m)
+                  (transient m)
+                  (transient {}))
+                m))
+    (meta m)))

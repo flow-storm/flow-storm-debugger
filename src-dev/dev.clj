@@ -1,6 +1,7 @@
 (ns dev
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.main :as main]
+            [cljs.main :as cljs-main]
             [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
@@ -10,6 +11,7 @@
             [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [dev-tester]
+            [flow-storm.fn-sampler.core :as sampler]
             [flow-storm.utils :as utils]))
 
 (javafx.embed.swing.JFXPanel.)
@@ -27,7 +29,7 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn start-local [] (fs-api/local-connect))
+(defn start-local [] (fs-api/local-connect {:theme :dark}))
 
 (defn start-remote []
 
@@ -182,3 +184,38 @@
   (inst-forms/instrument {:disable #{}} '(defn foo [a b] ^{:meta true} (conj [] b)))
 
   )
+
+
+;; Function sampler
+
+(comment
+
+  (def r (sampler/sample
+          {:result-name "dev-tester-flow-docs-0.1.0"
+           :inst-ns-prefixes #{"dev-tester"}
+           :verbose? true}
+          (dev-tester/boo [1 "hello" 6])))
+
+
+  (def i (hansel/instrument-namespaces-clj #{"cljs."}
+                                           {:excluding-ns #{"cljs.core" "cljs.vendor.clojure.tools.reader.default-data-readers"}
+                                            :trace-fn-call (fn [_])
+                                            :trace-fn-return (fn [{:keys [return]}] return)}))
+  (sample-cljs-compiler nil)
+
+
+  )
+
+(defn sample-cljs-compiler [_]
+  (let [cljs-main (fn cljs-main [& args]
+                    (with-redefs [clojure.core/shutdown-agents (fn [] nil)]
+                      (apply cljs-main/-main args)))]
+
+    (def r (sampler/sample
+            {:result-name "clojurescript-flow-docs-1.11.60"
+             :inst-ns-prefixes #{"cljs."}
+             :excluding-ns #{"cljs.core" "cljs.vendor.clojure.tools.reader.default-data-readers"}
+             :verbose? false
+             :uninstrument? false}
+
+            (cljs-main "-t" "nodejs" "/home/jmonetta/my-projects/flow-storm-debugger/src-dev/org/foo/myscript.cljs")))))

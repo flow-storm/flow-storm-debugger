@@ -54,6 +54,9 @@
 (defn make-task-progress-event [task-id progress]
   [:task-progress {:task-id task-id :progress progress}])
 
+(defn show-doc-event [vsymb]
+  [:show-doc {:var-symbol vsymb}])
+
 (defn publish-event! [ev]
   (if-let [cb @callback]
     (cb ev)

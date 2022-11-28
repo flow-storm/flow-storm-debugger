@@ -5,6 +5,7 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
+            [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
@@ -13,7 +14,8 @@
             [flow-storm.utils :refer [log log-error]]
             [clojure.java.io :as io]
             [flow-storm.debugger.config :refer [config] :as config]
-            [mount.core :as mount :refer [defstate]])
+            [mount.core :as mount :refer [defstate]]
+            [flow-storm.debugger.docs])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
            [javafx.stage Stage]
@@ -84,7 +86,9 @@
         sel-model (.getSelectionModel main-tools-tab)]
     (case tool
       :flows (.select sel-model 0)
-      :browser (.select sel-model 1))))
+      :browser (.select sel-model 1)
+      :taps (.select sel-model 2)
+      :docs (.select sel-model 3))))
 
 (defn- main-tabs-pane []
   (let [flows-tab (tab {:text "Flows"
@@ -97,8 +101,12 @@
                        :class "vertical-tab"
                        :content (taps-screen/main-pane)
                        :on-selection-changed (event-handler [_])})
+        docs-tab (tab {:text "Docs"
+                       :class "vertical-tab"
+                       :content (docs-screen/main-pane)
+                       :on-selection-changed (event-handler [_])})
 
-        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab]
+        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab]
                           :rotate? true
                           :closing-policy :unavailable
                           :side :left
