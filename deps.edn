@@ -22,7 +22,7 @@
         nrepl/nrepl {:mvn/version "1.0.0"}
         com.github.jpmonettas/hansel {
                                       ;; :local/root "/home/jmonetta/my-projects/hansel"
-                                      :mvn/version "0.1.20"
+                                      :mvn/version "0.1.22"
                                       }
         ;---------------------------------------------------------------------
         }
@@ -50,7 +50,7 @@
            :inst {:extra-paths ["src-inst" "src-shared"]
                   :extra-deps {com.github.jpmonettas/hansel {
                                                              ;;:local/root "/home/jmonetta/my-projects/hansel"
-                                                             :mvn/version "0.1.20"
+                                                             :mvn/version "0.1.22"
                                                              }}}
 
            :cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
