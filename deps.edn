@@ -10,7 +10,7 @@
         org.clojure/tools.namespace {:mvn/version "1.2.0"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
-        ;; Comment out for releasing ------------------------------------------------
+        ;; Comment out for releasing inst ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "18"}
         org.openjfx/javafx-base {:mvn/version "18"}
         org.openjfx/javafx-graphics {:mvn/version "18"}
@@ -21,8 +21,8 @@
         mount/mount {:mvn/version "0.1.16"}
         nrepl/nrepl {:mvn/version "1.0.0"}
         com.github.jpmonettas/hansel {
-                                      ;; :local/root "/home/jmonetta/my-projects/hansel"
-                                      :mvn/version "0.1.22"
+                                      ;;:local/root "/home/jmonetta/my-projects/hansel"
+                                      :mvn/version "0.1.24"
                                       }
         ;---------------------------------------------------------------------
         }
@@ -49,8 +49,8 @@
 
            :inst {:extra-paths ["src-inst" "src-shared"]
                   :extra-deps {com.github.jpmonettas/hansel {
-                                                             ;;:local/root "/home/jmonetta/my-projects/hansel"
-                                                             :mvn/version "0.1.22"
+                                                             ;; :local/root "/home/jmonetta/my-projects/hansel"
+                                                             :mvn/version "0.1.24"
                                                              }}}
 
            :cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
