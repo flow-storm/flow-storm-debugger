@@ -4,11 +4,21 @@
 	
 ## New Features
     
+### Changes
+
+### Bugs fixed
+
+## 3.2.281 (29-11-2022)
+	
+## New Features
+    
 	- Add browser var recursive instrumentation
 	
 ### Changes
 
 ### Bugs fixed
+
+	- Update to hansel 0.1.22 to fix ClojureScript go blocks instrumentation
     
 ## 3.2.271 (16-11-2022)
 	
