@@ -26,8 +26,8 @@
       (cond-> {:fn-ns fn-ns
                :fn-name fn-name
                :args-vec args-vec
-               :bindings (seq bindings) ;; return a immutable seq
-               :expr-executions (seq expr-executions) ;; return a immutable seq
+               :bindings (into [] bindings) ;; return a immutable seq
+               :expr-executions (into [] expr-executions) ;; return a immutable seq
                :form-id form-id
                :frame-idx frame-idx}
         frame-ret (assoc :ret frame-ret))))

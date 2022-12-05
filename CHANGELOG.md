@@ -7,7 +7,9 @@
 ### Changes
 
 ### Bugs fixed
-
+	
+	- Fix a ConcurrentModificationException on debuggers_api/reference_frame_data!
+	
 ## 3.2.283 (29-11-2022)
 	
 ## New Features
