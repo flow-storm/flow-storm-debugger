@@ -13,8 +13,7 @@
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.utils :refer [log]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]
-            [flow-storm.debugger.docs :as docs]))
+            [flow-storm.debugger.ui.state-vars :as ui-vars]))
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later

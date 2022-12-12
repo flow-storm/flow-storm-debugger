@@ -153,7 +153,7 @@
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
-        version (format "3.2.%s" (b/git-count-revs nil))
+        version (format "3.3.alpha-%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases []})
         jar-file (format "target/%s.jar" (name lib))
@@ -173,7 +173,7 @@
 (defn jar-inst [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
-        version (format "3.2.%s" (b/git-count-revs nil))
+        version (format "3.3.alpha-%s" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases []})
         jar-file (format "target/%s.jar" (name lib))
@@ -190,6 +190,7 @@
     (b/jar {:class-dir class-dir
             :jar-file jar-file})))
 
+:aliases {:debugger {:extra-deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.2.283"}}}}
 (comment
   (def code-files (->> (file-seq (io/file "target/classes"))
                        (keep (fn [file]

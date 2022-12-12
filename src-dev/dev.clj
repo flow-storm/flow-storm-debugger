@@ -12,7 +12,8 @@
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [dev-tester]
             [flow-storm.fn-sampler.core :as sampler]
-            [flow-storm.utils :as utils]))
+            [flow-storm.utils :as utils]
+            [clojure.java.io :as io]))
 
 (javafx.embed.swing.JFXPanel.)
 
@@ -193,29 +194,13 @@
   (def r (sampler/sample
           {:result-name "dev-tester-flow-docs-0.1.0"
            :inst-ns-prefixes #{"dev-tester"}
-           :verbose? true}
+           :verbose? true
+           :print-unsampled? true}
           (dev-tester/boo [1 "hello" 6])))
 
+  (io/copy (io/file "/tmp/1670848249387-499961115-1/samples.edn")
+           (io/file "samples.edn"))
 
-  (def i (hansel/instrument-namespaces-clj #{"cljs."}
-                                           {:excluding-ns #{"cljs.core" "cljs.vendor.clojure.tools.reader.default-data-readers"}
-                                            :trace-fn-call (fn [_])
-                                            :trace-fn-return (fn [{:keys [return]}] return)}))
-  (sample-cljs-compiler nil)
 
 
   )
-
-(defn sample-cljs-compiler [_]
-  (let [cljs-main (fn cljs-main [& args]
-                    (with-redefs [clojure.core/shutdown-agents (fn [] nil)]
-                      (apply cljs-main/-main args)))]
-
-    (def r (sampler/sample
-            {:result-name "clojurescript-flow-docs-1.11.60"
-             :inst-ns-prefixes #{"cljs."}
-             :excluding-ns #{"cljs.core" "cljs.vendor.clojure.tools.reader.default-data-readers"}
-             :verbose? false
-             :uninstrument? false}
-
-            (cljs-main "-t" "nodejs" "/home/jmonetta/my-projects/flow-storm-debugger/src-dev/org/foo/myscript.cljs")))))

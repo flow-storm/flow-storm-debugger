@@ -3,9 +3,9 @@
                      [goog.string.format]
                      [goog :as g])
      :clj (:require [clojure.java.io :as io]))
-  #?(:clj (:refer-clojure :exclude [format]))
+  #?(:clj (:refer-clojure :exclude [format update-vals]))
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
-                   [clojure.lang RT])))
+                   [clojure.lang RT IEditableCollection])))
 
 (defn disable-from-profile [profile]
   (case profile
@@ -304,7 +304,7 @@
   (with-meta
     (persistent!
      (reduce-kv (fn [acc k v] (assoc! acc k (f v)))
-                (if (instance? clojure.lang.IEditableCollection m)
+                (if (instance? IEditableCollection m)
                   (transient m)
                   (transient {}))
                 m))

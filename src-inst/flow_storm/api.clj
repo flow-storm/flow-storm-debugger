@@ -306,7 +306,19 @@
 
 (defn cli-doc
 
-  "TODO: document this"
+  "Document a code base by instrumenting, running and sampling it.
+
+  - :instrument-ns Set of namespaces prefixes to instrument for documentation
+  - :result-name A name for the output jar file
+  - :fn-symb Fully qualified symbol of the fn to run for exercising the code base
+  - :fn-args Arguments to be passed to the function defined by `:fn-symb`
+
+  - :excluding-fns (optional) A set of fns as symbols to be excluded from instrumentation.
+  - :excluding-ns (optional) A set of namespaces as string to be excluded from instrumentation.
+  - :require-before (optional) A set of namespaces as a string. Useful when you need to load extra namespaces before instrumentation.
+  - :verbose? (optional) Print extra log info.
+  - :print-unsampled? (optional) After finishing, prints all uncovered functions (functions that where instrumented but weren't sampled)
+  "
 
   [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args verbose? excluding-fns result-name print-unsampled?] :as opts}]
 
