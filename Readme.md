@@ -27,7 +27,6 @@ Only instrumentation artifact (for remote and ClojureScript debugging) :
 
 	com.github.jpmonettas/flow-storm-inst {:mvn/version "3.2.283"}
 
-
 # Prerequisites
 
 	- jdk11+
