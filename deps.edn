@@ -12,7 +12,7 @@
         org.clojure/tools.namespace {:mvn/version "1.2.0"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
-        io.github.clojure/tools.build {:git/tag "v0.8.5" :git/sha "9c738da"}
+        org.clojure/tools.build {:mvn/version "0.8.4"}
         com.github.jpmonettas/hansel {
                                       ;;:local/root "/home/jmonetta/my-projects/hansel"
                                       :mvn/version "0.1.29"

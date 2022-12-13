@@ -35,6 +35,8 @@
 (def max-samples-per-fn 3)
 (def max-map-keys 20)
 
+(def ^:dynamic *tracing* false)
+
 (def context nil)
 
 (defn type-name [o]
@@ -66,7 +68,7 @@
 (defn- seqable-desc [xs]
   (let [first-elem-type (when (seq xs)
                           (let [first-elem (first xs)]
-                            (if (map? first-elem)
+                            (if (utils/hash-map? first-elem)
                               (map-desc first-elem)
                               (type-name first-elem))))]
     (cond-> {:type/name (type-name xs)
@@ -81,10 +83,19 @@
 
   (when o
     (cond
-      (fn? o)                              {:type/type :fn}
-      (map? o)                             (map-desc o)
-      (and (seqable? o) (not (string? o))) (seqable-desc o)
-      :else                                {:type/name (type-name o)})))
+      (fn? o)
+      {:type/type :fn}
+
+      (utils/hash-map? o)
+      (map-desc o)
+
+      (and (seqable? o)
+           (not (string? o))
+           (counted? o))
+      (seqable-desc o)
+
+      :else
+      {:type/name (type-name o)})))
 
 (defn- serialize-val [{:keys [examples-print-fn examples-print-length examples-print-level]} v]
   (binding [*print-length* examples-print-length
@@ -187,8 +198,10 @@
   (let [curr-thread-id (utils/get-current-thread-id)
         {:keys [unnamed-fn?] :as frame-data} (peek-thread-frame context curr-thread-id)]
 
-    (when-not unnamed-fn?
-      (collect-fn-call context (assoc frame-data :return return)))
+    (when (and (not unnamed-fn?)
+               (not *tracing*))
+      (binding [*tracing* true]
+        (collect-fn-call context (assoc frame-data :return return))))
 
     (update-stats context frame-data)
 

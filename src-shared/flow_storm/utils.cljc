@@ -5,7 +5,7 @@
      :clj (:require [clojure.java.io :as io]))
   #?(:clj (:refer-clojure :exclude [format update-vals]))
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
-                   [clojure.lang RT IEditableCollection])))
+                   [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
 
 (defn disable-from-profile [profile]
   (case profile
@@ -17,6 +17,11 @@
     (when (pos? len)
       (cond-> (subs s 0 (min max-len len))
         (> len max-len) (str " ... ")))))
+
+#?(:clj
+   (defn hash-map? [x]
+     (or (instance? PersistentArrayMap x)
+         (instance? PersistentHashMap x))))
 
 (defn format [& args]
   #?(:clj (apply clojure.core/format args)
