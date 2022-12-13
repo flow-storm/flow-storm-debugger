@@ -17,7 +17,7 @@ But it doesn't need to be that bad. Some of this shapes can be derived from exec
 running the tests (or any functions that exercise the code base) and sample every fn call and return.
 
 The result is data that contains a bunch of information about your functions only known at runtime, over which you can build tooling like a 
-documentation browser, etc.
+documentation browser, be consumed by something like cljdoc, etc.
 
 The generated data will not be comprehensive but will provide a good guide for most situations. 
 
@@ -44,14 +44,14 @@ For convenience we are going to create a script `document.sh` like this :
 
 clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3-alpha-290"}}}' \
     -X:test flow-storm.api/cli-doc \
-	:result-name '"datascript-flow-docs-1.4.0"' \
-	:print-unsampled? true \
+    :result-name '"datascript-flow-docs-1.4.0"' \
+    :print-unsampled? true \
     :instrument-ns '#{"datascript"}' \
     :fn-symb 'datascript.test/test-clj' \
-	:fn-args '[]' \
-	:examples-pprint? true \
-	:examples-print-length 2 \
-	:examples-print-level 3 
+    :fn-args '[]' \
+    :examples-pprint? true \
+    :examples-print-length 2 \
+    :examples-print-level 3 
 ```
 
 The idea behind `flow-storm.api/cli-doc` is to act as a trampoline, so it will instrument our code base as specified by `:instrument-ns` 
@@ -63,9 +63,9 @@ For the rest of the options check `flow-storm.api/cli-doc` doc string.
 
 It will output 3 useful things :
 
-	- datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data
-    - the coverage percentage (how many fns were sampled over the instrumented ones)
-	- unsampled fns, which are all the functions that were instrumented but the test never called
+- datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data
+- the coverage percentage (how many fns were sampled over the instrumented ones)
+- unsampled fns, which are all the functions that were instrumented but the test never called
 
 So if you are running your tests, as a bonus you will get your test "coverage" and a list of functions your 
 tests aren't exercising, you should see something like this after it finishes :
@@ -85,6 +85,12 @@ For this you can add the docs and FlowStorm to your classpaths as usual, like :
 
 ```
 clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
+```	
+
+or if you want to use the documentation I already generated and uploaded to my clojars group try :
+
+```
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
 ```	
 
 and now we can run the debugger :
