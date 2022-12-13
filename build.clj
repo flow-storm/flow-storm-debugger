@@ -190,7 +190,6 @@
     (b/jar {:class-dir class-dir
             :jar-file jar-file})))
 
-:aliases {:debugger {:extra-deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.2.283"}}}}
 (comment
   (def code-files (->> (file-seq (io/file "target/classes"))
                        (keep (fn [file]

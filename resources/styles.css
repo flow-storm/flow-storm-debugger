@@ -239,8 +239,12 @@
 	-fx-background-color: -fx-theme-base2;
 }
 
-.docs-types-set {
+.docs-type-name {
 	-fx-text-fill: -fx-theme-extend-text;    
+}
+
+.docs-arg-symbol {
+	-fx-text-fill: -fx-theme-dim-text;    
 }
 
 .hidden-pane {

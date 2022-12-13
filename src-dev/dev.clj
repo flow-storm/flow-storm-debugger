@@ -198,7 +198,7 @@
            :print-unsampled? true}
           (dev-tester/boo [1 "hello" 6])))
 
-  (io/copy (io/file "/tmp/1670848249387-499961115-1/samples.edn")
+  (io/copy (io/file "/tmp/1670878691457-36075814-1/samples.edn")
            (io/file "samples.edn"))
 
 

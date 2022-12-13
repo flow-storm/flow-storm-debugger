@@ -5,13 +5,8 @@ docs: docs/user_guide.adoc
 clean:
 	clj -T:build clean
 
-test-clj:
-	clj -M:test-clj unit-clj
-
-test-cljs:
-	rm .cljs_node_repl -rf; clj -M:test-cljs unit-cljs
-
-test-all: test-clj test-cljs
+test:
+	clj -M:test:dev unit-clj
 
 lint:
 	clj-kondo --config .clj-kondo/config.edn --lint src-dbg src-shared src-inst

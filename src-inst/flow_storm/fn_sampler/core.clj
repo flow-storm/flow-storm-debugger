@@ -28,7 +28,8 @@
             [clojure.tools.build.api :as tools.build]
             [clojure.string :as str]
             [clojure.set :as set]
-            [flow-storm.runtime.indexes.utils :as index-utils])
+            [flow-storm.runtime.indexes.utils :as index-utils]
+            [clojure.pprint :as pp])
   (:import [java.io File]))
 
 (def max-samples-per-fn 3)
@@ -36,35 +37,61 @@
 
 (def context nil)
 
-(defn- type-desc
+(defn type-name [o]
+  (when o
+    (.getName (class o))))
+
+(defn- map-desc [m]
+  (let [mdesc {:type/name (type-name m)
+               :type/type :map}]
+    (cond
+
+      (keyword? (first (keys m)))
+      (assoc mdesc
+             :map/domain (->> (keys m)
+                              (take 100) ;; should be enough for entities
+                              (reduce (fn [r k]
+                                        (assoc r k (type-name (get m k))))
+                                      {}))
+             :map/kind :entity)
+
+      (and (some->> (keys m) (map class) (apply =))
+           (some->> (vals m) (map class) (apply =)))
+      (assoc mdesc
+             :map/domain {(type-name (first (keys m))) (type-name (first (vals m)))}
+             :map/kind :regular)
+
+      :else mdesc)))
+
+(defn- seqable-desc [xs]
+  (let [first-elem-type (when (seq xs)
+                          (let [first-elem (first xs)]
+                            (if (map? first-elem)
+                              (map-desc first-elem)
+                              (type-name first-elem))))]
+    (cond-> {:type/name (type-name xs)
+             :type/type :seqable}
+      first-elem-type (assoc :seq/first-elem-type first-elem-type))))
+
+(defn type-desc
 
   "If `o` is non nil, returns a string description for the type of `o`"
 
-  ([o] (type-desc o 1))
-  ([o lvl]
+  [o]
 
-   (when o
-     (let [fmt-coll (fn [fmt-str o]
-                     (format fmt-str (if (pos? lvl)
-                                       (type-desc (first o) (dec lvl))
-                                       "")))]
-      (cond
-        (map? o)    (format "{ %s }" (let [ks (keys o)]
-                                       (if (> (count ks) max-map-keys)
-                                         (str (str/join " " (take max-map-keys (keys o))) " ...")
-                                         (str/join " " (keys o)))))
-        (vector? o) (fmt-coll "[ %s ]" o)
-        (seq? o)    (fmt-coll "( %s )" o)
-        (set? o)    (fmt-coll "#{ %s }" o)
-        :else (str/replace (str (type o)) "class " ""))))))
+  (when o
+    (cond
+      (fn? o)                              {:type/type :fn}
+      (map? o)                             (map-desc o)
+      (and (seqable? o) (not (string? o))) (seqable-desc o)
+      :else                                {:type/name (type-name o)})))
 
-(defn- serialize-val [v]
-  (binding [*print-length* 1
-            *print-level* 2
+(defn- serialize-val [{:keys [examples-print-fn examples-print-length examples-print-level]} v]
+  (binding [*print-length* examples-print-length
+            *print-level* examples-print-level
             *print-readably* true]
-
     (try
-      (str/replace (with-out-str (print v)) "..." ":...")
+      (str/replace (with-out-str (examples-print-fn v)) "..." ":...")
       (catch Exception _
         (utils/log-error "Couldn't serialize val")
         "ERROR-SERIALIZING"))))
@@ -103,7 +130,7 @@
 
 (defn set-stats-inst-fns [{:keys [stats]} {:keys [inst-fns]}]
   (utils/log (str "Initializing stats. inst-fns count " (count inst-fns)))
-  (swap! stats assoc :inst-fns inst-fns))
+  (swap! stats assoc :inst-fns (into #{} (map first inst-fns))))
 
 (defn report-stats [{:keys [inst-fns sampled-fns]}]
   (when inst-fns
@@ -112,21 +139,22 @@
           cover-perc (float (* 100 (/ total-sampled total-inst-fns)))]
 
       (binding [*out* *err*]
-        (println (format "Sampled %d of %d instrumented with a coverage of %.2f %%"
-                         total-sampled
-                         total-inst-fns
-                         cover-perc))))))
+        (println (utils/colored-string
+                  (format "Sampled %d of %d instrumented with a coverage of %.2f %%"
+                          total-sampled
+                          total-inst-fns
+                          cover-perc)
+                  :yellow))))))
 
-(defn update-stats [{:keys [stats]} {:keys [ns fn-name fn-args]}]
-  (let [arity-vec [(symbol ns fn-name) (count fn-args)]]
-    (swap! stats (fn [s]
-                   (-> s
-                       (update :sampled-fns conj arity-vec))))
+(defn update-stats [{:keys [stats]} {:keys [ns fn-name]}]
+  (swap! stats (fn [s]
+                 (-> s
+                     (update :sampled-fns conj (symbol ns fn-name)))))
 
-    (let [{:keys [last-sampled-fns-report sampled-fns] :as sts} @stats]
-      (when (not= last-sampled-fns-report sampled-fns)
-        (report-stats sts)
-        (swap! stats assoc :last-sampled-fns-report sampled-fns)))))
+  (let [{:keys [last-sampled-fns-report sampled-fns] :as sts} @stats]
+    (when (not= last-sampled-fns-report sampled-fns)
+      (report-stats sts)
+      (swap! stats assoc :last-sampled-fns-report sampled-fns))))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Hansel callbacks ;;
@@ -188,9 +216,11 @@
                {}
                fns-map)))
 
-(defn serialize-call-examples [collected-fns]
-
-  (let [total-cnt (count collected-fns)]
+(defn serialize-call-examples [{:keys [examples-pprint? examples-print-length examples-print-level]} collected-fns]
+  (let [total-cnt (count collected-fns)
+        ser-cfg {:examples-print-fn (if examples-pprint? pp/pprint print)
+                 :examples-print-length (or examples-print-length 1)
+                 :examples-print-level (or examples-print-level 2)}]
 
     (utils/log (format "Processing call examples for %d collected fns. Serializing values ..." total-cnt))
 
@@ -202,8 +232,8 @@
                  (->> ce
                       (map (fn [ex]
                              (-> ex
-                                 (update :args #(mapv serialize-val %))
-                                 (update :ret #(serialize-val %))))))))))))
+                                 (update :args #(mapv (partial serialize-val ser-cfg) %))
+                                 (update :ret #(serialize-val ser-cfg %))))))))))))
 
 (defn save-result
 
@@ -245,13 +275,15 @@
                          (merge
                           ~config
                           {:trace-fn-call trace-fn-call
-                           :trace-fn-return trace-fn-return}))]
+                           :trace-fn-return trace-fn-return
+                           :disable #{:anonymous-fn}}))]
 
        (set-stats-inst-fns context inst-result#)
 
        ~@forms
 
-       (let [fns-map# (serialize-call-examples @(:collected-fns ctx#))]
+       (let [fns-map# (serialize-call-examples ~config @(:collected-fns ctx#))
+             unsampled-fns# (set/difference (:inst-fns @stats#) (:sampled-fns @stats#))]
          (report-stats @stats#)
 
          (save-result (add-vars-meta fns-map#) ~config)
@@ -262,12 +294,13 @@
 
            (utils/log "Unsampled functions :")
 
-           (let [unsample-fns# (set/difference (:inst-fns @stats#) (:sampled-fns @stats#))]
-             (doseq [uf# (sort unsample-fns#)]
-               (utils/log uf#))))))
+           (doseq [uf# (sort unsampled-fns#)]
+             (utils/log uf#)))
 
-     (when ~uninstrument?
-       (utils/log "Uninstrumenting...")
-       (hansel/uninstrument-namespaces-clj ~inst-ns-prefixes))
+         (when ~uninstrument?
+           (utils/log "Uninstrumenting...")
+           (hansel/uninstrument-namespaces-clj ~inst-ns-prefixes))
 
-     (utils/log "All done!")))
+         (utils/log "All done!")
+
+         {:unsampled-fns unsampled-fns#}))))

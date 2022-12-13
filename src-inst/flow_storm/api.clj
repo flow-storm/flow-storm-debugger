@@ -318,11 +318,17 @@
   - :require-before (optional) A set of namespaces as a string. Useful when you need to load extra namespaces before instrumentation.
   - :verbose? (optional) Print extra log info.
   - :print-unsampled? (optional) After finishing, prints all uncovered functions (functions that where instrumented but weren't sampled)
+  - :examples-pprint? (optional) Pretty print the values in the examples
+  - :examples-print-length (optional) Print length for the examples values
+  - :examples-print-level (optional) Print level for the examples values
   "
 
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args verbose? excluding-fns result-name print-unsampled?] :as opts}]
+  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args verbose? excluding-fns
+           result-name print-unsampled? examples-pprint? examples-print-length examples-print-level] :as opts}]
 
-  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :verbose? :excluding-fns :result-name :print-unsampled?}]
+  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args
+                          :verbose? :excluding-fns :result-name :print-unsampled?
+                          :examples-pprint? :examples-print-length :examples-print-level}]
 
     (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
     (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
@@ -349,7 +355,10 @@
            :excluding-ns excluding-ns
            :verbose? verbose?
            :print-unsampled? print-unsampled?
-           :uninstrument? false}
+           :uninstrument? false
+           :examples-pprint? examples-pprint?
+           :examples-print-length examples-print-length
+           :examples-print-level examples-print-level}
 
          (~fn-symb ~@fn-args))))))
 

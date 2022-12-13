@@ -41,6 +41,7 @@
                  :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
                               ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}
                               ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
+                              ;; clindex-docs/clindex-docs {:local/root "/home/jmonetta/my-projects/clindex/clindex-flow-docs-0.4.94.jar"}
                               }
                  :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
                             "-Xmx10500m" ;; for instrumenting big codebases
@@ -51,11 +52,8 @@
                    :ns-default build
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
 
-           :test-clj {:extra-paths ["test"]
-                      :extra-deps {lambdaisland/kaocha {:mvn/version "1.70.1086"}
-                                   org.clojure/clojurescript {:mvn/version "1.11.60"}}
-                      :jvm-opts ["-Xmx10500m"]
-                      :main-opts ["-m" "kaocha.runner"]}
-           :test-cljs {:extra-paths ["test"]
-                       :extra-deps {com.lambdaisland/kaocha-cljs {:mvn/version "1.4.130"}}
-                       :main-opts ["-m" "kaocha.runner"]}}}
+           :test {:extra-paths ["test"]
+                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.70.1086"}
+                               org.clojure/clojurescript {:mvn/version "1.11.60"}}
+                  :jvm-opts ["-Xmx10500m"]
+                  :main-opts ["-m" "kaocha.runner"]}}}

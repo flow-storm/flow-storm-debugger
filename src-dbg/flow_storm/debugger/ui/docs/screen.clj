@@ -17,19 +17,24 @@
         file-lbl (label "")
         line-lbl (label "")
         doc-lbl (label "")
-        doc-pane (doto
-                     (v-box [fn-name-lbl
-                             doc-lbl
-                             (h-box [(label "File :" "docs-label") file-lbl])
-                             (h-box [(label "Line :" "docs-label") line-lbl])
-                             (label "Args :" "docs-label")
-                             args-box
-                             (label "Returns :" "docs-label")
-                             rets-box
-                             (label "Examples :" "docs-label")
-                             examples-box]
-                            "hidden-pane")
-                   (.setSpacing 10))]
+        doc-box (doto
+                    (v-box [fn-name-lbl
+                            doc-lbl
+                            (h-box [(label "File :" "docs-label") file-lbl])
+                            (h-box [(label "Line :" "docs-label") line-lbl])
+                            (label "Args :" "docs-label")
+                            args-box
+                            (label "Returns :" "docs-label")
+                            rets-box
+                            (label "Examples :" "docs-label")
+                            examples-box])
+                  (.setSpacing 10))
+        doc-pane (doto (ui-utils/scroll-pane "hidden-pane")
+                   (.setFitToHeight true)
+                   (.setFitToWidth true))]
+
+    (.setContent doc-pane doc-box)
+
     (store-obj "docs-fn-name-lbl" fn-name-lbl)
     (store-obj "docs-args-box" args-box)
     (store-obj "docs-rets-box" rets-box)
@@ -62,6 +67,61 @@
         (remove #(= % "UNKNOWN") atypes)
         atypes))))
 
+(defn- build-map-type-component [{:keys [map/kind map/domain type/name]}]
+  (let [detail-box (case kind
+                     :entity (v-box (mapv (fn [[k v]]
+                                            (label (format "%s -> %s" k v)))
+                                          domain))
+                     :regular (label (format "%s -> %s"
+                                             (-> domain keys first)
+                                             (-> domain vals first)))
+                     (label ""))]
+    (doto (v-box [(label name "docs-type-name") detail-box])
+      (.setSpacing 10))))
+
+(defn- coll-literals [type-name]
+  (case type-name
+    "clojure.lang.PersistentVector"  ["["  "]"]
+    "clojure.lang.PersistentHashSet" ["#{" "}"]
+    ["(" ")"]))
+
+(defn- build-seqable-type-component [{:keys [type/name seq/first-elem-type]}]
+  (let [[open-char close-char] (coll-literals name)
+        f-elem-type-str (cond
+                          (nil? first-elem-type)
+                          ""
+
+                          (string? first-elem-type)
+                          first-elem-type
+
+                          :else
+                          (case (:type/type first-elem-type)
+                            :fn "Fn"
+                            :map (format "{ %s }" (case (:type/kind first-elem-type)
+                                                    :entity (format "< %s >"(->> first-elem-type :domain keys (str/join " ")))
+                                                    :regular (format "%s -> %s"
+                                                                     (-> first-elem-type :domain keys first)
+                                                                     (-> first-elem-type :domain vals first))
+                                                    ""))
+                            :seqable (:type/name first-elem-type)
+                            (:type/name first-elem-type)))
+        details-lbl (label (format "%s %s ,...%s" open-char f-elem-type-str close-char))]
+    (doto (h-box [(label name "docs-type-name") details-lbl])
+     (.setSpacing 10))))
+
+(defn build-type-set-component [types-set]
+  (let [build-type-component (fn [t]
+                               (case (:type/type t)
+                                 :fn      (label "Fn")
+                                 :map     (build-map-type-component t)
+                                 :seqable (build-seqable-type-component t)
+
+                                 ;; else
+                                 (label (:type/name t))))]
+    (doto (v-box (->> types-set
+                      (map build-type-component)))
+      (.setSpacing 10))))
+
 (defn build-arities-boxes-form-arglists [args-types arglists]
   (let [arglists (when (seq arglists) (read-string arglists))
         type-set-by-idx (build-type-set-by-idx args-types)
@@ -74,18 +134,19 @@
                           arglists)]
     (mapv (fn [argv]
             (let [argv-boxes (mapv (fn [[symb tset]]
-                                     (let [symb-lbl (doto (label (str symb))
+                                     (let [symb-lbl (doto (label (str symb) "docs-arg-symbol")
                                                       (.setMinWidth 70))
-                                           types-lbl (label (str/join " | " tset) "docs-types-set")]
+                                           types-set-box (build-type-set-component tset)]
                                        (doto
                                            (h-box [symb-lbl
-                                                   types-lbl])
+                                                   types-set-box])
                                          (.setSpacing 10))))
                                    argv)]
-              (v-box (-> [(label "[")]
-                         (into argv-boxes)
-                         (into [(label "]")]))
-                     "docs-box")))
+              (doto (v-box (-> [(label "[")]
+                          (into argv-boxes)
+                          (into [(label "]")]))
+                           "docs-box")
+                (.setSpacing 10))))
           arglists+)))
 
 (defn build-arities-boxes-from-types [args-types]
@@ -94,8 +155,7 @@
     (map (fn [asize]
            (v-box (-> [(label "[")]
                       (into (mapv (fn [idx]
-                                    (label (str/join " | " (type-set-by-idx idx))
-                                           "docs-types-set"))
+                                    (build-type-set-component (type-set-by-idx idx)))
                                   (range asize)))
                       (into [(label "]")]))
                   "docs-box"))
@@ -127,9 +187,7 @@
 
     (.clear (.getChildren rets-box))
     (.addAll (.getChildren rets-box)
-             (mapv (fn [rt]
-                     (label (str rt) "docs-types-set"))
-                   return-types))
+             [(build-type-set-component return-types)])
 
     (.clear (.getChildren examples-box))
     (.addAll (.getChildren examples-box)
