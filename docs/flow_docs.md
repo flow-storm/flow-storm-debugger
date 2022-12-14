@@ -4,7 +4,7 @@ Generate projects functions documentation by sampling their executions.
 
 **NOTE: Everything here is still experimental, buggy and subject to change!***
 
-**NOTE: This assumes you are running flow-storm >= 3.3-alpha-290***
+**NOTE: This assumes you are running flow-storm >= 3.3.295***
 
 ## Rationale
 
@@ -42,7 +42,7 @@ For convenience we are going to create a script `document.sh` like this :
 ```
 #!/bin/bash
 
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3-alpha-290"}}}' \
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.295"}}}' \
     -X:test flow-storm.api/cli-doc \
     :result-name '"datascript-flow-docs-1.4.0"' \
     :print-unsampled? true \
@@ -84,13 +84,13 @@ FlowStorm debugger provides a way of visualizing whatever docs you have on your 
 For this you can add the docs and FlowStorm to your classpaths as usual, like :
 
 ```
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
 ```	
 
 or if you want to use the documentation I already generated and uploaded to my clojars group try :
 
 ```
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
 ```	
 
 and now we can run the debugger :
