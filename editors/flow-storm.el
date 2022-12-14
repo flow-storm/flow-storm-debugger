@@ -81,12 +81,25 @@
 		 (clj-cmd (format "(flow-storm.api/show-doc '%s/%s)" fn-ns fn-name)))
 	(cider-interactive-eval clj-cmd nil nil `(("ns" ,current-ns)))))
 
+(defun flow-storm-rtrace-last-sexp ()
+
+  "#rtrace current form"
+
+  (interactive)
+
+  (ensure-connected
+   (let* ((current-ns (cider-current-ns))
+		  (form (cider-last-sexp))
+		  (clj-cmd (format "(flow-storm.api/runi {} %s)" form)))
+	 (cider-interactive-eval clj-cmd nil nil `(("ns" ,current-ns))))))
+
 (defvar cider-flow-storm-map
   (let (cider-flow-storm-map)
     (define-prefix-command 'cider-flow-storm-map)
 	
     (define-key cider-flow-storm-map (kbd "s") #'flow-storm-start)
-    (define-key cider-flow-storm-map (kbd "x") #'flow-storm-stop)
+
+	(define-key cider-flow-storm-map (kbd "x") #'flow-storm-stop)
 	
 	(define-key cider-flow-storm-map (kbd "n") #'flow-storm-instrument-current-ns)
     
@@ -95,6 +108,8 @@
 	(define-key cider-flow-storm-map (kbd "t") #'flow-storm-tap-last-result)
 
 	(define-key cider-flow-storm-map (kbd "d") #'flow-storm-show-current-var-doc)
+
+	(define-key cider-flow-storm-map (kbd "r") #'flow-storm-rtrace-last-sexp)
 	
     cider-flow-storm-map)
   "CIDER flow-storm keymap.")

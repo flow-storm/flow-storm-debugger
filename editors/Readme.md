@@ -18,6 +18,7 @@ It will provide the following commands :
 - `C-c C-f f` (flow-storm-instrument-current-form) : Evaluate the current top level form instrumented (just re evaluate it normally to uninstrument it)
 - `C-c C-f t` (flow-storm-tap-last-result) : Will just `(tap> *1)`
 - `C-c C-f d` (flow-storm-show-current-var-doc) : Show the current function documentation
+- `C-c C-f r` (flow-storm-rtrace-last-sexp) : Evaluate the expression before the point with #rtrace
 
 Whenever you [un]instrument a function or a entire namespace it will show on the flow-storm browser, in the instrumentation panel. So you
 can look there to keep track of what you have currently instrumented.
