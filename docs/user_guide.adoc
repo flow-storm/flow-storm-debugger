@@ -584,6 +584,98 @@ Use the `clear` button to clear the list.
 
 There is also `#tap-stack-trace`. It will tap the current stack trace.
 
+== Docs tool
+
+Generate projects functions documentation by sampling their executions.
+
+=== Generating docs
+
+Lets say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
+
+First we clone the repo. Then we can generate it by calling `flow-storm.api/cli-doc`. 
+
+For convenience we are going to create a script `document.sh` like this :
+
+[,bash]
+----
+#!/bin/bash
+
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3-alpha-290"}}}' \
+    -X:test flow-storm.api/cli-doc \
+    :result-name '"datascript-flow-docs-1.4.0"' \
+    :print-unsampled? true \
+    :instrument-ns '#{"datascript"}' \
+    :fn-symb 'datascript.test/test-clj' \
+    :fn-args '[]' \
+    :examples-pprint? true \
+    :examples-print-length 2 \
+    :examples-print-level 3 
+----
+
+The idea behind `flow-storm.api/cli-doc` is to act as a trampoline, so it will instrument our code base as specified by `:instrument-ns` 
+then call whatever function provided by `:fn-symb` and `:fn-args`.
+
+For this case we are going to instrument every namespace that starts with "datascript" and then run `datascript.test/test-clj` without arguments.
+
+For the rest of the options check `flow-storm.api/cli-doc` doc string.
+
+It will output 3 useful things :
+
+- datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data
+- the coverage percentage (how many fns were sampled over the instrumented ones)
+- unsampled fns, which are all the functions that were instrumented but the test never called
+
+So if you are running your tests, as a bonus you will get your test "coverage" and a list of functions your 
+tests aren't exercising, you should see something like this after it finishes :
+
+image::user_guide_images/flow_docs_cli.png[]
+
+=== Publishing docs
+
+Given the docs are already in jar format you can publish them to your local repo or any maven repo (like Clojars) 
+with the usual mvn utilities.
+
+=== Consuming docs
+
+FlowStorm debugger provides a way of visualizing whatever docs you have on your classpath.
+
+For this you can add the docs and FlowStorm to your classpaths as usual, like :
+
+[,bash]
+----
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
+----
+
+or if you want to use the documentation I already generated and uploaded to my clojars group try :
+
+[,bash]
+----
+clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
+----
+
+and now we can run the debugger :
+
+[,clojure]
+----
+(require '[flow-storm.api :as fs-api])
+
+(fs-api/local-connect)
+----
+
+The documentation will be available under the Docs tool.
+
+You can search and click over all the functions you have loaded from all your imported docs to see the details.
+
+Currently it shows fns meta, arguments, returns, and call examples.
+
+image::user_guide_images/flow_docs_browser.png[]
+
+=== TIPS
+
+If you are using the emacs integration you can do `C-c C-f d` (flow-storm-show-current-var-doc) to show the current function documentation 
+in the debugger.
+
+
 == Value inspector
 
 Use the value inspector to explore any data.
@@ -905,3 +997,9 @@ Is useful when you have instrumented a big application and wish to see tracing p
 - https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/form_instrumentation.pdf
 - https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/data_structures.pdf
 									   
+////
+Local Variables:
+mode: outline
+outline-regexp: "[=]+"
+End:
+////

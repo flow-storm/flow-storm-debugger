@@ -721,31 +721,39 @@ pre.rouge {
 </li>
 <li><a href="#_browser_tool">5. Browser tool</a></li>
 <li><a href="#_taps_tool">6. Taps tool</a></li>
-<li><a href="#_value_inspector">7. Value inspector</a></li>
-<li><a href="#_the_tool_bar">8. The tool bar</a></li>
-<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">9. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
-<li><a href="#_programmable_debugging">10. Programmable debugging</a>
+<li><a href="#_docs_tool">7. Docs tool</a>
 <ul class="sectlevel3">
-<li><a href="#_example_1">10.1. Example 1</a></li>
-<li><a href="#_example_2">10.2. Example 2</a></li>
-<li><a href="#_example_3">10.3. Example 3</a></li>
+<li><a href="#_generating_docs">7.1. Generating docs</a></li>
+<li><a href="#_publishing_docs">7.2. Publishing docs</a></li>
+<li><a href="#_consuming_docs">7.3. Consuming docs</a></li>
+<li><a href="#_tips">7.4. TIPS</a></li>
 </ul>
 </li>
-<li><a href="#_dealing_with_mutable_values">11. Dealing with mutable values</a></li>
-<li><a href="#_dealing_with_infinite_loops">12. Dealing with infinite loops</a></li>
-<li><a href="#_styling_and_theming">13. Styling and theming</a></li>
-<li><a href="#_key_bindings">14. Key bindings</a></li>
-<li><a href="#_debugging_react_native_applications">15. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></li>
-<li><a href="#_editorsides_integration">17. Editors/IDEs integration</a></li>
-<li><a href="#_tutorials_and_demos">18. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">19. Troubleshooting</a>
+<li><a href="#_value_inspector">8. Value inspector</a></li>
+<li><a href="#_the_tool_bar">9. The tool bar</a></li>
+<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">10. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
+<li><a href="#_programmable_debugging">11. Programmable debugging</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">19.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">19.2. Run verbose</a></li>
+<li><a href="#_example_1">11.1. Example 1</a></li>
+<li><a href="#_example_2">11.2. Example 2</a></li>
+<li><a href="#_example_3">11.3. Example 3</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">20. Internals, diagrams and documentation</a></li>
+<li><a href="#_dealing_with_mutable_values">12. Dealing with mutable values</a></li>
+<li><a href="#_dealing_with_infinite_loops">13. Dealing with infinite loops</a></li>
+<li><a href="#_styling_and_theming">14. Styling and theming</a></li>
+<li><a href="#_key_bindings">15. Key bindings</a></li>
+<li><a href="#_debugging_react_native_applications">16. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></li>
+<li><a href="#_editorsides_integration">18. Editors/IDEs integration</a></li>
+<li><a href="#_tutorials_and_demos">19. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">20. Troubleshooting</a>
+<ul class="sectlevel3">
+<li><a href="#_instrument_verbose">20.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">20.2. Run verbose</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">21. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -1679,7 +1687,136 @@ Use the <code>clear</code> button to clear the list.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">7. Value inspector</a></h3>
+<h3 id="_docs_tool"><a class="anchor" href="#_docs_tool"></a><a class="link" href="#_docs_tool">7. Docs tool</a></h3>
+<div class="paragraph">
+<p>Generate projects functions documentation by sampling their executions.</p>
+</div>
+<div class="sect3">
+<h4 id="_generating_docs"><a class="anchor" href="#_generating_docs"></a><a class="link" href="#_generating_docs">7.1. Generating docs</a></h4>
+<div class="paragraph">
+<p>Lets say we want to generate documentation for datascript(<a href="https://github.com/tonsky/datascript/" class="bare">https://github.com/tonsky/datascript/</a>).</p>
+</div>
+<div class="paragraph">
+<p>First we clone the repo. Then we can generate it by calling <code>flow-storm.api/cli-doc</code>.</p>
+</div>
+<div class="paragraph">
+<p>For convenience we are going to create a script <code>document.sh</code> like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash"><span class="c">#!/bin/bash</span>
+
+clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3-alpha-290"}}}'</span> <span class="se">\</span>
+    <span class="nt">-X</span>:test flow-storm.api/cli-doc <span class="se">\</span>
+    :result-name <span class="s1">'"datascript-flow-docs-1.4.0"'</span> <span class="se">\</span>
+    :print-unsampled? <span class="nb">true</span> <span class="se">\</span>
+    :instrument-ns <span class="s1">'#{"datascript"}'</span> <span class="se">\</span>
+    :fn-symb <span class="s1">'datascript.test/test-clj'</span> <span class="se">\</span>
+    :fn-args <span class="s1">'[]'</span> <span class="se">\</span>
+    :examples-pprint? <span class="nb">true</span> <span class="se">\</span>
+    :examples-print-length 2 <span class="se">\</span>
+    :examples-print-level 3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The idea behind <code>flow-storm.api/cli-doc</code> is to act as a trampoline, so it will instrument our code base as specified by <code>:instrument-ns</code>
+then call whatever function provided by <code>:fn-symb</code> and <code>:fn-args</code>.</p>
+</div>
+<div class="paragraph">
+<p>For this case we are going to instrument every namespace that starts with "datascript" and then run <code>datascript.test/test-clj</code> without arguments.</p>
+</div>
+<div class="paragraph">
+<p>For the rest of the options check <code>flow-storm.api/cli-doc</code> doc string.</p>
+</div>
+<div class="paragraph">
+<p>It will output 3 useful things :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data</p>
+</li>
+<li>
+<p>the coverage percentage (how many fns were sampled over the instrumented ones)</p>
+</li>
+<li>
+<p>unsampled fns, which are all the functions that were instrumented but the test never called</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>So if you are running your tests, as a bonus you will get your test "coverage" and a list of functions your
+tests aren&#8217;t exercising, you should see something like this after it finishes :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/flow_docs_cli.png" alt="flow docs cli">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_publishing_docs"><a class="anchor" href="#_publishing_docs"></a><a class="link" href="#_publishing_docs">7.2. Publishing docs</a></h4>
+<div class="paragraph">
+<p>Given the docs are already in jar format you can publish them to your local repo or any maven repo (like Clojars)
+with the usual mvn utilities.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_consuming_docs"><a class="anchor" href="#_consuming_docs"></a><a class="link" href="#_consuming_docs">7.3. Consuming docs</a></h4>
+<div class="paragraph">
+<p>FlowStorm debugger provides a way of visualizing whatever docs you have on your classpath.</p>
+</div>
+<div class="paragraph">
+<p>For this you can add the docs and FlowStorm to your classpaths as usual, like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or if you want to use the documentation I already generated and uploaded to my clojars group try :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and now we can run the debugger :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The documentation will be available under the Docs tool.</p>
+</div>
+<div class="paragraph">
+<p>You can search and click over all the functions you have loaded from all your imported docs to see the details.</p>
+</div>
+<div class="paragraph">
+<p>Currently it shows fns meta, arguments, returns, and call examples.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/flow_docs_browser.png" alt="flow docs browser">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tips"><a class="anchor" href="#_tips"></a><a class="link" href="#_tips">7.4. TIPS</a></h4>
+<div class="paragraph">
+<p>If you are using the emacs integration you can do <code>C-c C-f d</code> (flow-storm-show-current-var-doc) to show the current function documentation
+in the debugger.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">8. Value inspector</a></h3>
 <div class="paragraph">
 <p>Use the value inspector to explore any data.</p>
 </div>
@@ -1715,7 +1852,7 @@ to dig deeper into the data.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">8. The tool bar</a></h3>
+<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">9. The tool bar</a></h3>
 <div class="paragraph">
 <p>The toolbar provides quick access to some general commands :</p>
 </div>
@@ -1739,7 +1876,7 @@ to dig deeper into the data.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">9. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
+<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">10. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
 <div class="paragraph">
 <p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
 you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
@@ -1770,7 +1907,7 @@ run you original command.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">10. Programmable debugging</a></h3>
+<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">11. Programmable debugging</a></h3>
 <div class="paragraph">
 <p>FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
 enough.</p>
@@ -1788,7 +1925,7 @@ enough.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">10.1. Example 1</a></h4>
+<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">11.1. Example 1</a></h4>
 <div class="paragraph">
 <p>Collect all the types information for parameters that flow into a function</p>
 </div>
@@ -1815,7 +1952,7 @@ enough.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">10.2. Example 2</a></h4>
+<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">11.2. Example 2</a></h4>
 <div class="paragraph">
 <p>Visualization lenses over traces. Say I have a loop-recur process in which I am computing
 new versions of an accumulated data structure, but I want to see only some derived data
@@ -1845,7 +1982,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">10.3. Example 3</a></h4>
+<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">11.3. Example 3</a></h4>
 <div class="paragraph">
 <p>Create a small stepper for the repl</p>
 </div>
@@ -1884,7 +2021,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">11. Dealing with mutable values</a></h3>
+<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">12. Dealing with mutable values</a></h3>
 <div class="paragraph">
 <p>FlowStorm will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :</p>
@@ -1937,7 +2074,7 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_infinite_loops"><a class="anchor" href="#_dealing_with_infinite_loops"></a><a class="link" href="#_dealing_with_infinite_loops">12. Dealing with infinite loops</a></h3>
+<h3 id="_dealing_with_infinite_loops"><a class="anchor" href="#_dealing_with_infinite_loops"></a><a class="link" href="#_dealing_with_infinite_loops">13. Dealing with infinite loops</a></h3>
 <div class="paragraph">
 <p>If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
 too many traces, making everything slow and where your only option is to restart it.</p>
@@ -1960,7 +2097,7 @@ the debugger to figure out what went wrong.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">13. Styling and theming</a></h3>
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">14. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -1979,7 +2116,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">14. Key bindings</a></h3>
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">15. Key bindings</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1995,7 +2132,7 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">15. Debugging react native applications</a></h3>
+<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">16. Debugging react native applications</a></h3>
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
 </div>
@@ -2026,7 +2163,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></h3>
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></h3>
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -2075,13 +2212,13 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">17. Editors/IDEs integration</a></h3>
+<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">18. Editors/IDEs integration</a></h3>
 <div class="paragraph">
 <p><a href="https://github.com/jpmonettas/flow-storm-debugger/tree/master/editors">This document</a> will track information on different ways to integrate editors/IDEs with FlowStorm.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">18. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">19. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2115,16 +2252,16 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">19. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">20. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">19.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">20.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">19.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">20.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -2137,7 +2274,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">20. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">21. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2155,7 +2292,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-11-23 15:36:08 -0300
+Last updated 2022-12-14 13:50:19 -0300
 </div>
 </div>
 </body>
