@@ -237,7 +237,7 @@
 
     (utils/log (format "Processing call examples for %d collected fns. Serializing values ..." total-cnt))
 
-    (utils/update-vals
+    (utils/update-values
      collected-fns
      (fn [data]
        (update data :call-examples

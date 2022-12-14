@@ -3,7 +3,7 @@
                      [goog.string.format]
                      [goog :as g])
      :clj (:require [clojure.java.io :as io]))
-  #?(:clj (:refer-clojure :exclude [format update-vals]))
+  #?(:clj (:refer-clojure :exclude [format update-values]))
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
                    [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
 
@@ -299,7 +299,7 @@
                (recur (inc num-attempts)))))))))
 
 ;; So we don't depend on clojure 1.11
-(defn update-vals
+(defn update-values
   "m f => {k (f v) ...}
 
   Given a map m and a function f of 1-argument, returns a new map where the keys of m
