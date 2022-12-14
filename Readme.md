@@ -21,11 +21,11 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 Debugger GUI and instrumentation artifact (for Clojure local debugging) :
 
-	com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.2.283"}
+	com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"}
 	
 Only instrumentation artifact (for remote and ClojureScript debugging) :
 
-	com.github.jpmonettas/flow-storm-inst {:mvn/version "3.2.283"}
+	com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.295"}
 
 # Prerequisites
 

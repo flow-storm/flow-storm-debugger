@@ -2,8 +2,19 @@
 
 ## master (unreleased)
 	
+### New Features
+   
+### Changes
+
+### Bugs fixed
+		
+
+### 3.3.295 (14-12-2022)
+	
 ## New Features
-    
+   
+   - Add Flow Docs - Generate projects functions documentation by sampling their executions.
+   
 ### Changes
 
 ### Bugs fixed
