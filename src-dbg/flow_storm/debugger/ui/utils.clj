@@ -9,7 +9,7 @@
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
            [javafx.scene Node]
-           [javafx.scene.layout HBox Priority VBox]
+           [javafx.scene.layout HBox Priority VBox Region]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
            [javafx.collections FXCollections]))
@@ -154,6 +154,11 @@
      (when class
        (add-class lbl class))
      lbl)))
+
+(defn set-min-size-wrap-content [node]
+  (doto node
+    (.setMinHeight (Region/USE_PREF_SIZE))))
+
 
 (defn text-field
   ([params] (text-field params nil))

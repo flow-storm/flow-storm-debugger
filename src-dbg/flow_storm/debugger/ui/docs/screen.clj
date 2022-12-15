@@ -192,9 +192,13 @@
     (.clear (.getChildren examples-box))
     (.addAll (.getChildren examples-box)
              (mapv (fn [{:keys [args ret]}]
-                     (v-box [(label (format "(%s %s)" (name fn-symb) (str/join " " args)))
-                             (label "=>")
-                             (label (str ret))]
+                     (v-box [(ui-utils/set-min-size-wrap-content
+                              (label (format "(%s %s)" (name fn-symb) (str/join " " args))))
+
+                             (label "=>" "docs-example-ret-symbol")
+
+                             (ui-utils/set-min-size-wrap-content
+                              (label (str ret)))]
                             "docs-box"))
                    call-examples))))
 

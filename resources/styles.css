@@ -251,3 +251,7 @@
 	-fx-display: none;
 	visibility: hidden;
 }
+
+.docs-example-ret-symbol {
+	-fx-text-fill: -fx-theme-links;
+}

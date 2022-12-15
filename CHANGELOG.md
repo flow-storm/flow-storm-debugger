@@ -8,7 +8,8 @@
 
 ### Bugs fixed
 		
-
+	- Fix docs examples display
+	
 ### 3.3.295 (14-12-2022)
 	
 ## New Features
