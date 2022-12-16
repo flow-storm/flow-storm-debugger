@@ -6,10 +6,11 @@
    
 ### Changes
 	
+	- Update hansel to 0.1.31 which contains a critical bug
 	- Improve value inspector styles
 	
 ### Bugs fixed
-		
+	
 	- Fix docs examples display
 	
 ### 3.3.295 (14-12-2022)
