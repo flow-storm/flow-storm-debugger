@@ -8,7 +8,7 @@
             [flow-storm.debugger.ui.state-vars :as ui-vars])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
-           [javafx.scene.layout HBox Priority]
+           [javafx.scene.layout HBox VBox Priority]
            [javafx.scene.control TextInputDialog]))
 
 (declare create-shallow-frame-pane)
@@ -42,8 +42,8 @@
                                                            (if (not= fr frame-pane)
                                                              (conj r stack-entry)
                                                              (reduced (conj r stack-entry))))
-                                                  []
-                                                  ss)))
+                                                         []
+                                                         ss)))
                        (update-stack-bar-pane ctx)))))
                  @vals-panes-stack)))
 
@@ -58,14 +58,12 @@
 (defn- create-dig-node [ctx k v]
   (if-let [v (dig-node-val v)]
     (let [stack-txt-len 20
-          node-txt-len 80
           val-txt (runtime-api/val-pprint rt-api v {:print-level 4 :pprint? false :print-length 20})
           stack-txt (utils/elide-string (if (dig-node? k)
                                           val-txt
                                           (str k))
-                                        stack-txt-len)
-          node-txt (utils/elide-string val-txt node-txt-len)]
-      (doto (label node-txt "link-lbl")
+                                        stack-txt-len)]
+      (doto (label val-txt "link-lbl")
         (.setOnMouseClicked
          (event-handler
           [_]
@@ -113,6 +111,7 @@
         container (v-box (cond-> [header-lbl
                                   list-view-pane]
                            more-button (conj (change-more-handler-for-shallow shallow-v))))]
+    (VBox/setVgrow list-view-pane Priority/ALWAYS)
     (HBox/setHgrow container Priority/ALWAYS)
     (add-shallow-page-to-list shallow-v)
 

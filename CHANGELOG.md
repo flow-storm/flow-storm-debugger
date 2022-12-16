@@ -5,7 +5,9 @@
 ### New Features
    
 ### Changes
-
+	
+	- Improve value inspector styles
+	
 ### Bugs fixed
 		
 	- Fix docs examples display
