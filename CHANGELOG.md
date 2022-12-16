@@ -5,6 +5,14 @@
 ### New Features
    
 ### Changes
+		
+### Bugs fixed
+
+## 3.3.301 (16-12-2022)
+	
+### New Features
+   
+### Changes
 	
 	- Update hansel to 0.1.31 which contains a critical bug
 	- Improve value inspector styles

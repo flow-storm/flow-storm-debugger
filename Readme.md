@@ -20,12 +20,10 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 # Artifacts
 
 Debugger GUI and instrumentation artifact (for Clojure local debugging) :
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
 
-	com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"}
-	
 Only instrumentation artifact (for remote and ClojureScript debugging) :
-
-	com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.295"}
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
 # Prerequisites
 
