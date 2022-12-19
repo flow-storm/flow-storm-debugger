@@ -170,15 +170,21 @@
                                                  (doseq [stg @stages]
                                                    (update-scene-with-current-theme (.getScene stg) dark?)))))]
 
-    (update-scene-with-current-theme (-> @stages first (.getScene)) (or (= :dark theme)
-                                                                        (.isDark (OsThemeDetector/getDetector))))
+    (update-scene-with-current-theme (-> @stages first (.getScene))
+                                     (or (= :dark theme)
+                                         (.isDark (OsThemeDetector/getDetector))))
 
     (alter-var-root #'ui-vars/register-and-init-stage!
                     (constantly
                      (fn [stg]
                        (update-scene-with-current-theme (.getScene stg)
                                                         (or (= :dark theme)
-                                                            (.isDark (OsThemeDetector/getDetector))))
+
+                                                            (try
+                                                              (.isDark (OsThemeDetector/getDetector))
+                                                              (catch Exception e
+                                                                (log-error "Couldn't query OS theme" e)
+                                                                false))))
                        (swap! stages conj stg))))
 
     theme-listener))

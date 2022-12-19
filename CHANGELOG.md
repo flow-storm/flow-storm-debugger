@@ -8,6 +8,8 @@
 		
 ### Bugs fixed
 
+	- Handle OS theme detector exceptions
+	
 ## 3.3.301 (16-12-2022)
 	
 ### New Features
