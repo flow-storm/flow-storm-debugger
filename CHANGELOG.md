@@ -7,6 +7,14 @@
 ### Changes
 		
 ### Bugs fixed
+    
+## 3.3.303 (20-12-2022)
+	
+### New Features
+   
+### Changes
+		
+### Bugs fixed
 
 	- Handle OS theme detector exceptions
 	
