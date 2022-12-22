@@ -31,7 +31,6 @@
         ;---------------------------------------------------------------------
         }
 
- :jvm-opts []
  :aliases {:cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
                                cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
@@ -43,8 +42,8 @@
                               ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
                               ;; clindex-docs/clindex-docs {:local/root "/home/jmonetta/my-projects/clindex/clindex-flow-docs-0.4.94.jar"}
                               }
-                 :jvm-opts ["-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
-                            "-Xmx10500m" ;; for instrumenting big codebases
+                 :jvm-opts ["-Dproject-name=FlowStorm" "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
+                            ;; "-Xmx10500m" ;; for instrumenting big codebases
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}

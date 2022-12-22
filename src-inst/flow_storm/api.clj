@@ -283,8 +283,7 @@
                      :verbose? verbose?}
           fn-ns-name (namespace fn-symb)
           _ (require (symbol fn-ns-name))
-          _ (resolve fn-symb)
-          ns-to-instrument (into #{fn-ns-name} instrument-ns)]
+          _ (resolve fn-symb)]
 
       (when (seq require-before)
         (doseq [ns-name require-before]
@@ -293,9 +292,9 @@
 
       (local-connect {:verbose? verbose? :styles styles :theme theme})
 
-      (log (format "Instrumenting namespaces %s" ns-to-instrument))
+      (log (format "Instrumenting namespaces %s" instrument-ns))
       (time
-       (instrument-namespaces-clj ns-to-instrument inst-opts))
+       (instrument-namespaces-clj instrument-ns inst-opts))
       (log "Instrumentation done.")
       (time
        (if flow-id
@@ -339,8 +338,7 @@
 
     (let [fn-ns-name (namespace fn-symb)
           _ (require (symbol fn-ns-name))
-          _ (resolve fn-symb)
-          ns-to-instrument (into #{fn-ns-name} instrument-ns)]
+          _ (resolve fn-symb)]
 
       (when (seq require-before)
         (doseq [ns-name require-before]
@@ -350,7 +348,7 @@
       (eval
        `(fn-sampler/sample
          ~{:result-name result-name
-           :inst-ns-prefixes ns-to-instrument
+           :inst-ns-prefixes instrument-ns
            :excluding-fns excluding-fns
            :excluding-ns excluding-ns
            :verbose? verbose?
