@@ -68,18 +68,21 @@
   (ensure-connected
    (cider-interactive-eval "(tap> *1)")))
 
-
 (defun flow-storm-show-current-var-doc ()
 
   "Show doc for var under point"
 
   (interactive)
 
-  (let* ((current-ns (cider-current-ns))
-		 (fn-name (clojure-current-defun-name))
-		 (fn-ns (clojure-find-ns))
-		 (clj-cmd (format "(flow-storm.api/show-doc '%s/%s)" fn-ns fn-name)))
-	(cider-interactive-eval clj-cmd nil nil `(("ns" ,current-ns)))))
+  (cider-try-symbol-at-point
+   "Flow doc for"
+   (lambda (var-name)
+	 (let* ((info (cider-var-info var-name))
+			(fn-ns (nrepl-dict-get info "ns"))
+			(fn-name (nrepl-dict-get info "name"))
+            (clj-cmd (format "(flow-storm.api/show-doc '%s/%s)" fn-ns fn-name)))
+	   (when (and fn-ns fn-name)
+         (cider-interactive-eval clj-cmd))))))
 
 (defun flow-storm-rtrace-last-sexp ()
 
