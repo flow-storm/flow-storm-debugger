@@ -5,7 +5,9 @@
 ### New Features
    
 ### Changes
-		
+
+	- Update hansel dependency to 0.1.35
+	
 ### Bugs fixed
     
 ## 3.3.303 (20-12-2022)

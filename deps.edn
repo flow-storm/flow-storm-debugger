@@ -15,7 +15,7 @@
         org.clojure/tools.build {:mvn/version "0.8.4"}
         com.github.jpmonettas/hansel {
                                       ;;:local/root "/home/jmonetta/my-projects/hansel"
-                                      :mvn/version "0.1.31"
+                                      :mvn/version "0.1.35"
                                       }
 
         ;; Comment out for releasing INST ------------------------------------------------
