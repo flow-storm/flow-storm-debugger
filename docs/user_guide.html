@@ -1706,7 +1706,7 @@ Use the <code>clear</code> button to clear the list.</p>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="c">#!/bin/bash</span>
 
-clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3-alpha-290"}}}'</span> <span class="se">\</span>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="se">\</span>
     <span class="nt">-X</span>:test flow-storm.api/cli-doc <span class="se">\</span>
     :result-name <span class="s1">'"datascript-flow-docs-1.4.0"'</span> <span class="se">\</span>
     :print-unsampled? <span class="nb">true</span> <span class="se">\</span>
@@ -1771,7 +1771,7 @@ with the usual mvn utilities.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'</span></code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1779,7 +1779,7 @@ with the usual mvn utilities.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3-alpha-290"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'</span></code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2292,7 +2292,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-14 13:50:19 -0300
+Last updated 2022-12-29 11:38:47 -0300
 </div>
 </div>
 </body>

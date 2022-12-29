@@ -60,6 +60,7 @@ Flow storm debugger is packed with a ton of features, here is a non-comprehensiv
 
 ## Some demo videos
 
+- [Show me your REPL episode](https://www.youtube.com/watch?v=2nH59edD5Uo)
 - [Debugging Clojure with FlowStorm](https://www.youtube.com/watch?v=PbGVTVs1yiU)
 - [Debugging ClojureScript with FlowStorm](https://www.youtube.com/watch?v=jMYl32lnMhI)
 - [Presentation at London Clojurians](https://www.youtube.com/watch?v=A3AzlqNwUXc)

@@ -42,7 +42,7 @@ For convenience we are going to create a script `document.sh` like this :
 ```
 #!/bin/bash
 
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "3.3.295"}}}' \
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' \
     -X:test flow-storm.api/cli-doc \
     :result-name '"datascript-flow-docs-1.4.0"' \
     :print-unsampled? true \
@@ -84,13 +84,13 @@ FlowStorm debugger provides a way of visualizing whatever docs you have on your 
 For this you can add the docs and FlowStorm to your classpaths as usual, like :
 
 ```
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
 ```	
 
 or if you want to use the documentation I already generated and uploaded to my clojars group try :
 
 ```
-clj -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "3.3.295"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"} com.github.jpmonettas/datascript-flow-docs {:mvn/version "1.4.0"}}}'
 ```	
 
 and now we can run the debugger :
