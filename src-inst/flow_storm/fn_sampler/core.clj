@@ -25,12 +25,11 @@
 
   (:require [hansel.api :as hansel]
             [flow-storm.utils :as utils]
-            [clojure.tools.build.api :as tools.build]
             [clojure.string :as str]
             [clojure.set :as set]
             [flow-storm.runtime.indexes.utils :as index-utils]
-            [clojure.pprint :as pp])
-  (:import [java.io File]))
+            [flow-storm.fn-sampler.docs :as docs]
+            [clojure.pprint :as pp]))
 
 (def max-samples-per-fn 3)
 (def max-map-keys 20)
@@ -248,25 +247,6 @@
                                  (update :args #(mapv (partial serialize-val ser-cfg) %))
                                  (update :ret #(serialize-val ser-cfg %))))))))))))
 
-(defn save-result
-
-  "Save the resulting sampled FNS-MAP into a samples.edn file and wrap it in a jar with RESULT-NAME"
-
-  [fns-map {:keys [result-name]}]
-  (utils/log "Saving result ...")
-
-  (let [tmp-dir (.getAbsolutePath (utils/mk-tmp-dir!))
-        result-file-str (pr-str fns-map)
-        result-file-path (str tmp-dir File/separator "samples.edn")]
-
-    (utils/log (format "Saving results in %s" result-file-path))
-    (spit result-file-path result-file-str)
-
-    (utils/log (str "Wrote " result-file-path " creating jar file."))
-    (tools.build/jar {:class-dir tmp-dir
-                      :jar-file (str result-name ".jar")})
-    (utils/log "Jar file created.")))
-
 (defmacro sample
 
   "Expands into code for sampling the executions of FORMS. "
@@ -299,7 +279,7 @@
              unsampled-fns# (set/difference (:inst-fns @stats#) (:sampled-fns @stats#))]
          (report-stats @stats#)
 
-         (save-result (add-vars-meta fns-map#) ~config)
+         (docs/write-docs (add-vars-meta fns-map#) ~config)
 
          (utils/log "Results saved.")
 

@@ -6,6 +6,9 @@
    
 ### Changes
 
+	- Improve docs file generation. Generated docs will be put into flow-docs.edn instead of samples.edn since
+	  it is less likely to collide. Also the data format has been improved for extensibility
+	
 ### Bugs fixed
 
 ## 3.3.307 (26-12-2022)

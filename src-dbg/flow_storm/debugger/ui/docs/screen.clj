@@ -3,7 +3,7 @@
              :as ui-utils
              :refer [label list-view h-box v-box]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.docs :as docs]
+            [flow-storm.debugger.docs :as dbg-docs]
             [clojure.string :as str])
   (:import [javafx.scene.input MouseButton]
            [javafx.geometry Orientation]
@@ -203,7 +203,7 @@
                    call-examples))))
 
 (defn show-doc [fn-symb]
-  (let [fn-data (get docs/fn-docs fn-symb)
+  (let [fn-data (get dbg-docs/fn-docs fn-symb)
         [fn-doc-pane] (obj-lookup "docs-doc-pane")]
     (ui-utils/rm-class fn-doc-pane "hidden-pane")
     (update-fn-doc-pane fn-symb fn-data)))
@@ -225,7 +225,7 @@
         mp (doto (SplitPane.)
              (.setOrientation (Orientation/HORIZONTAL)))]
 
-    (add-all (keys docs/fn-docs))
+    (add-all (keys dbg-docs/fn-docs))
 
     (-> mp
         .getItems
