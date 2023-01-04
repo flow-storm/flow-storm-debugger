@@ -7,10 +7,10 @@ A tracing debugger for Clojure and ClojureScript
 
 The idea behind FlowStorm is pretty simple :
 
-	- Instrument any Clojure form 
-	- Run it
-	- Retain and index every immutable value pointer (snapshot mutable ones), function calls, etc
-	- Provide a GUI to explore your values and execution flow
+  - Instrument any Clojure form 
+  - Run it
+  - Retain and index every immutable value pointer (snapshot mutable ones), function calls, etc
+  - Provide a GUI to explore your values and execution flow
 
 # Clojure has the repl, does it need a debugger?
 
@@ -27,8 +27,8 @@ Only instrumentation artifact (for remote and ClojureScript debugging) :
 
 # Prerequisites
 
-	- jdk11+
-    - clojure 1.10.0+
+  - jdk11+
+  - clojure 1.10.0+
 
 # QuickStart and Documentation
 
