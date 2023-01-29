@@ -7,6 +7,14 @@
 ### Changes
 
 ### Bugs fixed
+    
+## 3.3.313 (29-01-2023)
+	
+### New Features
+   
+### Changes
+
+### Bugs fixed
 
 	- Update to hansel 0.1.38 which contains a couple of bug fiexs
 	
