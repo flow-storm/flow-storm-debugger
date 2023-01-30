@@ -6,6 +6,8 @@
    
 ### Changes
 
+	- Upgrade to hansel 0.1.42 which contains a couple of bug fixes
+	
 ### Bugs fixed
     
 ## 3.3.313 (29-01-2023)
