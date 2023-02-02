@@ -2,9 +2,6 @@
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :refer [mh-put make-mutable-hashmap mh-contains? mh-get mh->immutable-map]]))
 
-(defprotocol FnCallStatsP
-  (all-stats [_]))
-
 (defrecord FnCallStatsIndex [stats]
 
   index-protos/BuildIndexP
@@ -26,7 +23,7 @@
   
   (add-bind [_ _]) ; don't do anything for bind
 
-  FnCallStatsP
+  index-protos/FnCallStatsP
 
   (all-stats [_]
     (mh->immutable-map stats)))

@@ -204,3 +204,17 @@
 
 
   )
+
+(defn foo [a b]
+  (let [c (+ a b)]
+    c))
+
+(comment
+
+  (clojure.storm.Tracer/enable)
+  (clojure.sotrm.Tracer/disable)
+
+  (foo 5 (foo 7 8))
+
+
+  )

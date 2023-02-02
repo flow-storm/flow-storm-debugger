@@ -50,8 +50,6 @@
       (update form :multimethod/dispatch-val reference-value!)
       form)))
 
-(def all-threads indexes-api/all-threads)
-(def all-forms indexes-api/all-forms)
 (def timeline-count indexes-api/timeline-count)
 
 (defn- reference-frame-data! [{:keys [dispatch-val] :as frame-data}]

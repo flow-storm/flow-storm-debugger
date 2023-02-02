@@ -4,23 +4,24 @@
             [flow-storm.runtime.values :refer [val-pprint]]
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]
+            [flow-storm.runtime.indexes.thread-registry :as thread-registry]
+            [flow-storm.runtime.indexes.form-registry :as form-registry]            
             [clojure.string :as str]
             [clojure.core.async :as async]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            #?(:clj [flow-storm.runtime.indexes.storm-index :as storm-index])))
 
 (declare discard-flow)
 
-(def flow-thread-indexes
+(defn storm-index? []
+  #?(:clj false
+     :cljs false))
 
-  "A map containing [flow-id thread-id] pointing to thread indexes"
-  
-  (atom {}))
+(def flow-thread-registry nil)
 
-(def forms-registry
+(def forms-registry nil)
 
-  "A map of form-id -> {:form/id :form/flow-id :form/ns :form/form :form/def-kind}"
-  
-  (atom {}))
+(def storm-index nil)
 
 (defn register-form [{:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
   (let [form-data (cond-> {:form/id form-id
@@ -30,18 +31,37 @@
                            :form/def-kind def-kind}
                     (= def-kind :defmethod)
                     (assoc :multimethod/dispatch-val mm-dispatch-val))]
-    (swap! forms-registry assoc form-id form-data)))
+    (indexes/register-form forms-registry form-id form-data)))
 
-(defn start []
-  (reset! flow-thread-indexes {})
-  (reset! forms-registry {}))
+#?(:clj
+   (defn start []
+     (if (storm-index?)
+       (do
+         (alter-var-root #'flow-thread-registry (constantly (storm-index/make-index)))
+         (alter-var-root #'forms-registry (constantly (storm-index/make-index)))
+         (alter-var-root #'storm-index (constantly (storm-index/make-index))))
+       (do
+         (alter-var-root #'flow-thread-registry (constantly (thread-registry/make-thread-registry)))
+         (alter-var-root #'forms-registry (constantly (form-registry/make-form-registry))))))
+   :cljs
+   (defn start []
+     (set! flow-thread-registry (thread-registry/make-thread-registry))
+     (set! forms-registry (form-registry/make-form-registry))))
 
-(defn stop []
-  (reset! flow-thread-indexes {})
-  (reset! forms-registry {}))
+#?(:clj
+   (defn stop []
+     (alter-var-root #'flow-thread-registry (constantly nil))
+     (alter-var-root #'forms-registry (constantly nil))
+     (alter-var-root #'storm-index (constantly nil)))
+   
+   :cljs
+   (defn stop []
+     (set! flow-thread-registry nil)
+     (set! forms-registry nil)))
+
 
 (defn flow-exists? [flow-id]
-  (some (fn [[fid _]] (= fid flow-id)) (keys @flow-thread-indexes)))
+  (indexes/flow-exists? flow-thread-registry flow-id))
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
   (discard-flow flow-id)
@@ -52,13 +72,15 @@
                         :fn-call-stats-index (fn-call-stats-index/make-index)}]
 
     (events/publish-event! (events/make-thread-created-event flow-id thread-id form-id))
+
+    (indexes/register-thread-indexes flow-thread-registry flow-id thread-id thread-indexes)
     
-    (swap! flow-thread-indexes
-           assoc [flow-id thread-id] thread-indexes)
     thread-indexes))
 
-(defn get-thread-indexes [flow-id thread-id]   
-  (get @flow-thread-indexes [flow-id thread-id]))
+(defn get-thread-indexes [flow-id thread-id]
+  (if (storm-index?)
+    storm-index
+    (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
 
 (defn get-or-create-thread-indexes [flow-id thread-id form-id]
   
@@ -99,25 +121,25 @@
 ;;;;;;;;;;;;;;;;;
 
 (defn get-form [_ _ form-id]
-  (get @forms-registry form-id))
+  (indexes/get-form forms-registry form-id))
 
 (defn all-threads []
-  (keys @flow-thread-indexes))
+  (indexes/all-threads flow-thread-registry))
 
 (defn all-forms [_ _]
-  (vals @forms-registry))
+  (indexes/all-forms forms-registry))
 
 (defn timeline-count [flow-id thread-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (frame-index/timeline-count frame-index)))
+    (indexes/timeline-count frame-index)))
 
 (defn timeline-entry [flow-id thread-id idx]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (frame-index/timeline-entry frame-index idx)))
+    (indexes/timeline-entry frame-index idx)))
 
 (defn frame-data [flow-id thread-id idx]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (frame-index/frame-data frame-index idx)))
+    (indexes/frame-data frame-index idx)))
 
 (defn- coor-in-scope? [scope-coor current-coor]
   (if (empty? scope-coor)
@@ -143,17 +165,17 @@
 
 (defn callstack-tree-root-node [flow-id thread-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (frame-index/callstack-tree-root-node frame-index)))
+    (indexes/callstack-tree-root-node frame-index)))
 
 (defn callstack-node-childs [node]
-  (frame-index/get-childs node))
+  (indexes/get-childs node))
 
 (defn callstack-node-frame [node]
-  (frame-index/get-node-immutable-frame node))
+  (indexes/get-node-immutable-frame node))
 
 (defn fn-call-stats [flow-id thread-id]
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
-    (->> (fn-call-stats-index/all-stats fn-call-stats-index)
+    (->> (indexes/all-stats fn-call-stats-index)
          (keep (fn [[fn-call cnt]]
                  (when (and (= (:flow-id fn-call) flow-id)
                             (= (:thread-id fn-call) thread-id))                   
@@ -169,7 +191,7 @@
 
 (defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
-        frames (frame-index/timeline-frame-seq frame-index)]
+        frames (indexes/timeline-frame-seq frame-index)]
     (->> frames
          (filter (fn [frame-data]
                    (and (= fn-ns (:fn-ns frame-data))
@@ -183,8 +205,8 @@
   ([flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} interrupt-ch on-progress]
    
    (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
-         total-traces (frame-index/timeline-count frame-index)
-         entries-ch (async/to-chan! (frame-index/timeline-seq frame-index))]
+         total-traces (indexes/timeline-count frame-index)
+         entries-ch (async/to-chan! (indexes/timeline-seq frame-index))]
      (async/go
        (let [match-stack (loop [i 0
                                 stack ()]
@@ -197,7 +219,7 @@
                                  (if (= :frame (:timeline/type tl-entry))
 
                                    ;; it is a fn-call
-                                   (let [{:keys [fn-name args-vec]} (frame-index/get-immutable-frame (:frame tl-entry))]
+                                   (let [{:keys [fn-name args-vec]} (indexes/get-immutable-frame (:frame tl-entry))]
                                      (if (and (> i from-idx)
                                               (or (str/includes? fn-name query-str)
                                                   (str/includes? (val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str)))
@@ -213,15 +235,13 @@
                                      (recur (inc i) (pop stack))
                                      (recur (inc i) stack)))))))]
          (when-let [found-idx (first match-stack)]           
-           {:frame-data (frame-index/frame-data frame-index found-idx) 
+           {:frame-data (indexes/frame-data frame-index found-idx) 
             :match-stack match-stack}))))))
 
 (defn discard-flow [flow-id]
-  (let [discard-keys (->> (keys @flow-thread-indexes)
+  (let [discard-keys (->> (indexes/all-threads flow-thread-registry)
                           (filter (fn [[fid _]] (= fid flow-id))))]
-    (swap! flow-thread-indexes
-           (fn [flows-threads]
-             (apply dissoc flows-threads discard-keys)))))
+    (indexes/discard-threads flow-thread-registry discard-keys)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

@@ -45,6 +45,7 @@
                               }
                  :jvm-opts ["-Dproject-name=FlowStorm" "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
                             ;; "-Xmx10500m" ;; for instrumenting big codebases
+                            "-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}

@@ -81,6 +81,8 @@
      (start-debugger config)
 
 
+     (indexes-api/start)
+
      (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
 
      (rt-values/clear-values-references)
@@ -100,6 +102,8 @@
                               remote-websocket-client/send)))
 
   (rt-values/clear-values-references)
+
+  (indexes-api/start)
 
   ;; setup the tap system so we send tap> to the debugger
   (rt-taps/setup-tap!)
