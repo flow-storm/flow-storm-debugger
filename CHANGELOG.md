@@ -6,7 +6,7 @@
    
 ### Changes
 	
-	- Upgrade hansel to 0.1.44
+	- Upgrade hansel to 0.1.46
 	
 ### Bugs fixed
 
