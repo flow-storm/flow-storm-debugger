@@ -5,6 +5,14 @@
 ### New Features
    
 ### Changes
+	
+### Bugs fixed
+
+## 3.3.320 (16-02-2023)
+	
+### New Features
+   
+### Changes
 
     - Upgrade openjfx to 19.0.2.1
 	- Upgrade hansel to 0.1.46
