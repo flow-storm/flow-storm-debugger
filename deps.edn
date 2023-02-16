@@ -19,10 +19,10 @@
                                       }
 
         ;; Comment out for releasing INST ------------------------------------------------
-        org.openjfx/javafx-controls {:mvn/version "18"}
-        org.openjfx/javafx-base {:mvn/version "18"}
-        org.openjfx/javafx-graphics {:mvn/version "18"}
-        org.openjfx/javafx-swing {:mvn/version "18"}
+        org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
+        org.openjfx/javafx-base {:mvn/version "19.0.2.1"}
+        org.openjfx/javafx-graphics {:mvn/version "19.0.2.1"}
+        org.openjfx/javafx-swing {:mvn/version "19.0.2.1"}
         org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
         org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
