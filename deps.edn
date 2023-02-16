@@ -38,7 +38,9 @@
                                cider/piggieback {:mvn/version "0.5.2"}
                                thheller/shadow-cljs {:mvn/version "2.20.10"}}}
            :dev {:extra-paths ["src-dev"]
+                 :classpath-overrides {org.clojure/clojure nil}
                  :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
+                              com.github.jpmonettas/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}
                               ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}
                               ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
                               ;; clindex-docs/clindex-docs {:local/root "/home/jmonetta/my-projects/clindex/clindex-flow-docs-0.4.94.jar"}

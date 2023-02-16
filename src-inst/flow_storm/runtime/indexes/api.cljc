@@ -13,7 +13,7 @@
 
 (declare discard-flow)
 
-(defn storm-index? []
+(defn storm? []
   #?(:clj false
      :cljs false))
 
@@ -21,7 +21,6 @@
 
 (def forms-registry nil)
 
-(def storm-index nil)
 
 (defn register-form [{:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
   (let [form-data (cond-> {:form/id form-id
@@ -35,14 +34,14 @@
 
 #?(:clj
    (defn start []
-     (if (storm-index?)
-       (do
-         (alter-var-root #'flow-thread-registry (constantly (storm-index/make-index)))
-         (alter-var-root #'forms-registry (constantly (storm-index/make-index)))
-         (alter-var-root #'storm-index (constantly (storm-index/make-index))))
-       (do
-         (alter-var-root #'flow-thread-registry (constantly (thread-registry/make-thread-registry)))
-         (alter-var-root #'forms-registry (constantly (form-registry/make-form-registry))))))
+     (alter-var-root #'flow-thread-registry (constantly
+                                             (if (storm?)
+                                               (storm-index/make-storm-thread-registry)
+                                               (thread-registry/make-thread-registry))))
+     (alter-var-root #'forms-registry (constantly
+                                       (if (storm?)
+                                         (storm-index/make-storm-form-registry)
+                                         (form-registry/make-form-registry)))))
    :cljs
    (defn start []
      (set! flow-thread-registry (thread-registry/make-thread-registry))
@@ -51,8 +50,7 @@
 #?(:clj
    (defn stop []
      (alter-var-root #'flow-thread-registry (constantly nil))
-     (alter-var-root #'forms-registry (constantly nil))
-     (alter-var-root #'storm-index (constantly nil)))
+     (alter-var-root #'forms-registry (constantly nil)))
    
    :cljs
    (defn stop []
@@ -78,9 +76,7 @@
     thread-indexes))
 
 (defn get-thread-indexes [flow-id thread-id]
-  (if (storm-index?)
-    storm-index
-    (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
+  (indexes/get-thread-indexes flow-thread-registry flow-id thread-id))
 
 (defn get-or-create-thread-indexes [flow-id thread-id form-id]
   
