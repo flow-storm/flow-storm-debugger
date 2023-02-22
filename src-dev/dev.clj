@@ -23,7 +23,7 @@
    (reify
      Thread$UncaughtExceptionHandler
      (uncaughtException [_ _ throwable]
-       (tap> throwable)
+       #_(tap> throwable)
        (log-error "Unhandled exception" throwable))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

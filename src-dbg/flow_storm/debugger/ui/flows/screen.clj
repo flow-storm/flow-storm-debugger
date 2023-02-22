@@ -112,7 +112,7 @@
         instrument-tab (tab {:graphic (icon "mdi-format-list-numbers")
                              :content (flow-fns/create-functions-pane flow-id thread-id)
                              :on-selection-changed (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))})
-        thread-tools-tab-pane (tab-pane {:tabs [code-tab callstack-tree-tab instrument-tab]
+        thread-tools-tab-pane (tab-pane {:tabs [callstack-tree-tab code-tab instrument-tab]
                                          :side :bottom
                                          :closing-policy :unavailable})
         thread-pane (v-box [thread-controls-pane thread-tools-tab-pane])]

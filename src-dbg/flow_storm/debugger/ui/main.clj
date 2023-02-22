@@ -242,7 +242,8 @@
         :theme-listener theme-listener})
 
      (catch Exception e
-       (log-error "UI Thread exception" e)))))
+       (log-error "UI Thread exception" e))))
+  )
 
 (defn stop-ui []
   (log "[Stopping UI subsystem]")

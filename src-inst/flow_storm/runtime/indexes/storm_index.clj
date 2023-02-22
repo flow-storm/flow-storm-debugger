@@ -3,6 +3,8 @@
   (:import [clojure.storm TraceIndex CallStackFrame CallTreeNode FrameIndex
             FnCallTrace ExprTrace FnReturnTrace]))
 
+(declare make-storm-wrapped-tree-node)
+
 (defn expr-exec-map [^ExprTrace et]
   {:trace/type :expr-exec
    :form-id (.getFormId et)
@@ -11,7 +13,7 @@
    :result (.getExprVal et) #_(snapshot-reference (.getExprVal et)) ;; TODO: add snapshot
    })
 
-(deftype WrappedCallStackFrame [^CallStackFrame wrapped-frame]
+(defrecord WrappedCallStackFrame [^CallStackFrame wrapped-frame]
 
   index-protos/CallStackFrameP
 
@@ -26,7 +28,7 @@
                                      (map expr-exec-map)
                                      (into []))
                :form-id (.getFormId fn-call-trace)
-               :frame-idx (.getTimelineIndex wrapped-frame)}
+               :frame-idx (.getTimelineIdx wrapped-frame)}
         fn-return-trace (assoc :ret (.getRetVal fn-return-trace)))))
 
   (get-expr-exec [_ idx]
@@ -35,26 +37,28 @@
 (defn make-storm-wrapped-call-stack-frame [frame]
   (->WrappedCallStackFrame frame))
 
-(deftype WrappedTreeNode [^CallTreeNode wrapped-node]
+(defrecord WrappedTreeNode [^CallTreeNode wrapped-node]
 
   index-protos/TreeNodeP
 
   (get-frame [_]
-    (make-storm-wrapped-call-stack-frame (.getFrame wrapped-node)))
+    (when-let [frame (.getFrame wrapped-node)]
+      (make-storm-wrapped-call-stack-frame frame)))
 
   (get-node-immutable-frame [this]
-    (index-protos/get-immutable-frame (index-protos/get-frame this)))
+    (when-let [frame (index-protos/get-frame this)]
+      (index-protos/get-immutable-frame frame)))
 
   (has-childs? [_]
     (pos? (.size (.getChilds wrapped-node))))
 
   (get-childs [_]
-    (.getChilds wrapped-node)))
+    (map make-storm-wrapped-tree-node (.getChilds wrapped-node))))
 
 (defn make-storm-wrapped-tree-node [node]
   (->WrappedTreeNode node))
 
-(deftype StormFrameIndex [^FrameIndex wrapped-index]
+(defrecord StormFrameIndex [^FrameIndex wrapped-index]
 
   index-protos/FrameIndexP
 
@@ -113,7 +117,7 @@
 (defn make-storm-frame-index [index]
   (->StormFrameIndex index))
 
-(deftype StormFnCallStatsIndex [wrapped-index]
+(defrecord StormFnCallStatsIndex [wrapped-index]
 
   index-protos/FnCallStatsP
   (all-stats [_] {}))
@@ -121,19 +125,20 @@
 (defn make-storm-fn-call-stats-index [index]
   (->StormFnCallStatsIndex index))
 
-(deftype StormFormRegistry []
+(defrecord StormFormRegistry []
   index-protos/FormRegistryP
 
   (all-forms [_]
     (TraceIndex/getAllForms))
 
   (get-form [_ form-id]
-    (TraceIndex/getForm form-id)))
+    "(needs-to-be-implemented)"
+    #_(TraceIndex/getForm form-id)))
 
 (defn make-storm-form-registry []
   (->StormFormRegistry))
 
-(deftype StormThreadRegistry []
+(defrecord StormThreadRegistry []
 
   index-protos/ThreadRegistryP
 
@@ -144,7 +149,11 @@
   (get-thread-indexes [_ _ thread-id]
     (-> (TraceIndex/getThreadIndexes thread-id)
         (update :frame-index make-storm-frame-index)
-        (update :fn-call-stats-index make-storm-fn-call-stats-index))))
+        (update :fn-call-stats-index make-storm-fn-call-stats-index)))
+
+  (discard-threads [_ flow-threads-ids]
+    ;; TODO: do something about this
+    ))
 
 (defn make-storm-thread-registry []
   (->StormThreadRegistry))

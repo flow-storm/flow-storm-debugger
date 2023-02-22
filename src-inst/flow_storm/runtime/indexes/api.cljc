@@ -14,7 +14,7 @@
 (declare discard-flow)
 
 (defn storm? []
-  #?(:clj false
+  #?(:clj true
      :cljs false))
 
 (def flow-thread-registry nil)
