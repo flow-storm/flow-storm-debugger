@@ -91,7 +91,6 @@
 
      ;; TODO: change it for something better
      (rt-events/publish-event! (rt-events/make-flow-created-event nil nil 0 nil))
-     (rt-events/publish-event! (rt-events/make-thread-created-event nil 1 0))
      )))
 
 (defn remote-connect [config]

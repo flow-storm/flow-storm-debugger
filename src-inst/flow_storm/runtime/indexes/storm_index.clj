@@ -70,11 +70,11 @@
       (cond
 
         (instance? FnCallTrace entry)
-        (let [frame-node (.getFrameNode entry)
-              frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
-
-          (merge {:timeline/type :frame}
-                 (index-protos/get-immutable-frame frame)))
+        (let [frame-node (.getFrameNode entry)]
+          (when-let [frame (.getFrame frame-node)]
+            (merge {:timeline/type :frame}
+                   (-> (make-storm-wrapped-call-stack-frame frame)
+                       index-protos/get-immutable-frame))))
 
         (instance? ExprTrace entry)
         {:timeline/type :expr
@@ -106,10 +106,10 @@
     (seq (.getTimeline wrapped-index)))
 
   (frame-data [_ idx]
-    (let [entry (.getTimelineEntry wrapped-index idx)]
-      (let [frame-node (.getFrameNode entry)
-            frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
-        (index-protos/get-immutable-frame frame))))
+    (let [entry (.getTimelineEntry wrapped-index idx)
+          frame-node (.getFrameNode entry)
+          frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
+      (index-protos/get-immutable-frame frame)))
 
   (callstack-tree-root-node [_]
     (make-storm-wrapped-tree-node (.getRootNode wrapped-index))))
@@ -132,6 +132,7 @@
     (TraceIndex/getAllForms))
 
   (get-form [_ form-id]
+    form-id
     "(needs-to-be-implemented)"
     #_(TraceIndex/getForm form-id)))
 
@@ -146,12 +147,19 @@
     (->> (TraceIndex/getThreadIds)
          (map (fn [tid] [nil tid]))))
 
+  (flow-threads-info [_ _]
+    (->> (TraceIndex/getThreadIds)
+         (map (fn [tid]
+                {:thread/id tid
+                 :thread/name (TraceIndex/getThreadName tid)}))))
+
   (get-thread-indexes [_ _ thread-id]
     (-> (TraceIndex/getThreadIndexes thread-id)
         (update :frame-index make-storm-frame-index)
         (update :fn-call-stats-index make-storm-fn-call-stats-index)))
 
   (discard-threads [_ flow-threads-ids]
+    flow-threads-ids
     ;; TODO: do something about this
     ))
 

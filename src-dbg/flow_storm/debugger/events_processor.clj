@@ -8,7 +8,6 @@
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
-            [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.config :refer [debug-mode]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -50,12 +49,9 @@
   (ui-utils/run-now (flows-screen/create-empty-flow flow-id))
   (ui-utils/run-now (ui-main/select-main-tools-tab :flows)))
 
-(defn- thread-created-event [{:keys [flow-id thread-id]}]
-  (dbg-state/create-thread flow-id thread-id)
-  (dbg-state/set-idx flow-id thread-id 0)
+(defn- thread-created-event [thread-info]
   (ui-utils/run-now
-   (flows-screen/create-empty-thread flow-id thread-id)
-   (flow-code/jump-to-coord flow-id thread-id 0)))
+   (flows-screen/create-thread thread-info)))
 
 (defn- task-result-event [{:keys [task-id result]}]
   (ui-vars/dispatch-task-event :result task-id result))

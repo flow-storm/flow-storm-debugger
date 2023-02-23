@@ -4,8 +4,13 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon tab-pane tab text-field]]
-            [flow-storm.debugger.state :as dbg-state]))
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box label icon tab-pane tab text-field list-view]]
+            [flow-storm.debugger.state :as dbg-state])
+  (:import [javafx.scene.input MouseButton]
+           [javafx.scene.control SplitPane]
+           [javafx.geometry Orientation]))
+
+(declare create-empty-thread)
 
 (defn remove-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -31,13 +36,40 @@
   ;; remove it from the ui
   (remove-flow flow-id))
 
+(defn create-thread [{:keys [flow-id thread-id]}]
+  (dbg-state/create-thread flow-id thread-id)
+  (dbg-state/set-idx flow-id thread-id 0)
+  (create-empty-thread flow-id thread-id)
+  (flow-code/jump-to-coord flow-id thread-id 0))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (tab-pane {:closing-policy :all-tabs
                                     :drag-policy :reorder})
+        flow-split-pane (doto (SplitPane.)
+                          (.setOrientation (Orientation/HORIZONTAL)))
         flow-tab (if (nil? flow-id)
-                   (tab {:graphic (icon "mdi-filter") :content threads-tab-pane})
-                   (tab {:text (str "flow-" flow-id) :content threads-tab-pane}))]
+                   (tab {:graphic (icon "mdi-filter") :content flow-split-pane})
+                   (tab {:text (str "flow-" flow-id) :content flow-split-pane}))
+        {:keys [list-view-pane add-all] :as lv-data}
+        (list-view {:editable? false
+                    :selection-mode :single
+                    :cell-factory-fn (fn [list-cell {:keys [thread/name]}]
+                                       (.setText list-cell nil)
+                                       (.setGraphic list-cell (label name)))
+                    :on-click (fn [mev sel-items _]
+                                (when (and (= MouseButton/PRIMARY (.getButton mev))
+                                           (= 2 (.getClickCount mev)))
+                                  (let [{:keys [thread/id thread/name]} (first sel-items)]
+                                    (create-thread {:thread-id id :thread-name name}))))})]
+
+    (add-all (runtime-api/flow-threads-info rt-api flow-id))
+
+    (-> flow-split-pane
+        .getItems
+        (.addAll [list-view-pane threads-tab-pane]))
+
+    (.setDividerPosition flow-split-pane 0 0.3)
 
     (.setOnCloseRequest flow-tab
                         (event-handler
@@ -49,6 +81,8 @@
 
     (store-obj flow-id "threads_tabs_pane" threads-tab-pane)
     (store-obj flow-id "flow_tab" flow-tab)
+    (store-obj flow-id "flow_threads_list" lv-data)
+
     (-> flows-tabs-pane
         .getTabs
         (.addAll [flow-tab]))))
@@ -101,8 +135,7 @@
       (.setSpacing 2.0))))
 
 (defn- create-thread-pane [flow-id thread-id]
-  (let [thread-controls-pane (create-thread-controls-pane flow-id thread-id)
-        code-tab (tab {:graphic (icon "mdi-code-parentheses")
+  (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")
                        :content (flow-code/create-code-pane flow-id thread-id)})
 
         callstack-tree-tab (tab {:graphic (icon "mdi-file-tree")
@@ -114,17 +147,11 @@
                              :on-selection-changed (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))})
         thread-tools-tab-pane (tab-pane {:tabs [callstack-tree-tab code-tab instrument-tab]
                                          :side :bottom
-                                         :closing-policy :unavailable})
-        thread-pane (v-box [thread-controls-pane thread-tools-tab-pane])]
+                                         :closing-policy :unavailable})]
 
     (store-obj flow-id (ui-vars/thread-tool-tab-pane-id thread-id) thread-tools-tab-pane)
 
-    ;; make thread-tools-tab-pane take the full height
-    (-> thread-tools-tab-pane
-        .prefHeightProperty
-        (.bind (.heightProperty thread-pane)))
-
-    thread-pane))
+    thread-tools-tab-pane))
 
 (defn create-empty-thread [flow-id thread-id]
   (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")

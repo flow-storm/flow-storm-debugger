@@ -150,6 +150,10 @@
   #?(:clj (.getId (Thread/currentThread))
      :cljs 0))
 
+(defn get-current-thread-name []
+  #?(:clj (.getName (Thread/currentThread))
+     :cljs "main"))
+
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))
 

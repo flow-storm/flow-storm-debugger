@@ -128,6 +128,8 @@
 
 (def clear-values-references runtime-values/clear-values-references)
 
+(def flow-threads-info indexes-api/flow-threads-info)
+
 (defn ping [] :pong)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -248,6 +250,7 @@
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
              :clear-values-references clear-values-references
+             :flow-threads-info flow-threads-info
              :ping ping
              #?@(:clj
                  [:all-namespaces all-namespaces

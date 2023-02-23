@@ -65,20 +65,20 @@
   (discard-flow flow-id)
   (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
-(defn create-thread-indexes! [flow-id thread-id form-id]
+(defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
                         :fn-call-stats-index (fn-call-stats-index/make-index)}]
 
     (events/publish-event! (events/make-thread-created-event flow-id thread-id form-id))
 
-    (indexes/register-thread-indexes flow-thread-registry flow-id thread-id thread-indexes)
+    (indexes/register-thread-indexes flow-thread-registry flow-id thread-id thread-name thread-indexes)
     
     thread-indexes))
 
 (defn get-thread-indexes [flow-id thread-id]
   (indexes/get-thread-indexes flow-thread-registry flow-id thread-id))
 
-(defn get-or-create-thread-indexes [flow-id thread-id form-id]
+(defn get-or-create-thread-indexes [{:keys [flow-id thread-id thread-name form-id]}]
   
   (when (and (nil? flow-id)
              (not (flow-exists? nil)))
@@ -86,7 +86,7 @@
   
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti
-    (create-thread-indexes! flow-id thread-id form-id)))
+    (create-thread-indexes! flow-id thread-id thread-name form-id)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indexes Build API ;;
@@ -98,14 +98,14 @@
 (defn add-form-init-trace [trace]
   (register-form trace))
 
-(defn add-fn-call-trace [{:keys [flow-id thread-id form-id] :as trace}]
-  (let [thread-indexes (get-or-create-thread-indexes flow-id thread-id form-id)]
+(defn add-fn-call-trace [trace]
+  (let [thread-indexes (get-or-create-thread-indexes trace)]
 
     (doseq [[_ thread-index] thread-indexes]
       (indexes/add-fn-call thread-index trace))))
 
-(defn add-expr-exec-trace [{:keys [flow-id thread-id form-id] :as trace}]
-  (doseq [[_ thread-index] (get-or-create-thread-indexes flow-id thread-id form-id)]
+(defn add-expr-exec-trace [trace]
+  (doseq [[_ thread-index] (get-or-create-thread-indexes trace)]
     (indexes/add-expr-exec thread-index trace)))
 
 (defn add-bind-trace [{:keys [flow-id thread-id] :as trace}]
@@ -239,6 +239,10 @@
                           (filter (fn [[fid _]] (= fid flow-id))))]
     (indexes/discard-threads flow-thread-registry discard-keys)))
 
+#?(:cljs (defn flow-threads-info [_] [{:thread/id 0 :thread/name "main"}])
+   :clj (defn flow-threads-info [flow-id]
+          (indexes/flow-threads-info flow-thread-registry flow-id)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -247,7 +251,7 @@
 
 (defn print-threads []
   (->> (all-threads)
-       (map #(zipmap [:flow-id :thread-id] %))
+       (map #(zipmap [:flow-id :thread-id :thread-name] %))
        pp/print-table))
 
 (defn select-thread [flow-id thread-id]

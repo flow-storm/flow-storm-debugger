@@ -38,7 +38,8 @@
 
 (defprotocol ThreadRegistryP
   (all-threads [_])
+  (flow-threads-info [_ flow-id])
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
-  (register-thread-indexes [_ flow-id thread-id indexes])
+  (register-thread-indexes [_ flow-id thread-id thread-name indexes])
   (discard-threads [_ flow-threads-ids]))

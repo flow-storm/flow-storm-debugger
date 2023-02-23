@@ -33,6 +33,7 @@
                        :flow-id flow-id
                        :form-id form-id
                        :thread-id thread-id
+                       :thread-name (utils/get-current-thread-name)
                        :form form
                        :ns ns
                        :def-kind def-kind
@@ -54,6 +55,7 @@
                    :fn-name fn-name
                    :fn-ns ns
                    :thread-id (utils/get-current-thread-id)
+                   :thread-name (utils/get-current-thread-name)
                    :args-vec  (mapv snapshot-reference fn-args)
                    :timestamp (utils/get-monotonic-timestamp)}]
         (indexes-api/add-fn-call-trace trace)))))
@@ -95,6 +97,7 @@
                    :form-id form-id
                    :coor coor
                    :thread-id thread-id
+                   :thread-name (utils/get-current-thread-name)
                    :timestamp (utils/get-monotonic-timestamp)
                    :result (snapshot-reference result)}]
         (when thread-trace-limit
