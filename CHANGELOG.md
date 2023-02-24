@@ -6,6 +6,7 @@
    
 ### Changes
 
+	- Exclude guava as a transitive dep in tools.build since it breaks shadow-cljs 2.21.0
 	- Upgrade hansel to 0.1.50
 	
 ### Bugs fixed

@@ -12,7 +12,8 @@
         org.clojure/tools.namespace {:mvn/version "1.2.0"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
-        org.clojure/tools.build {:mvn/version "0.8.4"}
+        org.clojure/tools.build {:mvn/version "0.8.4"
+                                 :exclusions [com.google.guava/guava]}
         com.github.jpmonettas/hansel {
                                       ;;:local/root "/home/jmonetta/my-projects/hansel"
                                       :mvn/version "0.1.50"
