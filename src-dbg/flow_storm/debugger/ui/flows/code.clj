@@ -2,7 +2,7 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
@@ -280,6 +280,53 @@
                  thread-id
                  (inc (state/current-idx flow-id thread-id))))
 
+(defn- create-thread-controls-pane [flow-id thread-id]
+  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
+                                        :on-click (fn [] (jump-to-coord flow-id thread-id 0)))
+        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
+                                       :on-click (fn [] (step-prev flow-id thread-id)))
+
+        curr-trace-text-field (doto (text-field {:initial-text "1"
+                                                 :on-return-key (fn [idx-str]
+                                                                  (jump-to-coord flow-id
+                                                                                 thread-id
+                                                                                 (dec (Long/parseLong idx-str))))
+                                                 :align :right})
+                                (.setPrefWidth 80))
+
+        separator-lbl (label "/")
+        thread-trace-count-lbl (label "?")
+        _ (store-obj flow-id (ui-vars/thread-curr-trace-tf-id thread-id) curr-trace-text-field)
+        _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
+        {:keys [flow/execution-expr]} (state/get-flow flow-id)
+        execution-expression? (and (:ns execution-expr)
+                                   (:form execution-expr))
+        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
+                                       :on-click (fn [] (step-next flow-id thread-id)))
+
+        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
+                                       :on-click (fn []
+                                                   (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id )]
+                                                     (jump-to-coord flow-id
+                                                                    thread-id
+                                                                    (dec tl-count)))))
+
+        re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
+                                              :on-click (fn []
+                                                          (when execution-expression?
+                                                            (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
+                                                                                                                  :ns (:ns execution-expr)})))
+                                              :disable (not execution-expression?))
+
+
+        trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
+                        (.setSpacing 2.0))
+        controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
+                       (.setSpacing 2.0))]
+
+    (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")
+      (.setSpacing 2.0))))
+
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])
               (.setOnScroll (event-handler
@@ -290,12 +337,14 @@
                                  (> (.getDeltaY ev) 0) (step-prev flow-id thread-id)
                                  (< (.getDeltaY ev) 0) (step-next flow-id thread-id)))))
               (.setSpacing 5))
-        scroll-pane (ui-utils/scroll-pane "forms-scroll-container")]
+        scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
+        controls-pane (create-thread-controls-pane flow-id thread-id)
+        outer-box (v-box [controls-pane scroll-pane])]
     (VBox/setVgrow box Priority/ALWAYS)
     (.setContent scroll-pane box)
     (store-obj flow-id (ui-vars/thread-forms-box-id thread-id) box)
     (store-obj flow-id (ui-vars/thread-forms-scroll-id thread-id) scroll-pane)
-    scroll-pane))
+    outer-box))
 
 (defn- create-result-pane [flow-id thread-id]
   (let [tools-tab-pane (doto (TabPane.)

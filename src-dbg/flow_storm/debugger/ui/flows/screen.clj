@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler h-box label icon tab-pane tab text-field list-view]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view]]
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SplitPane]
@@ -86,53 +86,6 @@
     (-> flows-tabs-pane
         .getTabs
         (.addAll [flow-tab]))))
-
-(defn- create-thread-controls-pane [flow-id thread-id]
-  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
-                                        :on-click (fn [] (flow-code/jump-to-coord flow-id thread-id 0)))
-        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
-                                       :on-click (fn [] (flow-code/step-prev flow-id thread-id)))
-
-        curr-trace-text-field (doto (text-field {:initial-text "1"
-                                            :on-return-key (fn [idx-str]
-                                                             (flow-code/jump-to-coord flow-id
-                                                                                      thread-id
-                                                                                      (dec (Long/parseLong idx-str))))
-                                                 :align :right})
-                                (.setPrefWidth 80))
-
-        separator-lbl (label "/")
-        thread-trace-count-lbl (label "?")
-        _ (store-obj flow-id (ui-vars/thread-curr-trace-tf-id thread-id) curr-trace-text-field)
-        _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
-        {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
-        execution-expression? (and (:ns execution-expr)
-                                   (:form execution-expr))
-        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
-                                       :on-click (fn [] (flow-code/step-next flow-id thread-id)))
-
-        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
-                                       :on-click (fn []
-                                                   (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id )]
-                                                     (flow-code/jump-to-coord flow-id
-                                                                              thread-id
-                                                                              (dec tl-count)))))
-
-        re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
-                                              :on-click (fn []
-                                                          (when execution-expression?
-                                                            (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
-                                                                                                                  :ns (:ns execution-expr)})))
-                                              :disable (not execution-expression?))
-
-
-        trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
-                        (.setSpacing 2.0))
-        controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
-                       (.setSpacing 2.0))]
-
-    (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")
-      (.setSpacing 2.0))))
 
 (defn- create-thread-pane [flow-id thread-id]
   (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")

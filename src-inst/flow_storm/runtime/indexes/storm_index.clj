@@ -7,11 +7,11 @@
 
 (defn expr-exec-map [^ExprTrace et]
   {:trace/type :expr-exec
+   :idx (.getTimelineIdx et)
    :form-id (.getFormId et)
    :coor (.getCoord et)
-   :timestamp 0 ;; TODO: add timestamp
-   :result (.getExprVal et) #_(snapshot-reference (.getExprVal et)) ;; TODO: add snapshot
-   })
+   :timestamp (.getTimestamp et)
+   :result (.getExprVal et)})
 
 (defrecord WrappedCallStackFrame [^CallStackFrame wrapped-frame]
 
@@ -82,8 +82,8 @@
          :form-id (.getFormId entry)
          :coor (.getCoord entry)
          :result (.getExprVal entry)
-         :outer-form? false
-         :timestamp 0} ;; TODO: fix timestamp
+         :timestamp (.getTimestamp entry)
+         :outer-form? false}
 
         (instance? FnReturnTrace entry)
         {:timeline/type :expr
@@ -91,8 +91,8 @@
          :form-id (.getFormId entry)
          :result (.getRetVal entry)
          :outer-form? true
-         :timestamp 0} ;; TODO: fix timestamp
-        )))
+         :coor []
+         :timestamp (.getTimestamp entry)})))
 
   (timeline-frame-seq [_]
     (keep (fn [entry]
@@ -132,9 +132,9 @@
     (TraceIndex/getAllForms))
 
   (get-form [_ form-id]
-    form-id
-    "(needs-to-be-implemented)"
-    #_(TraceIndex/getForm form-id)))
+    (if form-id
+      (TraceIndex/getForm form-id)
+      (println "ERROR : can't get form for id null"))))
 
 (defn make-storm-form-registry []
   (->StormFormRegistry))
