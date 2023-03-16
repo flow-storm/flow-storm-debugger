@@ -120,7 +120,8 @@
 (defrecord StormFnCallStatsIndex [wrapped-index]
 
   index-protos/FnCallStatsP
-  (all-stats [_] {}))
+  (all-stats [_]
+    (.getStats wrapped-index)))
 
 (defn make-storm-fn-call-stats-index [index]
   (->StormFnCallStatsIndex index))
