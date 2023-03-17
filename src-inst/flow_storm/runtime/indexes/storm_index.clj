@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.indexes.storm-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos])
   (:import [clojure.storm TraceIndex CallStackFrame CallTreeNode FrameIndex
-            FnCallTrace ExprTrace FnReturnTrace]))
+            FnCallTrace ExprTrace FnReturnTrace BindTrace]))
 
 (declare make-storm-wrapped-tree-node)
 
@@ -13,6 +13,12 @@
    :timestamp (.getTimestamp et)
    :result (.getExprVal et)})
 
+(defn binding-map [^BindTrace bt]
+  {:coor (.getCoord bt)
+   :timestamp (.getTimestamp bt)
+   :symbol (.getSymName bt)
+   :value (.getVal bt)})
+
 (defrecord WrappedCallStackFrame [^CallStackFrame wrapped-frame]
 
   index-protos/CallStackFrameP
@@ -23,7 +29,9 @@
       (cond-> {:fn-ns (.getFnNamespace fn-call-trace)
                :fn-name (.getFnName fn-call-trace)
                :args-vec (.getFnArgs fn-call-trace)
-               :bindings [] ;; TODO: ret bindings
+               :bindings (->> (.getBindings wrapped-frame)
+                              (map binding-map)
+                              (into []))
                :expr-executions (->> (.getExprExecutions wrapped-frame)
                                      (map expr-exec-map)
                                      (into []))
