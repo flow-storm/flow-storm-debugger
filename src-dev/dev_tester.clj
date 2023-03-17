@@ -47,12 +47,15 @@
   (fn [a b]
     (+ a b 10)))
 
+(defn inc-atom [a]
+  (swap! a inc))
+
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
         hh (range)
         *a (atom 10)
-        _ (swap! *a inc)
+        _ (inc-atom *a)
         xx @*a
         b (dummy-sum-macro a 4)
         m ^{:meta1 true :meta2 "nice-meta-value"} {:a 5 :b ^:interesting-vector [1 2 3]}
