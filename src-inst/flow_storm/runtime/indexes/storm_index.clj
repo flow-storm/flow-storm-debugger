@@ -9,12 +9,12 @@
   {:trace/type :expr-exec
    :idx (.getTimelineIdx et)
    :form-id (.getFormId et)
-   :coor (.getCoord et)
+   :coor (.asPersistentVector (.getCoord et))
    :timestamp (.getTimestamp et)
    :result (.getExprVal et)})
 
 (defn binding-map [^BindTrace bt]
-  {:coor (.getCoord bt)
+  {:coor (.asPersistentVector (.getCoord bt))
    :timestamp (.getTimestamp bt)
    :symbol (.getSymName bt)
    :value (.getVal bt)})
@@ -88,7 +88,7 @@
         {:timeline/type :expr
          :idx (.getTimelineIdx entry)
          :form-id (.getFormId entry)
-         :coor (.getCoord entry)
+         :coor (.asPersistentVector (.getCoord entry))
          :result (.getExprVal entry)
          :timestamp (.getTimestamp entry)
          :outer-form? false}
