@@ -34,12 +34,16 @@
 (defprotocol FormRegistryP
   (register-form [_ form-id form])
   (all-forms [_])
-  (get-form [_ form-id]))
+  (get-form [_ form-id])
+  (start-form-registry [_])
+  (stop-form-registry [_]))
 
 (defprotocol ThreadRegistryP
   (all-threads [_])
   (flow-threads-info [_ flow-id])
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
-  (register-thread-indexes [_ flow-id thread-id thread-name indexes])
-  (discard-threads [_ flow-threads-ids]))
+  (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
+  (discard-threads [_ flow-threads-ids])
+  (start-thread-registry [_ callbacks])
+  (stop-thread-registry [_]))

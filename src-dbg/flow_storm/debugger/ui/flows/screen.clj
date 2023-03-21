@@ -42,6 +42,12 @@
   (create-empty-thread flow-id thread-id)
   (flow-code/jump-to-coord flow-id thread-id 0))
 
+(defn update-threads-list [flow-id]
+  (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]
+    (when lv-data
+      (clear)
+      (add-all (runtime-api/flow-threads-info rt-api flow-id)))))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (tab-pane {:closing-policy :all-tabs
@@ -51,7 +57,7 @@
         flow-tab (if (nil? flow-id)
                    (tab {:graphic (icon "mdi-filter") :content flow-split-pane})
                    (tab {:text (str "flow-" flow-id) :content flow-split-pane}))
-        {:keys [list-view-pane add-all] :as lv-data}
+        {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
                     :cell-factory-fn (fn [list-cell {:keys [thread/name]}]
@@ -62,8 +68,6 @@
                                            (= 2 (.getClickCount mev)))
                                   (let [{:keys [thread/id thread/name]} (first sel-items)]
                                     (create-thread {:thread-id id :thread-name name}))))})]
-
-    (add-all (runtime-api/flow-threads-info rt-api flow-id))
 
     (-> flow-split-pane
         .getItems
@@ -82,6 +86,8 @@
     (store-obj flow-id "threads_tabs_pane" threads-tab-pane)
     (store-obj flow-id "flow_tab" flow-tab)
     (store-obj flow-id "flow_threads_list" lv-data)
+
+    (update-threads-list flow-id)
 
     (-> flows-tabs-pane
         .getTabs

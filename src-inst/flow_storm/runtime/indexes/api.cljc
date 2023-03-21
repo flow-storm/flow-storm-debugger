@@ -35,27 +35,37 @@
 #?(:clj
    (defn start []
      (alter-var-root #'flow-thread-registry (constantly
-                                             (if (storm?)
-                                               (storm-index/make-storm-thread-registry)
-                                               (thread-registry/make-thread-registry))))
+                                             (indexes/start-thread-registry
+                                              (if (storm?)
+                                                (storm-index/make-storm-thread-registry)
+                                                (thread-registry/make-thread-registry))
+                                              {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
+                                                                    (events/publish-event!
+                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
      (alter-var-root #'forms-registry (constantly
-                                       (if (storm?)
-                                         (storm-index/make-storm-form-registry)
-                                         (form-registry/make-form-registry)))))
+                                       (indexes/start-form-registry
+                                        (if (storm?)
+                                          (storm-index/make-storm-form-registry)
+                                          (form-registry/make-form-registry))))))
    :cljs
    (defn start []
-     (set! flow-thread-registry (thread-registry/make-thread-registry))
-     (set! forms-registry (form-registry/make-form-registry))))
+     (set! flow-thread-registry (indexes/start-thread-registry
+                                 (thread-registry/make-thread-registry)
+                                 {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]
+                                                       (events/publish-event!
+                                                        (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))
+     (set! forms-registry (indexes/start-form-registry
+                           (form-registry/make-form-registry)))))
 
 #?(:clj
    (defn stop []
-     (alter-var-root #'flow-thread-registry (constantly nil))
-     (alter-var-root #'forms-registry (constantly nil)))
+     (alter-var-root #'flow-thread-registry indexes/stop-thread-registry)
+     (alter-var-root #'forms-registry indexes/stop-form-registry))
    
    :cljs
    (defn stop []
-     (set! flow-thread-registry nil)
-     (set! forms-registry nil)))
+     (set! flow-thread-registry indexes/stop-thread-registry)
+     (set! forms-registry indexes/stop-form-registry)))
 
 
 (defn flow-exists? [flow-id]
@@ -67,11 +77,9 @@
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
-                        :fn-call-stats-index (fn-call-stats-index/make-index)}]
+                        :fn-call-stats-index (fn-call-stats-index/make-index)}]    
 
-    (events/publish-event! (events/make-thread-created-event flow-id thread-id form-id))
-
-    (indexes/register-thread-indexes flow-thread-registry flow-id thread-id thread-name thread-indexes)
+    (indexes/register-thread-indexes flow-thread-registry flow-id thread-id thread-name form-id thread-indexes)
     
     thread-indexes))
 

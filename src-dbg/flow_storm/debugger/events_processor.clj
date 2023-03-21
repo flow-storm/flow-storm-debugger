@@ -39,7 +39,7 @@
    (taps-screen/add-tap-value value)
    (ui-main/select-main-tools-tab :taps)))
 
-(defn- flow-created-event [{:keys [flow-id form-ns form timestamp]}]
+(defn- create-flow [{:keys [flow-id form-ns form timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
   ;; we don't reuse old flows values on this flow
   (runtime-api/clear-api-cache rt-api)
@@ -49,9 +49,15 @@
   (ui-utils/run-now (flows-screen/create-empty-flow flow-id))
   (ui-utils/run-now (ui-main/select-main-tools-tab :flows)))
 
-(defn- thread-created-event [thread-info]
+(defn- flow-created-event [flow-info]
+  (create-flow flow-info))
+
+(defn- thread-created-event [{:keys [flow-id]}]
+  (when-not (dbg-state/get-flow flow-id)
+    (create-flow {:flow-id flow-id}))
   (ui-utils/run-now
-   (flows-screen/create-thread thread-info)))
+   (flows-screen/update-threads-list flow-id)
+   #_(flows-screen/create-thread thread-info)))
 
 (defn- task-result-event [{:keys [task-id result]}]
   (ui-vars/dispatch-task-event :result task-id result))

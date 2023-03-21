@@ -45,15 +45,11 @@
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
 
-(defn dummy-root-frame? [frame]
-  (and (contains? frame :frame-idx)
-       (nil? (:frame-idx frame))))
-
 (defn- create-call-stack-tree-text-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast
-  (if (dummy-root-frame? frame)
+  (if (:root? frame)
 
     "."
 
@@ -171,7 +167,7 @@
                                                            (binding [runtime-api/*cache-disabled?* true]
                                                              (update-call-stack-tree-pane flow-id thread-id))))]
 
-              (if (dummy-root-frame? frame)
+              (if (:root? frame)
 
                 ;; it's the root dummy node, put update-tree-btn
                 (doto this

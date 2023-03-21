@@ -50,6 +50,9 @@
 (defn inc-atom [a]
   (swap! a inc))
 
+(defn hinted [a ^long b c ^long d]
+  (+ a c (+ b d)))
+
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
@@ -72,4 +75,4 @@
          (reduce + )
          add
          sub
-         (+ c d j))))
+         (+ c d j (hinted a c d j)))))

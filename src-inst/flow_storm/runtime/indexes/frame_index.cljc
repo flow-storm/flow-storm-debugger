@@ -17,7 +17,8 @@
 
     (let [frame-ret (when-let [last-expr (last expr-executions)]
                       (when (:outer-form? last-expr)
-                        (:result last-expr)))]
+                        (:result last-expr)))
+          root-frame? (and (nil? fn-ns) (nil? fn-name) (nil? form-id))]
       (cond-> {:fn-ns fn-ns
                :fn-name fn-name
                :args-vec args-vec
@@ -25,7 +26,8 @@
                :expr-executions (into [] expr-executions) ;; return a immutable seq
                :form-id form-id
                :frame-idx frame-idx}
-        frame-ret (assoc :ret frame-ret))))
+        frame-ret (assoc :ret frame-ret)
+        root-frame? (assoc :root? true))))
 
   (get-expr-exec [_ idx]
     (ml-get expr-executions idx))

@@ -12,7 +12,10 @@
     (vals @*registry))
 
   (get-form [_ form-id]
-    (get @*registry form-id)))
+    (get @*registry form-id))
+
+  (start-form-registry [this] this)
+  (stop-form-registry [_]))
 
 (defn make-form-registry []
   (->FormRegistry (atom {})))

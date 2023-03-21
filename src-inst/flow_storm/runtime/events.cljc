@@ -26,10 +26,11 @@
                   :form (pr-str form)
                   :timestamp timestamp}])
 
-(defn make-thread-created-event [flow-id thread-id form-id]
+(defn make-thread-created-event [flow-id thread-id thread-name form-id]
   [:thread-created {:flow-id flow-id
                     :thread-id thread-id
-                    :form-id form-id}])
+                    :form-id form-id
+                    :thread-name thread-name}])
 
 (defn make-var-instrumented-event [var-name var-ns]
   [:var-instrumented {:var-name var-name

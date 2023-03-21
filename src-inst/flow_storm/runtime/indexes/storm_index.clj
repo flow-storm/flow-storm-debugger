@@ -25,9 +25,13 @@
 
   (get-immutable-frame [_]
     (let [fn-call-trace (.getFnCallTrace wrapped-frame)
-          fn-return-trace (.getFnReturnTrace wrapped-frame)]
-      (cond-> {:fn-ns (.getFnNamespace fn-call-trace)
-               :fn-name (.getFnName fn-call-trace)
+          fn-return-trace (.getFnReturnTrace wrapped-frame)
+          fn-ns (.getFnNamespace fn-call-trace)
+          fn-name (.getFnName fn-call-trace)
+          form-id (.getFormId fn-call-trace)]
+
+      (cond-> {:fn-ns fn-ns
+               :fn-name fn-name
                :args-vec (.getFnArgs fn-call-trace)
                :bindings (->> (.getBindings wrapped-frame)
                               (map binding-map)
@@ -35,7 +39,7 @@
                :expr-executions (->> (.getExprExecutions wrapped-frame)
                                      (map expr-exec-map)
                                      (into []))
-               :form-id (.getFormId fn-call-trace)
+               :form-id form-id
                :frame-idx (.getTimelineIdx wrapped-frame)}
         fn-return-trace (assoc :ret (.getRetVal fn-return-trace)))))
 
@@ -54,8 +58,9 @@
       (make-storm-wrapped-call-stack-frame frame)))
 
   (get-node-immutable-frame [this]
-    (when-let [frame (index-protos/get-frame this)]
-      (index-protos/get-immutable-frame frame)))
+    (if-let [frame (index-protos/get-frame this)]
+      (index-protos/get-immutable-frame frame)
+      {:root? true}))
 
   (has-childs? [_]
     (pos? (.size (.getChilds wrapped-node))))
@@ -143,7 +148,10 @@
   (get-form [_ form-id]
     (if form-id
       (TraceIndex/getForm form-id)
-      (println "ERROR : can't get form for id null"))))
+      (println "ERROR : can't get form for id null")))
+
+  (start-form-registry [this] this)
+  (stop-form-registry [_]))
 
 (defn make-storm-form-registry []
   (->StormFormRegistry))
@@ -169,6 +177,19 @@
 
   (discard-threads [_ flow-threads-ids]
     (doseq [[_ thread-id] flow-threads-ids]
+      (TraceIndex/discardThread thread-id)))
+
+  (start-thread-registry [thread-reg {:keys [on-thread-created]}]
+    (TraceIndex/setOnThreadCreated
+     (fn [th-info]
+       (on-thread-created {:flow-id (:flow/id th-info)
+                           :thread-id (:thread/id th-info)
+                           :thread-name (:thread/name th-info)
+                           :form-id (:form/id th-info)})))
+    thread-reg)
+
+  (stop-thread-registry [_]
+    (doseq [thread-id (TraceIndex/getThreadIds)]
       (TraceIndex/discardThread thread-id))))
 
 (defn make-storm-thread-registry []
