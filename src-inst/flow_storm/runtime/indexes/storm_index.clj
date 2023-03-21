@@ -168,9 +168,8 @@
         (update :fn-call-stats-index make-storm-fn-call-stats-index)))
 
   (discard-threads [_ flow-threads-ids]
-    flow-threads-ids
-    ;; TODO: do something about this
-    ))
+    (doseq [[_ thread-id] flow-threads-ids]
+      (TraceIndex/discardThread thread-id))))
 
 (defn make-storm-thread-registry []
   (->StormThreadRegistry))
