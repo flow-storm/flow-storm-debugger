@@ -109,7 +109,7 @@
      (jump-to-idx)
 
      (= MouseButton/SECONDARY (.getButton mev))
-     (let [ctx-menu (ui-utils/make-context-menu [{:text (format "Goto %d" idx)
+     (let [ctx-menu (ui-utils/make-context-menu [{:text "Step code"
                                                   :on-click jump-to-idx}])]
        (.show ctx-menu
               list-view-pane

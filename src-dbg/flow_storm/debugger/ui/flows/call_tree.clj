@@ -204,7 +204,7 @@
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
-        ctx-menu-options [{:text "Goto trace"
+        ctx-menu-options [{:text "Step code"
                            :on-click (fn [& _]
                                        (let [{:keys [frame-idx]} (get-selected-frame)]
                                          (ui-flows-gral/select-tool-tab flow-id thread-id :code)

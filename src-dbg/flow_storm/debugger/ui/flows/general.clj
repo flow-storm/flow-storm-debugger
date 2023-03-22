@@ -5,6 +5,6 @@
   (let [[thread-tools-tab-pane] (obj-lookup flow-id (ui-vars/thread-tool-tab-pane-id thread-id))
         sel-model (.getSelectionModel thread-tools-tab-pane)]
     (case tool
-      :code (.select sel-model 0)
-      :call-tree (.select sel-model 1)
+      :call-tree (.select sel-model 0)
+      :code (.select sel-model 1)
       :functions (.select sel-model 2))))
