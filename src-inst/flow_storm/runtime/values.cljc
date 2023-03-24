@@ -63,6 +63,14 @@
 (defn snapshot-reference [x]  
   (cond
 
+    (and (utils/blocking-derefable? x)
+         (utils/pending? x))
+    (merge
+     {:ref/type (type x)}
+     (if (realized? x)
+       {:ref/snapshot (deref x)}
+       {:ref/timeout x}))
+
     (utils/derefable? x)
     {:ref/snapshot (deref x)
      :ref/type (type x)}

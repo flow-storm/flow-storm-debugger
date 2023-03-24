@@ -172,6 +172,14 @@
   #?(:clj  (instance? clojure.lang.IDeref x)
      :cljs (instance? cljs.core.IDeref x)))
 
+(defn blocking-derefable? [x]
+  #?(:clj  (instance? clojure.lang.IBlockingDeref x)
+     :cljs false))
+
+(defn pending? [x]
+  #?(:clj  (instance? clojure.lang.IPending x)
+     :cljs (instance? cljs.core.IPending x)))
+
 (defn walk-indexed
   "Walk through form calling (f coor element).
   The value of coor is a vector of indices representing element's
