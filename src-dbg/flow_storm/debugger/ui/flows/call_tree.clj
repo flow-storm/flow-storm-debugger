@@ -45,7 +45,7 @@
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
 
-(defn- create-call-stack-tree-text-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id]
+#_(defn- create-call-stack-tree-text-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id item-level]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast
@@ -53,12 +53,32 @@
 
     "."
 
-    (let [{:keys [multimethod/dispatch-val]} (runtime-api/get-form rt-api flow-id thread-id form-id)]
+    (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api flow-id thread-id form-id)
+          form-hint (if (= item-level 1)
+                      (utils/elide-string (pr-str form) 80)
+                      "")]
 
       (if dispatch-val
-        (format "(%s/%s %s %s)" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
-        (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))))
+        (format "(%s/%s %s %s) %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec) form-hint)
+        (format "(%s/%s %s) %s" fn-ns fn-name (format-tree-fn-call-args args-vec) form-hint)))))
 
+(defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id item-level]
+  ;; Important !
+  ;; this will be called for all visible tree nodes after any expansion
+  ;; so it should be fast
+  (if (:root? frame)
+
+    (label ".")
+
+    (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api flow-id thread-id form-id)
+          form-hint (if (= item-level 1)
+                      (utils/elide-string (pr-str form) 80)
+                      "")]
+
+      (h-box [(label (if dispatch-val
+                       (format "(%s/%s %s %s) " fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
+                       (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
+              (label form-hint "light")]))))
 
 (defn- select-call-stack-tree-node [flow-id thread-id match-idx]
   (let [[tree-view] (obj-lookup flow-id (ui-vars/thread-callstack-tree-view-id thread-id))
@@ -144,7 +164,7 @@
       (.setAlignment Pos/CENTER_RIGHT)
       (.setPadding (Insets. 4.0)))))
 
-(defn- build-tree-cell-factory [flow-id thread-id]
+(defn- build-tree-cell-factory [flow-id thread-id ^TreeView tree-view]
   (proxy [javafx.util.Callback] []
     (call [tv]
       (proxy [TreeCell] []
@@ -156,7 +176,9 @@
               (.setGraphic nil)
               (.setText nil))
 
-            (let [frame (runtime-api/callstack-node-frame rt-api tree-node)
+            (let [^TreeItem tree-item (.getTreeItem this)
+                  item-level (.getTreeItemLevel tree-view tree-item)
+                  frame (runtime-api/callstack-node-frame rt-api tree-node)
                   frame-idx (:frame-idx frame)
                   expanded? (or (nil? frame-idx)
                                 (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
@@ -176,8 +198,8 @@
 
                 ;; else, put the frame
                 (doto this
-                  (.setGraphic nil)
-                  (.setText (create-call-stack-tree-text-node frame flow-id thread-id))))
+                  (.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id item-level))
+                  (.setText nil)))
 
               (store-obj flow-id (ui-vars/thread-callstack-tree-cell thread-id frame-idx) this)
 
@@ -195,11 +217,12 @@
                 (.setExpanded expanded?)))))))))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
-  (let [tree-cell-factory (build-tree-cell-factory flow-id thread-id)
+  (let [tree-view (doto (TreeView.)
+                    (.setEditable false))
+        tree-cell-factory (build-tree-cell-factory flow-id thread-id tree-view)
         search-pane (create-tree-search-pane flow-id thread-id)
-        tree-view (doto (TreeView.)
-                    (.setEditable false)
-                    (.setCellFactory tree-cell-factory))
+        _ (doto tree-view
+            (.setCellFactory tree-cell-factory))
         tree-view-sel-model (.getSelectionModel tree-view)
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
