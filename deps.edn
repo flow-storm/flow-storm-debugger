@@ -40,7 +40,7 @@
            :dev {:extra-paths ["src-dev"]
                  :classpath-overrides {org.clojure/clojure nil}
                  :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
-                              com.github.jpmonettas/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}
+                              com.github.jpmonettas/clojure {:mvn/version "1.11.1-SNAPSHOT"}
                               ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}
                               ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
                               ;; clindex-docs/clindex-docs {:local/root "/home/jmonetta/my-projects/clindex/clindex-flow-docs-0.4.94.jar"}
@@ -48,6 +48,12 @@
                  :jvm-opts ["-Dproject-name=FlowStorm" "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
                             ;; "-Xmx10500m" ;; for instrumenting big codebases
                             "-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
+
+                            "-Dproject-name=StormTest"
+                            "-Dclojure.storm.traceEnable=true"
+                            "-Dclojure.storm.instrumentationEnable=true"
+                            "-Dclojure.storm.skipPrefixes=clojure.,flow_storm.,cider.,nrepl.,mount."
+
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}

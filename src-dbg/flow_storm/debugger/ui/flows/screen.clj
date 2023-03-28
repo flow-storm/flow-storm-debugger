@@ -24,7 +24,7 @@
           (.remove flow-tab)))
 
     ;; clean ui state vars
-    (ui-vars/clean-flow-objs flow-id)))
+    (ui-vars/clean-objs flow-id)))
 
 (defn fully-remove-flow [flow-id]
   ;; remove it from our state
@@ -108,7 +108,7 @@
                                          :side :bottom
                                          :closing-policy :unavailable})]
 
-    (store-obj flow-id (ui-vars/thread-tool-tab-pane-id thread-id) thread-tools-tab-pane)
+    (store-obj flow-id thread-id "thread_tool_tab_pane_id" thread-tools-tab-pane)
 
     thread-tools-tab-pane))
 
@@ -117,6 +117,11 @@
         thread-tab-pane (create-thread-pane flow-id thread-id)
         thread-tab (tab {:text (str "thread-" thread-id)
                          :content thread-tab-pane})]
+
+    (.setOnCloseRequest thread-tab
+                        (event-handler
+                         [ev]
+                         (ui-vars/clean-objs flow-id thread-id)))
     (-> threads-tabs-pane
         .getTabs
         (.addAll [thread-tab]))))

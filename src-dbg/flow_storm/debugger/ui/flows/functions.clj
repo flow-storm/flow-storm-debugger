@@ -53,7 +53,7 @@
 (defn- function-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [show-function-calls (fn []
                               (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
-                                    [{:keys [clear add-all]}] (obj-lookup flow-id (ui-vars/thread-fn-calls-list-view-data thread-id))
+                                    [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "instrument_fn_calls_list")
                                     fn-call-traces (runtime-api/find-fn-frames-light rt-api flow-id thread-id fn-ns fn-name form-id)]
                                 (clear)
                                 (add-all fn-call-traces)))]
@@ -83,7 +83,7 @@
                                               :search-predicate (fn [{:keys [fn-name fn-ns]} search-str]
                                                                   (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
 
-    (store-obj flow-id (ui-vars/thread-fns-list-view-data thread-id) lv-data)
+    (store-obj flow-id thread-id "instrument_list" lv-data)
 
     list-view-pane))
 
@@ -137,7 +137,7 @@
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
-    (store-obj flow-id (ui-vars/thread-fn-calls-list-view-data thread-id) lv-data)
+    (store-obj flow-id thread-id "instrument_fn_calls_list" lv-data)
     fn-call-list-pane))
 
 (defn create-functions-pane [flow-id thread-id]
@@ -155,6 +155,6 @@
 (defn update-functions-pane [flow-id thread-id]
   (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
                            (sort-by :cnt >))
-        [{:keys [add-all clear]}] (obj-lookup flow-id (ui-vars/thread-fns-list-view-data thread-id))]
+        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "instrument_list")]
     (clear)
     (add-all fn-call-stats)))

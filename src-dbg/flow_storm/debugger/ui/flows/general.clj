@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.ui.state-vars :refer [obj-lookup] :as ui-vars]))
 
 (defn select-tool-tab [flow-id thread-id tool]
-  (let [[thread-tools-tab-pane] (obj-lookup flow-id (ui-vars/thread-tool-tab-pane-id thread-id))
+  (let [[thread-tools-tab-pane] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")
         sel-model (.getSelectionModel thread-tools-tab-pane)]
     (case tool
       :call-tree (.select sel-model 0)

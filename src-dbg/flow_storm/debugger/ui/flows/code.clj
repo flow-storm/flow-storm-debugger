@@ -41,7 +41,7 @@
                            ;; if it is a wrapped repl expression discard some tokens that the user
                            ;; isn't interested in
                            maybe-unwrap-runi-tokens))
-        [forms-box] (obj-lookup flow-id (ui-vars/thread-forms-box-id thread-id))
+        [forms-box] (obj-lookup flow-id thread-id "forms_box")
         tokens-texts (->> print-tokens
                           (map (fn [tok]
                                  (let [text (Text.
@@ -51,7 +51,7 @@
                                                (first tok)))
                                        _ (ui-utils/add-class text "code-token")
                                        coord (when (vector? tok) (second tok))]
-                                   (store-obj flow-id (ui-vars/form-token-id thread-id form-id coord) text)
+                                   (store-obj flow-id thread-id (ui-vars/form-token-id form-id coord) text)
                                    text))))
         ns-label (doto (label (format "ns: %s" (:form/ns form)))
                    (.setFont (Font. 10)))
@@ -62,7 +62,7 @@
 
         form-pane (v-box [form-header form-text-flow] "form-pane")
         ]
-    (store-obj flow-id (ui-vars/thread-form-box-id thread-id form-id) form-pane)
+    (store-obj flow-id thread-id (ui-vars/thread-form-box-id form-id) form-pane)
 
     (-> forms-box
         .getChildren
@@ -104,17 +104,17 @@
                     :selection-mode :single
                     :cell-factory-fn locals-list-cell-factory
                     :on-click on-locals-list-item-click})]
-    (store-obj flow-id (ui-vars/thread-locals-list-view-data thread-id) lv-data)
+    (store-obj flow-id thread-id "locals_list" lv-data)
 
     list-view-pane))
 
 (defn- update-locals-pane [flow-id thread-id bindings]
-  (let [[{:keys [clear add-all]}] (obj-lookup flow-id (ui-vars/thread-locals-list-view-data thread-id))]
+  (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "locals_list")]
     (clear)
     (add-all bindings)))
 
 (defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
-  (let [[^Label lbl] (obj-lookup flow-id (ui-vars/thread-trace-count-lbl-id thread-id))]
+  (let [[^Label lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
     (.setText lbl (str cnt))))
 
 (defn- highlight-executing [token-text]
@@ -126,15 +126,15 @@
   (ui-utils/add-class token-text "interesting"))
 
 (defn- unhighlight-form [flow-id thread-id form-id]
-  (let [[form-pane] (obj-lookup flow-id (ui-vars/thread-form-box-id thread-id form-id))]
+  (let [[form-pane] (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))]
     (doto form-pane
       (.setOnMouseClicked (event-handler [_])))
     (ui-utils/rm-class form-pane "form-background-highlighted")))
 
 (defn highlight-form [flow-id thread-id form-id]
   (let [form (runtime-api/get-form rt-api flow-id thread-id form-id)
-        [form-pane]          (obj-lookup flow-id (ui-vars/thread-form-box-id thread-id form-id))
-        [thread-scroll-pane] (obj-lookup flow-id (ui-vars/thread-forms-scroll-id thread-id))
+        [form-pane]          (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))
+        [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
         ;; if the form we are about to highlight doesn't exist in the view add it first
         form-pane (or form-pane (add-form flow-id thread-id form-id))
@@ -202,7 +202,7 @@
             curr-form-id (:form-id curr-tentry)
             next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id next-idx)
             next-form-id (:form-id next-tentry)
-            [curr-trace-text-field] (obj-lookup flow-id (ui-vars/thread-curr-trace-tf-id thread-id))
+            [curr-trace-text-field] (obj-lookup flow-id thread-id "thread_curr_trace_tf")
             ;; because how frames are cached by trace, their pointers can't be compared
             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
             ;; a frame
@@ -223,7 +223,7 @@
             (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
               (unhighlight-form flow-id thread-id curr-form-id)
               (doseq [{:keys [coor]} expr-executions]
-                (let [token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id curr-form-id coor))]
+                (let [token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id curr-form-id coor))]
                   (doseq [text token-texts]
                     (un-highlight text))))))
 
@@ -237,8 +237,8 @@
                                     (group-by :coor))]
 
             (doseq [[coor traces] next-exec-expr]
-              (let [token-id (ui-vars/form-token-id thread-id next-form-id coor)
-                    token-texts (obj-lookup flow-id token-id)]
+              (let [token-id (ui-vars/form-token-id next-form-id coor)
+                    token-texts (obj-lookup flow-id thread-id token-id)]
                 (doseq [text token-texts]
                   (arm-interesting flow-id thread-id text traces)
                   (highlight-interesting text))))))
@@ -246,9 +246,8 @@
         ;; "unhighlight" prev executing tokens
         (when (and (= :expr (:timeline/type curr-tentry))
                    (not first-jump?))
-          (let [curr-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
-                                                                            (:form-id curr-tentry)
-                                                                            (:coor curr-tentry)))]
+          (let [curr-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id curr-tentry)
+                                                                                      (:coor curr-tentry)))]
             (doseq [text curr-token-texts]
               (if (= curr-form-id next-form-id)
                 (highlight-interesting text)
@@ -256,9 +255,8 @@
 
         ;; highlight executing tokens
         (when (= :expr (:timeline/type next-tentry))
-          (let [next-token-texts (obj-lookup flow-id (ui-vars/form-token-id thread-id
-                                                                            (:form-id next-tentry)
-                                                                            (:coor next-tentry)))]
+          (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id next-tentry)
+                                                                                      (:coor next-tentry)))]
             (doseq [text next-token-texts]
               (highlight-executing text))))
 
@@ -296,8 +294,8 @@
 
         separator-lbl (label "/")
         thread-trace-count-lbl (label "?")
-        _ (store-obj flow-id (ui-vars/thread-curr-trace-tf-id thread-id) curr-trace-text-field)
-        _ (store-obj flow-id (ui-vars/thread-trace-count-lbl-id thread-id) thread-trace-count-lbl)
+        _ (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
+        _ (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
         {:keys [flow/execution-expr]} (state/get-flow flow-id)
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
@@ -342,8 +340,8 @@
         outer-box (v-box [controls-pane scroll-pane])]
     (VBox/setVgrow box Priority/ALWAYS)
     (.setContent scroll-pane box)
-    (store-obj flow-id (ui-vars/thread-forms-box-id thread-id) box)
-    (store-obj flow-id (ui-vars/thread-forms-scroll-id thread-id) scroll-pane)
+    (store-obj flow-id thread-id "forms_box" box)
+    (store-obj flow-id thread-id "forms_scroll" scroll-pane)
     outer-box))
 
 (defn- create-result-pane [flow-id thread-id]

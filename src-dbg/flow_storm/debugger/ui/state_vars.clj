@@ -12,7 +12,6 @@
 
 ;; so the linter doesn't complain
 (declare ui-objs)
-(declare flows-ui-objs)
 
 ;; Because scene.lookup doesn't work if you lookup before a layout pass
 ;; So adding a node and looking it up quickly sometimes it doesn't work
@@ -23,44 +22,47 @@
   :start (atom {})
   :stop nil)
 
-;; ui objects with a flow lifetime
-;; when a flow is discarded all this objects should be collected after
-;; `clean-flow-objs` is called
-(defstate flows-ui-objs
-  :start (atom {})
-  :stop nil)
-
 (defn store-obj
 
   ([obj-id obj-ref]
-   (swap! ui-objs update obj-id conj obj-ref)
-   #_(log (format "Stored obj at key: %s" obj-id)))
+   (store-obj :no-flow :no-flow obj-id obj-ref))
 
   ([flow-id obj-id obj-ref]
-   (swap! flows-ui-objs update flow-id (fn [flow-objs]
-                                         (update flow-objs obj-id conj obj-ref)))
-   #_(log (format "Stored %d flow obj at key %s" flow-id obj-id))))
+   (store-obj flow-id nil obj-id obj-ref))
+
+  ([flow-id thread-id obj-id obj-ref]
+   (swap! ui-objs update [flow-id thread-id obj-id] conj obj-ref)))
 
 (defn obj-lookup
   ([obj-id]
-   (let [all-objs @ui-objs
-         objs (get all-objs obj-id)]
-     (when-not objs
-       (log (format "Object not found %s" obj-id))
-       #_(log (keys all-objs)))
-     objs))
+   (obj-lookup :no-flow :no-flow obj-id))
 
   ([flow-id obj-id]
+   (obj-lookup flow-id nil obj-id))
 
-   (let [all-objs @flows-ui-objs
-         objs (get-in all-objs [flow-id obj-id])]
-     #_(when-not objs
-       (log (format "Flow object not found flow-id: %d obj-id: %s" flow-id obj-id))
-       (log (keys (get all-objs flow-id))))
-     objs)))
+  ([flow-id thread-id obj-id]
+   (let [o (get @ui-objs [flow-id thread-id obj-id])]
+     o)))
 
-(defn clean-flow-objs [flow-id]
-  (swap! flows-ui-objs dissoc flow-id))
+(defn clean-objs
+  ([] (clean-objs nil nil))
+  ([flow-id]
+   (swap! ui-objs (fn [objs]
+                    (reduce-kv (fn [ret [fid tid oid] o]
+                                 (if (= fid flow-id)
+                                   ret
+                                   (assoc ret [fid tid oid] o)))
+                               {}
+                               objs))))
+  ([flow-id thread-id]
+   (swap! ui-objs (fn [objs]
+                    (reduce-kv (fn [ret [fid tid oid] o]
+                                 (if (and (= fid flow-id)
+                                          (= tid thread-id))
+                                   ret
+                                   (assoc ret [fid tid oid] o)))
+                               {}
+                               objs)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interruptible tasks stuff ;;
@@ -82,62 +84,35 @@
 ;; Functions for creating ui components ids ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn form-token-id [thread-id form-id coord]
-  (format "form_token_%d_%d_%s" thread-id form-id (hash coord)))
+(defn form-token-id [form-id coord]
+  (format "form_token_%d_%s" form-id (hash coord)))
 
 (defn flow-tab-id [flow-id]
   (format "flow_tab_%d" flow-id))
 
-(defn thread-tool-tab-pane-id [thread-id]
-  (format "thread_tool_tab_pane_id_%d" thread-id))
+(defn thread-form-box-id [form-id]
+  (format "form_box_%d" form-id))
 
-(defn thread-curr-trace-tf-id [thread-id]
-  (format "thread_curr_trace_tf_%d" thread-id))
+(defn thread-pprint-text-area-id [pane-id]
+  (format "pprint_text_area_%s" pane-id))
 
-(defn thread-trace-count-lbl-id [thread-id]
-  (format "thread_trace_count_lbl_%d" thread-id))
+(defn thread-pprint-def-btn-id [pane-id]
+  (format "pprint_def_btn_id_%s" pane-id))
 
-(defn thread-forms-box-id [thread-id]
-  (format "forms_box_%d" thread-id))
+(defn thread-pprint-inspect-btn-id [pane-id]
+  (format "pprint_inspect_btn_id_%s" pane-id))
 
-(defn thread-form-box-id [thread-id form-id]
-  (format "form_box_%d_%d" thread-id form-id))
+(defn thread-pprint-tap-btn-id [pane-id]
+  (format "pprint_tap_btn_id_%s" pane-id))
 
-(defn thread-forms-scroll-id [thread-id]
-  (format "forms_scroll_%d" thread-id))
+(defn thread-pprint-level-txt-id [pane-id]
+  (format "pprint_level_txt_id_%s" pane-id))
 
-(defn thread-pprint-text-area-id [thread-id pane-id]
-  (format "pprint_text_area_%d_%s" thread-id pane-id))
+(defn thread-pprint-meta-chk-id [pane-id]
+  (format "pprint_meta_chk_id_%s" pane-id))
 
-(defn thread-pprint-def-btn-id [thread-id pane-id]
-  (format "pprint_def_btn_id_%d_%s" thread-id pane-id))
-
-(defn thread-pprint-inspect-btn-id [thread-id pane-id]
-  (format "pprint_inspect_btn_id_%d_%s" thread-id pane-id))
-
-(defn thread-pprint-tap-btn-id [thread-id pane-id]
-  (format "pprint_tap_btn_id_%d_%s" thread-id pane-id))
-
-(defn thread-pprint-level-txt-id [thread-id pane-id]
-  (format "pprint_level_txt_id_%d_%s" thread-id pane-id))
-
-(defn thread-pprint-meta-chk-id [thread-id pane-id]
-  (format "pprint_meta_chk_id_%d_%s" thread-id pane-id))
-
-(defn thread-locals-list-view-data [thread-id]
-  (format "locals_list_%d" thread-id))
-
-(defn thread-fns-list-view-data [thread-id]
-  (format "instrument_list_%d" thread-id))
-
-(defn thread-fn-calls-list-view-data [thread-id]
-  (format "instrument_fn_calls_list_%d" thread-id))
-
-(defn thread-callstack-tree-view-id [thread-id]
-  (format "callstack_tree_view_%s" thread-id))
-
-(defn thread-callstack-tree-cell [thread-id idx]
-  (format "callstack_tree_cell_%d_%d" thread-id idx))
+(defn thread-callstack-tree-cell [idx]
+  (format "callstack_tree_cell_%d" idx))
 
 (defn show-message [msg msg-type]
   (try

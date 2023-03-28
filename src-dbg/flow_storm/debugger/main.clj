@@ -22,7 +22,6 @@
   [#'flow-storm.debugger.config/config
    #'flow-storm.debugger.events-queue/events-queue
    #'flow-storm.debugger.ui.state-vars/ui-objs
-   #'flow-storm.debugger.ui.state-vars/flows-ui-objs
    #'flow-storm.debugger.ui.state-vars/tasks-subscriptions
    #'flow-storm.debugger.docs/fn-docs
    #'flow-storm.debugger.state/state

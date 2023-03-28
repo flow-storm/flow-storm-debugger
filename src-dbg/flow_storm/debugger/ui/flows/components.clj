@@ -35,21 +35,21 @@
                     (.setSpacing 3.0))
         box (v-box [tools-box result-text-area])]
     (VBox/setVgrow result-text-area Priority/ALWAYS)
-    (store-obj flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id) result-text-area)
-    (store-obj flow-id (ui-vars/thread-pprint-level-txt-id thread-id pane-id) print-level-txt)
-    (store-obj flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id) print-meta-chk)
-    (store-obj flow-id (ui-vars/thread-pprint-def-btn-id thread-id pane-id) def-btn)
-    (store-obj flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id) inspect-btn)
-    (store-obj flow-id (ui-vars/thread-pprint-tap-btn-id thread-id pane-id) tap-btn)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-text-area-id pane-id) result-text-area)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id) print-level-txt)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id) print-meta-chk)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-def-btn-id pane-id) def-btn)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-inspect-btn-id pane-id) inspect-btn)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-tap-btn-id pane-id) tap-btn)
     box))
 
 (defn update-pprint-pane [flow-id thread-id pane-id val]
-  (let [[^TextArea text-area] (obj-lookup flow-id (ui-vars/thread-pprint-text-area-id thread-id pane-id))
-        [print-level-txt] (obj-lookup flow-id (ui-vars/thread-pprint-level-txt-id thread-id pane-id))
-        [print-meta-chk]  (obj-lookup flow-id (ui-vars/thread-pprint-meta-chk-id thread-id pane-id))
-        [def-btn] (obj-lookup flow-id (ui-vars/thread-pprint-def-btn-id thread-id pane-id))
-        [inspect-btn] (obj-lookup flow-id (ui-vars/thread-pprint-inspect-btn-id thread-id pane-id))
-        [tap-btn] (obj-lookup flow-id (ui-vars/thread-pprint-tap-btn-id thread-id pane-id))
+  (let [[^TextArea text-area] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-text-area-id pane-id))
+        [print-level-txt] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id))
+        [print-meta-chk]  (obj-lookup flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id))
+        [def-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-def-btn-id pane-id))
+        [inspect-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-inspect-btn-id pane-id))
+        [tap-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-tap-btn-id pane-id))
         val-str (when val
                   (runtime-api/val-pprint rt-api val {:print-length 50
                                                       :print-level (Integer/parseInt (.getText print-level-txt))

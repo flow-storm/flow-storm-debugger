@@ -33,7 +33,7 @@
                              (isLeaf [] (empty? calls)))))
         tree-root-node (runtime-api/callstack-tree-root-node rt-api flow-id thread-id)
         root-item (lazy-tree-item tree-root-node)
-        [tree-view] (obj-lookup flow-id (ui-vars/thread-callstack-tree-view-id thread-id))]
+        [tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")]
 
     (.setRoot ^TreeView tree-view root-item)))
 
@@ -81,8 +81,8 @@
               (label form-hint "light")]))))
 
 (defn- select-call-stack-tree-node [flow-id thread-id match-idx]
-  (let [[tree-view] (obj-lookup flow-id (ui-vars/thread-callstack-tree-view-id thread-id))
-        [^TreeCell tree-cell] (obj-lookup flow-id (ui-vars/thread-callstack-tree-cell thread-id match-idx))]
+  (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
+        [^TreeCell tree-cell] (obj-lookup flow-id thread-id (ui-vars/thread-callstack-tree-cell match-idx))]
     (when tree-cell
       (let [tree-cell-idx (.getIndex tree-cell)
             tree-item (.getTreeItem tree-cell)
@@ -201,7 +201,7 @@
                   (.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id item-level))
                   (.setText nil)))
 
-              (store-obj flow-id (ui-vars/thread-callstack-tree-cell thread-id frame-idx) this)
+              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell frame-idx) this)
 
               (doto tree-item
                 (.addEventHandler (TreeItem/branchCollapsedEvent)
@@ -262,7 +262,7 @@
                           (flow-cmp/update-pprint-pane flow-id thread-id "fn_args" args-vec)
                           (flow-cmp/update-pprint-pane flow-id thread-id "fn_ret" ret))))))
 
-    (store-obj flow-id (ui-vars/thread-callstack-tree-view-id thread-id) tree-view)
+    (store-obj flow-id thread-id "callstack_tree_view" tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)
     (-> top-bottom-split
         .getItems
