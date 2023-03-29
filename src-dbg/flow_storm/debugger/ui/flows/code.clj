@@ -366,6 +366,8 @@
         result-pane (create-result-pane flow-id thread-id)
         locals-pane (create-locals-pane flow-id thread-id)]
 
+    (.setDividerPosition left-right-pane 0 0.6)
+
     (-> locals-result-pane
         .getItems
         (.addAll [result-pane locals-pane]))

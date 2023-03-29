@@ -86,7 +86,7 @@
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
 
-(defn button [& {:keys [label class on-click disable]}]
+(defn button [& {:keys [label class on-click disable tooltip]}]
   (let [b (Button. label)]
 
     (when on-click
@@ -97,6 +97,8 @@
 
     (when disable
       (.setDisable b true))
+
+    (when tooltip (.setTooltip b (Tooltip. tooltip)))
 
     b))
 
@@ -177,7 +179,7 @@
                               align)))
      tf)))
 
-(defn tab [{:keys [text graphic class content on-selection-changed]}]
+(defn tab [{:keys [text graphic class content on-selection-changed tooltip]}]
   (let [t (Tab.)]
 
     (if graphic
@@ -189,6 +191,9 @@
 
     (when on-selection-changed
       (.setOnSelectionChanged t on-selection-changed))
+
+    (when tooltip (.setTooltip t (Tooltip. tooltip)))
+
     t))
 
 (defn alert-dialog [{:keys [type message buttons]

@@ -187,7 +187,8 @@
                                                :class "reload-tree-btn"
                                                :on-click (fn []
                                                            (binding [runtime-api/*cache-disabled?* true]
-                                                             (update-call-stack-tree-pane flow-id thread-id))))]
+                                                             (update-call-stack-tree-pane flow-id thread-id)))
+                                               :tooltip "Refresh the content of the tree. Useful since the tree will not autoupdate after it is open.")]
 
               (if (:root? frame)
 

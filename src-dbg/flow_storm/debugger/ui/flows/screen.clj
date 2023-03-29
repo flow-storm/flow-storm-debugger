@@ -73,7 +73,7 @@
         .getItems
         (.addAll [list-view-pane threads-tab-pane]))
 
-    (.setDividerPosition flow-split-pane 0 0.3)
+    (.setDividerPosition flow-split-pane 0 0.2)
 
     (.setOnCloseRequest flow-tab
                         (event-handler
@@ -95,15 +95,18 @@
 
 (defn- create-thread-pane [flow-id thread-id]
   (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")
-                       :content (flow-code/create-code-pane flow-id thread-id)})
+                       :content (flow-code/create-code-pane flow-id thread-id)
+                       :tooltip "Coode tool. Allows you to step over the traced code."})
 
         callstack-tree-tab (tab {:graphic (icon "mdi-file-tree")
                                  :content (flow-tree/create-call-stack-tree-pane flow-id thread-id)
-                                 :on-selection-changed (event-handler [_] (flow-tree/update-call-stack-tree-pane flow-id thread-id))})
+                                 :on-selection-changed (event-handler [_] (flow-tree/update-call-stack-tree-pane flow-id thread-id))
+                                 :tooltip "Call tree tool. Allows you to explore the recorded execution tree."})
 
         instrument-tab (tab {:graphic (icon "mdi-format-list-numbers")
                              :content (flow-fns/create-functions-pane flow-id thread-id)
-                             :on-selection-changed (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))})
+                             :on-selection-changed (event-handler [_] (flow-fns/update-functions-pane flow-id thread-id))
+                             :tooltip "Functions list tool. Gives you a list of all function calls and how many time they have been called."})
         thread-tools-tab-pane (tab-pane {:tabs [callstack-tree-tab code-tab instrument-tab]
                                          :side :bottom
                                          :closing-policy :unavailable})]
