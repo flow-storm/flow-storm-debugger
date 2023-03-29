@@ -9,6 +9,11 @@
 
   nil)
 
+(def clojure-storm-env? nil)
+
+(defn configure-environment [{:keys [clojure-storm-env?]}]
+  (alter-var-root #'clojure-storm-env? (constantly clojure-storm-env?)))
+
 ;; so the linter doesn't complain
 (declare ui-objs)
 

@@ -1,4 +1,4 @@
-(ns flow-storm.runtime.indexes.utils
+(ns flow-storm.runtime.indexes.utils  
   #?(:clj (:import [java.util ArrayList ArrayDeque HashMap])))
 
 ;;;;;;;;;;;;;;;;;;;

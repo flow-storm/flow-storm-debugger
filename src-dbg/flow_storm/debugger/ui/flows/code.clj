@@ -156,7 +156,8 @@
     (.setOnMouseClicked form-pane
                         (event-handler
                          [mev]
-                         (when (= MouseButton/SECONDARY (.getButton mev))
+                         (when (and (= MouseButton/SECONDARY (.getButton mev))
+                                    (not ui-vars/clojure-storm-env?))
                            (.show ctx-menu
                                   form-pane
                                   (.getScreenX mev)

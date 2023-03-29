@@ -141,7 +141,8 @@
                                         (when (= 1 sel-cnt)
                                           (get-all-vars-for-ns (first sel-items))))
 
-                                      (= MouseButton/SECONDARY (.getButton mev))
+                                      (and (= MouseButton/SECONDARY (.getButton mev))
+                                           (not ui-vars/clojure-storm-env?))
                                       (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
                                                                           :on-click (fn []
                                                                                       (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
@@ -185,7 +186,10 @@
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
         inst-button (button :label "Instrument" :class "browser-instrument-btn")
         inst-rec-button (button :label "Instrument recursively" :class "browser-instrument-btn")
-        btns-box (doto (h-box [inst-button inst-rec-button] "browser-var-buttons")
+        btns-box (doto (h-box (if ui-vars/clojure-storm-env?
+                                []
+                                [inst-button inst-rec-button])
+                              "browser-var-buttons")
                    (.setSpacing 5))
         name-box (doto (h-box [selected-fn-fq-name-label])
                    (.setAlignment Pos/CENTER_LEFT))
@@ -302,8 +306,8 @@
 
     (-> top-bottom-split-pane
         .getItems
-        (.addAll [top-split-pane
-                  inst-pane]))
+        (.addAll (cond-> [top-split-pane]
+                   (not ui-vars/clojure-storm-env?) (into [inst-pane]))))
 
     (.setDividerPosition top-split-pane 0 0.3)
     (.setDividerPosition top-split-pane 1 0.6)

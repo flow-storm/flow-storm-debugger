@@ -11,19 +11,19 @@
 (declare ->LocalRuntimeApi)
 (declare ->RemoteRuntimeApi)
 (declare rt-api)
+(declare api-call)
 
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
   :start (let [{:keys [local? env-kind]} config
-               api-cache (atom {})
-               repl-cache (atom {})]
+               api-cache (atom {})]
            (log "[Starting Runtime Api subsystem]")
            (if local?
 
-             (->LocalRuntimeApi api-cache repl-cache)
+             (->LocalRuntimeApi api-cache)
 
-             (->RemoteRuntimeApi env-kind api-cache repl-cache)))
+             (->RemoteRuntimeApi env-kind api-cache)))
 
   :stop (do
           (log "[Stopping Runtime Api subsystem]")
@@ -31,6 +31,7 @@
            (cc))))
 
 (defprotocol RuntimeApiP
+  (runtime-config [_])
   (val-pprint [_ v opts])
   (shallow-val [_ v])
   (get-form [_ flow-id thread-id form-id])
@@ -100,10 +101,11 @@
          (when debug-mode (log (utils/colored-string "CALLED" :red)))
          (apply f args))))))
 
-(defrecord LocalRuntimeApi [api-cache repl-cache]
+(defrecord LocalRuntimeApi [api-cache]
 
   RuntimeApiP
 
+  (runtime-config [_] (api-call :local "runtime-config" []))
   (val-pprint [_ v opts] (api-call :local api-cache "val-pprint" [v opts])) ;; CACHED
   (shallow-val [_ v] (api-call :local api-cache "shallow-val" [v]))  ;; CACHED
   (get-form [_ flow-id thread-id form-id] (api-call :local api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
@@ -189,10 +191,11 @@
 ;; For Clojure repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defrecord RemoteRuntimeApi [env-kind api-cache repl-cache]
+(defrecord RemoteRuntimeApi [env-kind api-cache]
 
   RuntimeApiP
 
+  (runtime-config [_] (api-call :remote "runtime-config" []))
   (val-pprint [_ v opts] (api-call :remote api-cache "val-pprint" [v opts])) ;; CACHED
   (shallow-val [_ v] (api-call :remote api-cache "shallow-val" [v]))  ;; CACHED
   (get-form [_ flow-id thread-id form-id] (api-call :remote api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED

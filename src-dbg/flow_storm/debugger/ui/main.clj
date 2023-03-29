@@ -233,6 +233,9 @@
   (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
 
+  (let [runtime-config (runtime-api/runtime-config rt-api)]
+    (ui-vars/configure-environment runtime-config))
+
   (ui-utils/run-now
    (try
      (let [scene (Scene. (build-main-pane) 1024 768)

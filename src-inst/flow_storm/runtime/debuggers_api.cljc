@@ -6,7 +6,8 @@
             [clojure.core.async :as async]
             #?@(:clj [[hansel.api :as hansel]
                       [flow-storm.tracer :as tracer]
-                      [hansel.instrument.utils :as hansel-inst-utils]])))
+                      [hansel.instrument.utils :as hansel-inst-utils]
+                      [clojure.reflect :refer [resolve-class]]])))
 
 ;; Utilities for long interruptible tasks
 
@@ -32,6 +33,14 @@
 (defn interrupt-all-tasks []
   (doseq [int-ch (vals @interruptible-tasks)]
     (async/put! int-ch true)))
+
+(defn runtime-config []
+  {:clojure-storm-env?
+   #?(:clj (boolean
+            (resolve-class
+             (.getContextClassLoader (Thread/currentThread))
+             'clojure.storm.TraceIndex))
+      :cljs false)})
 
 (defn val-pprint [vref opts]
   (let [v (get-reference-value vref)]
@@ -231,7 +240,8 @@
 ;; Utils for calling by name, used by the websocket api calls ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def api-fn {:val-pprint val-pprint
+(def api-fn {:runtime-config runtime-config
+             :val-pprint val-pprint
              :shallow-val shallow-val
              :get-form get-form
              :timeline-count timeline-count
