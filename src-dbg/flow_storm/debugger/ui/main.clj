@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.main
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label icon-button event-handler h-box progress-indicator tab tab-pane border-pane]]
+             :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -45,16 +45,31 @@
 
 (defn bottom-box []
   (let [progress-box (h-box [])
+        heap-bar (doto (progress-bar 100)
+                   (.setProgress 0))
+        heap-max-lbl (label "")
+        heap-box (h-box [heap-bar heap-max-lbl])
         repl-status-lbl (label "REPL" "conn-status-lbl")
         runtime-status-lbl (label "RUNTIME" "conn-status-lbl")
-        box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl] "main-bottom-bar-box")
+        box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl heap-box] "main-bottom-bar-box")
               (.setSpacing 5)
               (.setAlignment Pos/CENTER_RIGHT)
               (.setPrefHeight 20))]
     (store-obj "progress-box" progress-box)
     (store-obj "repl-status-lbl" repl-status-lbl)
     (store-obj "runtime-status-lbl" runtime-status-lbl)
+    (store-obj "heap-bar" heap-bar)
+    (store-obj "heap-max-lbl" heap-max-lbl)
     box))
+
+(defn update-heap-indicator [{:keys [:max-bytes :free-bytes]}]
+  (ui-utils/run-later
+   (let [[heap-bar] (obj-lookup "heap-bar")
+         [heap-max-lbl] (obj-lookup "heap-max-lbl")
+         perc (float (/ free-bytes max-bytes))
+         max-mb (float (/ max-bytes 1024 1024 1024))]
+     (.setProgress heap-bar perc)
+     (.setText heap-max-lbl (format "%.2f Gb" max-mb)))))
 
 (defn set-conn-status-lbl [lbl-key status]
   (try

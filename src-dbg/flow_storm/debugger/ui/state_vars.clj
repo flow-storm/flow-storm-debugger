@@ -1,6 +1,5 @@
 (ns flow-storm.debugger.ui.state-vars
-  (:require [flow-storm.utils :refer [log]]
-            [mount.core :as mount :refer [defstate]]
+  (:require [mount.core :as mount :refer [defstate]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [alert-dialog]]))
 
 (def register-and-init-stage!

@@ -65,6 +65,9 @@
 (defn- task-progress-event [{:keys [task-id progress]}]
   (ui-vars/dispatch-task-event :progress task-id progress))
 
+(defn- heap-info-update-event [ev-args-map]
+  (ui-main/update-heap-indicator ev-args-map))
+
 (defn- show-doc-event [{:keys [var-symbol]}]
   (ui-utils/run-now
    (ui-main/select-main-tools-tab :docs)
@@ -82,4 +85,5 @@
     :tap (tap-event ev-args-map)
     :task-result (task-result-event ev-args-map)
     :task-progress (task-progress-event ev-args-map)
+    :heap-info-update (heap-info-update-event ev-args-map)
     :show-doc (show-doc-event ev-args-map)))

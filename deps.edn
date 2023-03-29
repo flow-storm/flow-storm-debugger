@@ -52,7 +52,7 @@
                             "-Dproject-name=StormTest"
                             "-Dclojure.storm.traceEnable=true"
                             "-Dclojure.storm.instrumentationEnable=true"
-                            "-Dclojure.storm.skipPrefixes=clojure.,flow_storm.,cider.,nrepl.,mount."
+                            "-Dclojure.storm.skipPrefixes=clojure.,flow_storm.,cider.,nrepl.,mount.,hansel.,refactor_nrepl."
 
                             ]}
 

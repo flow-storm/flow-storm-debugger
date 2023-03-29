@@ -55,6 +55,9 @@
 (defn make-task-progress-event [task-id progress]
   [:task-progress {:task-id task-id :progress progress}])
 
+(defn make-heap-info-update-event [max-bytes free-bytes]
+  [:heap-info-update {:max-bytes max-bytes :free-bytes free-bytes}])
+
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 

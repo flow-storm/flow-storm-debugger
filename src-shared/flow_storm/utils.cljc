@@ -154,6 +154,10 @@
   #?(:clj (.getName (Thread/currentThread))
      :cljs "main"))
 
+(defn get-memory-info []
+  #?(:clj  {:max-bytes (.maxMemory (Runtime/getRuntime)) :free-bytes (.freeMemory (Runtime/getRuntime))}
+     :cljs {:max-bytes 0 :free-bytes 0}))
+
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))
 
@@ -176,9 +180,11 @@
   #?(:clj  (instance? clojure.lang.IDeref x)
      :cljs (instance? cljs.core.IDeref x)))
 
-(defn blocking-derefable? [x]
-  #?(:clj  (instance? clojure.lang.IBlockingDeref x)
-     :cljs false))
+#?(:clj
+   (defn blocking-derefable? [x]
+     (instance? clojure.lang.IBlockingDeref x))
+   :cljs (defn blocking-derefable? [_]
+           false))
 
 (defn pending? [x]
   #?(:clj  (instance? clojure.lang.IPending x)

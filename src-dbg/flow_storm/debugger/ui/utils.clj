@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.utils
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
-            Alert ButtonType Alert$AlertType ProgressIndicator TextField TableView TableColumn TableCell
+            Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TableView TableColumn TableCell
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
@@ -211,6 +211,10 @@
 (defn progress-indicator [size]
   (doto (ProgressIndicator.)
     (.setPrefSize size size)))
+
+(defn progress-bar [width]
+  (doto (ProgressBar.)
+    (.setPrefWidth width)))
 
 (defn tab-pane [{:keys [tabs rotate? side closing-policy drag-policy on-tab-change]
                  :or {closing-policy :unavailable

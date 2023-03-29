@@ -10,6 +10,7 @@
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
+            [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as indexes-api]
@@ -48,6 +49,8 @@
     (dbg-api/interrupt-all-tasks)
 
     (rt-values/clear-values-references)
+
+    (mem-reporter/stop-mem-reporter)
 
     ;; stop remote websocket client if needed
     (remote-websocket-client/stop-remote-websocket-client)
@@ -89,6 +92,8 @@
 
      (rt-taps/setup-tap!)
 
+     (mem-reporter/run-mem-reporter)
+
      ;; TODO: change it for something better
      (rt-events/publish-event! (rt-events/make-flow-created-event nil nil 0 nil))
      )))
@@ -111,6 +116,9 @@
 
   ;; setup the tap system so we send tap> to the debugger
   (rt-taps/setup-tap!)
+
+  (mem-reporter/run-mem-reporter)
+
   (println "Remote Clojure runtime initialized"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
