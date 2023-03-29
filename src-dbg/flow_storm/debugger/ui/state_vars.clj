@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.state-vars
   (:require [mount.core :as mount :refer [defstate]]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [alert-dialog]]))
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [alert-dialog]]
+            [clojure.string :as str]))
 
 (def register-and-init-stage!
 
@@ -67,6 +68,18 @@
                                    (assoc ret [fid tid oid] o)))
                                {}
                                objs)))))
+
+;; HACKY : This is the only current way of
+;; returning all ...
+(defn form-tokens [flow-id thread-id form-id]
+  (reduce-kv (fn [r [fid tid oid] objects]
+               (if (and (= flow-id fid)
+                        (= thread-id tid)
+                        (str/starts-with? oid (str "form_token_" form-id)))
+                 (into r objects)
+                 r))
+   []
+   @ui-objs))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interruptible tasks stuff ;;

@@ -62,13 +62,10 @@
           (= 2 (.getClickCount mev)))
      (show-function-calls)
 
-     (= MouseButton/SECONDARY (.getButton mev))
+     (and (= MouseButton/SECONDARY (.getButton mev))
+          (not ui-vars/clojure-storm-env?))
      (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
-           ctx-menu-show-similar-fn-call-item {:text "Show function calls" :on-click show-function-calls}
-           sel-cnt (count selected-items)
-           ctx-menu (if (= 1 sel-cnt)
-                      (ui-utils/make-context-menu [ctx-menu-un-instrument-item ctx-menu-show-similar-fn-call-item])
-                      (ui-utils/make-context-menu [ctx-menu-un-instrument-item]))]
+           ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
        (.show ctx-menu
               list-view-pane
               (.getScreenX mev)

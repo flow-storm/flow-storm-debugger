@@ -9,7 +9,8 @@
                          frame-idx
                          form-id
                          bindings
-                         expr-executions]
+                         expr-executions
+                         parent-frame-idx]
   
   index-protos/CallStackFrameP
 
@@ -25,7 +26,8 @@
                :bindings (into [] bindings) ;; return a immutable seq
                :expr-executions (into [] expr-executions) ;; return a immutable seq
                :form-id form-id
-               :frame-idx frame-idx}
+               :frame-idx frame-idx
+               :parent-frame-idx parent-frame-idx}
         frame-ret (assoc :ret frame-ret)
         root-frame? (assoc :root? true))))
 
@@ -73,16 +75,20 @@
       (let [exec-exprs (make-mutable-list)
             bindings (make-mutable-list)
             frame-idx (ml-count timeline)
+            curr-node (ms-peek build-stack)
+            parent-frame-idx (-> (index-protos/get-frame curr-node)
+                                 index-protos/get-immutable-frame
+                                 :frame-idx)
             new-frame (->CallStackFrame fn-ns
                                         fn-name
                                         args-vec
                                         frame-idx
                                         form-id
                                         exec-exprs
-                                        bindings)
+                                        bindings
+                                        parent-frame-idx)
             node-childs (make-mutable-list)
-            new-node (->TreeNode new-frame node-childs)
-            curr-node (ms-peek build-stack)]
+            new-node (->TreeNode new-frame node-childs)]
         (index-protos/add-child curr-node new-node)
         (ml-add timeline {:timeline/type :frame :frame new-frame})
         (ms-push build-stack new-node))))
@@ -151,7 +157,7 @@
   )
 
 (defn make-index []
-  (let [root-frame (->CallStackFrame nil nil nil nil nil (make-mutable-list) (make-mutable-list))
+  (let [root-frame (->CallStackFrame nil nil nil nil nil (make-mutable-list) (make-mutable-list) 0)
         root-node (->TreeNode root-frame (make-mutable-list))
         build-stack (make-mutable-stack)
         timeline (make-mutable-list)]

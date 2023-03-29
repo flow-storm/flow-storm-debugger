@@ -51,7 +51,8 @@
                                                (first tok)))
                                        _ (ui-utils/add-class text "code-token")
                                        coord (when (vector? tok) (second tok))]
-                                   (store-obj flow-id thread-id (ui-vars/form-token-id form-id coord) text)
+                                   (when coord
+                                     (store-obj flow-id thread-id (ui-vars/form-token-id form-id coord) text))
                                    text))))
         ns-label (doto (label (format "ns: %s" (:form/ns form)))
                    (.setFont (Font. 10)))
@@ -117,11 +118,11 @@
   (let [[^Label lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
     (.setText lbl (str cnt))))
 
-(defn- highlight-executing [token-text]
+(defn- highlight-executing [^Text token-text]
   (ui-utils/rm-class token-text "interesting")
   (ui-utils/add-class token-text "executing"))
 
-(defn- highlight-interesting [token-text]
+(defn- highlight-interesting [^Text token-text]
   (ui-utils/rm-class token-text "executing")
   (ui-utils/add-class token-text "interesting"))
 
@@ -195,6 +196,39 @@
                                     [ev]
                                     (jump-to-coord flow-id thread-id (-> traces first :idx))))))
 
+(defn un-highlight-form-tokens [flow-id thread-id form-id]
+  (let [token-texts (ui-vars/form-tokens flow-id thread-id form-id)]
+    (doseq [text token-texts]
+      (un-highlight text))))
+
+(defn remove-exec-mark-tokens [flow-id thread-id timeline-entry leave-unmarked?]
+  (when (= :expr (:timeline/type timeline-entry))
+    (let [curr-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id timeline-entry)
+                                                                                (:coor timeline-entry)))]
+      (doseq [text curr-token-texts]
+        (if leave-unmarked?
+          (highlight-interesting text)
+          (un-highlight text))))))
+
+(defn highlight-exec-mark-tokens [flow-id thread-id timeline-entry]
+  (when (= :expr (:timeline/type timeline-entry))
+    (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id timeline-entry)
+                                                                                (:coor timeline-entry)))]
+      (doseq [text next-token-texts]
+        (highlight-executing text)))))
+
+(defn arm-and-highlight-interesting-form-tokens [flow-id thread-id next-form-id next-idx]
+  (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx)
+        next-exec-expr (->> expr-executions
+                            (group-by :coor))]
+
+    (doseq [[coor traces] next-exec-expr]
+      (let [token-id (ui-vars/form-token-id next-form-id coor)
+            token-texts (obj-lookup flow-id thread-id token-id)]
+        (doseq [text token-texts]
+          (arm-interesting flow-id thread-id text traces)
+          (highlight-interesting text))))))
+
 (defn jump-to-coord [flow-id thread-id next-idx]
   (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
     (when (<= 0 next-idx (dec trace-count))
@@ -218,48 +252,21 @@
         (.setText curr-trace-text-field (str (inc next-idx)))
         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
-        (when changing-form?
-          ;; we are leaving a form with this jump, so unhighlight all curr-form interesting tokens
-          (when-not first-jump?
-            (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
-              (unhighlight-form flow-id thread-id curr-form-id)
-              (doseq [{:keys [coor]} expr-executions]
-                (let [token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id curr-form-id coor))]
-                  (doseq [text token-texts]
-                    (un-highlight text))))))
-
-          (highlight-form flow-id thread-id next-form-id))
+        (highlight-form flow-id thread-id next-form-id)
 
         (when changing-frame?
-          ;; we are leaving a frame with this jump, or its the first trace
-          ;; highlight all interesting tokens for the form we are currently in
-          (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx)
-                next-exec-expr (->> expr-executions
-                                    (group-by :coor))]
 
-            (doseq [[coor traces] next-exec-expr]
-              (let [token-id (ui-vars/form-token-id next-form-id coor)
-                    token-texts (obj-lookup flow-id thread-id token-id)]
-                (doseq [text token-texts]
-                  (arm-interesting flow-id thread-id text traces)
-                  (highlight-interesting text))))))
+          (when changing-form?
+            (unhighlight-form flow-id thread-id curr-form-id))
 
-        ;; "unhighlight" prev executing tokens
-        (when (and (= :expr (:timeline/type curr-tentry))
-                   (not first-jump?))
-          (let [curr-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id curr-tentry)
-                                                                                      (:coor curr-tentry)))]
-            (doseq [text curr-token-texts]
-              (if (= curr-form-id next-form-id)
-                (highlight-interesting text)
-                (un-highlight text)))))
+          (un-highlight-form-tokens flow-id thread-id curr-form-id)
 
-        ;; highlight executing tokens
-        (when (= :expr (:timeline/type next-tentry))
-          (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id next-tentry)
-                                                                                      (:coor next-tentry)))]
-            (doseq [text next-token-texts]
-              (highlight-executing text))))
+          (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-idx))
+
+        (when-not first-jump?
+          (remove-exec-mark-tokens flow-id thread-id curr-tentry (= curr-form-id next-form-id)))
+
+        (highlight-exec-mark-tokens flow-id thread-id next-tentry)
 
         ;; update reusult panel
         (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
@@ -279,11 +286,25 @@
                  thread-id
                  (inc (state/current-idx flow-id thread-id))))
 
+(defn step-out [flow-id thread-id]
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        {:keys [parent-frame-idx]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
+    (jump-to-coord flow-id
+                   thread-id
+                   parent-frame-idx)))
+
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
-                                        :on-click (fn [] (jump-to-coord flow-id thread-id 0)))
+                                        :on-click (fn [] (jump-to-coord flow-id thread-id 0))
+                                        :tooltip "Step to the first recorded expression")
         prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
-                                       :on-click (fn [] (step-prev flow-id thread-id)))
+                                       :on-click (fn [] (step-prev flow-id thread-id))
+                                       :tooltip "Step to the previous recorded interesting expression")
+
+        out-btn (ui-utils/icon-button :icon-name "mdi-chevron-up"
+                                      :on-click (fn []
+                                                  (step-out flow-id thread-id))
+                                      :tooltip "Step to the parent first expression")
 
         curr-trace-text-field (doto (text-field {:initial-text "1"
                                                  :on-return-key (fn [idx-str]
@@ -301,14 +322,17 @@
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
         next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
-                                       :on-click (fn [] (step-next flow-id thread-id)))
+                                       :on-click (fn [] (step-next flow-id thread-id))
+                                       :tooltip "Step to the next recorded interesting expression")
+
 
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
                                        :on-click (fn []
                                                    (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id )]
                                                      (jump-to-coord flow-id
                                                                     thread-id
-                                                                    (dec tl-count)))))
+                                                                    (dec tl-count))))
+                                       :tooltip "Step to the last recorded expression")
 
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
                                               :on-click (fn []
@@ -320,7 +344,7 @@
 
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
-        controls-box (doto (h-box [first-btn prev-btn re-run-flow-btn next-btn last-btn])
+        controls-box (doto (h-box [first-btn prev-btn out-btn re-run-flow-btn next-btn last-btn])
                        (.setSpacing 2.0))]
 
     (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")

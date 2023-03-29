@@ -13,6 +13,15 @@
    :timestamp (.getTimestamp et)
    :result (.getExprVal et)})
 
+(defn fn-ret-expr-map [^FnReturnTrace rt]
+  {:timeline/type :expr
+   :idx (.getTimelineIdx rt)
+   :form-id (.getFormId rt)
+   :result (.getRetVal rt)
+   :outer-form? true
+   :coor (.asPersistentVector (.getCoord rt))
+   :timestamp (.getTimestamp rt)})
+
 (defn binding-map [^BindTrace bt]
   {:coor (.asPersistentVector (.getCoord bt))
    :timestamp (.getTimestamp bt)
@@ -34,13 +43,14 @@
                :fn-name fn-name
                :args-vec (.getFnArgs fn-call-trace)
                :bindings (->> (.getBindings wrapped-frame)
-                              (map binding-map)
-                              (into []))
-               :expr-executions (->> (.getExprExecutions wrapped-frame)
-                                     (map expr-exec-map)
-                                     (into []))
+                              (mapv binding-map))
+               :expr-executions (let [expr-exec (->> (.getExprExecutions wrapped-frame)
+                                                     (mapv expr-exec-map))
+                                      ret-expr (fn-ret-expr-map (.getFnReturnTrace wrapped-frame))]
+                                  (into expr-exec [ret-expr]))
                :form-id form-id
-               :frame-idx (.getTimelineIdx wrapped-frame)}
+               :frame-idx (.getTimelineIdx wrapped-frame)
+               :parent-frame-idx (.getParentTimelineIdx wrapped-frame)}
         fn-return-trace (assoc :ret (.getRetVal fn-return-trace)))))
 
   (get-expr-exec [_ idx]
@@ -104,7 +114,7 @@
          :form-id (.getFormId entry)
          :result (.getRetVal entry)
          :outer-form? true
-         :coor []
+         :coor (.asPersistentVector (.getCoord entry))
          :timestamp (.getTimestamp entry)})))
 
   (timeline-frame-seq [_]
