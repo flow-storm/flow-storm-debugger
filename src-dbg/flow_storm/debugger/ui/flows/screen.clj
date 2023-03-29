@@ -36,10 +36,10 @@
   ;; remove it from the ui
   (remove-flow flow-id))
 
-(defn create-thread [{:keys [flow-id thread-id]}]
+(defn create-thread [{:keys [flow-id thread-id thread-name]}]
   (dbg-state/create-thread flow-id thread-id)
   (dbg-state/set-idx flow-id thread-id 0)
-  (create-empty-thread flow-id thread-id)
+  (create-empty-thread flow-id thread-id thread-name)
   (flow-code/jump-to-coord flow-id thread-id 0))
 
 (defn update-threads-list [flow-id]
@@ -112,10 +112,10 @@
 
     thread-tools-tab-pane))
 
-(defn create-empty-thread [flow-id thread-id]
+(defn create-empty-thread [flow-id thread-id thread-name]
   (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")
         thread-tab-pane (create-thread-pane flow-id thread-id)
-        thread-tab (tab {:text (str "thread-" thread-id)
+        thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
                          :content thread-tab-pane})]
 
     (.setOnCloseRequest thread-tab
