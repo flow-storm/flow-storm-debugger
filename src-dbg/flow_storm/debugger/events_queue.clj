@@ -12,7 +12,8 @@
   :stop (stop-events-queue))
 
 (defn enqueue-event! [e]
-  (async/>!! (:events-chan events-queue) e))
+  (when-let [events-chan (:events-chan events-queue)]
+    (async/>!! events-chan e)))
 
 (defn start-events-queue []
   (utils/log "[Starting Events queue subsystem]")

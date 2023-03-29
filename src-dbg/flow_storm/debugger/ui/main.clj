@@ -27,6 +27,8 @@
 (declare stop-ui)
 (declare ui)
 
+(def ^:dynamic *shutting-down-from-ui* false)
+
 (defstate ui
   :start (start-ui config)
   :stop  (stop-ui))
@@ -208,6 +210,20 @@
   (alter-var-root #'config/debug-mode not)
   (log (format "DEBUG MODE %s" (if config/debug-mode "ENABLED" "DISABLED"))))
 
+(defn stop-ui []
+  (log "[Stopping UI subsystem]")
+  (let [{:keys [stages theme-listener]} ui]
+
+    ;; remove the OS theme listener
+    (when theme-listener
+      (.removeListener (OsThemeDetector/getDetector) theme-listener))
+
+    ;; close all stages
+    (when-not *shutting-down-from-ui*
+      (ui-utils/run-now
+       (doseq [stage @stages]
+         (.close stage))))))
+
 (defn start-ui [config]
   (log "[Starting UI subsystem]")
   ;; Initialize the JavaFX toolkit
@@ -222,7 +238,12 @@
      (let [scene (Scene. (build-main-pane) 1024 768)
            stage (doto (Stage.)
                    (.setTitle "Flowstorm debugger")
-                   (.setScene scene))
+                   (.setScene scene)
+                   (.setOnCloseRequest
+                    (event-handler
+                     [_]
+                     (binding [*shutting-down-from-ui* true]
+                       ((resolve 'flow-storm.debugger.main/stop-debugger))))))
 
            stages (atom #{stage})
            theme-listener (start-theming-system config stages)]
@@ -257,18 +278,4 @@
         :theme-listener theme-listener})
 
      (catch Exception e
-       (log-error "UI Thread exception" e))))
-  )
-
-(defn stop-ui []
-  (log "[Stopping UI subsystem]")
-  (let [{:keys [stages theme-listener]} ui]
-
-    ;; remove the OS theme listener
-    (when theme-listener
-      (.removeListener (OsThemeDetector/getDetector) theme-listener))
-
-    ;; close all stages
-    (ui-utils/run-now
-     (doseq [stage @stages]
-       (.close stage)))))
+       (log-error "UI Thread exception" e)))))
