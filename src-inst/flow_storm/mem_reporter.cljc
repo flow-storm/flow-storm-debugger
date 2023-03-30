@@ -15,13 +15,15 @@
     (async/go-loop []
       (let [[_ ch] (async/alts! [(async/timeout reporter-interval)
                                  stop-ch])]
-        (when-not (= ch stop-ch)
+        (if (= ch stop-ch)
+
+          (utils/log "[Stopping mem reporting subsystem]")
+          
           (let [{:keys [max-bytes free-bytes]} (utils/get-memory-info)
                 ev (rt-events/make-heap-info-update-event max-bytes free-bytes)]
             (rt-events/publish-event! ev)
-            (recur)))))
-    (utils/log "[Stopping mem reporting subsystem]")))
+            (recur)))))))
 
-(defn stop-mem-reporter []
+(defn stop-mem-reporter []  
   (async/put! @reporter :stop))
 

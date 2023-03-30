@@ -246,7 +246,13 @@
                     (event-handler
                      [_]
                      (binding [*shutting-down-from-ui* true]
-                       ((resolve 'flow-storm.debugger.main/stop-debugger))))))
+                       (if-let [stop-all (resolve 'flow-storm.api/stop)]
+                         ;; if ui and runtime is running under the same jvm
+                         ;; we can stop all
+                         (stop-all)
+
+                         ;; else stop just the debugger
+                         ((resolve 'flow-storm.debugger.main/stop-debugger)))))))
 
            stages (atom #{stage})
            theme-listener (start-theming-system config stages)]
