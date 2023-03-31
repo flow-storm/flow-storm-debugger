@@ -14,13 +14,14 @@
    :result (.getExprVal et)})
 
 (defn fn-ret-expr-map [^FnReturnTrace rt]
-  {:timeline/type :expr
-   :idx (.getTimelineIdx rt)
-   :form-id (.getFormId rt)
-   :result (.getRetVal rt)
-   :outer-form? true
-   :coor (.asPersistentVector (.getCoord rt))
-   :timestamp (.getTimestamp rt)})
+  (when rt
+    {:timeline/type :expr
+     :idx (.getTimelineIdx rt)
+     :form-id (.getFormId rt)
+     :result (.getRetVal rt)
+     :outer-form? true
+     :coor (.asPersistentVector (.getCoord rt))
+     :timestamp (.getTimestamp rt)}))
 
 (defn binding-map [^BindTrace bt]
   {:coor (.asPersistentVector (.getCoord bt))
