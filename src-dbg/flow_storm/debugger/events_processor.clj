@@ -7,6 +7,7 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.flows.code :as ui-code]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.config :refer [debug-mode]]
             [flow-storm.debugger.ui.utils :as ui-utils]
@@ -68,6 +69,15 @@
 (defn- heap-info-update-event [ev-args-map]
   (ui-main/update-heap-indicator ev-args-map))
 
+(defn- goto-location-event [{:keys [flow-id thread-id thread-name idx]}]
+  (ui-utils/run-now
+   (ui-main/select-main-tools-tab :flows)
+   (flows-screen/create-thread {:flow-id flow-id
+                                :thread-id thread-id
+                                :thread-name thread-name})
+   (flows-screen/select-code-tools-tab flow-id thread-id :code)
+   (ui-code/jump-to-coord flow-id thread-id idx)))
+
 (defn- show-doc-event [{:keys [var-symbol]}]
   (ui-utils/run-now
    (ui-main/select-main-tools-tab :docs)
@@ -86,4 +96,5 @@
     :task-result (task-result-event ev-args-map)
     :task-progress (task-progress-event ev-args-map)
     :heap-info-update (heap-info-update-event ev-args-map)
+    :goto-location (goto-location-event ev-args-map)
     :show-doc (show-doc-event ev-args-map)))

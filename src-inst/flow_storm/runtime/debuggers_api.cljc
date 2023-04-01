@@ -139,6 +139,9 @@
 
 (def flow-threads-info indexes-api/flow-threads-info)
 
+(defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
+  (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
+
 (defn ping [] :pong)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -7,10 +7,10 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view]]
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.input MouseButton]
-           [javafx.scene.control SplitPane]
+           [javafx.scene.control SingleSelectionModel SplitPane Tab]
            [javafx.geometry Orientation]))
 
-(declare create-empty-thread)
+(declare create-or-focus-thread-tab)
 
 (defn remove-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -39,7 +39,7 @@
 (defn create-thread [{:keys [flow-id thread-id thread-name]}]
   (dbg-state/create-thread flow-id thread-id)
   (dbg-state/set-idx flow-id thread-id 0)
-  (create-empty-thread flow-id thread-id thread-name)
+  (create-or-focus-thread-tab flow-id thread-id thread-name)
   (flow-code/jump-to-coord flow-id thread-id 0))
 
 (defn update-threads-list [flow-id]
@@ -93,6 +93,14 @@
         .getTabs
         (.addAll [flow-tab]))))
 
+(defn select-code-tools-tab [flow-id thread-id tool]
+  (let [[tools-tab] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")
+        sel-model (.getSelectionModel tools-tab)]
+    (case tool
+      :tree (.select sel-model 0)
+      :code (.select sel-model 1)
+      :functions (.select sel-model 2))))
+
 (defn- create-thread-pane [flow-id thread-id]
   (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")
                        :content (flow-code/create-code-pane flow-id thread-id)
@@ -115,19 +123,28 @@
 
     thread-tools-tab-pane))
 
-(defn create-empty-thread [flow-id thread-id thread-name]
+(defn create-or-focus-thread-tab [flow-id thread-id thread-name]
   (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")
+        sel-model (.getSelectionModel threads-tabs-pane)
         thread-tab-pane (create-thread-pane flow-id thread-id)
-        thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
-                         :content thread-tab-pane})]
+        all-tabs (.getTabs threads-tabs-pane)
+        tab-for-thread (some (fn [^Tab t]
+                               (when (= (.getId t) (str thread-id))
+                                 t))
+                             all-tabs)]
 
-    (.setOnCloseRequest thread-tab
-                        (event-handler
-                         [ev]
-                         (ui-vars/clean-objs flow-id thread-id)))
-    (-> threads-tabs-pane
-        .getTabs
-        (.addAll [thread-tab]))))
+    (if tab-for-thread
+      (.select ^SingleSelectionModel sel-model ^Tab tab-for-thread)
+
+      (let [thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
+                             :content thread-tab-pane
+                             :id (str thread-id)})]
+        (.setOnCloseRequest thread-tab
+                            (event-handler
+                             [ev]
+                             (ui-vars/clean-objs flow-id thread-id)))
+        (-> all-tabs
+            (.addAll [thread-tab]))))))
 
 (defn main-pane []
   (let [t-pane (tab-pane {:closing-policy :all-tabs

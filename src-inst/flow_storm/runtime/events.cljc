@@ -58,8 +58,13 @@
 (defn make-heap-info-update-event [max-bytes free-bytes]
   [:heap-info-update {:max-bytes max-bytes :free-bytes free-bytes}])
 
+(defn make-goto-location-event [flow-id thread-id thread-name idx]
+  [:goto-location {:flow-id flow-id :thread-id thread-id :thread-name thread-name :idx idx}])
+
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
+
+
 
 (defn publish-event! [ev]
   (if-let [cb @callback]

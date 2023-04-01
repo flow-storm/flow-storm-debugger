@@ -179,7 +179,7 @@
                               align)))
      tf)))
 
-(defn tab [{:keys [text graphic class content on-selection-changed tooltip]}]
+(defn tab [{:keys [id text graphic class content on-selection-changed tooltip]}]
   (let [t (Tab.)]
 
     (if graphic
@@ -188,6 +188,9 @@
 
     (.add (.getStyleClass t) class)
     (.setContent t content)
+
+    (when id
+      (.setId t (str id)))
 
     (when on-selection-changed
       (.setOnSelectionChanged t on-selection-changed))
