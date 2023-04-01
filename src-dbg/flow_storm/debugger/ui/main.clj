@@ -68,9 +68,9 @@
   (ui-utils/run-later
    (let [[heap-bar] (obj-lookup "heap-bar")
          [heap-max-lbl] (obj-lookup "heap-max-lbl")
-         perc (float (/ free-bytes max-bytes))
+         free-perc (float (/ free-bytes max-bytes))
          max-mb (float (/ max-bytes 1024 1024 1024))]
-     (.setProgress heap-bar perc)
+     (.setProgress heap-bar (- 1.0 free-perc))
      (.setText heap-max-lbl (format "%.2f Gb" max-mb)))))
 
 (defn set-conn-status-lbl [lbl-key status]
