@@ -2,7 +2,8 @@
   #?(:cljs (:require [goog.string :as gstr]
                      [goog.string.format]
                      [goog :as g])
-     :clj (:require [clojure.java.io :as io]))
+     :clj (:require [clojure.java.io :as io]
+                    [clojure.reflect :refer [resolve-class]]))
   #?(:clj (:refer-clojure :exclude [format update-values]))
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
                    [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
@@ -158,6 +159,12 @@
   #?(:clj  {:max-bytes (.maxMemory (Runtime/getRuntime)) :free-bytes (.freeMemory (Runtime/getRuntime))}
      :cljs {:max-bytes 0 :free-bytes 0}))
 
+(defn storm-env? []
+  #?(:clj (boolean
+           (resolve-class
+            (.getContextClassLoader (Thread/currentThread))
+            'clojure.storm.TraceIndex))
+     :cljs false))
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))
 

@@ -1,13 +1,12 @@
 (ns flow-storm.runtime.debuggers-api
   (:require [flow-storm.runtime.indexes.api :as indexes-api]            
             [flow-storm.utils :as utils :refer [log]]
-            [flow-storm.runtime.events :as rt-events]
+            [flow-storm.runtime.events :as rt-events]            
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
             [clojure.core.async :as async]
             #?@(:clj [[hansel.api :as hansel]
                       [flow-storm.tracer :as tracer]
-                      [hansel.instrument.utils :as hansel-inst-utils]
-                      [clojure.reflect :refer [resolve-class]]])))
+                      [hansel.instrument.utils :as hansel-inst-utils]])))
 
 ;; Utilities for long interruptible tasks
 
@@ -35,12 +34,7 @@
     (async/put! int-ch true)))
 
 (defn runtime-config []
-  {:clojure-storm-env?
-   #?(:clj (boolean
-            (resolve-class
-             (.getContextClassLoader (Thread/currentThread))
-             'clojure.storm.TraceIndex))
-      :cljs false)})
+  {:clojure-storm-env? (utils/storm-env?)})
 
 (defn val-pprint [vref opts]
   (let [v (get-reference-value vref)]

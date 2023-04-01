@@ -3,19 +3,15 @@
             [flow-storm.runtime.indexes.frame-index :as frame-index]
             [flow-storm.runtime.values :refer [val-pprint]]
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
-            [flow-storm.runtime.events :as events]
+            [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
             [flow-storm.runtime.indexes.form-registry :as form-registry]            
             [clojure.string :as str]
             [clojure.core.async :as async]
-            [clojure.pprint :as pp]
-            #?(:clj [flow-storm.runtime.indexes.storm-index :as storm-index])))
+            [clojure.pprint :as pp])
+  #?(:clj (:require [flow-storm.utils :as utils])))
 
 (declare discard-flow)
-
-(defn storm? []
-  #?(:clj true
-     :cljs false))
 
 (def flow-thread-registry nil)
 
@@ -36,16 +32,16 @@
    (defn start []
      (alter-var-root #'flow-thread-registry (constantly
                                              (indexes/start-thread-registry
-                                              (if (storm?)
-                                                (storm-index/make-storm-thread-registry)
+                                              (if (utils/storm-env?)
+                                                ((requiring-resolve 'flow-storm.runtime.indexes.storm-index/make-storm-thread-registry))
                                                 (thread-registry/make-thread-registry))
                                               {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
                                                                     (events/publish-event!
                                                                      (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
      (alter-var-root #'forms-registry (constantly
                                        (indexes/start-form-registry
-                                        (if (storm?)
-                                          (storm-index/make-storm-form-registry)
+                                        (if (utils/storm-env?)
+                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-index/make-storm-form-registry))
                                           (form-registry/make-form-registry))))))
    :cljs
    (defn start []
