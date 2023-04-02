@@ -64,14 +64,15 @@
     (store-obj "heap-max-lbl" heap-max-lbl)
     box))
 
-(defn update-heap-indicator [{:keys [:max-bytes :free-bytes]}]
+(defn update-heap-indicator [{:keys [max-heap-bytes heap-size-bytes heap-free-bytes]}]
   (ui-utils/run-later
    (let [[heap-bar] (obj-lookup "heap-bar")
          [heap-max-lbl] (obj-lookup "heap-max-lbl")
-         free-perc (float (/ free-bytes max-bytes))
-         max-mb (float (/ max-bytes 1024 1024 1024))]
-     (.setProgress heap-bar (- 1.0 free-perc))
-     (.setText heap-max-lbl (format "%.2f Gb" max-mb)))))
+         occupied-bytes (- heap-size-bytes heap-free-bytes)
+         occ-perc (float (/ occupied-bytes max-heap-bytes))
+         max-gb (float (/ max-heap-bytes 1024 1024 1024))]
+     (.setProgress heap-bar occ-perc)
+     (.setText heap-max-lbl (format "%.2f Gb" max-gb)))))
 
 (defn set-conn-status-lbl [lbl-key status]
   (try

@@ -55,8 +55,8 @@
 (defn make-task-progress-event [task-id progress]
   [:task-progress {:task-id task-id :progress progress}])
 
-(defn make-heap-info-update-event [max-bytes free-bytes]
-  [:heap-info-update {:max-bytes max-bytes :free-bytes free-bytes}])
+(defn make-heap-info-update-event [heap-info]
+  [:heap-info-update heap-info])
 
 (defn make-goto-location-event [flow-id thread-id thread-name idx]
   [:goto-location {:flow-id flow-id :thread-id thread-id :thread-name thread-name :idx idx}])

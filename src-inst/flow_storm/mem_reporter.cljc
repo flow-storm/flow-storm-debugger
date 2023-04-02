@@ -19,8 +19,8 @@
 
           (utils/log "[Stopping mem reporting subsystem]")
           
-          (let [{:keys [max-bytes free-bytes]} (utils/get-memory-info)
-                ev (rt-events/make-heap-info-update-event max-bytes free-bytes)]
+          (let [heap-info (utils/get-memory-info)
+                ev (rt-events/make-heap-info-update-event heap-info)]
             (rt-events/publish-event! ev)
             (recur)))))))
 
