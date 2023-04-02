@@ -78,7 +78,8 @@
             curr-node (ms-peek build-stack)
             parent-frame-idx (-> (index-protos/get-frame curr-node)
                                  index-protos/get-immutable-frame
-                                 :frame-idx)
+                                 :frame-idx
+                                 (or 0))
             new-frame (->CallStackFrame fn-ns
                                         fn-name
                                         args-vec

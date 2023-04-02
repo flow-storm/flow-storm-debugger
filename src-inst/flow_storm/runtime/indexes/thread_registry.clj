@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.indexes.thread-registry
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]))
 
-(deftype ThreadRegistry [*registry *callbacks]
+(defrecord ThreadRegistry [*registry *callbacks]
 
   index-protos/ThreadRegistryP
 
@@ -9,16 +9,18 @@
     (keys @*registry))
 
   (flow-threads-info [_ flow-id]
-    (->> (get @*registry flow-id)
-         (map (fn [[tid tinfo]]
-                {:thread/id tid
-                 :thread/name (:thread/name tinfo)}))))
+    (->> @*registry
+         (keep (fn [[[fid tid] tinfo]]
+             (when (= fid flow-id)
+               {:flow/id fid
+                :thread/id tid
+                :thread/name (:thread/name tinfo)})))))
 
   (flow-exists? [_ flow-id]
     (some (fn [[fid _]] (= fid flow-id)) (keys @*registry)))
 
   (get-thread-indexes [_ flow-id thread-id]
-    (get @*registry [flow-id thread-id :thread/indexes]))
+    (get-in @*registry [[flow-id thread-id] :thread/indexes]))
 
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
     (swap! *registry

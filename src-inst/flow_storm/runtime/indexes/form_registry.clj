@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.indexes.form-registry
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]))
 
-(deftype FormRegistry [*registry]
+(defrecord FormRegistry [*registry]
 
   index-protos/FormRegistryP
 

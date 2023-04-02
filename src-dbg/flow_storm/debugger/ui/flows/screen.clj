@@ -66,8 +66,10 @@
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
-                                  (let [{:keys [thread/id thread/name]} (first sel-items)]
-                                    (create-thread {:thread-id id :thread-name name}))))})]
+                                  (let [thread-info (first sel-items)]
+                                    (create-thread {:flow-id (:flow/id thread-info)
+                                                    :thread-id (:thread/id thread-info)
+                                                    :thread-name (:thread/name thread-info)}))))})]
 
     (-> flow-split-pane
         .getItems
