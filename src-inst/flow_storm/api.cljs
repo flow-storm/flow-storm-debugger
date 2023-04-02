@@ -23,6 +23,8 @@
   (remote-websocket-client/start-remote-websocket-client
    (assoc config :api-call-fn dbg-api/call-by-name))
 
+  (indexes-api/start)
+
   ;; push all events thru the websocket
   (rt-events/subscribe! (fn [ev]
                           (-> [:event ev]

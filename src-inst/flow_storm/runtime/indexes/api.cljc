@@ -243,7 +243,7 @@
                           (filter (fn [[fid _]] (= fid flow-id))))]
     (indexes/discard-threads flow-thread-registry discard-keys)))
 
-#?(:cljs (defn flow-threads-info [_] [{:thread/id 0 :thread/name "main"}])
+#?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main"}])
    :clj (defn flow-threads-info [flow-id]
           (indexes/flow-threads-info flow-thread-registry flow-id)))
 

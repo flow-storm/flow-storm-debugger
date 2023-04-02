@@ -37,7 +37,7 @@
            (fn [flows-threads]
              (apply dissoc flows-threads flow-threads-ids))))
 
-  (start-thread-registry [thread-reg callbacks]
+  (start-thread-registry [thread-reg callbacks]    
     (reset! *callbacks callbacks)
     thread-reg)
 
