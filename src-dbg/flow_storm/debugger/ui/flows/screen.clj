@@ -128,7 +128,6 @@
 (defn create-or-focus-thread-tab [flow-id thread-id thread-name]
   (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")
         sel-model (.getSelectionModel threads-tabs-pane)
-        thread-tab-pane (create-thread-pane flow-id thread-id)
         all-tabs (.getTabs threads-tabs-pane)
         tab-for-thread (some (fn [^Tab t]
                                (when (= (.getId t) (str thread-id))
@@ -136,9 +135,12 @@
                              all-tabs)]
 
     (if tab-for-thread
+
       (.select ^SingleSelectionModel sel-model ^Tab tab-for-thread)
 
-      (let [thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
+
+      (let [thread-tab-pane (create-thread-pane flow-id thread-id)
+            thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
                              :content thread-tab-pane
                              :id (str thread-id)})]
         (.setOnCloseRequest thread-tab
