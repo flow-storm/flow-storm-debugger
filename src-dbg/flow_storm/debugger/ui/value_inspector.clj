@@ -63,16 +63,17 @@
                                           val-txt
                                           (str k))
                                         stack-txt-len)]
-      (doto (label val-txt "link-lbl")
-        (.setOnMouseClicked
-         (event-handler
-          [_]
-          (let [new-frame (create-shallow-frame-pane ctx (runtime-api/shallow-val rt-api v))]
-            (update-center-pane ctx new-frame)
-            (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
-            (update-stack-bar-pane ctx))))))
+      (let [click-handler (event-handler
+                           [_]
+                           (let [new-frame (create-shallow-frame-pane ctx (runtime-api/shallow-val rt-api v))]
+                             (update-center-pane ctx new-frame)
+                             (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
+                             (update-stack-bar-pane ctx)))
+            lbl (doto (label val-txt "link-lbl")
+                  (.setOnMouseClicked click-handler))]
+        [lbl click-handler]))
 
-    (label (pr-str v))))
+    [(label (pr-str v)) nil]))
 
 (defn- create-shallow-map-pane [ctx shallow-v]
   (let [item->key (reduce (fn [r [k v]]
@@ -81,15 +82,21 @@
                           (:val/map-entries shallow-v))]
     (table-view {:columns ["Key" "Value"]
                  :cell-factory-fn (fn [item]
-                                    (create-dig-node ctx (item->key item) item))
+                                    (first (create-dig-node ctx (item->key item) item)))
                  :items (:val/map-entries shallow-v)})))
 
 (defn- create-shallow-seq-pane [ctx shallow-v]
   (let [{:keys [list-view-pane add-all]} (ui-utils/list-view
                                           {:editable? false
                                            :cell-factory-fn (fn [list-cell {:keys [val idx]}]
-                                                              (.setText list-cell nil)
-                                                              (.setGraphic list-cell (create-dig-node ctx idx val)))})
+                                                              (let [[dnode dhandler] (create-dig-node ctx idx val)]
+                                                                (.setText list-cell nil)
+                                                                (.setGraphic list-cell dnode)
+                                                                ;; the dnode will already handle the click
+                                                                ;; but we also add the handler to the list-cell
+                                                                ;; so one single click executes the action instead of
+                                                                ;; selecting the cell
+                                                                (.setOnMouseClicked list-cell dhandler)))})
         add-shallow-page-to-list (fn [{:keys [val/page page/offset]}]
                                    (add-all (->> page
                                                  (map-indexed (fn [i v] {:val v :idx (+ offset i)})))))
