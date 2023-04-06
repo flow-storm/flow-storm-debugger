@@ -62,16 +62,16 @@
           stack-txt (utils/elide-string (if (dig-node? k)
                                           val-txt
                                           (str k))
-                                        stack-txt-len)]
-      (let [click-handler (event-handler
-                           [_]
-                           (let [new-frame (create-shallow-frame-pane ctx (runtime-api/shallow-val rt-api v))]
-                             (update-center-pane ctx new-frame)
-                             (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
-                             (update-stack-bar-pane ctx)))
-            lbl (doto (label val-txt "link-lbl")
-                  (.setOnMouseClicked click-handler))]
-        [lbl click-handler]))
+                                        stack-txt-len)
+          click-handler (event-handler
+                         [_]
+                         (let [new-frame (create-shallow-frame-pane ctx (runtime-api/shallow-val rt-api v))]
+                           (update-center-pane ctx new-frame)
+                           (swap! (:vals-panes-stack ctx) conj [stack-txt new-frame])
+                           (update-stack-bar-pane ctx)))
+          lbl (doto (label val-txt "link-lbl")
+                (.setOnMouseClicked click-handler))]
+      [lbl click-handler])
 
     [(label (pr-str v)) nil]))
 

@@ -5,11 +5,16 @@
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
-            [flow-storm.runtime.indexes.form-registry :as form-registry]            
+            [flow-storm.runtime.indexes.form-registry :as form-registry]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [clojure.string :as str]
             [clojure.core.async :as async]
             [clojure.pprint :as pp])
-  #?(:clj (:require [flow-storm.utils :as utils])))
+  #?(:clj (:require [flow-storm.utils :as utils]))
+  (:import [flow_storm.runtime.types.fn_call_trace FnCallTrace]
+           [flow_storm.runtime.types.fn_return_trace FnReturnTrace]
+           [flow_storm.runtime.types.expr_trace ExprTrace]
+           [flow_storm.runtime.types.bind_trace BindTrace]))
 
 (declare discard-flow)
 
@@ -43,7 +48,7 @@
                                                {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
                                                                      (events/publish-event!
                                                                       (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
-     (alter-var-root #'forms-registry (constantly
+     (alter-var-root #'forms-registry (fn [_]                                       
                                        (indexes/start-form-registry
                                         (if (utils/storm-env?)
                                           ((requiring-resolve 'flow-storm.runtime.indexes.storm-index/make-storm-form-registry))
@@ -60,6 +65,11 @@
 
 #?(:clj
    (defn stop []
+     (when (utils/storm-env?)
+       (clojure.storm.Tracer/setTraceFnCallFn nil)
+       (clojure.storm.Tracer/setTraceFnReturnFn nil)
+       (clojure.storm.Tracer/setTraceExprFn nil)
+       (clojure.storm.Tracer/setTraceBindFn nil))
      (alter-var-root #'flow-thread-registry indexes/stop-thread-registry)
      (alter-var-root #'forms-registry indexes/stop-form-registry))
    
@@ -69,8 +79,9 @@
      (set! forms-registry indexes/stop-form-registry)))
 
 
-(defn flow-exists? [flow-id]
-  (indexes/flow-exists? flow-thread-registry flow-id))
+(defn flow-exists? [flow-id]  
+  (when flow-thread-registry
+    (indexes/flow-exists? flow-thread-registry flow-id)))
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
   (discard-flow flow-id)
@@ -84,10 +95,11 @@
     
     thread-indexes))
 
-(defn get-thread-indexes [flow-id thread-id]
-  (indexes/get-thread-indexes flow-thread-registry flow-id thread-id))
+(defn get-thread-indexes [flow-id thread-id]  
+  (when flow-thread-registry
+    (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
 
-(defn get-or-create-thread-indexes [{:keys [flow-id thread-id thread-name form-id]}]
+(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
   
   (when (and (nil? flow-id)
              (not (flow-exists? nil)))
@@ -107,21 +119,26 @@
 (defn add-form-init-trace [trace]
   (register-form trace))
 
-(defn add-fn-call-trace [trace]
-  (let [thread-indexes (get-or-create-thread-indexes trace)]
+(defn add-fn-call-trace [flow-id thread-id thread-name ^FnCallTrace trace]
+  (let [{:keys [frame-index fn-call-stats-index]} (get-or-create-thread-indexes flow-id thread-id thread-name (fn-call-trace/get-form-id trace))]
 
-    (doseq [[_ thread-index] thread-indexes]
-      (indexes/add-fn-call thread-index trace))))
+    (indexes/add-fn-call frame-index trace)
+    (indexes/add-fn-call fn-call-stats-index trace)))
 
-(defn add-expr-exec-trace [trace]
-  (doseq [[_ thread-index] (get-or-create-thread-indexes trace)]    
-    (when thread-index
-      (indexes/add-expr-exec thread-index trace))))
+(defn add-fn-return-trace [flow-id thread-id ^FnReturnTrace trace]
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]    
+    (when frame-index
+      (indexes/add-fn-return frame-index trace))))
 
-(defn add-bind-trace [{:keys [flow-id thread-id] :as trace}]
-  (doseq [[_ thread-index] (get-thread-indexes flow-id thread-id)]
-    (when thread-index
-      (indexes/add-bind thread-index trace))))
+(defn add-expr-exec-trace [flow-id thread-id ^ExprTrace trace]
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
+    (when frame-index
+      (indexes/add-expr-exec frame-index trace))))
+
+(defn add-bind-trace [flow-id thread-id ^BindTrace trace]
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
+    (when frame-index
+      (indexes/add-bind frame-index trace))))
 
 ;;;;;;;;;;;;;;;;;
 ;; Indexes API ;;
@@ -184,17 +201,15 @@
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
     (->> (indexes/all-stats fn-call-stats-index)
          (keep (fn [[fn-call cnt]]
-                 (when (and (= (:flow-id fn-call) flow-id)
-                            (= (:thread-id fn-call) thread-id))                   
-                   (let [form (get-form flow-id thread-id (:form-id fn-call))]
-                     (cond-> {:fn-ns (:fn-ns fn-call)
-                              :fn-name (:fn-name fn-call)
-                              :form-id (:form-id fn-call)
-                              :form (:form/form form)
-                              :form-def-kind (:form/def-kind form)
-                              :dispatch-val (:multimethod/dispatch-val form)
-                              :cnt cnt}
-                       (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form))))))))))
+                 (let [form (get-form flow-id thread-id (:form-id fn-call))]
+                   (cond-> {:fn-ns (:fn-ns fn-call)
+                            :fn-name (:fn-name fn-call)
+                            :form-id (:form-id fn-call)
+                            :form (:form/form form)
+                            :form-def-kind (:form/def-kind form)
+                            :dispatch-val (:multimethod/dispatch-val form)
+                            :cnt cnt}
+                     (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form)))))))))
 
 (defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
@@ -246,9 +261,12 @@
             :match-stack match-stack}))))))
 
 (defn discard-flow [flow-id]
-  (let [discard-keys (->> (indexes/all-threads flow-thread-registry)
-                          (filter (fn [[fid _]] (= fid flow-id))))]
-    (indexes/discard-threads flow-thread-registry discard-keys)))
+  (let [discard-keys (some->> flow-thread-registry
+                              indexes/all-threads 
+                              (filter (fn [[fid _]] (= fid flow-id))))]
+    
+    (when flow-thread-registry
+      (indexes/discard-threads flow-thread-registry discard-keys))))
 
 #?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main"}])
    :clj (defn flow-threads-info [flow-id]

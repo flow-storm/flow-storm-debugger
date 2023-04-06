@@ -3,7 +3,8 @@
 (defprotocol BuildIndexP
   (add-form-init [_ trace])
   (add-fn-call [_ trace])
-  (add-expr-exec [_ trace])
+  (add-fn-return [_ trace])
+  (add-expr-exec [_ trace])  
   (add-bind [_ trace]))
 
 (defprotocol FrameIndexP
@@ -26,7 +27,8 @@
   (get-immutable-frame [_])
   (get-expr-exec [_ idx])
   (add-binding-to-frame [_ bind-trace])
-  (add-expr-exec-to-frame [_ idx exec-trace]))
+  (add-expr-exec-to-frame [_ exec-trace])
+  (set-return [_ ret-trace]))
 
 (defprotocol FnCallStatsP
   (all-stats [_]))

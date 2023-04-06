@@ -1,35 +1,64 @@
 (ns flow-storm.runtime.indexes.frame-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :as index-utils :refer [make-mutable-stack ms-peek ms-push ms-pop ms-count
-                                                                      make-mutable-list ml-get ml-add ml-count]]))
+                                                                      make-mutable-list ml-get ml-add ml-count]]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
+            [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
+            [flow-storm.runtime.types.expr-trace :as expr-trace]
+            [flow-storm.runtime.types.bind-trace :as bind-trace])
+  (:import [flow_storm.runtime.types.fn_return_trace FnReturnTrace]
+           [flow_storm.runtime.types.expr_trace ExprTrace]
+           [flow_storm.runtime.types.bind_trace BindTrace]))
 
-(deftype CallStackFrame [fn-ns
-                         fn-name
-                         args-vec
-                         frame-idx
-                         form-id
+(defn expr-exec-map [^ExprTrace et]
+  {:idx (expr-trace/get-timeline-idx et)
+   :form-id (expr-trace/get-form-id et)
+   :coor (expr-trace/get-coord et)
+   :timestamp (expr-trace/get-timestamp et)
+   :result (expr-trace/get-expr-val et)
+   :outer-form? false})
+
+(defn fn-return-map [^FnReturnTrace rt]
+  (when rt
+    {:idx (fn-return-trace/get-timeline-idx rt)
+     :form-id (fn-return-trace/get-form-id rt)
+     :result (fn-return-trace/get-ret-val rt)
+     :outer-form? true
+     :coor (fn-return-trace/get-coord rt)
+     :timestamp (fn-return-trace/get-timestamp rt)}))
+
+(defn binding-map [^BindTrace bt]
+  {:coor (bind-trace/get-coord bt)
+   :timestamp (bind-trace/get-timestamp bt)
+   :symbol (bind-trace/get-sym-name bt)
+   :value (bind-trace/get-val bt)})
+
+(deftype CallStackFrame [fn-call-trace
+                         ^int timeline-idx                         
                          bindings
                          expr-executions
-                         parent-frame-idx]
+                         ^:unsynchronized-mutable ret-trace
+                         parent-timeline-idx]
   
   index-protos/CallStackFrameP
 
   (get-immutable-frame [_]
 
-    (let [frame-ret (when-let [last-expr (last expr-executions)]
-                      (when (:outer-form? last-expr)
-                        (:result last-expr)))
-          root-frame? (and (nil? fn-ns) (nil? fn-name) (nil? form-id))]
-      (cond-> {:fn-ns fn-ns
-               :fn-name fn-name
-               :args-vec args-vec
-               :bindings (into [] bindings) ;; return a immutable seq
-               :expr-executions (into [] expr-executions) ;; return a immutable seq
-               :form-id form-id
-               :frame-idx frame-idx
-               :parent-frame-idx parent-frame-idx}
-        frame-ret (assoc :ret frame-ret)
-        root-frame? (assoc :root? true))))
+    (if fn-call-trace      
+      (let [fn-name (fn-call-trace/get-fn-name fn-call-trace)
+            fn-ns (fn-call-trace/get-fn-ns fn-call-trace)
+            fn-args (fn-call-trace/get-fn-args fn-call-trace)
+            form-id (fn-call-trace/get-form-id fn-call-trace)]
+        {:fn-ns fn-ns
+         :fn-name fn-name
+         :args-vec fn-args
+         :bindings (mapv binding-map bindings) 
+         :expr-executions (mapv expr-exec-map expr-executions)
+         :ret (when ret-trace (fn-return-trace/get-ret-val ret-trace))
+         :form-id form-id
+         :frame-idx timeline-idx
+         :parent-frame-idx parent-timeline-idx})
+      {:root? true}))
 
   (get-expr-exec [_ idx]
     (ml-get expr-executions idx))
@@ -37,15 +66,25 @@
   (add-binding-to-frame [_ b]
     (ml-add bindings b))
 
-  (add-expr-exec-to-frame [_ idx expr]
-    (ml-add expr-executions (assoc expr :idx idx))
-    (dec (ml-count expr-executions)))
+  (set-return [_ trace]
+    (set! ret-trace trace))  
+  
+  (add-expr-exec-to-frame [_ expr]
+    (ml-add expr-executions expr))
 
   #?@(:clj
       [java.lang.Object
-       (toString [_]
-                 (format "(%s/%s %s) idx: %d, form-id: %s, bindings-cnt: %d, expr-executions-cnt:%d"
-                         fn-ns fn-name (pr-str args-vec) frame-idx form-id (ml-count bindings) (ml-count expr-executions)))]))
+       (toString [_]                 
+                 (format "%s idx: %d, bindings-cnt: %d, expr-executions-cnt:%d"
+                         fn-call-trace timeline-idx (ml-count bindings) (ml-count expr-executions)))]))
+
+(defn make-call-stack-frame [fn-call-trace timeline-idx parent-idx]
+  (->CallStackFrame fn-call-trace
+                    timeline-idx
+                    (make-mutable-list)
+                    (make-mutable-list)
+                    nil
+                    parent-idx))
 
 (deftype TreeNode [^CallStackFrame frame
                    childs]
@@ -62,6 +101,9 @@
     (locking childs
       (doall (seq childs)))))
 
+(defn make-tree-node [frame]
+  (->TreeNode frame (make-mutable-list)))
+
 (deftype MutableFrameIndex [root-node
                             build-stack
                             timeline]
@@ -70,43 +112,46 @@
 
   (add-form-init [_ _]) ; don't do anything for form-init 
   
-  (add-fn-call [this {:keys [form-id fn-ns fn-name args-vec]}]
+  (add-fn-call [this trace]
     (locking this
-      (let [exec-exprs (make-mutable-list)
-            bindings (make-mutable-list)
-            frame-idx (ml-count timeline)
+      (let [frame-idx (ml-count timeline)
             curr-node (ms-peek build-stack)
+            
             parent-frame-idx (-> (index-protos/get-frame curr-node)
                                  index-protos/get-immutable-frame
                                  :frame-idx
                                  (or 0))
-            new-frame (->CallStackFrame fn-ns
-                                        fn-name
-                                        args-vec
-                                        frame-idx
-                                        form-id
-                                        exec-exprs
-                                        bindings
-                                        parent-frame-idx)
-            node-childs (make-mutable-list)
-            new-node (->TreeNode new-frame node-childs)]
+            new-frame (make-call-stack-frame trace frame-idx parent-frame-idx)            
+            new-node (make-tree-node new-frame)]
+        (fn-call-trace/set-frame-node trace new-node)
         (index-protos/add-child curr-node new-node)
-        (ml-add timeline {:timeline/type :frame :frame new-frame})
+        (ml-add timeline trace)
         (ms-push build-stack new-node))))
+
+  (add-fn-return [this trace]
+    (locking this
+      (when (> (ms-count build-stack) 1)
+        (let [curr-node (ms-peek build-stack)
+              curr-frame (index-protos/get-frame curr-node)
+              curr-idx (ml-count timeline)]
+          
+          (index-protos/set-return curr-frame trace)
+          (fn-return-trace/set-frame-node trace curr-node)
+          (fn-return-trace/set-timeline-idx trace curr-idx)
+          (ml-add timeline trace)
+          (ms-pop build-stack)))))
   
-  (add-expr-exec [this {:keys [outer-form?] :as exec-trace}]
+  (add-expr-exec [this trace]
     (locking this
       ;; discard all expressions for the dummy frame
       (when (> (ms-count build-stack) 1)
         (let [curr-node (ms-peek build-stack)
               curr-frame (index-protos/get-frame curr-node)
-              curr-idx (ml-count timeline)
-              frame-exec-idx (index-protos/add-expr-exec-to-frame curr-frame curr-idx exec-trace)]
-          (ml-add timeline {:timeline/type :expr
-                            :frame curr-frame
-                            :frame-exec-idx frame-exec-idx
-                            :outer-form? outer-form?})
-          (when outer-form? (ms-pop build-stack))))))
+              curr-idx (ml-count timeline)]
+          (expr-trace/set-frame-node trace curr-node)
+          (expr-trace/set-timeline-idx trace curr-idx)
+          (index-protos/add-expr-exec-to-frame curr-frame trace)
+          (ml-add timeline trace)))))
   
   (add-bind [this bind-trace]
     (locking this
@@ -123,26 +168,29 @@
   (timeline-entry [this idx]
     (locking this
       (let [tl-entry (ml-get timeline idx)]
-        (if (= :expr (:timeline/type tl-entry))
+        (cond
+          (fn-call-trace/fn-call-trace? tl-entry)
+          (-> (fn-call-trace/get-frame-node tl-entry)
+              index-protos/get-frame
+              index-protos/get-immutable-frame
+              (assoc :timeline/type :frame))
 
-          (let [expr (index-protos/get-expr-exec (:frame tl-entry) (:frame-exec-idx tl-entry))]
-            {:timeline/type :expr
-             :idx (:idx expr)
-             :form-id (:form-id expr)
-             :coor (:coor expr)
-             :result (:result expr)
-             :outer-form? (:outer-form? expr)
-             :timestamp (:timestamp expr)})          
-
-          (merge tl-entry
-                 (index-protos/get-immutable-frame (:frame tl-entry)))))))
+          (fn-return-trace/fn-return-trace? tl-entry)
+          (-> (fn-return-map tl-entry)
+              (assoc :timeline/type :expr))
+          
+          (expr-trace/expr-trace? tl-entry)
+          (-> (expr-exec-map tl-entry)
+              (assoc :timeline/type :expr))))))
 
   (timeline-frame-seq [this]
     (locking this
       (->> timeline
            (keep (fn [tl-entry]
-                   (when-not (= :expr (:timeline/type tl-entry))
-                     (index-protos/get-immutable-frame (:frame tl-entry)))))
+                   (when (fn-call-trace/fn-call-trace? tl-entry)
+                     (-> (fn-call-trace/get-frame-node tl-entry)
+                         index-protos/get-frame 
+                         index-protos/get-immutable-frame))))
            doall)))
 
   (timeline-seq [this]
@@ -151,8 +199,14 @@
 
   (frame-data [this idx]
     (locking this
-      (let [{:keys [frame]} (ml-get timeline idx)]
-        (index-protos/get-immutable-frame frame))))
+      (let [tl-entry (ml-get timeline idx)
+            frame-node (cond
+                         (fn-call-trace/fn-call-trace? tl-entry) (fn-call-trace/get-frame-node tl-entry)                       
+                         (fn-return-trace/fn-return-trace? tl-entry) (fn-return-trace/get-frame-node tl-entry) 
+                         (expr-trace/expr-trace? tl-entry) (expr-trace/get-frame-node tl-entry))]
+        (-> frame-node
+            index-protos/get-frame 
+            index-protos/get-immutable-frame))))
 
   (callstack-tree-root-node [this]
     (locking this
@@ -160,8 +214,8 @@
   )
 
 (defn make-index []
-  (let [root-frame (->CallStackFrame nil nil nil nil nil (make-mutable-list) (make-mutable-list) 0)
-        root-node (->TreeNode root-frame (make-mutable-list))
+  (let [root-frame (make-call-stack-frame nil 0 0)
+        root-node (make-tree-node root-frame)
         build-stack (make-mutable-stack)
         timeline (make-mutable-list)]
     (ms-push build-stack root-node)
