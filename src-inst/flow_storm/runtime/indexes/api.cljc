@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.indexes.api
   (:require [flow-storm.runtime.indexes.protocols :as indexes]
             [flow-storm.runtime.indexes.frame-index :as frame-index]
-            [flow-storm.runtime.values :refer [val-pprint]]
+            [flow-storm.runtime.values :refer [val-pprint]]            
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
@@ -30,14 +30,19 @@
 
 #?(:clj
    (defn start []
-     (alter-var-root #'flow-thread-registry (constantly
-                                             (indexes/start-thread-registry
-                                              (if (utils/storm-env?)
-                                                ((requiring-resolve 'flow-storm.runtime.indexes.storm-index/make-storm-thread-registry))
-                                                (thread-registry/make-thread-registry))
-                                              {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
-                                                                    (events/publish-event!
-                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
+     (alter-var-root #'flow-thread-registry (fn [_]
+                                              (when (utils/storm-env?)
+                                                (clojure.storm.Tracer/setTraceFnCallFn (requiring-resolve 'flow-storm.tracer/trace-fn-call))
+                                                (clojure.storm.Tracer/setTraceFnReturnFn (requiring-resolve 'flow-storm.tracer/trace-fn-return))
+                                                (clojure.storm.Tracer/setTraceExprFn (requiring-resolve 'flow-storm.tracer/trace-expr-exec))
+                                                (clojure.storm.Tracer/setTraceBindFn (requiring-resolve 'flow-storm.tracer/trace-bind))
+                                                ;;(clojure.storm.Tracer/setHandleExceptionFn tracer/)
+                                                )
+                                              (indexes/start-thread-registry
+                                               (thread-registry/make-thread-registry)
+                                               {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
+                                                                     (events/publish-event!
+                                                                      (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
      (alter-var-root #'forms-registry (constantly
                                        (indexes/start-form-registry
                                         (if (utils/storm-env?)
@@ -109,12 +114,14 @@
       (indexes/add-fn-call thread-index trace))))
 
 (defn add-expr-exec-trace [trace]
-  (doseq [[_ thread-index] (get-or-create-thread-indexes trace)]
-    (indexes/add-expr-exec thread-index trace)))
+  (doseq [[_ thread-index] (get-or-create-thread-indexes trace)]    
+    (when thread-index
+      (indexes/add-expr-exec thread-index trace))))
 
 (defn add-bind-trace [{:keys [flow-id thread-id] :as trace}]
   (doseq [[_ thread-index] (get-thread-indexes flow-id thread-id)]
-    (indexes/add-bind thread-index trace)))
+    (when thread-index
+      (indexes/add-bind thread-index trace))))
 
 ;;;;;;;;;;;;;;;;;
 ;; Indexes API ;;

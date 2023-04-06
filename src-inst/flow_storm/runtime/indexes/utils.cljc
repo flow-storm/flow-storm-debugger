@@ -23,6 +23,11 @@
    :clj (defn ms-pop [^ArrayDeque mstack]
           (.pop mstack)))
 
+#?(:cljs (defn ms-count [mstack]
+           (.-length mstack))
+   :clj (defn ms-count [^ArrayDeque mstack]
+          (.size mstack)))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Mutable list ;;
 ;;;;;;;;;;;;;;;;;;

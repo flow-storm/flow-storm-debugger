@@ -1,6 +1,6 @@
 (ns flow-storm.runtime.indexes.frame-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :as index-utils :refer [make-mutable-stack ms-peek ms-push ms-pop
+            [flow-storm.runtime.indexes.utils :as index-utils :refer [make-mutable-stack ms-peek ms-push ms-pop ms-count
                                                                       make-mutable-list ml-get ml-add ml-count]]))
 
 (deftype CallStackFrame [fn-ns
@@ -96,15 +96,17 @@
   
   (add-expr-exec [this {:keys [outer-form?] :as exec-trace}]
     (locking this
-      (let [curr-node (ms-peek build-stack)
-            curr-frame (index-protos/get-frame curr-node)
-            curr-idx (ml-count timeline)
-            frame-exec-idx (index-protos/add-expr-exec-to-frame curr-frame curr-idx exec-trace)]
-        (ml-add timeline {:timeline/type :expr
-                          :frame curr-frame
-                          :frame-exec-idx frame-exec-idx
-                          :outer-form? outer-form?})
-        (when outer-form? (ms-pop build-stack)))))
+      ;; discard all expressions for the dummy frame
+      (when (> (ms-count build-stack) 1)
+        (let [curr-node (ms-peek build-stack)
+              curr-frame (index-protos/get-frame curr-node)
+              curr-idx (ml-count timeline)
+              frame-exec-idx (index-protos/add-expr-exec-to-frame curr-frame curr-idx exec-trace)]
+          (ml-add timeline {:timeline/type :expr
+                            :frame curr-frame
+                            :frame-exec-idx frame-exec-idx
+                            :outer-form? outer-form?})
+          (when outer-form? (ms-pop build-stack))))))
   
   (add-bind [this bind-trace]
     (locking this

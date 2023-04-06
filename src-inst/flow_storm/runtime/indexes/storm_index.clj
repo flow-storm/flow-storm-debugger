@@ -1,164 +1,163 @@
 (ns flow-storm.runtime.indexes.storm-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos])
-  (:import [clojure.storm TraceIndex CallStackFrame CallTreeNode FrameIndex
-            FnCallTrace ExprTrace FnReturnTrace BindTrace]))
+  (:import [clojure.storm FormRegistry]))
 
-(declare make-storm-wrapped-tree-node)
+;; (declare make-storm-wrapped-tree-node)
 
-(defn expr-exec-map [^ExprTrace et]
-  {:trace/type :expr-exec
-   :idx (.getTimelineIdx et)
-   :form-id (.getFormId et)
-   :coor (.asPersistentVector (.getCoord et))
-   :timestamp (.getTimestamp et)
-   :result (.getExprVal et)})
+;; (defn expr-exec-map [^ExprTrace et]
+;;   {:trace/type :expr-exec
+;;    :idx (.getTimelineIdx et)
+;;    :form-id (.getFormId et)
+;;    :coor (.asPersistentVector (.getCoord et))
+;;    :timestamp (.getTimestamp et)
+;;    :result (.getExprVal et)})
 
-(defn fn-ret-expr-map [^FnReturnTrace rt]
-  (when rt
-    {:timeline/type :expr
-     :idx (.getTimelineIdx rt)
-     :form-id (.getFormId rt)
-     :result (.getRetVal rt)
-     :outer-form? true
-     :coor (.asPersistentVector (.getCoord rt))
-     :timestamp (.getTimestamp rt)}))
+;; (defn fn-ret-expr-map [^FnReturnTrace rt]
+;;   (when rt
+;;     {:timeline/type :expr
+;;      :idx (.getTimelineIdx rt)
+;;      :form-id (.getFormId rt)
+;;      :result (.getRetVal rt)
+;;      :outer-form? true
+;;      :coor (.asPersistentVector (.getCoord rt))
+;;      :timestamp (.getTimestamp rt)}))
 
-(defn binding-map [^BindTrace bt]
-  {:coor (.asPersistentVector (.getCoord bt))
-   :timestamp (.getTimestamp bt)
-   :symbol (.getSymName bt)
-   :value (.getVal bt)})
+;; (defn binding-map [^BindTrace bt]
+;;   {:coor (.asPersistentVector (.getCoord bt))
+;;    :timestamp (.getTimestamp bt)
+;;    :symbol (.getSymName bt)
+;;    :value (.getVal bt)})
 
-(defrecord WrappedCallStackFrame [^CallStackFrame wrapped-frame]
+;; (defrecord WrappedCallStackFrame [^CallStackFrame wrapped-frame]
 
-  index-protos/CallStackFrameP
+;;   index-protos/CallStackFrameP
 
-  (get-immutable-frame [_]
-    (let [fn-call-trace (.getFnCallTrace wrapped-frame)
-          fn-return-trace (.getFnReturnTrace wrapped-frame)
-          fn-ns (.getFnNamespace fn-call-trace)
-          fn-name (.getFnName fn-call-trace)
-          form-id (.getFormId fn-call-trace)]
+;;   (get-immutable-frame [_]
+;;     (let [fn-call-trace (.getFnCallTrace wrapped-frame)
+;;           fn-return-trace (.getFnReturnTrace wrapped-frame)
+;;           fn-ns (.getFnNamespace fn-call-trace)
+;;           fn-name (.getFnName fn-call-trace)
+;;           form-id (.getFormId fn-call-trace)]
 
-      (cond-> {:fn-ns fn-ns
-               :fn-name fn-name
-               :args-vec (.getFnArgs fn-call-trace)
-               :bindings (->> (.getBindings wrapped-frame)
-                              (mapv binding-map))
-               :expr-executions (let [expr-exec (->> (.getExprExecutions wrapped-frame)
-                                                     (mapv expr-exec-map))
-                                      ret-expr (fn-ret-expr-map (.getFnReturnTrace wrapped-frame))]
-                                  (into expr-exec [ret-expr]))
-               :form-id form-id
-               :frame-idx (.getTimelineIdx wrapped-frame)
-               :parent-frame-idx (.getParentTimelineIdx wrapped-frame)}
-        fn-return-trace (assoc :ret (.getRetVal fn-return-trace)))))
+;;       (cond-> {:fn-ns fn-ns
+;;                :fn-name fn-name
+;;                :args-vec (.getFnArgs fn-call-trace)
+;;                :bindings (->> (.getBindings wrapped-frame)
+;;                               (mapv binding-map))
+;;                :expr-executions (let [expr-exec (->> (.getExprExecutions wrapped-frame)
+;;                                                      (mapv expr-exec-map))
+;;                                       ret-expr (fn-ret-expr-map (.getFnReturnTrace wrapped-frame))]
+;;                                   (into expr-exec [ret-expr]))
+;;                :form-id form-id
+;;                :frame-idx (.getTimelineIdx wrapped-frame)
+;;                :parent-frame-idx (.getParentTimelineIdx wrapped-frame)}
+;;         fn-return-trace (assoc :ret (.getRetVal fn-return-trace)))))
 
-  (get-expr-exec [_ idx]
-    (expr-exec-map (.getExprExecution idx))))
+;;   (get-expr-exec [_ idx]
+;;     (expr-exec-map (.getExprExecution idx))))
 
-(defn make-storm-wrapped-call-stack-frame [frame]
-  (->WrappedCallStackFrame frame))
+;; (defn make-storm-wrapped-call-stack-frame [frame]
+;;   (->WrappedCallStackFrame frame))
 
-(defrecord WrappedTreeNode [^CallTreeNode wrapped-node]
+;; (defrecord WrappedTreeNode [^CallTreeNode wrapped-node]
 
-  index-protos/TreeNodeP
+;;   index-protos/TreeNodeP
 
-  (get-frame [_]
-    (when-let [frame (.getFrame wrapped-node)]
-      (make-storm-wrapped-call-stack-frame frame)))
+;;   (get-frame [_]
+;;     (when-let [frame (.getFrame wrapped-node)]
+;;       (make-storm-wrapped-call-stack-frame frame)))
 
-  (get-node-immutable-frame [this]
-    (if-let [frame (index-protos/get-frame this)]
-      (index-protos/get-immutable-frame frame)
-      {:root? true}))
+;;   (get-node-immutable-frame [this]
+;;     (if-let [frame (index-protos/get-frame this)]
+;;       (index-protos/get-immutable-frame frame)
+;;       {:root? true}))
 
-  (has-childs? [_]
-    (pos? (.size (.getChilds wrapped-node))))
+;;   (has-childs? [_]
+;;     (pos? (.size (.getChilds wrapped-node))))
 
-  (get-childs [_]
-    (map make-storm-wrapped-tree-node (.getChilds wrapped-node))))
+;;   (get-childs [_]
+;;     (map make-storm-wrapped-tree-node (.getChilds wrapped-node))))
 
-(defn make-storm-wrapped-tree-node [node]
-  (->WrappedTreeNode node))
+;; (defn make-storm-wrapped-tree-node [node]
+;;   (->WrappedTreeNode node))
 
-(defrecord StormFrameIndex [^FrameIndex wrapped-index]
+;; (defrecord StormFrameIndex [^FrameIndex wrapped-index]
 
-  index-protos/FrameIndexP
+;;   index-protos/FrameIndexP
 
-  (timeline-count [_]
-    (.getTimelineCount wrapped-index))
+;;   (timeline-count [_]
+;;     (.getTimelineCount wrapped-index))
 
-  (timeline-entry [_ idx]
-    (let [entry (.getTimelineEntry wrapped-index idx)]
-      (cond
+;;   (timeline-entry [_ idx]
+;;     (let [entry (.getTimelineEntry wrapped-index idx)]
+;;       (cond
 
-        (instance? FnCallTrace entry)
-        (let [frame-node (.getFrameNode entry)]
-          (when-let [frame (.getFrame frame-node)]
-            (merge {:timeline/type :frame}
-                   (-> (make-storm-wrapped-call-stack-frame frame)
-                       index-protos/get-immutable-frame))))
+;;         (instance? FnCallTrace entry)
+;;         (let [frame-node (.getFrameNode entry)]
+;;           (when-let [frame (.getFrame frame-node)]
+;;             (merge {:timeline/type :frame}
+;;                    (-> (make-storm-wrapped-call-stack-frame frame)
+;;                        index-protos/get-immutable-frame))))
 
-        (instance? ExprTrace entry)
-        {:timeline/type :expr
-         :idx (.getTimelineIdx entry)
-         :form-id (.getFormId entry)
-         :coor (.asPersistentVector (.getCoord entry))
-         :result (.getExprVal entry)
-         :timestamp (.getTimestamp entry)
-         :outer-form? false}
+;;         (instance? ExprTrace entry)
+;;         {:timeline/type :expr
+;;          :idx (.getTimelineIdx entry)
+;;          :form-id (.getFormId entry)
+;;          :coor (.asPersistentVector (.getCoord entry))
+;;          :result (.getExprVal entry)
+;;          :timestamp (.getTimestamp entry)
+;;          :outer-form? false}
 
-        (instance? FnReturnTrace entry)
-        {:timeline/type :expr
-         :idx (.getTimelineIdx entry)
-         :form-id (.getFormId entry)
-         :result (.getRetVal entry)
-         :outer-form? true
-         :coor (.asPersistentVector (.getCoord entry))
-         :timestamp (.getTimestamp entry)})))
+;;         (instance? FnReturnTrace entry)
+;;         {:timeline/type :expr
+;;          :idx (.getTimelineIdx entry)
+;;          :form-id (.getFormId entry)
+;;          :result (.getRetVal entry)
+;;          :outer-form? true
+;;          :coor (.asPersistentVector (.getCoord entry))
+;;          :timestamp (.getTimestamp entry)})))
 
-  (timeline-frame-seq [_]
-    (keep (fn [entry]
-            (when (instance? FnCallTrace entry)
-              (let [frame-node (.getFrameNode entry)
-                    frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
-                (index-protos/get-immutable-frame frame))))
-          (.getTimeline wrapped-index)))
+;;   (timeline-frame-seq [_]
+;;     (keep (fn [entry]
+;;             (when (instance? FnCallTrace entry)
+;;               (let [frame-node (.getFrameNode entry)
+;;                     frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
+;;                 (index-protos/get-immutable-frame frame))))
+;;           (.getTimeline wrapped-index)))
 
-  (timeline-seq [_]
-    (seq (.getTimeline wrapped-index)))
+;;   (timeline-seq [_]
+;;     (seq (.getTimeline wrapped-index)))
 
-  (frame-data [_ idx]
-    (let [entry (.getTimelineEntry wrapped-index idx)
-          frame-node (.getFrameNode entry)
-          frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
-      (index-protos/get-immutable-frame frame)))
+;;   (frame-data [_ idx]
+;;     (let [entry (.getTimelineEntry wrapped-index idx)
+;;           frame-node (.getFrameNode entry)
+;;           frame (make-storm-wrapped-call-stack-frame (.getFrame frame-node))]
+;;       (index-protos/get-immutable-frame frame)))
 
-  (callstack-tree-root-node [_]
-    (make-storm-wrapped-tree-node (.getRootNode wrapped-index))))
+;;   (callstack-tree-root-node [_]
+;;     (make-storm-wrapped-tree-node (.getRootNode wrapped-index))))
 
-(defn make-storm-frame-index [index]
-  (->StormFrameIndex index))
+;; (defn make-storm-frame-index [index]
+;;   (->StormFrameIndex index))
 
-(defrecord StormFnCallStatsIndex [wrapped-index]
+;; (defrecord StormFnCallStatsIndex [wrapped-index]
 
-  index-protos/FnCallStatsP
-  (all-stats [_]
-    (.getStats wrapped-index)))
+;;   index-protos/FnCallStatsP
+;;   (all-stats [_]
+;;     (.getStats wrapped-index)))
 
-(defn make-storm-fn-call-stats-index [index]
-  (->StormFnCallStatsIndex index))
+;; (defn make-storm-fn-call-stats-index [index]
+;;   (->StormFnCallStatsIndex index))
 
 (defrecord StormFormRegistry []
   index-protos/FormRegistryP
 
   (all-forms [_]
-    (TraceIndex/getAllForms))
+    (FormRegistry/getAllForms))
 
   (get-form [_ form-id]
     (if form-id
-      (TraceIndex/getForm form-id)
+      (FormRegistry/getForm form-id)
       (println "ERROR : can't get form for id null")))
 
   (start-form-registry [this] this)
@@ -167,7 +166,7 @@
 (defn make-storm-form-registry []
   (->StormFormRegistry))
 
-(defrecord StormThreadRegistry []
+#_(defrecord StormThreadRegistry []
 
   index-protos/ThreadRegistryP
 
@@ -203,5 +202,5 @@
     (doseq [thread-id (TraceIndex/getThreadIds)]
       (TraceIndex/discardThread thread-id))))
 
-(defn make-storm-thread-registry []
+#_(defn make-storm-thread-registry []
   (->StormThreadRegistry))
