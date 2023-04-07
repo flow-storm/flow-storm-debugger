@@ -13,7 +13,7 @@
   (timeline-frame-seq [_])
   (timeline-seq [_])
   (frame-data [_ idx])
-  
+  (reset-build-stack [_])
   (callstack-tree-root-node [_]))
 
 (defprotocol TreeNodeP

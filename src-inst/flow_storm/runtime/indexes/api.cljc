@@ -17,11 +17,14 @@
            [flow_storm.runtime.types.bind_trace BindTrace]))
 
 (declare discard-flow)
+(declare get-thread-indexes)
 
 (def flow-thread-registry nil)
-
 (def forms-registry nil)
+(def last-exception-location (atom nil))
 
+(defn get-last-exception-location []
+  @last-exception-location)
 
 (defn register-form [{:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
   (let [form-data (cond-> {:form/id form-id
@@ -33,6 +36,15 @@
                     (assoc :multimethod/dispatch-val mm-dispatch-val))]
     (indexes/register-form forms-registry form-id form-data)))
 
+(defn handle-exception [thread _]  
+  (let [thread-id (.getId thread)
+        {:keys [frame-index]} (get-thread-indexes nil thread-id)]
+    
+    (indexes/reset-build-stack frame-index)    
+    (reset! last-exception-location {:thread/id thread-id
+                                     :thread/name (.getName thread)
+                                     :thread/idx (dec (indexes/timeline-count frame-index))})))
+
 #?(:clj
    (defn start []
      (alter-var-root #'flow-thread-registry (fn [_]
@@ -41,8 +53,7 @@
                                                 (clojure.storm.Tracer/setTraceFnReturnFn (requiring-resolve 'flow-storm.tracer/trace-fn-return))
                                                 (clojure.storm.Tracer/setTraceExprFn (requiring-resolve 'flow-storm.tracer/trace-expr-exec))
                                                 (clojure.storm.Tracer/setTraceBindFn (requiring-resolve 'flow-storm.tracer/trace-bind))
-                                                ;;(clojure.storm.Tracer/setHandleExceptionFn tracer/)
-                                                )
+                                                (clojure.storm.Tracer/setHandleExceptionFn handle-exception))
                                               (indexes/start-thread-registry
                                                (thread-registry/make-thread-registry)
                                                {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
@@ -69,7 +80,8 @@
        (clojure.storm.Tracer/setTraceFnCallFn nil)
        (clojure.storm.Tracer/setTraceFnReturnFn nil)
        (clojure.storm.Tracer/setTraceExprFn nil)
-       (clojure.storm.Tracer/setTraceBindFn nil))
+       (clojure.storm.Tracer/setTraceBindFn nil)
+       (clojure.storm.Tracer/setHandleExceptionFn nil))     
      (alter-var-root #'flow-thread-registry indexes/stop-thread-registry)
      (alter-var-root #'forms-registry indexes/stop-form-registry))
    
@@ -197,6 +209,11 @@
 (defn callstack-node-frame [node]
   (indexes/get-node-immutable-frame node))
 
+(defn reset-all-threads-trees-build-stack [flow-id]
+  (doseq [{:keys [thread/id]} (indexes/flow-threads-info flow-thread-registry flow-id)]
+    (let [{:keys [frame-idx]} (get-thread-indexes flow-id id)]
+      (indexes/reset-build-stack frame-idx))))
+
 (defn fn-call-stats [flow-id thread-id]
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
     (->> (indexes/all-stats fn-call-stats-index)
@@ -260,7 +277,7 @@
            {:frame-data (indexes/frame-data frame-index found-idx) 
             :match-stack match-stack}))))))
 
-(defn discard-flow [flow-id]
+(defn discard-flow [flow-id] 
   (let [discard-keys (some->> flow-thread-registry
                               indexes/all-threads 
                               (filter (fn [[fid _]] (= fid flow-id))))]

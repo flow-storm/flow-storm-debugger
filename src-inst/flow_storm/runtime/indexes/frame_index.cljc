@@ -10,6 +10,10 @@
            [flow_storm.runtime.types.expr_trace ExprTrace]
            [flow_storm.runtime.types.bind_trace BindTrace]))
 
+(def fn-expr-limit
+  #?(:cljs 9007199254740992 ;; MAX safe integer     
+     :clj 10000))
+
 (defn expr-exec-map [^ExprTrace et]
   {:idx (expr-trace/get-timeline-idx et)
    :form-id (expr-trace/get-form-id et)
@@ -64,14 +68,16 @@
     (ml-get expr-executions idx))
 
   (add-binding-to-frame [_ b]
-    (ml-add bindings b))
+    (when (<= (ml-count expr-executions) fn-expr-limit)
+      (ml-add bindings b)))
+
+  (add-expr-exec-to-frame [_ expr]
+    (when (<= (ml-count expr-executions) fn-expr-limit)
+      (ml-add expr-executions expr)))
 
   (set-return [_ trace]
     (set! ret-trace trace))  
   
-  (add-expr-exec-to-frame [_ expr]
-    (ml-add expr-executions expr))
-
   #?@(:clj
       [java.lang.Object
        (toString [_]                 
@@ -208,10 +214,15 @@
             index-protos/get-frame 
             index-protos/get-immutable-frame))))
 
+  (reset-build-stack [_]
+    (loop [stack build-stack]
+      (when (> (ms-count stack) 1)
+        (ms-pop stack)
+        (recur stack))))
+  
   (callstack-tree-root-node [this]
     (locking this
-      root-node))
-  )
+      root-node)))
 
 (defn make-index []
   (let [root-frame (make-call-stack-frame nil 0 0)
