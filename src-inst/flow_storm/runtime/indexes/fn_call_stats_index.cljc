@@ -11,19 +11,10 @@
   Object
 
   (hashCode [_]
-    (let [p 31
-          h (.hashCode fn-name)]
-      (unchecked-add-int (unchecked-multiply-int p h) (.hashCode fn-ns))))
+    form-id)
 
   (equals [this o]
-    (if (identical? this o)
-      true
-      (if (or (nil? o) (not= (class this) (class o)))
-        false
-        (if (and (.equals ^String (.-fn-name this) ^String (.-fn-name o))
-                 (.equals ^String (.-fn-ns this) ^String (.-fn-ns o)))
-          true
-          false)))))
+    (= (.-form-id this) (.-form-id o))))
 
 (defrecord FnCallStatsIndex [stats]
 

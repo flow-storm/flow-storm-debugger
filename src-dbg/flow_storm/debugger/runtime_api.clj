@@ -64,7 +64,7 @@
   (interrupt-all-tasks [_])
   (clear-values-references [_])
   (clear-api-cache [_])
-
+  (all-flows-threads [_])
   (flow-threads-info [_ flow-id]))
 
 (defn cached-apply [cache cache-key f args]
@@ -185,7 +185,10 @@
     (reset! api-cache {}))
 
   (flow-threads-info [_ flow-id]
-    (api-call :local "flow-threads-info" [flow-id])))
+    (api-call :local "flow-threads-info" [flow-id]))
+
+  (all-flows-threads [_]
+    (api-call :local "all-flows-threads" [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -282,6 +285,9 @@
 
   (flow-threads-info [_ flow-id]
     (api-call :remote "flow-threads-info" [flow-id]))
+
+  (all-flows-threads [_]
+    (api-call :remote "all-flows-threads" []))
 
   Closeable
   (close [_] (stop-repl))

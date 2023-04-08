@@ -86,10 +86,10 @@
      ;; start the debugger UI
      (start-debugger config)
 
+     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
+
      (when-not skip-index-start?
        (indexes-api/start))
-
-     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
 
      (rt-values/clear-values-references)
 

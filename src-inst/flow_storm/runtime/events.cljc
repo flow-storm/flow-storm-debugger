@@ -3,22 +3,17 @@
 (def callback (atom nil))
 (def pending-events (atom []))
 
-(defn subscribe! [callback-fn]
-  (reset! callback callback-fn))
-
 (defn clear-subscription! []
   (reset! callback nil))
 
 (defn clear-pending-events! []
   (reset! pending-events []))
 
-(defn pop-pending-events! []
-  (let [popped-events @pending-events
-        popped-count (count popped-events)]
-    (when (pos? popped-count)
-      (swap! pending-events (fn [pending-evs]
-                              (subvec pending-evs (count popped-events)))))
-    popped-events))
+(defn subscribe! [callback-fn]
+  (reset! callback callback-fn)  
+  (locking pending-events
+    (doseq [pe @pending-events]
+      (callback-fn pe))))
 
 (defn make-flow-created-event [flow-id form-ns form timestamp]
   [:flow-created {:flow-id flow-id
@@ -66,7 +61,11 @@
 
 
 
-(defn publish-event! [ev]
+(defn publish-event! [[ev-key :as ev]]
   (if-let [cb @callback]
+
     (cb ev)
-    (swap! pending-events conj ev)))
+
+    (when (not= ev-key :heap-info-update)
+      (locking pending-events
+        (swap! pending-events conj ev)))))

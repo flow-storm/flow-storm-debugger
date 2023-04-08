@@ -225,6 +225,17 @@
        (doseq [stage @stages]
          (.close stage))))))
 
+(defn create-flow [{:keys [flow-id form-ns form timestamp]}]
+  ;; lets clear the entire cache every time a flow gets created, just to be sure
+  ;; we don't reuse old flows values on this flow
+  (runtime-api/clear-api-cache rt-api)
+
+  (dbg-state/create-flow flow-id form-ns form timestamp)
+  (flows-screen/remove-flow flow-id)
+  (flows-screen/create-empty-flow flow-id)
+  (select-main-tools-tab :flows)
+  (flows-screen/update-threads-list flow-id))
+
 (defn start-ui [config]
   (log "[Starting UI subsystem]")
   ;; Initialize the JavaFX toolkit
@@ -290,6 +301,12 @@
 
        {:stages stages
         :theme-listener theme-listener})
+
+     (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                              (map first)
+                              (into #{}))]
+       (doseq [fid all-flows-ids]
+         (create-flow {:flow-id fid})))
 
      (catch Exception e
        (log-error "UI Thread exception" e)))))

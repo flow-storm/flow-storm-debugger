@@ -48,7 +48,7 @@
                                        :thread/idx (dec (indexes/timeline-count frame-index))}))))
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
-  (discard-flow flow-id)
+  (discard-flow flow-id)  
   (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
 #?(:clj
@@ -64,8 +64,7 @@
                                                               (thread-registry/make-thread-registry)
                                                               {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
                                                                                     (events/publish-event!
-                                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})]
-                                                (create-flow {:flow-id nil})
+                                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})]                                                
                                                 registry)))
      (alter-var-root #'forms-registry (fn [_]                                       
                                        (indexes/start-form-registry
@@ -78,8 +77,7 @@
                                  (thread-registry/make-thread-registry)
                                  {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]
                                                        (events/publish-event!
-                                                        (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))
-     (create-flow {:flow-id nil})
+                                                        (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))     
      (set! forms-registry (indexes/start-form-registry
                            (form-registry/make-form-registry)))))
 
@@ -100,8 +98,7 @@
      (set! forms-registry indexes/stop-form-registry)))
 
 (defn flow-exists? [flow-id]  
-  (when flow-thread-registry
-    (indexes/flow-exists? flow-thread-registry flow-id)))
+  (indexes/flow-exists? flow-thread-registry flow-id))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
@@ -115,7 +112,11 @@
   (when flow-thread-registry
     (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
 
-(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]   
+(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
+  (when (and (nil? flow-id)
+             (not (flow-exists? nil)))
+    (create-flow {:flow-id nil}))
+  
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti
     (create-thread-indexes! flow-id thread-id thread-name form-id)))

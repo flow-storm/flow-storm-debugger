@@ -46,18 +46,6 @@
     (set! (.-onopen ws-client) (fn []
                                  (log (utils/format "Connection opened to %s" uri-str))
 
-                                 ;; send all pending events
-                                 (let [pending-events (rt-events/pop-pending-events!)]
-                                   (when (seq pending-events)
-                                     (log "Replaying stored events")
-                                     ;; HACKY: wait a little befor sending the events to be sure
-                                     ;; the debugger that just connected is ready to start
-                                     ;; processing events
-                                     (js/setTimeout (fn []
-                                                      (doseq [ev pending-events]
-                                                        (send-event-to-debugger ev)))
-                                                    2000)))
-
                                  (when on-connected (on-connected))))
     (set! (.-onclose ws-client) (fn [] (log (utils/format "Connection with %s closed." uri-str))))
 

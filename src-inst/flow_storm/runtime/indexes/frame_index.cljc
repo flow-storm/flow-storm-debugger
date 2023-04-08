@@ -64,16 +64,11 @@
          :parent-frame-idx parent-timeline-idx})
       {:root? true}))
 
-  (get-expr-exec [_ idx]
-    (ml-get expr-executions idx))
-
   (add-binding-to-frame [_ b]
-    (when (<= (ml-count expr-executions) fn-expr-limit)
-      (ml-add bindings b)))
+    (ml-add bindings b))
 
   (add-expr-exec-to-frame [_ expr]
-    (when (<= (ml-count expr-executions) fn-expr-limit)
-      (ml-add expr-executions expr)))
+    (ml-add expr-executions expr))
 
   (set-return [_ trace]
     (set! ret-trace trace))
@@ -154,17 +149,23 @@
       (when (> (ms-count build-stack) 1)
         (let [curr-node (ms-peek build-stack)
               curr-frame (index-protos/get-frame curr-node)
+              ^long exec-cnt (ml-count (.-expr-executions ^CallStackFrame curr-frame))
+              ^long bind-cnt (ml-count (.-bindings ^CallStackFrame curr-frame))
               curr-idx (ml-count timeline)]
-          (expr-trace/set-frame-node trace curr-node)
-          (expr-trace/set-timeline-idx trace curr-idx)
-          (index-protos/add-expr-exec-to-frame curr-frame trace)
-          (ml-add timeline trace)))))
+          (when (<= (+ exec-cnt bind-cnt) fn-expr-limit)
+            (expr-trace/set-frame-node trace curr-node)
+            (expr-trace/set-timeline-idx trace curr-idx)
+            (index-protos/add-expr-exec-to-frame curr-frame trace)
+            (ml-add timeline trace))))))
   
   (add-bind [this bind-trace]
     (locking this
       (let [curr-node (ms-peek build-stack)
-            curr-frame (index-protos/get-frame curr-node)]
-        (index-protos/add-binding-to-frame curr-frame bind-trace))))
+            curr-frame (index-protos/get-frame curr-node)
+            ^long exec-cnt (ml-count (.-expr-executions ^CallStackFrame curr-frame))
+            ^long bind-cnt (ml-count (.-bindings ^CallStackFrame curr-frame))]
+        (when (<= (+ exec-cnt bind-cnt) fn-expr-limit)
+          (index-protos/add-binding-to-frame curr-frame bind-trace)))))
 
   index-protos/FrameIndexP
   

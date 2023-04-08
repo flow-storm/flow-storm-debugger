@@ -133,6 +133,8 @@
 
 (def flow-threads-info indexes-api/flow-threads-info)
 
+(def all-flows-threads indexes-api/all-threads)
+
 (defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
   (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
 
@@ -258,6 +260,7 @@
              :interrupt-all-tasks interrupt-all-tasks
              :clear-values-references clear-values-references
              :flow-threads-info flow-threads-info
+             :all-flows-threads all-flows-threads
              :ping ping
              #?@(:clj
                  [:all-namespaces all-namespaces

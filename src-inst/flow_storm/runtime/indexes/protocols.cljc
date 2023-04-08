@@ -24,8 +24,7 @@
   (get-childs [_]))
 
 (defprotocol CallStackFrameP
-  (get-immutable-frame [_])
-  (get-expr-exec [_ idx])
+  (get-immutable-frame [_])  
   (add-binding-to-frame [_ bind-trace])
   (add-expr-exec-to-frame [_ exec-trace])
   (set-return [_ ret-trace])

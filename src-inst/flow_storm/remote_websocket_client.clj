@@ -38,17 +38,6 @@
                                      (onOpen [^ServerHandshake handshake-data]
                                        (log (format "Connection opened to %s" uri-str))
 
-                                       ;; send all pending events
-                                       (let [pending-events (rt-events/pop-pending-events!)]
-                                         (when (seq pending-events)
-                                           (log "Replaying stored events")
-                                           ;; HACKY: wait a little befor sending the events to be sure
-                                           ;; the debugger that just connected is ready to start
-                                           ;; processing events
-                                           (Thread/sleep 2000)
-                                           (doseq [ev pending-events]
-                                             (send-event-to-debugger ev))))
-
                                        (when on-connected (on-connected)))
 
                                      (onMessage [^String message]

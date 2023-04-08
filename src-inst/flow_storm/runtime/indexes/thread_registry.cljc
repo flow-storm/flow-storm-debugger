@@ -2,7 +2,7 @@
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :refer [make-mutable-concurrent-hashmap mch->immutable-map mch-put mch-remove mch-keys mch-get]]))
 
-(defrecord ThreadRegistry [registry *callbacks]
+(defrecord ThreadRegistry [flows-ids-set registry *callbacks]
 
   index-protos/ThreadRegistryP
 
@@ -17,8 +17,8 @@
                 :thread/id tid
                 :thread/name (:thread/name tinfo)})))))
 
-  (flow-exists? [_ flow-id]
-    (some (fn [[fid _]] (= fid flow-id)) (mch-keys registry)))
+  (flow-exists? [_ flow-id]    
+    (contains? @flows-ids-set flow-id))
 
   (get-thread-indexes [_ flow-id thread-id]
     (some-> registry
@@ -26,6 +26,7 @@
             (get :thread/indexes)))
 
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
+    (swap! flows-ids-set conj flow-id)
     (mch-put registry [flow-id thread-id] {:thread/name thread-name
                                            :thread/indexes indexes})
     (when-let [otc (:on-thread-created @*callbacks)]
@@ -35,6 +36,7 @@
             :form-id form-id})))
 
   (discard-threads [_ flow-threads-ids]
+    (swap! flows-ids-set disj (ffirst flow-threads-ids))
     (doseq [ftid flow-threads-ids]
       (mch-remove registry ftid)))
 
@@ -45,4 +47,4 @@
   (stop-thread-registry [_]))
 
 (defn make-thread-registry []
-  (->ThreadRegistry (make-mutable-concurrent-hashmap) (atom {})))
+  (->ThreadRegistry (atom #{}) (make-mutable-concurrent-hashmap) (atom {})))
