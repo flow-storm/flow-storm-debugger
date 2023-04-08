@@ -95,11 +95,7 @@
 
      (rt-taps/setup-tap!)
 
-     (mem-reporter/run-mem-reporter)
-
-     ;; TODO: change it for something better
-     (rt-events/publish-event! (rt-events/make-flow-created-event nil nil 0 nil))
-     )))
+     (mem-reporter/run-mem-reporter))))
 
 (defn remote-connect [config]
 

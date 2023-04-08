@@ -1,5 +1,6 @@
 (ns flow-storm.runtime.indexes.utils  
-  #?(:clj (:import [java.util ArrayList ArrayDeque HashMap])))
+  #?(:clj (:import [java.util ArrayList ArrayDeque HashMap]
+                   [java.util.concurrent ConcurrentHashMap])))
 
 ;;;;;;;;;;;;;;;;;;;
 ;; Mutable stack ;;
@@ -78,3 +79,40 @@
           (.get mh k))
    :cljs (defn mh-get [mh k]
            (get @mh k)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mutable concurrent hashmap ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#?(:clj (defn make-mutable-concurrent-hashmap [] (ConcurrentHashMap.))
+   :cljs (defn make-mutable-concurrent-hashmap [] (atom {})))
+
+#?(:clj (defn mch->immutable-map [^ConcurrentHashMap mh]
+          (into {} mh))
+   :cljs (defn mch->immutable-map [mh]
+           @mh))
+
+#?(:clj (defn mch-put [^ConcurrentHashMap mh k v]
+          (.put mh k v))
+   :cljs (defn mch-put [mh k v]
+           (swap! mh assoc k v)))
+
+#?(:clj (defn mch-contains? [^ConcurrentHashMap mh k]
+          (.containsKey mh k))
+   :cljs (defn mch-contains? [mh k]
+           (contains? @mh k)))
+
+#?(:clj (defn mch-keys [^ConcurrentHashMap mh]
+          (enumeration-seq (.keys mh)))
+   :cljs (defn mch-keys [mh]
+           (keys @mh)))
+
+#?(:clj (defn mch-get [^ConcurrentHashMap mh k]
+          (.get mh k))
+   :cljs (defn mch-get [mh k]
+           (get @mh k)))
+
+#?(:clj (defn mch-remove [^ConcurrentHashMap mh k]
+          (.remove mh k))
+   :cljs (defn mch-remove [mh k]
+           (swap! mh dissoc k)))

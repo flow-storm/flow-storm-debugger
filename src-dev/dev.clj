@@ -19,7 +19,7 @@
 
 (comment (add-tap (bound-fn* println)) )
 
-(Thread/setDefaultUncaughtExceptionHandler
+#_(Thread/setDefaultUncaughtExceptionHandler
    (reify
      Thread$UncaughtExceptionHandler
      (uncaughtException [_ _ throwable]

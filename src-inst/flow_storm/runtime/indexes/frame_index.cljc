@@ -76,7 +76,10 @@
       (ml-add expr-executions expr)))
 
   (set-return [_ trace]
-    (set! ret-trace trace))  
+    (set! ret-trace trace))
+
+  (get-parent-timeline-idx [_]
+    (or parent-timeline-idx 0))
   
   #?@(:clj
       [java.lang.Object
@@ -124,9 +127,7 @@
             curr-node (ms-peek build-stack)
             
             parent-frame-idx (-> (index-protos/get-frame curr-node)
-                                 index-protos/get-immutable-frame
-                                 :frame-idx
-                                 (or 0))
+                                 index-protos/get-parent-timeline-idx)
             new-frame (make-call-stack-frame trace frame-idx parent-frame-idx)            
             new-node (make-tree-node new-frame)]
         (fn-call-trace/set-frame-node trace new-node)

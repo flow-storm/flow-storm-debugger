@@ -1,15 +1,16 @@
 (ns flow-storm.runtime.indexes.thread-registry
-  (:require [flow-storm.runtime.indexes.protocols :as index-protos]))
+  (:require [flow-storm.runtime.indexes.protocols :as index-protos]
+            [flow-storm.runtime.indexes.utils :refer [make-mutable-concurrent-hashmap mch->immutable-map mch-put mch-remove mch-keys mch-get]]))
 
-(defrecord ThreadRegistry [*registry *callbacks]
+(defrecord ThreadRegistry [registry *callbacks]
 
   index-protos/ThreadRegistryP
 
   (all-threads [_]
-    (keys @*registry))
+    (mch-keys registry))
 
   (flow-threads-info [_ flow-id]
-    (->> @*registry
+    (->> (mch->immutable-map registry)
          (keep (fn [[[fid tid] tinfo]]
              (when (= fid flow-id)
                {:flow/id fid
@@ -17,15 +18,16 @@
                 :thread/name (:thread/name tinfo)})))))
 
   (flow-exists? [_ flow-id]
-    (some (fn [[fid _]] (= fid flow-id)) (keys @*registry)))
+    (some (fn [[fid _]] (= fid flow-id)) (mch-keys registry)))
 
   (get-thread-indexes [_ flow-id thread-id]
-    (get-in @*registry [[flow-id thread-id] :thread/indexes]))
+    (some-> registry
+            (mch-get [flow-id thread-id])
+            (get :thread/indexes)))
 
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
-    (swap! *registry
-           assoc [flow-id thread-id] {:thread/name thread-name
-                                      :thread/indexes indexes})
+    (mch-put registry [flow-id thread-id] {:thread/name thread-name
+                                           :thread/indexes indexes})
     (when-let [otc (:on-thread-created @*callbacks)]
       (otc {:flow-id flow-id
             :thread-id thread-id
@@ -33,9 +35,8 @@
             :form-id form-id})))
 
   (discard-threads [_ flow-threads-ids]
-    (swap! *registry
-           (fn [flows-threads]
-             (apply dissoc flows-threads flow-threads-ids))))
+    (doseq [ftid flow-threads-ids]
+      (mch-remove registry ftid)))
 
   (start-thread-registry [thread-reg callbacks]    
     (reset! *callbacks callbacks)
@@ -44,4 +45,4 @@
   (stop-thread-registry [_]))
 
 (defn make-thread-registry []
-  (->ThreadRegistry (atom {}) (atom {})))
+  (->ThreadRegistry (make-mutable-concurrent-hashmap) (atom {})))

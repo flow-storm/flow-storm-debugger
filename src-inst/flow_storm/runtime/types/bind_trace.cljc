@@ -9,9 +9,9 @@
 
 (deftype BindTrace
     [^long timestamp
-     ^String symName
-     val
-     coord]
+           symName
+           val
+           coord]
 
   BindTraceP
 

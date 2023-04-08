@@ -11,8 +11,8 @@
   (set-frame-node [_ node]))
 
 (deftype FnCallTrace
-    [^String                  fnName
-     ^String                  fnNs
+    [                         fnName
+                              fnNs
      ^int                     formId
      ^long                    timestamp
                               fnArgs

@@ -40,10 +40,16 @@
   (let [thread-id (.getId thread)
         {:keys [frame-index]} (get-thread-indexes nil thread-id)]
     
-    (indexes/reset-build-stack frame-index)    
-    (reset! last-exception-location {:thread/id thread-id
-                                     :thread/name (.getName thread)
-                                     :thread/idx (dec (indexes/timeline-count frame-index))})))
+    (when frame-index
+      (indexes/reset-build-stack frame-index)
+      
+      (reset! last-exception-location {:thread/id thread-id
+                                       :thread/name (.getName thread)
+                                       :thread/idx (dec (indexes/timeline-count frame-index))}))))
+
+(defn create-flow [{:keys [flow-id ns form timestamp]}]
+  (discard-flow flow-id)
+  (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
 #?(:clj
    (defn start []
@@ -54,11 +60,13 @@
                                                 (clojure.storm.Tracer/setTraceExprFn (requiring-resolve 'flow-storm.tracer/trace-expr-exec))
                                                 (clojure.storm.Tracer/setTraceBindFn (requiring-resolve 'flow-storm.tracer/trace-bind))
                                                 (clojure.storm.Tracer/setHandleExceptionFn handle-exception))
-                                              (indexes/start-thread-registry
-                                               (thread-registry/make-thread-registry)
-                                               {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
-                                                                     (events/publish-event!
-                                                                      (events/make-thread-created-event flow-id thread-id thread-name form-id)))})))
+                                              (let [registry (indexes/start-thread-registry
+                                                              (thread-registry/make-thread-registry)
+                                                              {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
+                                                                                    (events/publish-event!
+                                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})]
+                                                (create-flow {:flow-id nil})
+                                                registry)))
      (alter-var-root #'forms-registry (fn [_]                                       
                                        (indexes/start-form-registry
                                         (if (utils/storm-env?)
@@ -71,6 +79,7 @@
                                  {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]
                                                        (events/publish-event!
                                                         (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))
+     (create-flow {:flow-id nil})
      (set! forms-registry (indexes/start-form-registry
                            (form-registry/make-form-registry)))))
 
@@ -90,14 +99,9 @@
      (set! flow-thread-registry indexes/stop-thread-registry)
      (set! forms-registry indexes/stop-form-registry)))
 
-
 (defn flow-exists? [flow-id]  
   (when flow-thread-registry
     (indexes/flow-exists? flow-thread-registry flow-id)))
-
-(defn create-flow [{:keys [flow-id ns form timestamp]}]
-  (discard-flow flow-id)
-  (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
@@ -111,12 +115,7 @@
   (when flow-thread-registry
     (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
 
-(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
-  
-  (when (and (nil? flow-id)
-             (not (flow-exists? nil)))
-    (create-flow {:flow-id nil}))
-  
+(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]   
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti
     (create-thread-indexes! flow-id thread-id thread-name form-id)))
@@ -212,7 +211,8 @@
 (defn reset-all-threads-trees-build-stack [flow-id]
   (doseq [{:keys [thread/id]} (indexes/flow-threads-info flow-thread-registry flow-id)]
     (let [{:keys [frame-idx]} (get-thread-indexes flow-id id)]
-      (indexes/reset-build-stack frame-idx))))
+      (when frame-idx
+        (indexes/reset-build-stack frame-idx)))))
 
 (defn fn-call-stats [flow-id thread-id]
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
