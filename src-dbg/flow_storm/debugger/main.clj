@@ -38,8 +38,9 @@
          #'flow-storm.debugger.watchdog/watchdog]))
 
 (defn stop-debugger []
-  (-> (mount/only (into local-debugger-mount-vars remote-debugger-mount-vars))
-      (mount/stop)))
+  (let [to-stop (into local-debugger-mount-vars remote-debugger-mount-vars)]
+    (-> (mount/only to-stop)
+        (mount/stop))))
 
 (defn start-debugger
 

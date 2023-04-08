@@ -29,33 +29,36 @@
   "Used for remote connections to check this ns has been loaded"
   true)
 
-(defn stop []
-  (let [stop-debugger (try
-                        (resolve (symbol (name debugger-main-ns) "stop-debugger"))
-                        (catch Exception _ nil))]
+(defn stop
+  ([] (stop {}))
+  ([{:keys [skip-index-stop?]}]
+   (let [stop-debugger (try
+                         (resolve (symbol (name debugger-main-ns) "stop-debugger"))
+                         (catch Exception _ nil))]
 
-    ;; if we are running in local mode and running a debugger stop it
-    (when stop-debugger
-      (stop-debugger))
+     ;; if we are running in local mode and running a debugger stop it
+     (when stop-debugger
+       (stop-debugger))
 
 
-    (rt-events/clear-subscription!)
-    (rt-events/clear-pending-events!)
+     (rt-events/clear-subscription!)
+     (rt-events/clear-pending-events!)
 
-    (indexes-api/stop)
+     (when-not skip-index-stop?
+       (indexes-api/stop))
 
-    (rt-taps/remove-tap!)
+     (rt-taps/remove-tap!)
 
-    (dbg-api/interrupt-all-tasks)
+     (dbg-api/interrupt-all-tasks)
 
-    (rt-values/clear-values-references)
+     (rt-values/clear-values-references)
 
-    (mem-reporter/stop-mem-reporter)
+     (mem-reporter/stop-mem-reporter)
 
-    ;; stop remote websocket client if needed
-    (remote-websocket-client/stop-remote-websocket-client)
+     ;; stop remote websocket client if needed
+     (remote-websocket-client/stop-remote-websocket-client)
 
-    (log "System stopped")))
+     (log "System stopped"))))
 
 (defn local-connect
 
@@ -75,7 +78,7 @@
 
   ([] (local-connect {}))
 
-  ([config]
+  ([{:keys [skip-index-start?] :as config}]
    (require debugger-main-ns)
    (let [config (assoc config :local? true)
          start-debugger (resolve (symbol (name debugger-main-ns) "start-debugger"))]
@@ -83,8 +86,8 @@
      ;; start the debugger UI
      (start-debugger config)
 
-
-     (indexes-api/start)
+     (when-not skip-index-start?
+       (indexes-api/start))
 
      (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
 

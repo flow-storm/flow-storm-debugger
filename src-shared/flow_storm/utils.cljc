@@ -125,7 +125,7 @@
    (defn log-error
      ([msg] (binding [*out* *err*]
               (println msg)))
-     ([msg e]
+     ([msg ^Exception e]
       (binding [*out* *err*]
         (println msg)
         (.printStackTrace e))))

@@ -2,10 +2,6 @@
   (:require [flow-storm.api :as fs-api]
             [flow-storm.runtime.debuggers-api :as debuggers-api]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.taps :as rt-taps]
-            [flow-storm.runtime.events :as rt-events]
-            [flow-storm.runtime.values :as rt-values]
-            [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.runtime.indexes.frame-index :as frame-index]))
 
 (defn start-recorder []
@@ -14,30 +10,17 @@
 
   (indexes-api/start))
 
-(defn start-ui []
+(defn start-debugger []
   (let [theme-prop (System/getProperty "flowstorm.theme")
         theme-key (case theme-prop
                     "light" :light
                     "dark"  :dark
                     :auto)
         config {:local? true
-                :theme theme-key}
-         start-debugger (requiring-resolve (symbol (name fs-api/debugger-main-ns) "start-debugger"))
-         enqueue-event! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!)]
+                :skip-index-start? true
+                :theme theme-key}]
 
-     ;; start the debugger UI
-     (start-debugger config)
-
-     (rt-events/subscribe! enqueue-event!)
-
-     (rt-values/clear-values-references)
-
-     (rt-taps/setup-tap!)
-
-     (mem-reporter/run-mem-reporter)
-
-     ;; TODO: change it for something better
-     (rt-events/publish-event! (rt-events/make-flow-created-event nil nil 0 nil))))
+    (fs-api/local-connect config)))
 
 (defn jump-to-last-exception []
   (let [last-ex-loc (indexes-api/get-last-exception-location)]

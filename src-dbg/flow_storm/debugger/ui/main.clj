@@ -11,7 +11,7 @@
              :as ui-vars
              :refer [obj-lookup store-obj]]
             [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.utils :refer [log log-error]]
+            [flow-storm.utils :as utils :refer [log log-error]]
             [clojure.java.io :as io]
             [flow-storm.debugger.config :refer [config] :as config]
             [mount.core :as mount :refer [defstate]]
@@ -27,7 +27,7 @@
 (declare stop-ui)
 (declare ui)
 
-(def ^:dynamic *shutting-down-from-ui* false)
+(def ^:dynamic *killing-ui-from-window-close?*)
 
 (defstate ui
   :start (start-ui config)
@@ -220,7 +220,7 @@
       (.removeListener (OsThemeDetector/getDetector) theme-listener))
 
     ;; close all stages
-    (when-not *shutting-down-from-ui*
+    (when-not *killing-ui-from-window-close?*
       (ui-utils/run-now
        (doseq [stage @stages]
          (.close stage))))))
@@ -246,14 +246,18 @@
                    (.setOnCloseRequest
                     (event-handler
                      [_]
-                     (binding [*shutting-down-from-ui* true]
-                       (if-let [stop-all (resolve 'flow-storm.api/stop)]
-                         ;; if ui and runtime is running under the same jvm
-                         ;; we can stop all
-                         (stop-all)
+                     ;; call with skip-ui-stop? true since if we are here
+                     ;; we are already stopping the ui from closing the window
+                     (binding [*killing-ui-from-window-close?* true]
+                       (let [stop-config (when (utils/storm-env?)
+                                           {:skip-index-stop? true})]
+                         (if-let [stop-all (resolve 'flow-storm.api/stop)]
+                           ;; if ui and runtime is running under the same jvm
+                           ;; we can stop all
+                           (stop-all stop-config)
 
-                         ;; else stop just the debugger
-                         ((resolve 'flow-storm.debugger.main/stop-debugger)))))))
+                           ;; else stop just the debugger
+                           ((resolve 'flow-storm.debugger.main/stop-debugger))))))))
 
            stages (atom #{stage})
            theme-listener (start-theming-system config stages)]

@@ -36,7 +36,7 @@
                     (assoc :multimethod/dispatch-val mm-dispatch-val))]
     (indexes/register-form forms-registry form-id form-data)))
 
-(defn handle-exception [thread _]  
+(defn handle-exception [^Thread thread _]  
   (let [thread-id (.getId thread)
         {:keys [frame-index]} (get-thread-indexes nil thread-id)]
     
@@ -62,7 +62,7 @@
      (alter-var-root #'forms-registry (fn [_]                                       
                                        (indexes/start-form-registry
                                         (if (utils/storm-env?)
-                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-index/make-storm-form-registry))
+                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
                                           (form-registry/make-form-registry))))))
    :cljs
    (defn start []
@@ -286,8 +286,9 @@
       (indexes/discard-threads flow-thread-registry discard-keys))))
 
 #?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main"}])
-   :clj (defn flow-threads-info [flow-id]
-          (indexes/flow-threads-info flow-thread-registry flow-id)))
+   :clj (defn flow-threads-info [flow-id]          
+          (when flow-thread-registry
+            (indexes/flow-threads-info flow-thread-registry flow-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
