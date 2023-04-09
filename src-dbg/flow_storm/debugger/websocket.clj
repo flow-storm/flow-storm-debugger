@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.websocket
   (:require [flow-storm.utils :refer [log log-error]]
             [flow-storm.json-serializer :as serializer]
-            [mount.core :as mount :refer [defstate]]
+            [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.config :refer [config]]
             [flow-storm.debugger.events-queue])
   (:import [org.java_websocket.server WebSocketServer]
@@ -17,8 +17,8 @@
 (declare websocket-server)
 
 (defstate websocket-server
-  :start (start-websocket-server config)
-  :stop  (stop-websocket-server))
+  :start (fn [_] (start-websocket-server))
+  :stop  (fn [] (stop-websocket-server)))
 
 (defn async-remote-api-request [method args callback]
   (let [conn @(:remote-connection websocket-server)]
@@ -90,17 +90,15 @@
     [server ws-ready-promise]))
 
 (defn stop-websocket-server []
-  (log "[Stopping WebSocket subsystem]")
   (when-let [wss (:ws-server websocket-server)]
-    (.stop wss)
-    (log "WebSocket server stopped"))
+    (.stop wss))
   (when-let [events-thread (:events-thread websocket-server)]
     (.interrupt events-thread))
   nil)
 
-(defn start-websocket-server [{:keys [dispatch-event on-connection-open]}]
-  (log "[Starting WebSocket subsystem]")
-  (let [remote-connection (atom nil)
+(defn start-websocket-server []
+  (let [{:keys [dispatch-event on-connection-open]} config
+        remote-connection (atom nil)
         events-callbacks (atom {:connection-going-away []
                                 :connection-open []})
         [ws-server ready] (create-ws-server

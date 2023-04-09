@@ -1,8 +1,7 @@
 (ns flow-storm.remote-websocket-client
   (:refer-clojure :exclude [send])
   (:require [flow-storm.json-serializer :as serializer]
-            [flow-storm.utils :refer [log log-error] :as utils]
-            [flow-storm.runtime.events :as rt-events])
+            [flow-storm.utils :refer [log log-error] :as utils])
   (:import [org.java_websocket.client WebSocketClient]
            [java.net URI]
            [org.java_websocket.handshake ServerHandshake]))

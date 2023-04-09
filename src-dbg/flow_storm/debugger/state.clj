@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.state
-  (:require [mount.core :as mount :refer [defstate]]))
+  (:require [flow-storm.state-management :refer [defstate]]))
 
 (def initial-state {:flows {}
                     :selected-flow-id nil})
@@ -10,8 +10,8 @@
 (declare flow-thread-indexers)
 
 (defstate state
-  :start (atom initial-state)
-  :stop nil)
+  :start (fn [_] (atom initial-state))
+  :stop (fn []))
 
 ;;;;;;;;;;;
 ;; Utils ;;

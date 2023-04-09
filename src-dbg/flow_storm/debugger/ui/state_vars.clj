@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.ui.state-vars
-  (:require [mount.core :as mount :refer [defstate]]
+  (:require [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [alert-dialog]]
             [clojure.string :as str]))
 
@@ -24,8 +24,8 @@
 ;; ui objects references with a static application lifetime
 ;; objects stored here will not be collected ever
 (defstate ui-objs
-  :start (atom {})
-  :stop nil)
+  :start (fn [_] (atom {}))
+  :stop (fn []))
 
 (defn store-obj
 
@@ -87,8 +87,8 @@
 
 (declare tasks-subscriptions)
 (defstate tasks-subscriptions
-  :start (atom {})
-  :stop nil)
+  :start (fn [_] (atom {}))
+  :stop (fn []))
 
 (defn subscribe-to-task-event [event-key task-id callback]
   (swap! tasks-subscriptions assoc [event-key task-id] callback))

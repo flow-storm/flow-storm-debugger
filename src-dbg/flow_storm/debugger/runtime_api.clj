@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.runtime-api
-  (:require [mount.core :as mount :refer [defstate]]
+  (:require [flow-storm.state-management :refer [defstate]]
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.debugger.repl.core :refer [safe-eval-code-str safe-cljs-eval-code-str stop-repl]]
             [flow-storm.debugger.websocket :as websocket]
@@ -16,17 +16,16 @@
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
-  :start (let [{:keys [local? env-kind]} config
-               api-cache (atom {})]
-           (log "[Starting Runtime Api subsystem]")
-           (if local?
+  :start (fn [_]
+           (let [{:keys [local? env-kind]} config
+                 api-cache (atom {})]
+             (if local?
 
-             (->LocalRuntimeApi api-cache)
+               (->LocalRuntimeApi api-cache)
 
-             (->RemoteRuntimeApi env-kind api-cache)))
+               (->RemoteRuntimeApi env-kind api-cache))))
 
-  :stop (do
-          (log "[Stopping Runtime Api subsystem]")
+  :stop (fn []
           (when-let [cc (:close-connection rt-api)]
            (cc))))
 

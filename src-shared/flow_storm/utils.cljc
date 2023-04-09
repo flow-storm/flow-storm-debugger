@@ -167,7 +167,7 @@
   #?(:clj (boolean
            (resolve-class
             (.getContextClassLoader (Thread/currentThread))
-            'clojure.storm.TraceIndex))
+            'clojure.storm.Tracer))
      :cljs false))
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))

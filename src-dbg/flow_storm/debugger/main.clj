@@ -9,15 +9,11 @@
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.repl.core]
             [flow-storm.debugger.config]
-            [mount.core :as mount]))
+            [flow-storm.state-management :as state-management]))
 
 (def flow-storm-core-ns 'flow-storm.core)
 
-(def local-debugger-mount-vars
-
-  "All defstate vars should be registered here.
-  This exists so `start-debugger`, `stop-debugger` don't mess with other
-  states when the debugger is used inside a application that uses mount."
+(def local-debugger-state-vars
 
   [#'flow-storm.debugger.config/config
    #'flow-storm.debugger.events-queue/events-queue
@@ -28,19 +24,15 @@
    #'flow-storm.debugger.ui.main/ui
    #'flow-storm.debugger.runtime-api/rt-api])
 
-(def remote-debugger-mount-vars
+(def remote-debugger-state-vars
 
-  "Same as `local-debugger-mount-vars` but for remote debugger"
-
-  (into local-debugger-mount-vars
+  (into local-debugger-state-vars
         [#'flow-storm.debugger.websocket/websocket-server
          #'flow-storm.debugger.repl.core/repl
          #'flow-storm.debugger.watchdog/watchdog]))
 
 (defn stop-debugger []
-  (let [to-stop (into local-debugger-mount-vars remote-debugger-mount-vars)]
-    (-> (mount/only to-stop)
-        (mount/stop))))
+  (state-management/stop {}))
 
 (defn start-debugger
 
@@ -68,17 +60,15 @@
   (if local?
 
     ;; start components for local debugging
-    (-> (mount/with-args config)
-        (mount/only local-debugger-mount-vars)
-        (mount/start))
+    (state-management/start {:only local-debugger-state-vars
+                             :config config})
 
     ;; else, start components for remote debugging
-    (-> (mount/with-args (assoc config
-                                :env-kind (if (#{:shadow} (:repl-type config))
-                                            :cljs
-                                            :clj)
-                                :connect-to-repl? (boolean (:port config))
-                                :repl-kind :nrepl
-                                :dispatch-event events-queue/enqueue-event!))
-        (mount/only remote-debugger-mount-vars)
-        (mount/start))))
+    (state-management/start {:only remote-debugger-state-vars
+                             :config (assoc config
+                                            :env-kind (if (#{:shadow} (:repl-type config))
+                                                        :cljs
+                                                        :clj)
+                                            :connect-to-repl? (boolean (:port config))
+                                            :repl-kind :nrepl
+                                            :dispatch-event events-queue/enqueue-event!)})))

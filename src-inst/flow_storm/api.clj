@@ -36,6 +36,12 @@
                          (resolve (symbol (name debugger-main-ns) "stop-debugger"))
                          (catch Exception _ nil))]
 
+     ;; NOTE: The order here is important until we replace this code with
+     ;; better component state management
+
+     (when-not skip-index-stop?
+       (indexes-api/stop))
+
      ;; if we are running in local mode and running a debugger stop it
      (when stop-debugger
        (stop-debugger))
@@ -43,9 +49,6 @@
 
      (rt-events/clear-subscription!)
      (rt-events/clear-pending-events!)
-
-     (when-not skip-index-stop?
-       (indexes-api/stop))
 
      (rt-taps/remove-tap!)
 
@@ -83,13 +86,16 @@
    (let [config (assoc config :local? true)
          start-debugger (resolve (symbol (name debugger-main-ns) "start-debugger"))]
 
+     ;; NOTE: The order here is important until we replace this code with
+     ;; better component state management
+
+     (when-not skip-index-start?
+       (indexes-api/start))
+
      ;; start the debugger UI
      (start-debugger config)
 
      (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
-
-     (when-not skip-index-start?
-       (indexes-api/start))
 
      (rt-values/clear-values-references)
 
@@ -98,6 +104,10 @@
      (mem-reporter/run-mem-reporter))))
 
 (defn remote-connect [config]
+
+  ;; NOTE: The order here is important until we replace this code with
+  ;; better component state management
+  (indexes-api/start)
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
@@ -110,8 +120,6 @@
                               remote-websocket-client/send)))
 
   (rt-values/clear-values-references)
-
-  (indexes-api/start)
 
   ;; setup the tap system so we send tap> to the debugger
   (rt-taps/setup-tap!)

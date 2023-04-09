@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.watchdog
-  (:require [mount.core :as mount :refer [defstate]]
+  (:require [flow-storm.state-management :as state-management :refer [defstate]]
             [flow-storm.debugger.websocket :as websocket]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -20,8 +20,8 @@
 (def websocket-watchdog-interval 1000)
 
 (defstate watchdog
-  :start (start-watchdog)
-  :stop  (stop-watchdog))
+  :start (fn [_] (start-watchdog))
+  :stop  (fn [] (stop-watchdog)))
 
 (defn clear-ui []
   (taps-screen/clear-all-taps)
@@ -60,7 +60,6 @@
                 (recur)))))))))
 
 (defn start-watchdog []
-  (utils/log "[Starting Connection watchdog subsystem]")
   (let [repl-watch-stop-ch (async/promise-chan)
         websocket-watch-stop-ch (async/promise-chan)]
 
@@ -110,9 +109,9 @@
                   (ui-main/set-conn-status-lbl :repl :fail)
 
                   (utils/log "[WATCHDOG] repl looks down, trying to reconnect ...")
-                  (mount/stop (mount/only [#'flow-storm.debugger.repl.core/repl]))
+                  (state-management/stop {:only [#'flow-storm.debugger.repl.core/repl]})
                   (try
-                    (mount/start (mount/only [#'flow-storm.debugger.repl.core/repl]))
+                    (state-management/start {:only [#'flow-storm.debugger.repl.core/repl]})
                     (catch Exception _
                       (utils/log (format "Couldn't restart repl, retrying in %d ms" repl-watchdog-interval)))))))
             (recur)))))
@@ -122,9 +121,7 @@
 
 (defn stop-watchdog []
   (when (:connect-to-repl? config)
-    (utils/log "[Stopping Connection watchdog subsystem]")
     (when-let [stop-ch (:repl-watch-stop-ch watchdog)]
       (async/>!! stop-ch true))
     (when-let [stop-ch (:websocket-watch-stop-ch watchdog)]
-      (async/>!! stop-ch true)))
-  )
+      (async/>!! stop-ch true))))

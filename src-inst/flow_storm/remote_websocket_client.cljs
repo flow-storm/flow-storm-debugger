@@ -1,7 +1,6 @@
 (ns flow-storm.remote-websocket-client
   (:require [flow-storm.utils :refer [log log-error] :as utils]
-            [flow-storm.json-serializer :as serializer]
-            [flow-storm.runtime.events :as rt-events]))
+            [flow-storm.json-serializer :as serializer]))
 
 (def remote-websocket-client nil)
 

@@ -19,11 +19,14 @@
 
   (println "About to remote-connect ClojureScript with " config)
 
+  ;; NOTE: The order here is important until we replace this code with
+  ;; better component state management
+
+  (indexes-api/start)
+
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
    (assoc config :api-call-fn dbg-api/call-by-name))
-
-  (indexes-api/start)
 
   ;; push all events thru the websocket
   (rt-events/subscribe! (fn [ev]

@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.repl.core
-  (:require [mount.core :as mount :refer [defstate]]
+  (:require [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.repl.nrepl :as nrepl]
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.config :refer [config]]
@@ -14,8 +14,8 @@
 
 (declare repl)
 (defstate repl
-  :start (start-repl)
-  :stop (stop-repl))
+  :start (fn [_] (start-repl))
+  :stop (fn [] (stop-repl)))
 
 (defn default-repl-ns [{:keys [env-kind]}]
   (case env-kind :clj "user" :cljs "shadow.user"))
@@ -72,7 +72,6 @@
          :cljs (repl-eval-cljs code ns))))))
 
 (defn start-repl []
-  (utils/log "[Starting Repl subsystem]")
   (when (:connect-to-repl? config)
     (let [{:keys [repl-kind]} config
           log-file (io/file log-file-path)
@@ -121,6 +120,5 @@
   (not ((:connection-closed? repl))))
 
 (defn stop-repl []
-  (utils/log "[Stopping Repl subsystem]")
   (when-let [close-conn (:close-connection repl)]
     (close-conn)))

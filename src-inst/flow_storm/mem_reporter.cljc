@@ -11,13 +11,13 @@
 
     (reset! reporter stop-ch)
     
-    (utils/log "[Starting mem reporting subsystem]")
+    (utils/log "Runtime starting mem reporting subsystem")
     (async/go-loop []
       (let [[_ ch] (async/alts! [(async/timeout reporter-interval)
                                  stop-ch])]
         (if (= ch stop-ch)
 
-          (utils/log "[Stopping mem reporting subsystem]")
+          (utils/log "Runtime stopping mem reporting subsystem")
           
           (let [heap-info (utils/get-memory-info)
                 ev (rt-events/make-heap-info-update-event heap-info)]

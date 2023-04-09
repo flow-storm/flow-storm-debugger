@@ -9,8 +9,8 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [clojure.string :as str]
             [clojure.core.async :as async]
-            [clojure.pprint :as pp])
-  #?(:clj (:require [flow-storm.utils :as utils]))
+            [clojure.pprint :as pp]
+            [flow-storm.utils :as utils])
   (:import [flow_storm.runtime.types.fn_call_trace FnCallTrace]
            [flow_storm.runtime.types.fn_return_trace FnReturnTrace]
            [flow_storm.runtime.types.expr_trace ExprTrace]
@@ -59,18 +59,21 @@
                                                 (clojure.storm.Tracer/setTraceFnReturnFn (requiring-resolve 'flow-storm.tracer/trace-fn-return))
                                                 (clojure.storm.Tracer/setTraceExprFn (requiring-resolve 'flow-storm.tracer/trace-expr-exec))
                                                 (clojure.storm.Tracer/setTraceBindFn (requiring-resolve 'flow-storm.tracer/trace-bind))
-                                                (clojure.storm.Tracer/setHandleExceptionFn handle-exception))
+                                                (clojure.storm.Tracer/setHandleExceptionFn handle-exception)
+                                                (utils/log "Storm functions plugged in"))
                                               (let [registry (indexes/start-thread-registry
                                                               (thread-registry/make-thread-registry)
                                                               {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
                                                                                     (events/publish-event!
                                                                                      (events/make-thread-created-event flow-id thread-id thread-name form-id)))})]                                                
                                                 registry)))
+     
      (alter-var-root #'forms-registry (fn [_]                                       
                                        (indexes/start-form-registry
                                         (if (utils/storm-env?)
                                           ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
-                                          (form-registry/make-form-registry))))))
+                                          (form-registry/make-form-registry)))))
+     (utils/log "Runtime index system started"))
    :cljs
    (defn start []
      (set! flow-thread-registry (indexes/start-thread-registry
@@ -79,7 +82,8 @@
                                                        (events/publish-event!
                                                         (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))     
      (set! forms-registry (indexes/start-form-registry
-                           (form-registry/make-form-registry)))))
+                           (form-registry/make-form-registry)))
+     (utils/log "Runtime index system started")))
 
 #?(:clj
    (defn stop []
@@ -88,14 +92,17 @@
        (clojure.storm.Tracer/setTraceFnReturnFn nil)
        (clojure.storm.Tracer/setTraceExprFn nil)
        (clojure.storm.Tracer/setTraceBindFn nil)
-       (clojure.storm.Tracer/setHandleExceptionFn nil))     
+       (clojure.storm.Tracer/setHandleExceptionFn nil)
+       (utils/log "Storm functions unplugged"))     
      (alter-var-root #'flow-thread-registry indexes/stop-thread-registry)
-     (alter-var-root #'forms-registry indexes/stop-form-registry))
+     (alter-var-root #'forms-registry indexes/stop-form-registry)
+     (utils/log "Runtime index system stopped"))
    
    :cljs
    (defn stop []
      (set! flow-thread-registry indexes/stop-thread-registry)
-     (set! forms-registry indexes/stop-form-registry)))
+     (set! forms-registry indexes/stop-form-registry)
+     (utils/log "Runtime index system stopped")))
 
 (defn flow-exists? [flow-id]  
   (indexes/flow-exists? flow-thread-registry flow-id))

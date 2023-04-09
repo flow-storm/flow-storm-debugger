@@ -14,7 +14,7 @@
             [flow-storm.utils :as utils :refer [log log-error]]
             [clojure.java.io :as io]
             [flow-storm.debugger.config :refer [config] :as config]
-            [mount.core :as mount :refer [defstate]]
+            [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
@@ -27,11 +27,11 @@
 (declare stop-ui)
 (declare ui)
 
-(def ^:dynamic *killing-ui-from-window-close?*)
+(def ^:dynamic *killing-ui-from-window-close?* false)
 
 (defstate ui
-  :start (start-ui config)
-  :stop  (stop-ui))
+  :start (fn [_] (start-ui))
+  :stop  (fn [] (stop-ui)))
 
 (defn clear-all []
   (log "Removing all taps")
@@ -212,7 +212,6 @@
   (log (format "DEBUG MODE %s" (if config/debug-mode "ENABLED" "DISABLED"))))
 
 (defn stop-ui []
-  (log "[Stopping UI subsystem]")
   (let [{:keys [stages theme-listener]} ui]
 
     ;; remove the OS theme listener
@@ -221,9 +220,9 @@
 
     ;; close all stages
     (when-not *killing-ui-from-window-close?*
-      (ui-utils/run-now
-       (doseq [stage @stages]
-         (.close stage))))))
+      (doseq [stage @stages]
+
+        (ui-utils/run-now (.close stage))))))
 
 (defn create-flow [{:keys [flow-id form-ns form timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
@@ -236,8 +235,7 @@
   (select-main-tools-tab :flows)
   (flows-screen/update-threads-list flow-id))
 
-(defn start-ui [config]
-  (log "[Starting UI subsystem]")
+(defn start-ui []
   ;; Initialize the JavaFX toolkit
 
   ;; Ensure a task bar icon is shown on MacOS.
@@ -299,14 +297,15 @@
 
        (-> stage .show)
 
+       ;; after starting load all flows in the current registry
+       (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                                (map first)
+                                (into #{}))]
+         (doseq [fid all-flows-ids]
+           (create-flow {:flow-id fid})))
+
        {:stages stages
         :theme-listener theme-listener})
-
-     (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                              (map first)
-                              (into #{}))]
-       (doseq [fid all-flows-ids]
-         (create-flow {:flow-id fid})))
 
      (catch Exception e
        (log-error "UI Thread exception" e)))))
