@@ -21,8 +21,8 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 Last stable releases :
 
-	[com.github.jpmonettas/flow-storm-dbg "3.3.320"]
-	[com.github.jpmonettas/flow-storm-inst "3.3.320"]
+	[com.github.jpmonettas/flow-storm-dbg "3.3.325"]
+	[com.github.jpmonettas/flow-storm-inst "3.3.325"]
 
 # Prerequisites
 

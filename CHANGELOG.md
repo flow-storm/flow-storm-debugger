@@ -6,6 +6,14 @@
    
 ### Changes
 
+### Bugs fixed
+
+## 3.3.325 (09-04-2023)
+	
+### New Features
+   
+### Changes
+
 	- Exclude guava as a transitive dep in tools.build since it breaks shadow-cljs 2.21.0
 	- Upgrade hansel to 0.1.50
 	
