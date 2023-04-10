@@ -28,7 +28,8 @@
   (add-binding-to-frame [_ bind-trace])
   (add-expr-exec-to-frame [_ exec-trace])
   (set-return [_ ret-trace])
-  (get-parent-timeline-idx [_]))
+  (get-parent-timeline-idx [_])
+  (get-timeline-idx [_]))
 
 (defprotocol FnCallStatsP
   (all-stats [_]))

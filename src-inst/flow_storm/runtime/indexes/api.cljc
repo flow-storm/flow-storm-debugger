@@ -10,11 +10,7 @@
             [clojure.string :as str]
             [clojure.core.async :as async]
             [clojure.pprint :as pp]
-            [flow-storm.utils :as utils])
-  (:import [flow_storm.runtime.types.fn_call_trace FnCallTrace]
-           [flow_storm.runtime.types.fn_return_trace FnReturnTrace]
-           [flow_storm.runtime.types.expr_trace ExprTrace]
-           [flow_storm.runtime.types.bind_trace BindTrace]))
+            [flow-storm.utils :as utils]))
 
 (declare discard-flow)
 (declare get-thread-indexes)
@@ -149,23 +145,23 @@
 (defn add-form-init-trace [trace]
   (register-form trace))
 
-(defn add-fn-call-trace [flow-id thread-id thread-name ^FnCallTrace trace]
+(defn add-fn-call-trace [flow-id thread-id thread-name trace]
   (let [{:keys [frame-index fn-call-stats-index]} (get-or-create-thread-indexes flow-id thread-id thread-name (fn-call-trace/get-form-id trace))]
 
     (indexes/add-fn-call frame-index trace)
     (indexes/add-fn-call fn-call-stats-index trace)))
 
-(defn add-fn-return-trace [flow-id thread-id ^FnReturnTrace trace]
+(defn add-fn-return-trace [flow-id thread-id trace]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]    
     (when frame-index
       (indexes/add-fn-return frame-index trace))))
 
-(defn add-expr-exec-trace [flow-id thread-id ^ExprTrace trace]
+(defn add-expr-exec-trace [flow-id thread-id trace]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (when frame-index
       (indexes/add-expr-exec frame-index trace))))
 
-(defn add-bind-trace [flow-id thread-id ^BindTrace trace]
+(defn add-bind-trace [flow-id thread-id trace]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (when frame-index
       (indexes/add-bind frame-index trace))))

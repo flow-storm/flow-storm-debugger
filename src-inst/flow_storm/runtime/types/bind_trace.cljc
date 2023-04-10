@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.types.bind-trace
-  (:require [flow-storm.utils :as utils]))
+  #?(:clj (:require [flow-storm.utils :as utils])))
 
 (defprotocol BindTraceP
   (get-timestamp [_])
@@ -20,8 +20,9 @@
   (get-val [_] val)
   (get-coord [_] coord)
 
-  Object
-  (toString [_] (utils/format "[BindTrace] coord: %s, sym: %s, valType: %s" coord symName (type val))))
+  #?@(:clj
+      [Object
+       (toString [_] (utils/format "[BindTrace] coord: %s, sym: %s, valType: %s" coord symName (type val)))]))
 
 (defn make-bind-trace [timestamp sym-name val coord]
   (->BindTrace timestamp sym-name val coord))

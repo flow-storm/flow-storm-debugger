@@ -8,13 +8,22 @@
      fn-name
      fn-ns]
 
-  Object
+  #?@(:cljs
+      [IHash
+       (-hash [o]
+              (.-form-id o))
+       
+       IEquiv
+       (-equiv
+        [this other]
+        (= ^int (.-form-id this) ^int (.-form-id other)))])
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 form-id)
 
-  (hashCode [_]
-    form-id)
-
-  (equals [this o]
-    (= (.-form-id this) (.-form-id o))))
+       (equals [this o]
+               (= (.-form-id this) ^int (.-form-id o)))]))
 
 (defrecord FnCallStatsIndex [stats]
 
@@ -40,9 +49,9 @@
 
   (all-stats [_]    
     (reduce-kv (fn [r ^FnCall fc cnt]
-                 (let [k {:form-id (.form-id fc)
-                          :fn-name (.fn-name fc)
-                          :fn-ns (.fn-ns fc)}]
+                 (let [k {:form-id (.-form-id fc)
+                          :fn-name (.-fn-name fc)
+                          :fn-ns (.-fn-ns fc)}]
                    (assoc r k cnt)))
                {}
                (mh->immutable-map stats))))

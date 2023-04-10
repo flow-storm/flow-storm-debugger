@@ -5,16 +5,13 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]
-            [flow-storm.runtime.types.bind-trace :as bind-trace])
-  (:import [flow_storm.runtime.types.fn_return_trace FnReturnTrace]
-           [flow_storm.runtime.types.expr_trace ExprTrace]
-           [flow_storm.runtime.types.bind_trace BindTrace]))
+            [flow-storm.runtime.types.bind-trace :as bind-trace]))
 
 (def fn-expr-limit
   #?(:cljs 9007199254740992 ;; MAX safe integer     
      :clj 10000))
 
-(defn expr-exec-map [^ExprTrace et]
+(defn expr-exec-map [et]
   {:idx (expr-trace/get-timeline-idx et)
    :form-id (expr-trace/get-form-id et)
    :coor (expr-trace/get-coord et)
@@ -22,7 +19,7 @@
    :result (expr-trace/get-expr-val et)
    :outer-form? false})
 
-(defn fn-return-map [^FnReturnTrace rt]
+(defn fn-return-map [rt]
   (when rt
     {:idx (fn-return-trace/get-timeline-idx rt)
      :form-id (fn-return-trace/get-form-id rt)
@@ -31,7 +28,7 @@
      :coor (fn-return-trace/get-coord rt)
      :timestamp (fn-return-trace/get-timestamp rt)}))
 
-(defn binding-map [^BindTrace bt]
+(defn binding-map [bt]
   {:coor (bind-trace/get-coord bt)
    :timestamp (bind-trace/get-timestamp bt)
    :symbol (bind-trace/get-sym-name bt)
@@ -75,6 +72,9 @@
 
   (get-parent-timeline-idx [_]
     (or parent-timeline-idx 0))
+
+  (get-timeline-idx [_]
+    timeline-idx)
   
   #?@(:clj
       [java.lang.Object
@@ -122,7 +122,7 @@
             curr-node (ms-peek build-stack)
             
             parent-frame-idx (-> (index-protos/get-frame curr-node)
-                                 index-protos/get-parent-timeline-idx)
+                                 index-protos/get-timeline-idx)
             new-frame (make-call-stack-frame trace frame-idx parent-frame-idx)            
             new-node (make-tree-node new-frame)]
         (fn-call-trace/set-frame-node trace new-node)

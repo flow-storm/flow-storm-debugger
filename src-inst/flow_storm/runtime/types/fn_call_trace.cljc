@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.types.fn-call-trace
-  (:require [flow-storm.utils :as utils]))
+  #?(:clj (:require [flow-storm.utils :as utils])))
 
 (defprotocol FnCallTraceP
   (get-fn-name [_])
@@ -29,8 +29,9 @@
   (set-frame-node [_ node]
     (set! frameNode node))
 
-  Object
-  (toString [_] (utils/format "[FnCallTrace] %s/%s form-id: %d" fnNs fnName formId)))
+  #?@(:clj
+      [Object
+       (toString [_] (utils/format "[FnCallTrace] %s/%s form-id: %d" fnNs fnName formId))]))
 
 (defn make-fn-call-trace [fn-ns fn-name form-id timestamp fn-args]
   (->FnCallTrace fn-name fn-ns form-id timestamp fn-args nil ))

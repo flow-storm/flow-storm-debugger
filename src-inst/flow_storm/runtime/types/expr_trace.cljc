@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.types.expr-trace
-  (:require [flow-storm.utils :as utils]))
+  #?(:clj (:require [flow-storm.utils :as utils])))
 
 (defprotocol ExprTraceP
   (get-form-id [_])
@@ -30,8 +30,9 @@
   (get-frame-node [_] frameNode)
   (set-frame-node [_ node] (set! frameNode node))
 
-  Object
-  (toString [_] (utils/format "[ExprTrace] coord: %s, formId: %d, valType: %s" coord formId (type exprVal))))
+  #?@(:clj
+      [Object
+       (toString [_] (utils/format "[ExprTrace] coord: %s, formId: %d, valType: %s" coord formId (type exprVal)))]))
 
 (defn make-expr-trace [form-id timestamp coord expr-val]
   (->ExprTrace form-id 0 timestamp coord expr-val nil))

@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.types.fn-return-trace
-  (:require [flow-storm.utils :as utils]))
+  #?(:clj (:require [flow-storm.utils :as utils])))
 
 (defprotocol FnReturnTraceP
   (get-form-id [_])
@@ -31,8 +31,10 @@
   (set-frame-node [_ node]
     (set! frameNode node))
 
-  Object
-  (toString [_] (utils/format "[FnReturnTrace] retValType: %s" (type retVal))))
+  #?@(:clj
+      [Object
+       (toString [_] (utils/format "[FnReturnTrace] retValType: %s" (type retVal)))])
+  )
 
 (defn make-fn-return-trace [form-id timestamp coord ret-val]
   (->FnReturnTrace form-id 0 timestamp coord ret-val nil))
