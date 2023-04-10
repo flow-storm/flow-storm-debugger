@@ -150,11 +150,34 @@
                 (z/edit (constantly 'flow-storm.debugger.main))
                 (z-write-to-file file))))))))
 
+(def aot-compile-nses
+
+  "Precompile this so clojure storm can call flow-storm.storm-api functions
+  at repl init and it doesn't slow down repl startup."
+
+  ['flow-storm.storm-api
+   'flow-storm.utils
+   'flow-storm.api
+   'flow-storm.runtime.debuggers-api
+   'flow-storm.runtime.types.fn-call-trace
+   'flow-storm.runtime.indexes.frame-index
+   'flow-storm.runtime.indexes.api
+   'flow-storm.runtime.indexes.protocols
+   'flow-storm.runtime.types.fn-return-trace
+   'flow-storm.runtime.events
+   'flow-storm.runtime.indexes.fn-call-stats-index
+   'flow-storm.runtime.indexes.thread-registry
+   'flow-storm.runtime.indexes.form-registry
+   'flow-storm.runtime.values
+   'flow-storm.runtime.types.bind-trace
+   'flow-storm.runtime.types.expr-trace
+   'flow-storm.runtime.indexes.utils])
+
 (defn jar-dbg [_]
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
         ;;version (format "3.4.%s" (b/git-count-revs nil))
-        version (format "3.4-beta-1" (b/git-count-revs nil))
+        version (format "3.4-beta-2" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases []})
         jar-file (format "target/%s.jar" (name lib))
@@ -164,6 +187,11 @@
                   :version version
                   :basis basis
                   :src-dirs src-dirs})
+    (b/compile-clj {:basis basis
+                    :src-dirs src-dirs
+                    :class-dir class-dir
+                    :compile-opts {:direct-linking false}
+                    :ns-compile aot-compile-nses})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     ;; This doesn't work anymore since we are using conditional reading
@@ -175,7 +203,7 @@
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
         ;;version (format "3.4.%s" (b/git-count-revs nil))
-        version (format "3.4-beta-1" (b/git-count-revs nil))
+        version (format "3.4-beta-2" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases []})
         jar-file (format "target/%s.jar" (name lib))
@@ -185,12 +213,21 @@
                   :version version
                   :basis basis
                   :src-dirs src-dirs})
+    (b/compile-clj {:basis basis
+                    :src-dirs src-dirs
+                    :class-dir class-dir
+                    :compile-opts {:direct-linking false}
+                    :ns-compile aot-compile-nses})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     ;; This doesn't work anymore since we are using conditional reading
     ;; (re-write-dir-for-version class-dir version)
     (b/jar {:class-dir class-dir
             :jar-file jar-file})))
+
+
+
+
 
 (comment
   (def code-files (->> (file-seq (io/file "target/classes"))

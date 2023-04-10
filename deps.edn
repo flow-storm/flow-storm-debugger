@@ -44,7 +44,7 @@
                               "-Dclojure.storm.instrumentEnable=true"
                               "-Dclojure.storm.instrumentSkipPrefixes=clojure.,flow-storm.,cider.,nrepl.,hansel.,refactor-nrepl."]}
 
-           :dev {:extra-paths ["src-dev"]
+           :dev {:extra-paths ["src-dev" "classes"]
 
                  :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
                               ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}

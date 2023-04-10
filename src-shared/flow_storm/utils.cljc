@@ -2,8 +2,7 @@
   #?(:cljs (:require [goog.string :as gstr]
                      [goog.string.format]
                      [goog :as g])
-     :clj (:require [clojure.java.io :as io]
-                    [clojure.reflect :refer [resolve-class]]))
+     :clj (:require [clojure.java.io :as io]))
   #?(:clj (:refer-clojure :exclude [format update-values]))
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
                    [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
@@ -164,10 +163,10 @@
             :heap-free-bytes 0}))
 
 (defn storm-env? []
-  #?(:clj (boolean
-           (resolve-class
-            (.getContextClassLoader (Thread/currentThread))
-            'clojure.storm.Tracer))
+  #?(:clj (try
+            (Class/forName "clojure.storm.Tracer")
+            true
+            (catch Exception _ false))
      :cljs false))
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))

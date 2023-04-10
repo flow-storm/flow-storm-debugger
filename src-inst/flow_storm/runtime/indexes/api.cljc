@@ -52,14 +52,25 @@
   (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
 
 #?(:clj
+   (defn set-storm-fns
+
+     "Set ClojureStorm callbacks by reflection so FlowStorm can be used
+  without ClojureStorm on the classpath."  
+     
+     [callbacks]     
+     (let [tracer-class (Class/forName "clojure.storm.Tracer")
+           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))]       
+       (.invoke setTraceFnsCallbacks nil (into-array [callbacks])))))
+
+#?(:clj
    (defn start []
      (alter-var-root #'flow-thread-registry (fn [_]
                                               (when (utils/storm-env?)
-                                                (clojure.storm.Tracer/setTraceFnCallFn (requiring-resolve 'flow-storm.tracer/trace-fn-call))
-                                                (clojure.storm.Tracer/setTraceFnReturnFn (requiring-resolve 'flow-storm.tracer/trace-fn-return))
-                                                (clojure.storm.Tracer/setTraceExprFn (requiring-resolve 'flow-storm.tracer/trace-expr-exec))
-                                                (clojure.storm.Tracer/setTraceBindFn (requiring-resolve 'flow-storm.tracer/trace-bind))
-                                                (clojure.storm.Tracer/setHandleExceptionFn handle-exception)
+                                                (set-storm-fns {:trace-fn-call-fn-key (requiring-resolve 'flow-storm.tracer/trace-fn-call)
+	                                                            :trace-fn-return-fn-key (requiring-resolve 'flow-storm.tracer/trace-fn-return)
+	                                                            :trace-expr-fn-key (requiring-resolve 'flow-storm.tracer/trace-expr-exec)
+	                                                            :trace-bind-fn-key (requiring-resolve 'flow-storm.tracer/trace-bind)
+	                                                            :handle-exception-fn-key handle-exception})                                                
                                                 (utils/log "Storm functions plugged in"))
                                               (let [registry (indexes/start-thread-registry
                                                               (thread-registry/make-thread-registry)
@@ -88,11 +99,11 @@
 #?(:clj
    (defn stop []
      (when (utils/storm-env?)
-       (clojure.storm.Tracer/setTraceFnCallFn nil)
-       (clojure.storm.Tracer/setTraceFnReturnFn nil)
-       (clojure.storm.Tracer/setTraceExprFn nil)
-       (clojure.storm.Tracer/setTraceBindFn nil)
-       (clojure.storm.Tracer/setHandleExceptionFn nil)
+       (set-storm-fns {:trace-fn-call-fn-key nil
+	                   :trace-fn-return-fn-key nil
+	                   :trace-expr-fn-key nil
+	                   :trace-bind-fn-key nil
+	                   :handle-exception-fn-key nil})
        (utils/log "Storm functions unplugged"))     
      (alter-var-root #'flow-thread-registry indexes/stop-thread-registry)
      (alter-var-root #'forms-registry indexes/stop-form-registry)
