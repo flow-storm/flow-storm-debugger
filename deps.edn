@@ -7,13 +7,13 @@
  :deps {
         ;; Dependencies needed by both
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
-        com.cognitect/transit-clj {:mvn/version "1.0.329"}
-        org.clojure/core.async {:mvn/version "1.5.648"}
-        org.clojure/tools.namespace {:mvn/version "1.2.0"}
+        com.cognitect/transit-clj {:mvn/version "1.0.333"}
+        org.clojure/core.async {:mvn/version "1.6.673"}
+        org.clojure/tools.namespace {:mvn/version "1.4.4"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
-        org.clojure/tools.build {:mvn/version "0.8.4"
-                                 :exclusions [com.google.guava/guava]}
+        io.github.clojure/tools.build {:mvn/version "0.9.4"
+                                       :exclusions [com.google.guava/guava]}
         com.github.jpmonettas/hansel {
                                       ;;:local/root "/home/jmonetta/my-projects/hansel"
                                       :mvn/version "0.1.50"
@@ -57,7 +57,7 @@
                             ;;"-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
                             ]}
 
-           :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}
+           :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}
                                 rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}}
                    :ns-default build
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
