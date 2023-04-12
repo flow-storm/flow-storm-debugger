@@ -8,16 +8,11 @@
         ;; Dependencies needed by both
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
-        org.clojure/core.async {:mvn/version "1.5.648"}
-        org.clojure/tools.namespace {:mvn/version "1.4.4"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
 
         io.github.clojure/tools.build {:mvn/version "0.9.4"
                                        :exclusions [com.google.guava/guava]}
-        com.github.jpmonettas/hansel {
-                                      ;;:local/root "/home/jmonetta/my-projects/hansel"
-                                      :mvn/version "0.1.50"
-                                      }
+        com.github.jpmonettas/hansel {:mvn/version "0.1.52"}
 
         ;; Comment out for releasing INST ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
@@ -38,7 +33,7 @@
                                thheller/shadow-cljs {:mvn/version "2.20.10"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.11.1-SNAPSHOT"}}
+                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.11.1-beta4"}}
                    :jvm-opts ["-Dproject-name=StormTest"
                               "-Dclojure.storm.traceEnable=true"
                               "-Dclojure.storm.instrumentEnable=true"

@@ -195,7 +195,7 @@
     (locking this
       (->> timeline
            (keep (fn [tl-entry]
-                   (when (fn-call-trace/fn-call-trace? tl-entry)
+                   (when (fn-call-trace/fn-call-trace? tl-entry)                     
                      (-> (fn-call-trace/get-frame-node tl-entry)
                          index-protos/get-frame 
                          index-protos/get-immutable-frame))))

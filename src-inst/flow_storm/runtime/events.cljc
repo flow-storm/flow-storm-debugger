@@ -59,8 +59,6 @@
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 
-
-
 (defn publish-event! [[ev-key :as ev]]
   (if-let [cb @callback]
 

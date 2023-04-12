@@ -50,13 +50,6 @@
 
   [{:keys [local?] :as config}]
 
-  #_(.addShutdownHook
-   (Runtime/getRuntime)
-   (Thread. (fn []
-              (log "Shutting down VM")
-              (stop-debugger)
-              (log "Done. Bye."))))
-
   (if local?
 
     ;; start components for local debugging

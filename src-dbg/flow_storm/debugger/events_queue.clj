@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.events-queue
-  (:require [clojure.core.async :as async]
-            [flow-storm.state-management :refer [defstate]]
-            [flow-storm.utils :as utils]))
+  (:require [flow-storm.state-management :refer [defstate]]
+            [flow-storm.utils :as utils])
+  (:import [java.util.concurrent ArrayBlockingQueue TimeUnit]))
 
 (declare start-events-queue)
 (declare stop-events-queue)
@@ -11,26 +11,35 @@
   :start (fn [_] (start-events-queue))
   :stop (fn [] stop-events-queue))
 
+(def poll-interval 500)
+
 (defn enqueue-event! [e]
-  (when-let [events-chan (:events-chan events-queue)]
-    (async/>!! events-chan e)))
+  (when-let [queue (:queue events-queue)]
+    (.put queue e)))
 
 (defn start-events-queue []
-  (let [events-chan (async/chan 100)
-        process-event (requiring-resolve 'flow-storm.debugger.events-processor/process-event)
+  (let [process-event (requiring-resolve 'flow-storm.debugger.events-processor/process-event)
+        events-queue (ArrayBlockingQueue. 1000)
         ev-thread (Thread.
                    (fn []
                      (try
-                       (loop [ev (async/<!! events-chan)]
-                         (when ev
-                           (process-event ev)
-                           (recur (async/<!! events-chan))))
+                       (loop [ev nil]
+                         (when-not (.isInterrupted (Thread/currentThread))
+                           (when ev
+                             (process-event ev))
+                           (recur (.poll events-queue 500 TimeUnit/MILLISECONDS))))
                        (catch java.lang.InterruptedException _
-                         (utils/log "Events thread interrupted")))))]
+                         (utils/log "Events thread interrupted"))
+                       (catch Exception e
+                         (utils/log-error "Error" e))))
+                   "FlowStorm Events Processor")
+        interrupt-fn (fn [] (.interrupt ev-thread))]
 
     (.start ev-thread)
-    {:events-chan events-chan
-     :events-thread ev-thread}))
+    {:interrupt-fn interrupt-fn
+     :queue events-queue
+     :thread ev-thread}))
 
 (defn stop-events-queue []
-  (async/close! (:events-chan events-queue)))
+  (when-let [stop-fn (:interrupt-fn events-queue)]
+    (stop-fn)))

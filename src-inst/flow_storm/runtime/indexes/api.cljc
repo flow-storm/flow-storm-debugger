@@ -1,14 +1,11 @@
 (ns flow-storm.runtime.indexes.api
   (:require [flow-storm.runtime.indexes.protocols :as indexes]
-            [flow-storm.runtime.indexes.frame-index :as frame-index]
-            [flow-storm.runtime.values :refer [val-pprint]]            
+            [flow-storm.runtime.indexes.frame-index :as frame-index]            
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
             [flow-storm.runtime.indexes.form-registry :as form-registry]
-            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
-            [clojure.string :as str]
-            [clojure.core.async :as async]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
             [clojure.pprint :as pp]
             [flow-storm.utils :as utils]))
 
@@ -245,52 +242,17 @@
 
 (defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
-        frames (indexes/timeline-frame-seq frame-index)]
-    (->> frames
-         (filter (fn [frame-data]
-                   (and (= fn-ns (:fn-ns frame-data))
-                        (= fn-name (:fn-name frame-data))
-                        (= form-id (:form-id frame-data))))))))
+        fn-calls (->> (indexes/timeline-seq frame-index)
+                      (filter fn-call-trace/fn-call-trace?))]
+    (->> fn-calls
+         (keep (fn [fn-call]
+                 (when (and (= fn-ns (fn-call-trace/get-fn-ns fn-call))
+                            (= fn-name (fn-call-trace/get-fn-name fn-call))
+                            (= form-id (fn-call-trace/get-form-id fn-call)))
+                   (-> (fn-call-trace/get-frame-node fn-call)
+                       indexes/get-frame 
+                       indexes/get-immutable-frame)))))))
 
-(defn search-next-frame-idx
-  ([flow-id thread-id query-str from-idx params]
-   (search-next-frame-idx flow-id thread-id query-str from-idx params (async/promise-chan) nil))
-  
-  ([flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} interrupt-ch on-progress]
-   
-   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
-         total-traces (indexes/timeline-count frame-index)
-         entries-ch (async/to-chan! (indexes/timeline-seq frame-index))]
-     (async/go
-       (let [match-stack (loop [i 0
-                                stack ()]
-                           (let [[v ch] (async/alts! [interrupt-ch entries-ch] :priority true)]
-                             (when (and (< i total-traces) (= ch entries-ch))                        
-                               (let [tl-entry v]
-                                 (when (and on-progress (zero? (mod i 10000)))
-                                   (on-progress (* 100 (/ i total-traces))))
-
-                                 (if (= :frame (:timeline/type tl-entry))
-
-                                   ;; it is a fn-call
-                                   (let [{:keys [fn-name args-vec]} (indexes/get-immutable-frame (:frame tl-entry))]
-                                     (if (and (> i from-idx)
-                                              (or (str/includes? fn-name query-str)
-                                                  (str/includes? (val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str)))
-
-                                       ;; if matches
-                                       (conj stack i)
-
-                                       ;; else
-                                       (recur (inc i) (conj stack i))))
-
-                                   ;; else expr, check if it is returning
-                                   (if (:outer-form? tl-entry)
-                                     (recur (inc i) (pop stack))
-                                     (recur (inc i) stack)))))))]
-         (when-let [found-idx (first match-stack)]           
-           {:frame-data (indexes/frame-data frame-index found-idx) 
-            :match-stack match-stack}))))))
 
 (defn discard-flow [flow-id] 
   (let [discard-keys (some->> flow-thread-registry

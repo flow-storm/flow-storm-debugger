@@ -177,7 +177,7 @@
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
         ;;version (format "3.4.%s" (b/git-count-revs nil))
-        version (format "3.4-beta-2" (b/git-count-revs nil))
+        version (format "3.4-beta-6" (b/git-count-revs nil))
         basis (b/create-basis {:project "deps.edn"
                                :aliases []})
         jar-file (format "target/%s.jar" (name lib))
@@ -191,7 +191,8 @@
                     :src-dirs src-dirs
                     :class-dir class-dir
                     :compile-opts {:direct-linking false}
-                    :ns-compile aot-compile-nses})
+                    :ns-compile aot-compile-nses
+                    })
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     ;; This doesn't work anymore since we are using conditional reading
@@ -203,9 +204,8 @@
   (clean nil)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
         ;;version (format "3.4.%s" (b/git-count-revs nil))
-        version (format "3.4-beta-2" (b/git-count-revs nil))
-        basis (b/create-basis {:project "deps.edn"
-                               :aliases []})
+        version (format "3.4-beta-6" (b/git-count-revs nil))
+        basis (b/create-basis {:project "deps.edn" :aliases []})
         jar-file (format "target/%s.jar" (name lib))
         src-dirs ["src-inst" "src-shared"]]
     (b/write-pom {:class-dir class-dir
@@ -217,7 +217,8 @@
                     :src-dirs src-dirs
                     :class-dir class-dir
                     :compile-opts {:direct-linking false}
-                    :ns-compile aot-compile-nses})
+                    :ns-compile aot-compile-nses
+                    })
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     ;; This doesn't work anymore since we are using conditional reading

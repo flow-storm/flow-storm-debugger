@@ -1,29 +1,35 @@
 (ns flow-storm.mem-reporter
-  (:require [clojure.core.async :as async]
-            [flow-storm.runtime.events :as rt-events]
+  (:require #?(:clj [flow-storm.runtime.events :as rt-events])
             [flow-storm.utils :as utils]))
 
 (def reporter-interval 1000)
-(def reporter (atom nil))
+(def reporter-stop-fn (atom nil))
 
-(defn run-mem-reporter []  
-  (let [stop-ch (async/chan)]
+#?(:clj
+   (defn run-mem-reporter []  
+     (let [thread (Thread.
+                   (fn []
+                     (utils/log "Runtime starting mem reporting subsystem")
+                     (loop []
+                       (if (.isInterrupted (Thread/currentThread))
 
-    (reset! reporter stop-ch)
-    
-    (utils/log "Runtime starting mem reporting subsystem")
-    (async/go-loop []
-      (let [[_ ch] (async/alts! [(async/timeout reporter-interval)
-                                 stop-ch])]
-        (if (= ch stop-ch)
+                         (utils/log "Runtime stopping mem reporting subsystem")
+                         
+                         (let [heap-info (utils/get-memory-info)
+                               ev (rt-events/make-heap-info-update-event heap-info)]
+                           (rt-events/publish-event! ev)
+                           (Thread/sleep reporter-interval)
+                           (recur)))))
+                   "FlowStorm Memory Reporter")
+           interrupt-fn (fn [] (.interrupt thread))]
 
-          (utils/log "Runtime stopping mem reporting subsystem")
-          
-          (let [heap-info (utils/get-memory-info)
-                ev (rt-events/make-heap-info-update-event heap-info)]
-            (rt-events/publish-event! ev)
-            (recur)))))))
+       (reset! reporter-stop-fn interrupt-fn)
+       (.start thread)))
+
+   :cljs (defn run-mem-reporter []
+           (utils/log "Mem reporter not starting. Not implemented for ClojureScript yet.")))
 
 (defn stop-mem-reporter []  
-  (async/put! @reporter :stop))
+  (when-let [stop-fn @reporter-stop-fn]
+    (stop-fn)))
 

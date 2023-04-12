@@ -94,7 +94,7 @@
   (swap! tasks-subscriptions assoc [event-key task-id] callback))
 
 (defn dispatch-task-event [event-key task-id data]
-  (let [cb (get @tasks-subscriptions [event-key task-id])]
+  (when-let [cb (get @tasks-subscriptions [event-key task-id])]
     (cb data)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

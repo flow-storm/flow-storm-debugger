@@ -500,7 +500,5 @@
 
   (indexes-api/find-fn-frames flow-id thread-id "flow-storm.api" "factorial" 71712880)
 
-  (indexes-api/search-next-frame-idx flow-id thread-id "3" 0 {})
-
   (indexes-api/discard-flow flow-id)
   )
