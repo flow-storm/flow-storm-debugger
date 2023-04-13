@@ -249,9 +249,9 @@
     (->> (indexes/timeline-seq frame-index)
          (keep (fn [tl-entry]
                  (when (and (fn-call-trace/fn-call-trace? tl-entry)
-                            (= fn-ns (fn-call-trace/get-fn-ns tl-entry))
+                            (= form-id (fn-call-trace/get-form-id tl-entry))
                             (= fn-name (fn-call-trace/get-fn-name tl-entry))
-                            (= form-id (fn-call-trace/get-form-id tl-entry)))                   
+                            (= fn-ns (fn-call-trace/get-fn-ns tl-entry)))                   
                    (-> (fn-call-trace/get-frame-node tl-entry)
                        indexes/get-frame 
                        indexes/get-immutable-frame)))))))

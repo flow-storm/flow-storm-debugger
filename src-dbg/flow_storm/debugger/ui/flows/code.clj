@@ -252,12 +252,14 @@
         (.setText curr-trace-text-field (str (inc next-idx)))
         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
-        (highlight-form flow-id thread-id next-form-id)
+        (when first-jump?
+          (highlight-form flow-id thread-id next-form-id))
 
         (when changing-frame?
 
           (when changing-form?
-            (unhighlight-form flow-id thread-id curr-form-id))
+            (unhighlight-form flow-id thread-id curr-form-id)
+            (highlight-form flow-id thread-id next-form-id))
 
           (un-highlight-form-tokens flow-id thread-id curr-form-id)
 
