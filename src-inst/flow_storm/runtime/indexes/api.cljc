@@ -180,6 +180,10 @@
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (indexes/timeline-count frame-index)))
 
+(defn timeline-frame-seq [flow-id thread-id]
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
+    (indexes/timeline-frame-seq frame-index)))
+
 (defn timeline-entry [flow-id thread-id idx]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (indexes/timeline-entry frame-index idx)))

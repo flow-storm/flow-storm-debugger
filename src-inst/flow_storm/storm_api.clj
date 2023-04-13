@@ -12,11 +12,13 @@
 
 (defn start-debugger []
   (let [theme-prop (System/getProperty "flowstorm.theme")
+        styles-prop (System/getProperty "flowstorm.styles")
         theme-key (case theme-prop
                     "light" :light
                     "dark"  :dark
                     :auto)
         config {:local? true
+                :styles styles-prop
                 :skip-index-start? true
                 :theme theme-key}]
 
