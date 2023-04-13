@@ -3,10 +3,19 @@
 ## master (unreleased)
 	
 ### New Features
-   
+
+	- Add support for ClojureStorm
+	- Add a separate threads list and thread tabs contain names
+	- Add step up button
+	- Redesign Flows tools UX
+	
 ### Changes
 
+	- A bunch of performance improvements
+	
 ### Bugs fixed
+
+	- Many bug fixes (sorry for the low detail, this is a big release)
 
 ## 3.3.325 (09-04-2023)
 	
