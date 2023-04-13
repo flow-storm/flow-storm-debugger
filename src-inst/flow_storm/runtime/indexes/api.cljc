@@ -245,15 +245,14 @@
                      (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form)))))))))
 
 (defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
-  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
-        fn-calls (->> (indexes/timeline-seq frame-index)
-                      (filter fn-call-trace/fn-call-trace?))]
-    (->> fn-calls
-         (keep (fn [fn-call]
-                 (when (and (= fn-ns (fn-call-trace/get-fn-ns fn-call))
-                            (= fn-name (fn-call-trace/get-fn-name fn-call))
-                            (= form-id (fn-call-trace/get-form-id fn-call)))
-                   (-> (fn-call-trace/get-frame-node fn-call)
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
+    (->> (indexes/timeline-seq frame-index)
+         (keep (fn [tl-entry]
+                 (when (and (fn-call-trace/fn-call-trace? tl-entry)
+                            (= fn-ns (fn-call-trace/get-fn-ns tl-entry))
+                            (= fn-name (fn-call-trace/get-fn-name tl-entry))
+                            (= form-id (fn-call-trace/get-form-id tl-entry)))                   
+                   (-> (fn-call-trace/get-frame-node tl-entry)
                        indexes/get-frame 
                        indexes/get-immutable-frame)))))))
 

@@ -11,19 +11,25 @@
   #?@(:cljs
       [IHash
        (-hash [o]
-              (.-form-id o))
+              (let [h form-id]
+                (+ (* 31 form-id) (hash fn-name))))
        
        IEquiv
        (-equiv
         [this other]
-        (= ^int (.-form-id this) ^int (.-form-id other)))])
+        (and (= ^int (.-form-id this) ^int (.-form-id other))
+             (= (.-fn-name this) (.-fn-name other))))])
   #?@(:clj
       [Object
        (hashCode [_]
-                 form-id)
+                 (let [h form-id]
+                   (unchecked-add-int
+                    (unchecked-multiply-int 31 form-id)
+                    (.hashCode ^String fn-name))))
 
        (equals [this o]
-               (= (.-form-id this) ^int (.-form-id o)))]))
+               (and (= (.-form-id this) ^int (.-form-id o))
+                    (.equals ^String (.-fn-name this) ^String (.-fn-name o))))]))
 
 (defrecord FnCallStatsIndex [stats]
 
