@@ -34,9 +34,9 @@ There are two ways of using FlowStorm for Clojure :
 	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
 	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
 	
-ClojureStorm is a fork of the oficial Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
+ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
-You use it by swapping the oficial Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.
+You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.
 
 ==== Vanilla FlowStorm
 
@@ -88,8 +88,8 @@ your code, and many ways to explore its executions.
 	
 ==== ClojureStorm
 
-This is the newest and simplest way of using FlowStorm, but requires you to swap your oficial Clojure compiler by ClojureStorm.
-Swapping compilers sounds like a lot but don't worry, ClojureStorm is just a patch applied over the oficial compiler with some
+This is the newest and simplest way of using FlowStorm, but requires you to swap your official Clojure compiler by ClojureStorm.
+Swapping compilers sounds like a lot but don't worry, ClojureStorm is just a patch applied over the official compiler with some
 extra stuff for automatic instrumentation, you shouldn't encounter any differences.
 
 The easiest way to run and learn FlowStorm with ClojureStorm is by running the repl tutorial, like this :
@@ -113,7 +113,7 @@ If your project is using deps.edn, your deps.edn file should look like this :
 ----
 {:paths ["src"]
  :deps {}
- :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the oficial compiler
+ :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
                  :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"}
                               com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}
                  :jvm-opts ["-Dclojure.storm.traceEnable=true"
@@ -127,7 +127,7 @@ where `YOUR_INSTRUMENTATION_STRING` should be a comma separated list of namespac
 
 which means only instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
 
-This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuffm
+This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuff
 although you can still do it if you need it. There are also other options you can check with `:help`.
 
 If your project uses lein, your project.clj file should look something like this :
@@ -137,7 +137,7 @@ If your project uses lein, your project.clj file should look something like this
 (defproject my.project "1.0.0"
   :profiles {:dev {:dependencies [[com.github.jpmonettas/clojure "RELEASE"]
                                   [com.github.jpmonettas/flow-storm-dbg "RELEASE"] ]
-                   :exclusions [org.clojure/clojure] ;; for disabling the oficial compiler
+                   :exclusions [org.clojure/clojure] ;; for disabling the official compiler
                    :jvm-opts ["-Dclojure.storm.traceEnable=true"
                               "-Dclojure.storm.instrumentEnable=true"
                               "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}
@@ -239,7 +239,7 @@ For this you can start the debugger like before but without any parameters, like
 clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
 ----
 
-And then go to your app code and call `(flow-storm.api/remote-connect)` maybe on your main, so everytime your program starts
+And then go to your app code and call `(flow-storm.api/remote-connect)` maybe on your main, so every time your program starts
 will automatically connect to the repl.
 
 [NOTE]
@@ -268,7 +268,7 @@ which you will have to `adb reverse tcp:7722 tcp:7722` (the debugger websocket p
 .App initialization debugging
 ====
 If you need to debug some app initialization, for adding `#trace` tags before the debugger is connected you
-will have to require flow-storm.api yourself, probably in your main. All the tarcing will be replayed to the debugger
+will have to require flow-storm.api yourself, probably in your main. All the tracing will be replayed to the debugger
 once it is connected.
 ====
 
@@ -278,10 +278,10 @@ You can remotely debug any Clojure application the exposes a nrepl server.
 You can do remote Clojure debugging in two ways (the same as local debugging), with and without ClojureStorm.
 
 The debuggee side should be setup the same as a normal local setup with the optional change that you can use
-`flow-storm-inst` instead of `flow-storm-dbg` being the former a slimed down version of the later one that
+`flow-storm-inst` instead of `flow-storm-dbg` being the former a slimmed down version of the later one that
 doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
 
-Once you have on your remote box your debugge running and exposing a nrepl server you can connect to it by running :
+Once you have on your remote box your debuggee running and exposing a nrepl server you can connect to it by running :
 
 [,bash]
 ----
@@ -293,7 +293,7 @@ assuming your nrepl server is listening on port 9000.
 If your application is running in a different box you can also provide two extra keys :
 
    - `:runtime-host` should be the ip of the debuggee (defaults to localhost)
-   - `:debugger-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
+   - `:debugger-host` should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
 
 == Instrument code
 
@@ -433,7 +433,7 @@ image::user_guide_images/browser_var_instrumentation.png[]
 There are two ways of instrumenting a var :
 
 - Instrument (instrument just the var source code)
-- Instrument recursively (recursively instrument the var and all vars refered by it)
+- Instrument recursively (recursively instrument the var and all vars referred by it)
 
 ==== Instrument namespaces
 

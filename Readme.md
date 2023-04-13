@@ -17,9 +17,9 @@ There are two ways of using it for Clojure :
   - [Vanilla FlowStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_vanilla_flowstorm) : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
   - [With ClojureStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
 	
-ClojureStorm is a fork of the oficial Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
+ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
-You use it by swapping the oficial Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles. 
+You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles. 
 
 If you are looking for ClojureStorm sources here they are : https://github.com/jpmonettas/clojure/commit/31783717ba6bbf67604179d36c8bf67afe3c53cd
 	
@@ -30,7 +30,7 @@ The complete debugger :
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-dbg.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-dbg)
 
  
-A slimer version with no GUI, you may want to use it for Clojure or ClojureScript remote debugging :
+A slimmer version with no GUI, you may want to use it for Clojure or ClojureScript remote debugging :
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
@@ -60,12 +60,12 @@ Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugge
 Flow storm debugger is packed with a ton of features, here is a non-comprehensive list in no particular order :
 
 - Instrument any Clojure and ClojureScript form (single, namespace or entire codebases)
-- A time travel stepper allows you to jump arround your execution
+- A time travel stepper allows you to jump around your execution
 - Execution call tree explorer
 - Functions calls explorer
 - Inspect any values with the value inspector
 - Define any value and take it to your repl
-- Multithreaded execution support
+- Multi-threaded execution support
 - Tap values to the inspector (via `tap>`, `#tap`, and `#tap-stack-trace`)
 - Loop debugging
 - Infinite loop fuse (via `:thread-trace-limit`)
