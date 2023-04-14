@@ -230,53 +230,56 @@
           (highlight-interesting text))))))
 
 (defn jump-to-coord [flow-id thread-id next-idx]
-  (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
-    (when (<= 0 next-idx (dec trace-count))
-      (let [curr-idx (state/current-idx flow-id thread-id)
-            curr-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx)
-            curr-form-id (:form-id curr-tentry)
-            next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id next-idx)
-            next-form-id (:form-id next-tentry)
-            [curr-trace-text-field] (obj-lookup flow-id thread-id "thread_curr_trace_tf")
-            ;; because how frames are cached by trace, their pointers can't be compared
-            ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
-            ;; a frame
-            first-jump? (and (zero? curr-idx) (zero? next-idx))
-            changing-frame? (or first-jump?
-                                (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
-                                      (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx))))
-            changing-form? (or first-jump?
-                               (not= curr-form-id next-form-id))]
+  (try
+    (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
+     (when (<= 0 next-idx (dec trace-count))
+       (let [curr-idx (state/current-idx flow-id thread-id)
+             curr-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx)
+             curr-form-id (:form-id curr-tentry)
+             next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id next-idx)
+             next-form-id (:form-id next-tentry)
+             [curr-trace-text-field] (obj-lookup flow-id thread-id "thread_curr_trace_tf")
+             ;; because how frames are cached by trace, their pointers can't be compared
+             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
+             ;; a frame
+             first-jump? (and (zero? curr-idx) (zero? next-idx))
+             changing-frame? (or first-jump?
+                                 (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
+                                       (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx))))
+             changing-form? (or first-jump?
+                                (not= curr-form-id next-form-id))]
 
-        ;; update thread current trace label and total traces
-        (.setText curr-trace-text-field (str (inc next-idx)))
-        (update-thread-trace-count-lbl flow-id thread-id trace-count)
+         ;; update thread current trace label and total traces
+         (.setText curr-trace-text-field (str (inc next-idx)))
+         (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
-        (when first-jump?
-          (highlight-form flow-id thread-id next-form-id))
+         (when first-jump?
+           (highlight-form flow-id thread-id next-form-id))
 
-        (when changing-frame?
+         (when changing-frame?
 
-          (when changing-form?
-            (unhighlight-form flow-id thread-id curr-form-id)
-            (highlight-form flow-id thread-id next-form-id))
+           (when changing-form?
+             (unhighlight-form flow-id thread-id curr-form-id)
+             (highlight-form flow-id thread-id next-form-id))
 
-          (un-highlight-form-tokens flow-id thread-id curr-form-id)
+           (un-highlight-form-tokens flow-id thread-id curr-form-id)
 
-          (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-idx))
+           (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-idx))
 
-        (when-not first-jump?
-          (remove-exec-mark-tokens flow-id thread-id curr-tentry (= curr-form-id next-form-id)))
+         (when-not first-jump?
+           (remove-exec-mark-tokens flow-id thread-id curr-tentry (= curr-form-id next-form-id)))
 
-        (highlight-exec-mark-tokens flow-id thread-id next-tentry)
+         (highlight-exec-mark-tokens flow-id thread-id next-tentry)
 
-        ;; update reusult panel
-        (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
+         ;; update reusult panel
+         (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
 
-        ;; update locals panel
-        (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
+         ;; update locals panel
+         (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
 
-        (state/set-idx flow-id thread-id next-idx)))))
+         (state/set-idx flow-id thread-id next-idx))))
+    (catch Throwable e
+      (utils/log-error (str "Error jumping into " flow-id " " thread-id " " next-idx) e))))
 
 (defn step-prev [flow-id thread-id]
   (jump-to-coord flow-id
