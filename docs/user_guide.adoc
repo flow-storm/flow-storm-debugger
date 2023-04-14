@@ -405,7 +405,7 @@ The second argument can be a map supporting the following options :
 
 This are some limitations when instrumenting forms :
 
-1. Very big forms can't be fully instrumented. The Clojure compiler has a limit on the size of the form it can process, and instrumentation adds a lot of code.
+1. Very big forms can't be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
 When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying `Instrumented expression is too large for the Clojure compiler`
 and FlowStorm automatically tries to instrument it with a lighter profile, by disabling some instrumentation.
 

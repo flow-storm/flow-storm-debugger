@@ -811,10 +811,10 @@ pre.rouge {
 </ul>
 </div>
 <div class="paragraph">
-<p>ClojureStorm is a fork of the oficial Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
+<p>ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
 </div>
 <div class="paragraph">
-<p>You use it by swapping the oficial Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.</p>
+<p>You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.</p>
 </div>
 <div class="sect4">
 <h5 id="_vanilla_flowstorm"><a class="anchor" href="#_vanilla_flowstorm"></a><a class="link" href="#_vanilla_flowstorm">Vanilla FlowStorm</a></h5>
@@ -880,8 +880,8 @@ your code, and many ways to explore its executions.</p>
 <div class="sect4">
 <h5 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">ClojureStorm</a></h5>
 <div class="paragraph">
-<p>This is the newest and simplest way of using FlowStorm, but requires you to swap your oficial Clojure compiler by ClojureStorm.
-Swapping compilers sounds like a lot but don&#8217;t worry, ClojureStorm is just a patch applied over the oficial compiler with some
+<p>This is the newest and simplest way of using FlowStorm, but requires you to swap your official Clojure compiler by ClojureStorm.
+Swapping compilers sounds like a lot but don&#8217;t worry, ClojureStorm is just a patch applied over the official compiler with some
 extra stuff for automatic instrumentation, you shouldn&#8217;t encounter any differences.</p>
 </div>
 <div class="paragraph">
@@ -910,7 +910,7 @@ evaluate the <code>:tut/basics</code> keyword on it for a tour of what it can do
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:paths</span><span class="w"> </span><span class="p">[</span><span class="s">"src"</span><span class="p">]</span><span class="w">
  </span><span class="no">:deps</span><span class="w"> </span><span class="p">{}</span><span class="w">
- </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; for disabling the oficial compiler</span><span class="w">
+ </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; for disabling the official compiler</span><span class="w">
                  </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.jpmonettas/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
                               </span><span class="n">com.github.jpmonettas/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.traceEnable=true"</span><span class="w">
@@ -930,7 +930,7 @@ evaluate the <code>:tut/basics</code> keyword on it for a tour of what it can do
 <p>which means only instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core</p>
 </div>
 <div class="paragraph">
-<p>This is probably what most people want since you don&#8217;t want to instrument things like nrepl, cider or any of your tooling stuffm
+<p>This is probably what most people want since you don&#8217;t want to instrument things like nrepl, cider or any of your tooling stuff
 although you can still do it if you need it. There are also other options you can check with <code>:help</code>.</p>
 </div>
 <div class="paragraph">
@@ -941,7 +941,7 @@ although you can still do it if you need it. There are also other options you ca
 <pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">defproject</span><span class="w"> </span><span class="n">my.project</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">
   </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.jpmonettas/clojure</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">]</span><span class="w">
                                   </span><span class="p">[</span><span class="n">com.github.jpmonettas/flow-storm-dbg</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
-                   </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w"> </span><span class="c1">;; for disabling the oficial compiler</span><span class="w">
+                   </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w"> </span><span class="c1">;; for disabling the official compiler</span><span class="w">
                    </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.traceEnable=true"</span><span class="w">
                               </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                               </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"</span><span class="p">]}}</span><span class="w">
@@ -1071,7 +1071,7 @@ but not all features will be supported (mainly the browser features).</p>
 </div>
 </div>
 <div class="paragraph">
-<p>And then go to your app code and call <code>(flow-storm.api/remote-connect)</code> maybe on your main, so everytime your program starts
+<p>And then go to your app code and call <code>(flow-storm.api/remote-connect)</code> maybe on your main, so every time your program starts
 will automatically connect to the repl.</p>
 </div>
 <div class="admonitionblock note">
@@ -1133,7 +1133,7 @@ which you will have to <code>adb reverse tcp:7722 tcp:7722</code> (the debugger 
 <div class="title">App initialization debugging</div>
 <div class="paragraph">
 <p>If you need to debug some app initialization, for adding <code>#trace</code> tags before the debugger is connected you
-will have to require flow-storm.api yourself, probably in your main. All the tarcing will be replayed to the debugger
+will have to require flow-storm.api yourself, probably in your main. All the tracing will be replayed to the debugger
 once it is connected.</p>
 </div>
 </td>
@@ -1150,11 +1150,11 @@ You can do remote Clojure debugging in two ways (the same as local debugging), w
 </div>
 <div class="paragraph">
 <p>The debuggee side should be setup the same as a normal local setup with the optional change that you can use
-<code>flow-storm-inst</code> instead of <code>flow-storm-dbg</code> being the former a slimed down version of the later one that
+<code>flow-storm-inst</code> instead of <code>flow-storm-dbg</code> being the former a slimmed down version of the later one that
 doesn&#8217;t contain some libraries used only by the UI, but using the full <code>flow-storm-dbg</code> is also ok.</p>
 </div>
 <div class="paragraph">
-<p>Once you have on your remote box your debugge running and exposing a nrepl server you can connect to it by running :</p>
+<p>Once you have on your remote box your debuggee running and exposing a nrepl server you can connect to it by running :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1173,7 +1173,7 @@ doesn&#8217;t contain some libraries used only by the UI, but using the full <co
 <p><code>:runtime-host</code> should be the ip of the debuggee (defaults to localhost)</p>
 </li>
 <li>
-<p><code>:debugger-host</code> shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
+<p><code>:debugger-host</code> should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
 </li>
 </ul>
 </div>
@@ -1342,7 +1342,7 @@ instrument all namespaces starting with <code>org.my-app.core</code>, and all st
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Very big forms can&#8217;t be fully instrumented. The Clojure compiler has a limit on the size of the form it can process, and instrumentation adds a lot of code.
+<p>Very big forms can&#8217;t be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
 When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying <code>Instrumented expression is too large for the Clojure compiler</code>
 and FlowStorm automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
 </li>
@@ -1390,7 +1390,7 @@ and weren&#8217;t loaded from a file.</p>
 <p>Instrument (instrument just the var source code)</p>
 </li>
 <li>
-<p>Instrument recursively (recursively instrument the var and all vars refered by it)</p>
+<p>Instrument recursively (recursively instrument the var and all vars referred by it)</p>
 </li>
 </ul>
 </div>
@@ -2418,7 +2418,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-13 14:22:29 -0300
+Last updated 2023-04-14 09:37:51 -0300
 </div>
 </div>
 </body>
