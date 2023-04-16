@@ -4,32 +4,32 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]))
 
 (deftype FnCall
-    [^int form-id
-     fn-name
-     fn-ns]
+    #?(:clj  [^int form-id fn-name fn-ns]
+       :cljs [form-id fn-name fn-ns]) ;; if I type hint this with in, then the compiler complains on -hash that form-id is a [number int]
+  
 
   #?@(:cljs
       [IHash
-       (-hash [o]
-              (let [h form-id]
-                (+ (* 31 form-id) (hash fn-name))))
+       (-hash [_]              
+              (unchecked-add-int
+               (unchecked-multiply-int 31 form-id)
+               (hash fn-name)))
        
        IEquiv
        (-equiv
-        [this other]
-        (and (= ^int (.-form-id this) ^int (.-form-id other))
-             (= (.-fn-name this) (.-fn-name other))))])
+        [this other]        
+        (and (= ^js/Number (.-form-id this) ^js/Number (.-form-id other))
+             (= ^js/String (.-fn-name this) ^js/String (.-fn-name other))))])
   #?@(:clj
       [Object
        (hashCode [_]
-                 (let [h form-id]
-                   (unchecked-add-int
-                    (unchecked-multiply-int 31 form-id)
-                    (.hashCode ^String fn-name))))
+                 (unchecked-add-int
+                  (unchecked-multiply-int 31 form-id)
+                  (.hashCode ^String fn-name)))
 
-       (equals [this o]
-               (and (= (.-form-id this) ^int (.-form-id o))
-                    (.equals ^String (.-fn-name this) ^String (.-fn-name o))))]))
+       (equals [_ o]
+               (and (= form-id ^int (.-form-id ^FnCall o))
+                    (.equals ^String fn-name ^String (.-fn-name ^FnCall o))))]))
 
 (defrecord FnCallStatsIndex [stats]
 

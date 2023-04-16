@@ -53,12 +53,17 @@
   (try
     (swap! values-references ref-value v)
     (get-value-id @values-references v)
-    (catch Exception e
-      ;; if for whatever reason we can't reference the value
-      ;; let's be explicit so at least the user knows that 
-      ;; something went wrong and the value can't be trusted.
-      ;; I have seen a issues of hashing failing for a lazy sequence
-      (reference-value! :flow-storm/error-referencing-value))))
+
+    ;; if for whatever reason we can't reference the value
+    ;; let's be explicit so at least the user knows that 
+    ;; something went wrong and the value can't be trusted.
+    ;; I have seen a issues of hashing failing for a lazy sequence
+    #?(:clj (catch Exception e
+              (utils/log-error "Error referencing value" e)    
+              (reference-value! :flow-storm/error-referencing-value))
+       :cljs (catch js/Error e
+               (utils/log-error "Error referencing value" e)    
+               (reference-value! :flow-storm/error-referencing-value)))))
 
 (defn clear-values-references []
   (reset! values-references (map->ValuesReferences {:vid->v {} :v->vid {} :max-vid 0})))
@@ -90,22 +95,27 @@
 
     (try
       (with-out-str
-       (binding [*print-level* print-level
-                 *print-length* print-length
-                 *print-meta* print-meta?]
+        (binding [*print-level* print-level
+                  *print-length* print-length
+                  *print-meta* print-meta?]
 
-         (if nth-elems
+          (if nth-elems
 
-           (let [max-idx (dec (count val))
-                 nth-valid-elems (filter #(<= % max-idx) nth-elems)]
-             (doseq [n nth-valid-elems]
-               (print-fn (nth val n))
-               (print " ")))
+            (let [max-idx (dec (count val))
+                  nth-valid-elems (filter #(<= % max-idx) nth-elems)]
+              (doseq [n nth-valid-elems]
+                (print-fn (nth val n))
+                (print " ")))
 
-           (print-fn val))))
-      (catch Exception e
-        ;; return somthing so the user knows the value can't be trusted
-        "Flow-storm error, value couldn't be pprinted"))))
+            (print-fn val))))
+
+      ;; return somthing so the user knows the value can't be trusted
+      #?(:clj (catch Exception e
+                (utils/log-error "Error pprinting value" e)
+                "Flow-storm error, value couldn't be pprinted")
+         :cljs (catch js/Error e
+                 (utils/log-error "Error pprinting value" e)
+                 "Flow-storm error, value couldn't be pprinted")))))
 
 (defn- maybe-dig-node! [x]
   (if (or (string? x)
