@@ -4,6 +4,14 @@
 	
 ### New Features
 
+### Changes
+	
+### Bugs fixed
+
+## 3.4.0 (16-04-2023)
+	
+### New Features
+
 	- Add support for ClojureStorm
 	- Add a separate threads list and thread tabs contain names
 	- Add step up button

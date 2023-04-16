@@ -37,11 +37,6 @@ A slimmer version with no GUI, you may want to use it for Clojure or ClojureScri
 ClojureStorm : 
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/clojure.svg)](https://clojars.org/com.github.jpmonettas/clojure)
-
-Latest stable releases :
-
-	[com.github.jpmonettas/flow-storm-dbg "3.3.325"]
-	[com.github.jpmonettas/flow-storm-inst "3.3.325"]
 	
 # Prerequisites
 
