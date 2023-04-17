@@ -34,9 +34,10 @@ A slimmer version with no GUI, you may want to use it for Clojure or ClojureScri
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/flow-storm-inst.svg)](https://clojars.org/com.github.jpmonettas/flow-storm-inst)
 
-ClojureStorm : 
+ClojureStorm releases : 
 
-[![Clojars Project](https://img.shields.io/clojars/v/com.github.jpmonettas/clojure.svg)](https://clojars.org/com.github.jpmonettas/clojure)
+- Clojure 1.12.0 [com.github.jpmonettas/clojure "1.12.0-alpha2"]
+- Clojure 1.11.1 [com.github.jpmonettas/clojure "1.11.1-1""]
 	
 # Prerequisites
 

@@ -8,7 +8,15 @@
 	
 ### Bugs fixed
 
-	- Fix repl watchdog constantly firing when ok
+## 3.4.1 (17-04-2023)
+	
+### New Features
+
+### Changes
+	
+### Bugs fixed
+
+	- [CRITICAL] For remote connections fix repl-watchdog spamming the repl 
 	
 ## 3.4.0 (16-04-2023)
 	
