@@ -30,65 +30,17 @@ Before you start check FlowStorm minimum requirements.
 === Clojure
 
 There are two ways of using FlowStorm for Clojure :
-	
-	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
+
 	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
-	
+	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
+    
 ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
 You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.
 
-==== Vanilla FlowStorm
-
-If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the FlowStorm dependency loaded like this :
-
-[,bash]
-----
-;; on linux and mac-os
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'
-
-;; on windows
-clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'
-----
-
-If you are a https://leiningen.org/[lein] user add the dependency to your project.clj `:dependencies` and run `lein repl`.
-
-Then require the api namespace and start the debugger :
-
-[,clojure]
-----
-user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
-
-user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
-----
-
-You should now see a empty debugger window.
-
-Lets debug something :
-
-[,clojure]
-----
-user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
-----
-
-image::user_guide_images/quick_start.png[]
-
-After running it, you should get the return value of the expression (as if #rtrace wasn't there).
-The debugger thread list (the one on the left) shows all the threads it has recordings for.
-Double clicking on it should open the "thread exploring tools" for that thread in a new tab.
-
-This guide will cover all the tools in more detail but if you are interested in code stepping for example
-you will find it in the `code stepping tool` at the bottom left corner of the thread tab, the one that has the `()` icon.
-Clicking on it will show you something like the picture above.
-
-Go ahead and use the stepping controls to step over the code.
-
-Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
-your code, and many ways to explore its executions.
-	
 ==== ClojureStorm
 
-This is the newest and simplest way of using FlowStorm, but requires you to swap your official Clojure compiler by ClojureStorm.
+This is the newest and simplest way of using FlowStorm, and requires you to swap your official Clojure compiler by ClojureStorm.
 Swapping compilers sounds like a lot but don't worry, ClojureStorm is just a patch applied over the official compiler with some
 extra stuff for automatic instrumentation, you shouldn't encounter any differences.
 
@@ -146,6 +98,54 @@ If your project uses lein, your project.clj file should look something like this
 
 with `YOUR_INSTRUMENTATION_STRING` as described above.
 
+==== Vanilla FlowStorm
+
+If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the FlowStorm dependency loaded like this :
+
+[,bash]
+----
+;; on linux and mac-os
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'
+
+;; on windows
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'
+----
+
+If you are a https://leiningen.org/[lein] user add the dependency to your project.clj `:dependencies` and run `lein repl`.
+
+Then require the api namespace and start the debugger :
+
+[,clojure]
+----
+user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
+
+user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
+----
+
+You should now see a empty debugger window.
+
+Lets debug something :
+
+[,clojure]
+----
+user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
+----
+
+image::user_guide_images/quick_start.png[]
+
+After running it, you should get the return value of the expression (as if #rtrace wasn't there).
+The debugger thread list (the one on the left) shows all the threads it has recordings for.
+Double clicking on it should open the "thread exploring tools" for that thread in a new tab.
+
+This guide will cover all the tools in more detail but if you are interested in code stepping for example
+you will find it in the `code stepping tool` at the bottom left corner of the thread tab, the one that has the `()` icon.
+Clicking on it will show you something like the picture above.
+
+Go ahead and use the stepping controls to step over the code.
+
+Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+your code, and many ways to explore its executions.
+	
 === ClojureScript
 
 Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
