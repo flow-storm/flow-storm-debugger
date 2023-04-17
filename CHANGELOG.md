@@ -8,6 +8,8 @@
 	
 ### Bugs fixed
 
+	- Fix repl watchdog constantly firing when ok
+	
 ## 3.4.0 (16-04-2023)
 	
 ### New Features
