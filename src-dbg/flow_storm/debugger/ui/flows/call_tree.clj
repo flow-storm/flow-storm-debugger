@@ -108,7 +108,7 @@
                    (.setOnMouseClicked (event-handler [ev]))
                    (.setStyle ""))
 
-                 (let [task-id (runtime-api/search-next-frame-idx
+                 (let [task-id (runtime-api/search-next-frame
                                 rt-api
                                 flow-id
                                 thread-id
@@ -124,19 +124,19 @@
 
                    (ui-vars/subscribe-to-task-event :result
                                                     task-id
-                                                    (fn [{:keys [frame-data match-stack]}]
+                                                    (fn [{:keys [frame-idx-path] :as frame-data}]
 
                                                       (if frame-data
-                                                        (let [[match-idx] match-stack]
+                                                        (let [[match-idx] frame-idx-path]
 
                                                           (ui-utils/run-later
-                                                           (expand-and-highlight flow-id thread-id match-stack)
+                                                           (expand-and-highlight flow-id thread-id frame-idx-path)
                                                            (doto search-match-lbl
                                                              (.setText  (format "Match idx %d" match-idx))
                                                              (.setOnMouseClicked (event-handler
                                                                                   [ev]
                                                                                   (select-call-stack-tree-node flow-id thread-id match-idx))))
-                                                           (.setText search-from-txt (str match-idx))))
+                                                           (.setText search-from-txt (str (inc match-idx)))))
 
                                                         (do
                                                           (ui-utils/run-later (.setText search-match-lbl ""))

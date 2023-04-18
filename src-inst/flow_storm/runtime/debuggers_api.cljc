@@ -3,8 +3,7 @@
             [flow-storm.utils :as utils :refer [log]]
             [flow-storm.runtime.events :as rt-events]                        
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
-            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
-            [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
             #?@(:clj [[hansel.api :as hansel]
                       [flow-storm.tracer :as tracer]
                       [hansel.instrument.utils :as hansel-inst-utils]])
@@ -21,6 +20,9 @@
   (let [task-id (str (utils/rnd-uuid))        
         on-progress (fn [progress] (rt-events/publish-event! (rt-events/make-task-progress-event task-id progress)))
         on-result (fn [res]
+                    ;; TODO: there is a race condition here, if the result of the task
+                    ;; finishes faster than we when able to return the task id and
+                    ;; the remote connection add a listener to it
                     (log (utils/format "Task %s finished " task-id))
                     (rt-events/publish-event! (rt-events/make-task-result-event task-id res)))
         interrupt-fn (apply f (-> [] (into args) (into [on-progress on-result])))]
@@ -123,48 +125,44 @@
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
 #?(:clj
-   (defn search-next-frame-idx* [flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} on-progress on-result]     
+   (defn search-next-frame* [flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} on-progress on-result]     
      (let [thread (Thread.
                    (fn []
                      (try
-                       (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)
-                             total-traces (index-protos/timeline-count frame-index)
-                             tl-entries (index-protos/timeline-seq frame-index)                             
-                             match-stack (loop [i 0
-                                                [tl-entry & tl-rest] tl-entries
-                                                stack (list 0)]
-                                           (when (and (< i total-traces)
-                                                      (not (.isInterrupted (Thread/currentThread))))                        
+                       (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)                             
+                             tl-entries (index-protos/timeline-sub-seq frame-index from-idx nil)
+                             total-entries (count tl-entries)
+                             _ (prn "@@@@@@@@ searching " from-idx total-entries)
+                             found-idx (loop [i 0
+                                              [tl-entry & tl-rest] tl-entries]
+                                         (when (and tl-entry
+                                                    (not (.isInterrupted (Thread/currentThread))))                        
 
-                                             (when (and on-progress (zero? (mod i 10000)))
-                                               (on-progress (* 100 (/ i total-traces))))
+                                           (when (and on-progress (zero? (mod i 10000)))
+                                             (on-progress (* 100 (/ i total-entries))))
 
-                                             (if (fn-call-trace/fn-call-trace? tl-entry)
-                                               
-                                               (let [fn-name (fn-call-trace/get-fn-name tl-entry)
-                                                     args-vec (fn-call-trace/get-fn-args tl-entry)]
-                                                 (if (and (> i from-idx)
-                                                          (or (str/includes? fn-name query-str)
-                                                              (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str)))
+                                           (if (fn-call-trace/fn-call-trace? tl-entry)
+                                             
+                                             (let [fn-name (fn-call-trace/get-fn-name tl-entry)
+                                                   args-vec (fn-call-trace/get-fn-args tl-entry)]
+                                               (if (or (str/includes? fn-name query-str)
+                                                       (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str))
 
-                                                   ;; if matches, finish the loop with the stack so far
-                                                   (conj stack i)
+                                                 ;; if matches, finish the loop the found idx
+                                                 (-> (fn-call-trace/get-frame-node tl-entry)
+                                                     index-protos/get-frame
+                                                     index-protos/get-timeline-idx)
 
-                                                   ;; else, keep looping accumulating the stack
-                                                   (recur (inc i) tl-rest (conj stack i))))
+                                                 ;; else, keep looping
+                                                 (recur (inc i) tl-rest)))
 
-                                               ;; else
-                                               (if (fn-return-trace/fn-return-trace? tl-entry)
-                                                 ;; if it is a return trace, pop the stack
-                                                 (recur (inc i) tl-rest (pop stack))
-
-                                                 ;; else keep looping without modifying the stack
-                                                 (recur (inc i) tl-rest stack)))))
-                             result (when-let [found-idx (first match-stack)]           
-                                      {:frame-data (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
-                                                       (dissoc :bindings :expr-executions)
-                                                       reference-frame-data!) 
-                                       :match-stack match-stack})]                       
+                                             ;; else
+                                             (recur (inc i) tl-rest))))
+                             result (when found-idx
+                                      (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
+                                          (dissoc :bindings :expr-executions)
+                                          reference-frame-data!))]
+                         (prn "@@@@ calling on result with" result)
                          (on-result result))
                        (catch java.lang.InterruptedException _
                          (utils/log "FlowStorm search thread interrupted")))))
@@ -174,52 +172,48 @@
        interrupt-fn)))
 
 #?(:cljs   
-   (defn search-next-frame-idx* [flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} on-progress on-result]     
+   (defn search-next-frame* [flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} on-progress on-result]     
      (let [interrupted (atom false)
            interrupt-fn (fn [] (reset! interrupted true))
-           {:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)
-           total-traces (index-protos/timeline-count frame-index)
-           tl-entries (index-protos/timeline-seq frame-index)
-           search-next (fn search-next [i [tl-entry & tl-rest] stack]
-                         (when (and (< i total-traces)
+           {:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)           
+           tl-entries (index-protos/timeline-sub-seq frame-index from-idx nil)
+           total-entries (count tl-entries)
+           search-next (fn search-next [i [tl-entry & tl-rest]]
+                         (when (and tl-entry
                                     (not @interrupted))                        
 
                            (when (and on-progress (zero? (mod i 10000)))
-                             (on-progress (* 100 (/ i total-traces))))
+                             (on-progress (* 100 (/ i total-entries))))
 
                            (if (fn-call-trace/fn-call-trace? tl-entry)
                              
                              (let [fn-name (fn-call-trace/get-fn-name tl-entry)
                                    args-vec (fn-call-trace/get-fn-args tl-entry)]
-                               (if (and (> i from-idx)
-                                        (or (str/includes? fn-name query-str)
-                                            (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str)))
+                               (js/console.log (str "Looking at" fn-name args-vec))
+                               (if (or (str/includes? fn-name query-str)
+                                       (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str))
 
-                                 ;; if matches, finish the loop with the stack so far
-                                 (let [final-stack (conj stack i)
-                                       found-idx (first final-stack)
+                                 ;; if matches, finish the loop the found idx
+                                 (let [found-idx (-> (fn-call-trace/get-frame-node tl-entry)
+                                                     index-protos/get-frame
+                                                     index-protos/get-timeline-idx)
                                        result (when found-idx
-                                                {:frame-data (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
-                                                                 (dissoc :bindings :expr-executions)
-                                                                 reference-frame-data!) 
-                                                 :match-stack final-stack})]                                   
+                                                (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
+                                                    (dissoc :bindings :expr-executions)
+                                                    reference-frame-data!))]
+                                   (js/console.log (str "calling on result with " result))
                                    (on-result result))
 
-                                 ;; else, keep looping accumulating the stack, yielding so it can be interrupted
-                                 (js/setTimeout search-next 0 (inc i) tl-rest (conj stack i))))
+                                 ;; else, keep looping
+                                 (js/setTimeout search-next 0 (inc i) tl-rest)))
 
                              ;; else
-                             (if (fn-return-trace/fn-return-trace? tl-entry)
-                               ;; if it is a return trace, pop the stack
-                               (js/setTimeout search-next 0 (inc i) tl-rest (pop stack))
-                               
-                               ;; else keep looping without modifying the stack
-                               (js/setTimeout search-next 0 (inc i) tl-rest stack)))))]
-       (search-next 0 tl-entries ())
+                             (js/setTimeout search-next 0 (inc i) tl-rest))))]
+       (search-next 0 tl-entries)
        interrupt-fn)))
 
-(defn search-next-frame-idx [& args]
-  (submit-interruptible-task! search-next-frame-idx* args))
+(defn search-next-frame [& args]
+  (submit-interruptible-task! search-next-frame* args))
 
 (def discard-flow indexes-api/discard-flow)
 
@@ -346,7 +340,7 @@
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
              :find-fn-frames-light find-fn-frames-light
-             :search-next-frame-idx search-next-frame-idx
+             :search-next-frame search-next-frame
              :discard-flow discard-flow
              :def-value def-value
              :tap-value tap-value

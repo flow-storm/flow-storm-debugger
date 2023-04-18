@@ -53,6 +53,11 @@
    :clj (defn ml-count [^ArrayList mlist]
           (.size mlist)))
 
+#?(:cljs (defn ml-sub-list [mlist from to]
+           (.slice mlist from to))
+   :clj (defn ml-sub-list [^ArrayList mlist from to]
+          (.subList mlist from to)))
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mutable hashmap ;;
 ;;;;;;;;;;;;;;;;;;;;;

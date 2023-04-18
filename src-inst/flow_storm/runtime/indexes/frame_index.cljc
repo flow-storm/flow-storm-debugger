@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.indexes.frame-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :as index-utils :refer [make-mutable-stack ms-peek ms-push ms-pop ms-count
-                                                                      make-mutable-list ml-get ml-add ml-count]]
+                                                                      make-mutable-list ml-get ml-add ml-count ml-sub-list]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]
@@ -219,6 +219,12 @@
   (timeline-seq [this]
     (locking this
       (doall (seq timeline))))
+
+  (timeline-sub-seq [this from to]
+    (locking this
+      (let [from (or from 0)
+            to (or to (dec (ml-count timeline)))]
+        (doall (seq (ml-sub-list timeline from to))))))
 
   (frame-data [this idx {:keys [include-path?]}]
     (locking this
