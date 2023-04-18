@@ -218,7 +218,7 @@
         (highlight-executing text)))))
 
 (defn arm-and-highlight-interesting-form-tokens [flow-id thread-id next-form-id next-idx]
-  (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx)
+  (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx {})
         next-exec-expr (->> expr-executions
                             (group-by :coor))]
 
@@ -244,8 +244,8 @@
              ;; a frame
              first-jump? (and (zero? curr-idx) (zero? next-idx))
              changing-frame? (or first-jump?
-                                 (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx))
-                                       (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx))))
+                                 (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx {}))
+                                       (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx {}))))
              changing-form? (or first-jump?
                                 (not= curr-form-id next-form-id))]
 
@@ -293,7 +293,7 @@
 
 (defn step-out [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
-        {:keys [parent-frame-idx]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx)]
+        {:keys [parent-frame-idx]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {})]
     (jump-to-coord flow-id
                    thread-id
                    parent-frame-idx)))

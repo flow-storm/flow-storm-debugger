@@ -36,7 +36,7 @@
   (get-form [_ flow-id thread-id form-id])
   (timeline-count [_ flow-id thread-id])
   (timeline-entry [_ flow-id thread-id idx])
-  (frame-data [_ flow-id thread-id idx])
+  (frame-data [_ flow-id thread-id idx opts])
   (bindings [_ flow-id thread-id idx])
   (callstack-tree-root-node [_ flow-id thread-id])
   (callstack-node-childs [_ node])
@@ -110,7 +110,7 @@
   (get-form [_ flow-id thread-id form-id] (api-call :local api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :local "timeline-entry" [flow-id thread-id idx]))
-  (frame-data [_ flow-id thread-id idx] (api-call :local "frame-data" [flow-id thread-id idx]))
+  (frame-data [_ flow-id thread-id idx opts] (api-call :local "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx] (api-call :local "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :local "callstack-tree-root-node" [flow-id thread-id]))
   (callstack-node-childs [_ node] (api-call :local "callstack-node-childs" [node]))
@@ -203,7 +203,7 @@
   (get-form [_ flow-id thread-id form-id] (api-call :remote api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :remote "timeline-entry" [flow-id thread-id idx]))
-  (frame-data [_ flow-id thread-id idx] (api-call :remote "frame-data" [flow-id thread-id idx]))
+  (frame-data [_ flow-id thread-id idx opts] (api-call :remote "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx] (api-call :remote "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :remote "callstack-tree-root-node" [flow-id thread-id]))
   (callstack-node-childs [_ node] (api-call :remote "callstack-node-childs" [node]))

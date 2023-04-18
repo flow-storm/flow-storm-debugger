@@ -483,7 +483,7 @@
 
   (indexes-api/timeline-entry flow-id thread-id 2)
 
-  (indexes-api/frame-data flow-id thread-id 2)
+  (indexes-api/frame-data flow-id thread-id 2 {})
 
   (indexes-api/bindings flow-id thread-id 52)
 

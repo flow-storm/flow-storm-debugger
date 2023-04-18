@@ -6,7 +6,7 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button]])
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button border-pane]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
            [javafx.scene.input KeyCode]
@@ -34,7 +34,7 @@
         tree-root-node (runtime-api/callstack-tree-root-node rt-api flow-id thread-id)
         root-item (lazy-tree-item tree-root-node)
         [tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")]
-
+    (.setExpanded root-item true)
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
@@ -44,23 +44,6 @@
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
-
-#_(defn- create-call-stack-tree-text-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id item-level]
-  ;; Important !
-  ;; this will be called for all visible tree nodes after any expansion
-  ;; so it should be fast
-  (if (:root? frame)
-
-    "."
-
-    (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api flow-id thread-id form-id)
-          form-hint (if (= item-level 1)
-                      (utils/elide-string (pr-str form) 80)
-                      "")]
-
-      (if dispatch-val
-        (format "(%s/%s %s %s) %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec) form-hint)
-        (format "(%s/%s %s) %s" fn-ns fn-name (format-tree-fn-call-args args-vec) form-hint)))))
 
 (defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id item-level]
   ;; Important !
@@ -90,6 +73,23 @@
         (.scrollTo tree-view tree-cell-idx)
         (.select ^SelectionModel tree-selection-model tree-item)))))
 
+(defn expand-path [^TreeItem tree-item select-idx path-set]
+  (when-not (.isEmpty (.getChildren tree-item))
+    (doseq [child-item (.getChildren tree-item)]
+      (let [cnode (.getValue child-item)
+            {:keys [frame-idx]} (runtime-api/callstack-node-frame rt-api cnode)]
+        (when (path-set frame-idx)
+          (.setExpanded tree-item true)
+          (when-not (= select-idx frame-idx)
+            (expand-path child-item select-idx path-set)))))))
+
+(defn expand-and-highlight [flow-id thread-id [curr-idx :as frame-idx-path]]
+  (ui-utils/run-later
+   (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
+         root-item (.getRoot tree-view)]
+     (expand-path root-item curr-idx (into #{} frame-idx-path))
+     (select-call-stack-tree-node flow-id thread-id curr-idx))))
+
 (defn- create-tree-search-pane [flow-id thread-id]
   (let [search-txt (doto (TextField.)
                      (.setPromptText "Search"))
@@ -107,8 +107,6 @@
                  (doto search-match-lbl
                    (.setOnMouseClicked (event-handler [ev]))
                    (.setStyle ""))
-
-                 (state/callstack-tree-collapse-all-calls flow-id thread-id)
 
                  (let [task-id (runtime-api/search-next-frame-idx
                                 rt-api
@@ -130,11 +128,9 @@
 
                                                       (if frame-data
                                                         (let [[match-idx] match-stack]
-                                                          (state/callstack-tree-select-path flow-id
-                                                                                            thread-id
-                                                                                            match-stack)
+
                                                           (ui-utils/run-later
-                                                           (update-call-stack-tree-pane flow-id thread-id)
+                                                           (expand-and-highlight flow-id thread-id match-stack)
                                                            (doto search-match-lbl
                                                              (.setText  (format "Match idx %d" match-idx))
                                                              (.setOnMouseClicked (event-handler
@@ -180,9 +176,6 @@
                   item-level (.getTreeItemLevel tree-view tree-item)
                   frame (runtime-api/callstack-node-frame rt-api tree-node)
                   frame-idx (:frame-idx frame)
-                  expanded? (or (nil? frame-idx)
-                                (state/callstack-tree-item-expanded? flow-id thread-id frame-idx))
-                  tree-item (.getTreeItem this)
                   update-tree-btn (icon-button :icon-name "mdi-reload"
                                                :class "reload-tree-btn"
                                                :on-click (fn []
@@ -203,25 +196,25 @@
                   (.setText nil)))
 
               (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell frame-idx) this)
+              )))))))
 
-              (doto tree-item
-                (.addEventHandler (TreeItem/branchCollapsedEvent)
-                                  (event-handler
-                                   [ev]
-                                   (when (= (.getTreeItem ev) tree-item)
-                                     (state/callstack-tree-collapse-calls flow-id thread-id #{frame-idx}))))
-                (.addEventHandler (TreeItem/branchExpandedEvent)
-                                  (event-handler
-                                   [ev]
-                                   (when (= (.getTreeItem ev) tree-item)
-                                     (state/callstack-tree-expand-calls flow-id thread-id #{frame-idx}))))
-                (.setExpanded expanded?)))))))))
+(defn highlight-current-frame [flow-id thread-id]
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        {:keys [frame-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
+    (expand-and-highlight flow-id thread-id frame-idx-path)))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
   (let [tree-view (doto (TreeView.)
                     (.setEditable false))
         tree-cell-factory (build-tree-cell-factory flow-id thread-id tree-view)
         search-pane (create-tree-search-pane flow-id thread-id)
+        controls-box (doto (h-box [(icon-button :icon-name "mdi-adjust"
+                                                :on-click (fn [] (highlight-current-frame flow-id thread-id))
+                                                :tooltip "Highlight current frame")])
+                       (.setAlignment Pos/CENTER_RIGHT)
+                       (.setSpacing 3.0))
+        top-pane (border-pane {:left controls-box
+                               :right search-pane})
         _ (doto tree-view
             (.setCellFactory tree-cell-factory))
         tree-view-sel-model (.getSelectionModel tree-view)
@@ -267,7 +260,7 @@
     (VBox/setVgrow tree-view Priority/ALWAYS)
     (-> top-bottom-split
         .getItems
-        (.addAll [(v-box [search-pane tree-view])
+        (.addAll [(v-box [top-pane tree-view])
                   args-ret-pane]))
 
     top-bottom-split))

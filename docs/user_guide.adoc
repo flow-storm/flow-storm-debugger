@@ -580,6 +580,8 @@ If FlowStorm keeps receiving traces for the thread you are analyzing, it will ke
 You can use the refresh button at the root to update it.
 ====
 
+Use the button at the top left corner of the tree tool to show the current frame of the debugger in the tree.
+
 There are also two <<#_value_panels,value panels>> at the bottom that show the arguments and return value for the currently selected function call.
 
 ==== Searching
@@ -858,7 +860,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 (defn frame-similar-values [idx]
   (let [[flow-id thread-id] @index-api/selected-thread
         {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-        {:keys [expr-executions]} (indexes/frame-data frame-index idx)
+        {:keys [expr-executions]} (indexes/frame-data frame-index idx {})
         {:keys [coor]} (indexes/timeline-entry frame-index idx)]
 
     (->> expr-executions

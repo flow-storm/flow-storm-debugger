@@ -1656,6 +1656,9 @@ You can use the refresh button at the root to update it.</p>
 </table>
 </div>
 <div class="paragraph">
+<p>Use the button at the top left corner of the tree tool to show the current frame of the debugger in the tree.</p>
+</div>
+<div class="paragraph">
 <p>There are also two <a href="#_value_panels">value panels</a> at the bottom that show the arguments and return value for the currently selected function call.</p>
 </div>
 <div class="sect4">
@@ -2057,7 +2060,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 </span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">frame-similar-values</span><span class="w"> </span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w">
   </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
         </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">frame-index</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/get-thread-indexes</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">)</span><span class="w">
-        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">expr-executions</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">indexes/frame-data</span><span class="w"> </span><span class="n">frame-index</span><span class="w"> </span><span class="n">idx</span><span class="p">)</span><span class="w">
+        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">expr-executions</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">indexes/frame-data</span><span class="w"> </span><span class="n">frame-index</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="p">{})</span><span class="w">
         </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">coor</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">indexes/timeline-entry</span><span class="w"> </span><span class="n">frame-index</span><span class="w"> </span><span class="n">idx</span><span class="p">)]</span><span class="w">
 
     </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">expr-executions</span><span class="w">
@@ -2418,7 +2421,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-17 07:33:00 -0300
+Last updated 2023-04-18 14:12:18 -0300
 </div>
 </div>
 </body>

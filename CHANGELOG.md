@@ -4,6 +4,8 @@
 	
 ### New Features
 
+	- Add "Highlight current frame" on the call tree tool
+	
 ### Changes
 	
 ### Bugs fixed

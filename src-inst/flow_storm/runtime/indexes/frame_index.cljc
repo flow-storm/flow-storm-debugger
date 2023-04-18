@@ -108,6 +108,21 @@
 (defn make-tree-node [frame]
   (->TreeNode frame (make-mutable-list)))
 
+(defn get-frame-idx-path
+
+  "Return a path of timeline indexes from (0 ... frame)"
+  
+  [timeline frame-idx]  
+  (loop [curr-frame-idx frame-idx
+         frame-idx-path []]
+    (if (zero? curr-frame-idx)
+      (conj frame-idx-path 0) 
+      (let [parent-fr (-> (ml-get timeline curr-frame-idx)
+                          fn-call-trace/get-frame-node
+                          index-protos/get-frame)
+            parent-fr-idx (index-protos/get-parent-timeline-idx parent-fr)]
+        (recur parent-fr-idx (conj frame-idx-path curr-frame-idx))))))
+
 (deftype MutableFrameIndex [root-node
                             build-stack
                             timeline]
@@ -205,16 +220,18 @@
     (locking this
       (doall (seq timeline))))
 
-  (frame-data [this idx]
+  (frame-data [this idx {:keys [include-path?]}]
     (locking this
       (let [tl-entry (ml-get timeline idx)
             frame-node (cond
                          (fn-call-trace/fn-call-trace? tl-entry) (fn-call-trace/get-frame-node tl-entry)                       
                          (fn-return-trace/fn-return-trace? tl-entry) (fn-return-trace/get-frame-node tl-entry) 
-                         (expr-trace/expr-trace? tl-entry) (expr-trace/get-frame-node tl-entry))]
-        (-> frame-node
-            index-protos/get-frame 
-            index-protos/get-immutable-frame))))
+                         (expr-trace/expr-trace? tl-entry) (expr-trace/get-frame-node tl-entry))
+            {:keys [frame-idx] :as fr-data} (-> frame-node
+                                                index-protos/get-frame 
+                                                index-protos/get-immutable-frame)]        
+        (cond-> fr-data
+          include-path? (assoc :frame-idx-path (get-frame-idx-path timeline frame-idx))))))
 
   (reset-build-stack [_]
     (loop [stack build-stack]

@@ -12,7 +12,7 @@
   (timeline-entry [_ idx])
   (timeline-frame-seq [_])
   (timeline-seq [_])
-  (frame-data [_ idx])
+  (frame-data [_ idx opts])
   (reset-build-stack [_])
   (callstack-tree-root-node [_]))
 

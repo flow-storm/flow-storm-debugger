@@ -109,7 +109,8 @@
      (utils/log "Runtime index system stopped")))
 
 (defn flow-exists? [flow-id]  
-  (indexes/flow-exists? flow-thread-registry flow-id))
+  (when flow-thread-registry
+    (indexes/flow-exists? flow-thread-registry flow-id)))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:frame-index (frame-index/make-index)
@@ -192,9 +193,9 @@
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (indexes/timeline-entry frame-index idx)))
 
-(defn frame-data [flow-id thread-id idx]
+(defn frame-data [flow-id thread-id idx opts]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (indexes/frame-data frame-index idx)))
+    (indexes/frame-data frame-index idx opts)))
 
 (defn- coor-in-scope? [scope-coor current-coor]
   (if (empty? scope-coor)
@@ -210,7 +211,8 @@
 
       (= :expr (:timeline/type entry))
       (let [expr entry
-            {:keys [bindings]} (frame-data flow-id thread-id idx)]
+            {:keys [frame-index]} (get-thread-indexes flow-id thread-id)            
+            {:keys [bindings]} (indexes/frame-data frame-index idx {})]
         (->> bindings
              (keep (fn [bind]
                      (when (and (coor-in-scope? (:coor bind) (:coor expr))
@@ -222,10 +224,10 @@
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
     (indexes/callstack-tree-root-node frame-index)))
 
-(defn callstack-node-childs [node]
+(defn callstack-node-childs [node]  
   (indexes/get-childs node))
 
-(defn callstack-node-frame [node]
+(defn callstack-node-frame [node]  
   (indexes/get-node-immutable-frame node))
 
 (defn reset-all-threads-trees-build-stack [flow-id]

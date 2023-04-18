@@ -133,7 +133,7 @@
   (defn frame-similar-values [idx]
     (let [[flow-id thread-id] @index-api/selected-thread
           {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-          {:keys [expr-executions]} (frame-index/frame-data frame-index idx)
+          {:keys [expr-executions]} (frame-index/frame-data frame-index idx {})
           {:keys [coor]} (frame-index/timeline-entry frame-index idx)]
 
       (->> expr-executions

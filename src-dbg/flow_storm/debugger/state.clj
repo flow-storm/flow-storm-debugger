@@ -60,24 +60,3 @@
 (defn callstack-tree-hidden? [flow-id thread-id fn-name fn-ns]
   (let [hidden-set (get-in @state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
     (contains? hidden-set {:name fn-name :ns fn-ns})))
-
-(defn callstack-tree-item-expanded? [flow-id thread-id frame-idx]
-  (let [expanded-set (get-in @state [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces])]
-    (contains? expanded-set frame-idx)))
-
-(defn callstack-tree-expand-calls [flow-id thread-id fn-call-trace-indexes]
-  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] into fn-call-trace-indexes))
-
-(defn callstack-tree-select-path [flow-id thread-id select-path]
-  (let [[target-id & parents-ids] select-path]
-    (swap! state update-in [:flows flow-id :flow/threads thread-id]
-           (fn [thread]
-             (-> thread
-                 (assoc :thread/callstack-expanded-traces (into #{} parents-ids))
-                 (assoc :thread/callstack-selected-idx target-id))))))
-
-(defn callstack-tree-collapse-calls [flow-id thread-id fn-call-trace-indexes]
-  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] (fn [traces] (apply disj traces fn-call-trace-indexes))))
-
-(defn callstack-tree-collapse-all-calls [flow-id thread-id]
-  (swap! state assoc-in [:flows flow-id :flow/threads thread-id :thread/callstack-expanded-traces] #{}))

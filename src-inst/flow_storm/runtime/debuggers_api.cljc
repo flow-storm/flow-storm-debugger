@@ -76,8 +76,8 @@
                     :expr (update entry :result reference-value!))]
     ref-entry)) 
 
-(defn frame-data [flow-id thread-id idx]
-  (let [frame-data (indexes-api/frame-data flow-id thread-id idx)]
+(defn frame-data [flow-id thread-id idx opts]
+  (let [frame-data (indexes-api/frame-data flow-id thread-id idx opts)]
     (reference-frame-data! frame-data)))
 
 (defn bindings [flow-id thread-id idx]
@@ -132,7 +132,7 @@
                              tl-entries (index-protos/timeline-seq frame-index)                             
                              match-stack (loop [i 0
                                                 [tl-entry & tl-rest] tl-entries
-                                                stack ()]
+                                                stack (list 0)]
                                            (when (and (< i total-traces)
                                                       (not (.isInterrupted (Thread/currentThread))))                        
 
@@ -161,7 +161,7 @@
                                                  ;; else keep looping without modifying the stack
                                                  (recur (inc i) tl-rest stack)))))
                              result (when-let [found-idx (first match-stack)]           
-                                      {:frame-data (-> (index-protos/frame-data frame-index found-idx)
+                                      {:frame-data (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
                                                        (dissoc :bindings :expr-executions)
                                                        reference-frame-data!) 
                                        :match-stack match-stack})]                       
@@ -199,7 +199,7 @@
                                  (let [final-stack (conj stack i)
                                        found-idx (first final-stack)
                                        result (when found-idx
-                                                {:frame-data (-> (index-protos/frame-data frame-index found-idx)
+                                                {:frame-data (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
                                                                  (dissoc :bindings :expr-executions)
                                                                  reference-frame-data!) 
                                                  :match-stack final-stack})]                                   
