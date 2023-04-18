@@ -8,6 +8,8 @@
 	
 ### Bugs fixed
 
+	- Don't crash if tracer functions are called before the system is fully started
+
 ## 3.4.1 (17-04-2023)
 	
 ### New Features

@@ -144,9 +144,12 @@
 
 (defn add-fn-call-trace [flow-id thread-id thread-name trace]
   (let [{:keys [frame-index fn-call-stats-index]} (get-or-create-thread-indexes flow-id thread-id thread-name (fn-call-trace/get-form-id trace))]
-
-    (indexes/add-fn-call frame-index trace)
-    (indexes/add-fn-call fn-call-stats-index trace)))
+    
+    (when frame-index
+      (indexes/add-fn-call frame-index trace))
+    
+    (when fn-call-stats-index
+      (indexes/add-fn-call fn-call-stats-index trace))))
 
 (defn add-fn-return-trace [flow-id thread-id trace]
   (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]    
@@ -168,7 +171,8 @@
 ;;;;;;;;;;;;;;;;;
 
 (defn get-form [_ _ form-id]
-  (indexes/get-form forms-registry form-id))
+  (when forms-registry
+    (indexes/get-form forms-registry form-id)))
 
 (defn all-threads []
   (indexes/all-threads flow-thread-registry))
