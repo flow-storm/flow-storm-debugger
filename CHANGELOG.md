@@ -6,6 +6,7 @@
 
 	- Add "Highlight current frame" on the call tree tool
 	- Add stack tab to code stepping tool
+	- Add a result pane on the functions list tool
 	
 ### Changes
 	

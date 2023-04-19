@@ -96,22 +96,29 @@
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :frame-idx)
+        ret-val (-> selected-items first :ret)
         jump-to-idx (fn []
                       (ui-flows-gral/select-tool-tab flow-id thread-id :code)
                       (flows-code/jump-to-coord flow-id thread-id idx))]
+
     (cond
-     (and (= MouseButton/PRIMARY (.getButton mev))
-          (= 2 (.getClickCount mev)))
+      (and (= MouseButton/PRIMARY (.getButton mev))
+           (= 1 (.getClickCount mev)))
 
-     (jump-to-idx)
+      (flow-cmp/update-pprint-pane flow-id thread-id "functions-calls-ret-val" ret-val)
 
-     (= MouseButton/SECONDARY (.getButton mev))
-     (let [ctx-menu (ui-utils/make-context-menu [{:text "Step code"
-                                                  :on-click jump-to-idx}])]
-       (.show ctx-menu
-              list-view-pane
-              (.getScreenX mev)
-              (.getScreenY mev))))))
+      (and (= MouseButton/PRIMARY (.getButton mev))
+           (= 2 (.getClickCount mev)))
+
+      (jump-to-idx)
+
+      (= MouseButton/SECONDARY (.getButton mev))
+      (let [ctx-menu (ui-utils/make-context-menu [{:text "Step code"
+                                                   :on-click jump-to-idx}])]
+        (.show ctx-menu
+               list-view-pane
+               (.getScreenX mev)
+               (.getScreenY mev))))))
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
   (let [args-checks (repeatedly max-args (fn [] (doto (CheckBox.)
@@ -140,13 +147,23 @@
 (defn create-functions-pane [flow-id thread-id]
   (let [fns-list-pane (create-fns-list-pane flow-id thread-id)
         fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
+        fn-calls-ret-pane (flow-cmp/create-pprint-pane flow-id thread-id "functions-calls-ret-val")
+        right-split-pane (doto (SplitPane.)
+                           (.setOrientation (Orientation/VERTICAL)))
         split-pane (doto (SplitPane.)
                      (.setOrientation (Orientation/HORIZONTAL)))]
+
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
+
+    (-> right-split-pane
+        .getItems
+        (.addAll [fn-calls-list-pane fn-calls-ret-pane]))
+
+    (.setDividerPosition right-split-pane 0 0.7)
 
     (-> split-pane
         .getItems
-        (.addAll [fns-list-pane fn-calls-list-pane]))
+        (.addAll [fns-list-pane right-split-pane]))
     split-pane))
 
 (defn update-functions-pane [flow-id thread-id]

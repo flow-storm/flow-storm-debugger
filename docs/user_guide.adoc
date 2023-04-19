@@ -635,7 +635,7 @@ for each call, and you can use the check boxes at the top to hide some of them.
 
 image::user_guide_images/function_calls.png[]
 
-Double clicking on any item in the functions call list will move the debugger to that specific point in time.
+Clicking on any item will display the result of the call in the value pane, while double clicking on any item in the functions call list will move the debugger to that specific point in time.
 
 ==== Un-instrumenting functions
 
