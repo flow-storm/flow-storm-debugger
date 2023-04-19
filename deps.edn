@@ -12,7 +12,7 @@
 
         io.github.clojure/tools.build {:mvn/version "0.9.4"
                                        :exclusions [com.google.guava/guava]}
-        com.github.jpmonettas/hansel {:mvn/version "0.1.52"}
+        com.github.jpmonettas/hansel {:mvn/version "0.1.54"}
 
         ;; Comment out for releasing INST ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
