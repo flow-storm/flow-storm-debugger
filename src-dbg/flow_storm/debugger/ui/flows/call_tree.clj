@@ -9,7 +9,7 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button border-pane]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
-           [javafx.scene.input KeyCode]
+           [javafx.scene.input KeyCode MouseButton]
            [ javafx.beans.value ChangeListener]
            [javafx.geometry Insets Pos Orientation]
            [javafx.scene.layout HBox Priority VBox]))
@@ -195,8 +195,7 @@
                   (.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id item-level))
                   (.setText nil)))
 
-              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell frame-idx) this)
-              )))))))
+              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell frame-idx) this))))))))
 
 (defn highlight-current-frame [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
@@ -221,11 +220,19 @@
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
+        jump-to-selected-frame-code (fn [& _]
+                                      (let [{:keys [frame-idx]} (get-selected-frame)]
+                                        (ui-flows-gral/select-tool-tab flow-id thread-id :code)
+                                        (flow-code/jump-to-coord flow-id thread-id frame-idx)))
+        _ (doto tree-view
+            (.setOnMouseClicked (event-handler
+                                 [mev]
+                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
+                                            (= 2 (.getClickCount mev)))
+                                   (jump-to-selected-frame-code)
+                                   (.consume mev)))))
         ctx-menu-options [{:text "Step code"
-                           :on-click (fn [& _]
-                                       (let [{:keys [frame-idx]} (get-selected-frame)]
-                                         (ui-flows-gral/select-tool-tab flow-id thread-id :code)
-                                         (flow-code/jump-to-coord flow-id thread-id frame-idx)))}
+                           :on-click jump-to-selected-frame-code}
                           {:text "Hide from tree"
                            :on-click (fn [& _]
                                        (let [{:keys [fn-name fn-ns]} (get-selected-frame)]
