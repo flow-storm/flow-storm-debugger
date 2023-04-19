@@ -1,6 +1,6 @@
 (ns flow-storm.runtime.debuggers-api
   (:require [flow-storm.runtime.indexes.api :as indexes-api]            
-            [flow-storm.utils :as utils :refer [log]]
+            [flow-storm.utils :as utils :refer [log]]            
             [flow-storm.runtime.events :as rt-events]                        
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
@@ -232,6 +232,25 @@
                                        [:fn-ns :fn-name :frame-idx])))
             []
             frame-idx-path)))
+
+(defn jump-to-last-exception []
+  (let [last-ex-loc (indexes-api/get-last-exception-location)]
+    (if last-ex-loc
+      (goto-location nil last-ex-loc)
+      (println "No exception recorded"))))
+
+(defn jump-to-last-expression-in-this-thread
+  ([] (jump-to-last-expression-in-this-thread nil))
+  ([flow-id]
+   (let [thread-id (utils/get-current-thread-id)
+         last-ex-loc (let [cnt (indexes-api/timeline-count flow-id thread-id)]
+                       {:thread/id thread-id
+                        :thread/name (utils/get-current-thread-name)
+                        :thread/idx (dec cnt)})]
+     (if last-ex-loc
+       (goto-location flow-id last-ex-loc)
+       (println "No recordings for this thread yet")))))
+
 
 (defn ping [] :pong)
 

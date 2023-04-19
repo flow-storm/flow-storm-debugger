@@ -24,21 +24,9 @@
 
     (fs-api/local-connect config)))
 
-(defn jump-to-last-exception []
-  (let [last-ex-loc (indexes-api/get-last-exception-location)]
-    (if last-ex-loc
-      (debuggers-api/goto-location nil last-ex-loc)
-      (println "No exception recorded"))))
+(def jump-to-last-exception debuggers-api/jump-to-last-exception)
 
-(defn jump-to-last-expression []
-  (let [thread-id (.getId (Thread/currentThread))
-        last-ex-loc (let [cnt (indexes-api/timeline-count nil thread-id)]
-                      {:thread/id thread-id
-                       :thread/name (.getName (Thread/currentThread))
-                       :thread/idx (dec cnt)})]
-    (if last-ex-loc
-      (debuggers-api/goto-location nil last-ex-loc)
-      (println "No recordings for this thread yet"))))
+(def jump-to-last-expression debuggers-api/jump-to-last-expression-in-this-thread)
 
 (defn reset-all-threads-trees-build-stack []
   (indexes-api/reset-all-threads-trees-build-stack nil))
