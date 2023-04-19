@@ -2,7 +2,7 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.debugger.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
@@ -113,6 +113,28 @@
   (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "locals_list")]
     (clear)
     (add-all bindings)))
+
+(defn- create-stack-pane [flow-id thread-id]
+  (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name]}]
+                       (.setGraphic list-cell (label (str fn-ns "/" fn-name) "link-lbl")))
+        item-click (fn [mev selected-items _]
+                     (let [{:keys [frame-idx]} (first selected-items)]
+                       (when (= MouseButton/PRIMARY (.getButton mev))
+                         (jump-to-coord flow-id thread-id frame-idx))))
+        {:keys [list-view-pane] :as lv-data}
+        (list-view {:editable? false
+                    :selection-mode :single
+                    :cell-factory-fn cell-factory
+                    :on-click item-click})]
+    (store-obj flow-id thread-id "stack_list" lv-data)
+
+    list-view-pane))
+
+(defn- update-frames-stack [flow-id thread-id frame-idx]
+  (let [stack (runtime-api/stack-for-frame rt-api flow-id thread-id frame-idx)
+        [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "stack_list")]
+    (clear)
+    (add-all stack)))
 
 (defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
   (let [[^Label lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
@@ -243,11 +265,11 @@
              ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
              ;; a frame
              first-jump? (and (zero? curr-idx) (zero? next-idx))
-             changing-frame? (or first-jump?
-                                 (not= (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id curr-idx {}))
-                                       (:frame-idx (runtime-api/frame-data rt-api flow-id thread-id next-idx {}))))
-             changing-form? (or first-jump?
-                                (not= curr-form-id next-form-id))]
+             curr-frame (runtime-api/frame-data rt-api flow-id thread-id curr-idx {})
+             next-frame (runtime-api/frame-data rt-api flow-id thread-id next-idx {})
+             changing-frame? (not= (:frame-idx curr-frame)
+                                   (:frame-idx next-frame))
+             changing-form? (not= curr-form-id next-form-id)]
 
          ;; update thread current trace label and total traces
          (.setText curr-trace-text-field (str (inc next-idx)))
@@ -256,9 +278,11 @@
          (when first-jump?
            (highlight-form flow-id thread-id next-form-id))
 
-         (when changing-frame?
+         (when (or first-jump? changing-frame?)
 
-           (when changing-form?
+           (update-frames-stack flow-id thread-id (:frame-idx next-frame))
+
+           (when (or first-jump? changing-form?)
              (unhighlight-form flow-id thread-id curr-form-id)
              (highlight-form flow-id thread-id next-form-id))
 
@@ -393,13 +417,20 @@
                              (.setOrientation (Orientation/VERTICAL)))
         forms-pane (create-forms-pane flow-id thread-id)
         result-pane (create-result-pane flow-id thread-id)
-        locals-pane (create-locals-pane flow-id thread-id)]
+        locals-stack-tab-pane (tab-pane {:tabs [(tab {:text "Locals"
+                                                      :content (create-locals-pane flow-id thread-id)
+                                                      :tooltip "Locals"})
+                                                (tab {:text "Stack"
+                                                      :content (create-stack-pane flow-id thread-id)
+                                                      :tooltip "Locals"})]
+                                         :side :top
+                                         :closing-policy :unavailable})]
 
     (.setDividerPosition left-right-pane 0 0.6)
 
     (-> locals-result-pane
         .getItems
-        (.addAll [result-pane locals-pane]))
+        (.addAll [result-pane locals-stack-tab-pane]))
     (-> left-right-pane
         .getItems
         (.addAll [forms-pane locals-result-pane]))

@@ -131,8 +131,7 @@
                      (try
                        (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)                             
                              tl-entries (index-protos/timeline-sub-seq frame-index from-idx nil)
-                             total-entries (count tl-entries)
-                             _ (prn "@@@@@@@@ searching " from-idx total-entries)
+                             total-entries (count tl-entries)                             
                              found-idx (loop [i 0
                                               [tl-entry & tl-rest] tl-entries]
                                          (when (and tl-entry
@@ -161,8 +160,7 @@
                              result (when found-idx
                                       (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
                                           (dissoc :bindings :expr-executions)
-                                          reference-frame-data!))]
-                         (prn "@@@@ calling on result with" result)
+                                          reference-frame-data!))]                         
                          (on-result result))
                        (catch java.lang.InterruptedException _
                          (utils/log "FlowStorm search thread interrupted")))))
@@ -225,6 +223,15 @@
 
 (defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
   (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
+
+(defn stack-for-frame [flow-id thread-id frame-idx]
+  (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)
+        {:keys [frame-idx-path]} (index-protos/frame-data frame-index frame-idx {:include-path? true})]
+    (reduce (fn [stack fidx]
+              (conj stack (select-keys (index-protos/frame-data frame-index fidx {:include-path? false})
+                                       [:fn-ns :fn-name :frame-idx])))
+            []
+            frame-idx-path)))
 
 (defn ping [] :pong)
 
@@ -349,6 +356,7 @@
              :clear-values-references clear-values-references
              :flow-threads-info flow-threads-info
              :all-flows-threads all-flows-threads
+             :stack-for-frame stack-for-frame
              :ping ping
              #?@(:clj
                  [:all-namespaces all-namespaces

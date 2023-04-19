@@ -64,7 +64,8 @@
   (clear-values-references [_])
   (clear-api-cache [_])
   (all-flows-threads [_])
-  (flow-threads-info [_ flow-id]))
+  (flow-threads-info [_ flow-id])
+  (stack-for-frame [_ flow-id thread-id frame-idx]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -187,7 +188,10 @@
     (api-call :local "flow-threads-info" [flow-id]))
 
   (all-flows-threads [_]
-    (api-call :local "all-flows-threads" [])))
+    (api-call :local "all-flows-threads" []))
+
+  (stack-for-frame [_ flow-id thread-id frame-idx]
+    (api-call :local "stack-for-frame" [flow-id thread-id frame-idx])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -287,6 +291,9 @@
 
   (all-flows-threads [_]
     (api-call :remote "all-flows-threads" []))
+
+  (stack-for-frame [_ flow-id thread-id frame-idx]
+    (api-call :remote "stack-for-frame" [flow-id thread-id frame-idx]))
 
   Closeable
   (close [_] (stop-repl))

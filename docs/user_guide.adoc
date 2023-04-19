@@ -540,6 +540,17 @@ Right clicking on them will show a menu where you can :
 
 	  - define the value with a name, so you can use it at the repl
 	  - inspect the value with the <<#_value_inspector,value inspector>>
+	  - tap the value as with `tap>`
+
+==== Stack
+
+The stack panel will always show the current stacktrace. Be aware that the stacktrace
+only include functions calls that had been recorded, so if you aren't recording everything
+there will be gaps.
+
+image::user_guide_images/stack.png[]
+
+Clicking on any of the stack entries will make the debugger jump to that point in time.
 
 ==== Value panels
 

@@ -702,6 +702,7 @@ pre.rouge {
 <li><a href="#_code_stepping">Code stepping</a></li>
 <li><a href="#_exception_debugging">Exception debugging</a></li>
 <li><a href="#_locals">Locals</a></li>
+<li><a href="#_stack">Stack</a></li>
 <li><a href="#_value_panels">Value panels</a></li>
 <li><a href="#_re_running_a_flow">Re running a flow</a></li>
 </ul>
@@ -1583,7 +1584,26 @@ is to click the last trace button, it will move the debugger to the last trace c
 <li>
 <p>inspect the value with the <a href="#_value_inspector">value inspector</a></p>
 </li>
+<li>
+<p>tap the value as with <code>tap&gt;</code></p>
+</li>
 </ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_stack"><a class="anchor" href="#_stack"></a><a class="link" href="#_stack">Stack</a></h5>
+<div class="paragraph">
+<p>The stack panel will always show the current stacktrace. Be aware that the stacktrace
+only include functions calls that had been recorded, so if you aren&#8217;t recording everything
+there will be gaps.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/stack.png" alt="stack">
+</div>
+</div>
+<div class="paragraph">
+<p>Clicking on any of the stack entries will make the debugger jump to that point in time.</p>
 </div>
 </div>
 <div class="sect4">
@@ -2421,7 +2441,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-18 14:12:18 -0300
+Last updated 2023-04-19 09:19:04 -0300
 </div>
 </div>
 </body>

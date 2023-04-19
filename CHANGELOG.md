@@ -5,6 +5,7 @@
 ### New Features
 
 	- Add "Highlight current frame" on the call tree tool
+	- Add stack tab to code stepping tool
 	
 ### Changes
 	
