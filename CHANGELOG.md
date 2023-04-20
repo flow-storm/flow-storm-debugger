@@ -17,7 +17,8 @@
 	
 ### Bugs fixed
 
-	- Don't crash if tracer functions are called before the system is fully started    
+	- Don't crash if tracer functions are called before the system is fully started
+	- Fix Clojure remote debugging race condition
 
 ## 3.4.1 (17-04-2023)
 	

@@ -111,22 +111,24 @@
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
-   (assoc config :api-call-fn dbg-api/call-by-name))
+   (assoc config
+          :api-call-fn dbg-api/call-by-name
+          :on-connected (fn []
+                          (log "Connected to remote websocket")
+                          ;; subscribe after we have a connection
+                          ;; so events don't get pushed before
+                          (rt-events/subscribe! (fn [ev]
+                                                  (-> [:event ev]
+                                                      serializer/serialize
+                                                      remote-websocket-client/send)))
+                          (rt-values/clear-values-references)
 
-  ;; push all events thru the websocket
-  (rt-events/subscribe! (fn [ev]
-                          (-> [:event ev]
-                              serializer/serialize
-                              remote-websocket-client/send)))
+                          ;; setup the tap system so we send tap> to the debugger
+                          (rt-taps/setup-tap!)
 
-  (rt-values/clear-values-references)
+                          (mem-reporter/run-mem-reporter)
 
-  ;; setup the tap system so we send tap> to the debugger
-  (rt-taps/setup-tap!)
-
-  (mem-reporter/run-mem-reporter)
-
-  (println "Remote Clojure runtime initialized"))
+                          (log "Remote Clojure runtime initialized")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;

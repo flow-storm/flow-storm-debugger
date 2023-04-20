@@ -236,11 +236,6 @@
   (flows-screen/update-threads-list flow-id))
 
 (defn start-ui []
-  ;; Initialize the JavaFX toolkit
-
-  ;; Ensure a task bar icon is shown on MacOS.
-  (System/setProperty "apple.awt.UIElement" "false")
-  (javafx.embed.swing.JFXPanel.)
   (Platform/setImplicitExit false)
 
   (let [runtime-config (runtime-api/runtime-config rt-api)]

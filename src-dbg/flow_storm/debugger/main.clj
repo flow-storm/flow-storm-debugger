@@ -9,7 +9,8 @@
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.repl.core]
             [flow-storm.debugger.config]
-            [flow-storm.state-management :as state-management]))
+            [flow-storm.state-management :as state-management])
+  (:import [javafx.embed.swing JFXPanel]))
 
 (def flow-storm-core-ns 'flow-storm.core)
 
@@ -50,6 +51,11 @@
 
   [{:keys [local?] :as config}]
 
+  ;; Ensure a task bar icon is shown on MacOS.
+  (System/setProperty "apple.awt.UIElement" "false")
+  ;; Initialize the JavaFX toolkit
+  (JFXPanel.)
+
   (if local?
 
     ;; start components for local debugging
@@ -64,4 +70,5 @@
                                                         :clj)
                                             :connect-to-repl? (boolean (:port config))
                                             :repl-kind :nrepl
-                                            :dispatch-event events-queue/enqueue-event!)})))
+                                            :dispatch-event events-queue/enqueue-event!)}))
+  (dbg-state/set-sytem-fully-started))

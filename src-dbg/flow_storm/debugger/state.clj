@@ -60,3 +60,9 @@
 (defn callstack-tree-hidden? [flow-id thread-id fn-name fn-ns]
   (let [hidden-set (get-in @state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
     (contains? hidden-set {:name fn-name :ns fn-ns})))
+
+(defn set-sytem-fully-started []
+  (swap! state assoc :system-fully-started? true))
+
+(defn system-fully-started? []
+  (get @state :system-fully-started?))

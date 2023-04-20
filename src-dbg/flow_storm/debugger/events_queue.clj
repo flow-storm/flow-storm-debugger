@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.events-queue
   (:require [flow-storm.state-management :refer [defstate]]
-            [flow-storm.utils :as utils])
+            [flow-storm.utils :as utils]
+            [flow-storm.debugger.state :as dbg-state])
   (:import [java.util.concurrent ArrayBlockingQueue TimeUnit]))
 
 (declare start-events-queue)
@@ -11,7 +12,8 @@
   :start (fn [_] (start-events-queue))
   :stop (fn [] stop-events-queue))
 
-(def poll-interval 500)
+(def queue-poll-interval 500)
+(def wait-for-system-started-interval 1000)
 
 (defn enqueue-event! [e]
   (when-let [queue (:queue events-queue)]
@@ -25,9 +27,12 @@
                      (try
                        (loop [ev nil]
                          (when-not (.isInterrupted (Thread/currentThread))
+                           (while (not (dbg-state/system-fully-started?))
+                             (utils/log "Waiting for full system start before dispatching events")
+                             (Thread/sleep wait-for-system-started-interval))
                            (when ev
                              (process-event ev))
-                           (recur (.poll events-queue 500 TimeUnit/MILLISECONDS))))
+                           (recur (.poll events-queue queue-poll-interval TimeUnit/MILLISECONDS))))
                        (catch java.lang.InterruptedException _
                          (utils/log "Events thread interrupted"))
                        (catch Exception e
