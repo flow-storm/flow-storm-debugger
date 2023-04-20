@@ -173,7 +173,7 @@
    'flow-storm.runtime.types.expr-trace
    'flow-storm.runtime.indexes.utils])
 
-(def version "3.4.1")
+(def version "3.5-alpha-1")
 
 (defn jar-dbg [_]
   (clean nil)
