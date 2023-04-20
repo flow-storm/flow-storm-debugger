@@ -1,20 +1,12 @@
-{:paths [
-         "src-inst"
-         "src-dbg" ;; Comment out for releasing inst
-         "src-shared"
-         "resources"
-         ]
- :deps {
-        ;; Dependencies needed by both
+{:paths ["src-inst" "src-dbg" "src-shared" "resources"]
+ :deps {;; IMPORTANT !!
+        ;; If adding any dependency for the `inst` part also add it on
+        ;; build.clj jar-inst
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-
-        io.github.clojure/tools.build {:mvn/version "0.9.4"
-                                       :exclusions [com.google.guava/guava]}
+        io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions [com.google.guava/guava]}
         com.github.jpmonettas/hansel {:mvn/version "0.1.54"}
-
-        ;; Comment out for releasing INST ------------------------------------------------
         org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
         org.openjfx/javafx-base {:mvn/version "19.0.2.1"}
         org.openjfx/javafx-graphics {:mvn/version "19.0.2.1"}
@@ -22,12 +14,9 @@
         org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
         org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
-        nrepl/nrepl {:mvn/version "1.0.0"}
-        ;---------------------------------------------------------------------
-        }
+        nrepl/nrepl {:mvn/version "1.0.0"}}
 
- :aliases {:cljs {:extra-deps {nrepl/nrepl {:mvn/version "0.9.0"}
-                               cider/cider-nrepl {:mvn/version "0.28.3"}
+ :aliases {:cljs {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
                                cider/piggieback {:mvn/version "0.5.2"}
                                thheller/shadow-cljs {:mvn/version "2.20.10"}}}
@@ -52,8 +41,7 @@
                             ;;"-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
                             ]}
 
-           :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}
-                                rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}}
+           :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
                    :ns-default build
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
 
