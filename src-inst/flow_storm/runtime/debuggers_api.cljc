@@ -251,6 +251,21 @@
        (goto-location flow-id last-ex-loc)
        (println "No recordings for this thread yet")))))
 
+#?(:clj
+   (defn break-at
+     ([fq-fn-symb] (break-at fq-fn-symb (constantly true)))
+     ([fq-fn-symb args-pred]
+      (tracer/set-break! (namespace fq-fn-symb) (name fq-fn-symb) args-pred)
+      (rt-events/publish-event! (rt-events/make-break-installed-event fq-fn-symb)))))
+
+#?(:clj
+   (defn thread-continue [thread-id]     
+     (tracer/unblock-thread thread-id)))
+
+#?(:clj
+   (defn clear-breaks []
+     (tracer/clear-break!)
+     (rt-events/publish-event! (rt-events/make-break-cleared-event))))
 
 (defn ping [] :pong)
 
@@ -384,7 +399,10 @@
                   :instrument-var instrument-var
                   :uninstrument-var uninstrument-var
                   :instrument-namespaces instrument-namespaces
-                  :uninstrument-namespaces uninstrument-namespaces])})
+                  :uninstrument-namespaces uninstrument-namespaces
+                  :thread-continue thread-continue
+                  :break-at break-at
+                  :clear-breaks clear-breaks])})
 
 (defn call-by-name [fun-key args]  
   (let [f (get api-fn fun-key)]

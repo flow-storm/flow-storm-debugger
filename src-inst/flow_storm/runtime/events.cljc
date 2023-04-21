@@ -21,11 +21,8 @@
                   :form (pr-str form)
                   :timestamp timestamp}])
 
-(defn make-thread-created-event [flow-id thread-id thread-name form-id]
-  [:thread-created {:flow-id flow-id
-                    :thread-id thread-id
-                    :form-id form-id
-                    :thread-name thread-name}])
+(defn make-threads-updated-event [flow-id]
+  [:threads-updated {:flow-id flow-id}])
 
 (defn make-var-instrumented-event [var-name var-ns]
   [:var-instrumented {:var-name var-name
@@ -55,6 +52,12 @@
 
 (defn make-goto-location-event [flow-id thread-id thread-name idx]
   [:goto-location {:flow-id flow-id :thread-id thread-id :thread-name thread-name :idx idx}])
+
+(defn make-break-installed-event [fq-fn-symb]
+  [:break-installed {:fq-fn-symb fq-fn-symb}])
+
+(defn make-break-cleared-event []
+  [:break-cleared {}])
 
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])

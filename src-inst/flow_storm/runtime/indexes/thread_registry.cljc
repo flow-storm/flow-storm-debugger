@@ -15,7 +15,8 @@
              (when (= fid flow-id)
                {:flow/id fid
                 :thread/id tid
-                :thread/name (:thread/name tinfo)})))))
+                :thread/name (:thread/name tinfo)
+                :thread/blocked? (:thread/blocked? tinfo)})))))
 
   (flow-exists? [_ flow-id]    
     (contains? @flows-ids-set flow-id))
@@ -28,12 +29,17 @@
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
     (swap! flows-ids-set conj flow-id)
     (mch-put registry [flow-id thread-id] {:thread/name thread-name
-                                           :thread/indexes indexes})
+                                           :thread/indexes indexes
+                                           :thread/blocked? false})
     (when-let [otc (:on-thread-created @*callbacks)]
       (otc {:flow-id flow-id
             :thread-id thread-id
             :thread-name thread-name
             :form-id form-id})))
+
+  (set-thread-blocked [_ flow-id thread-id blocked?]
+    (let [th-info (mch-get registry [flow-id thread-id])]
+      (mch-put registry [flow-id thread-id] (assoc th-info :thread/blocked? blocked?))))
 
   (discard-threads [_ flow-threads-ids]
     (swap! flows-ids-set disj (ffirst flow-threads-ids))

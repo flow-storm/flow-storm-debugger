@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box]]
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
@@ -60,9 +60,18 @@
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
-                    :cell-factory-fn (fn [list-cell {:keys [thread/name]}]
+                    :cell-factory-fn (fn [list-cell {:keys [thread/name thread/blocked? thread/id]}]
                                        (.setText list-cell nil)
-                                       (.setGraphic list-cell (label name)))
+                                       (.setGraphic
+                                        list-cell
+                                        (if blocked?
+                                          (let [thread-unblock-btn (icon-button :icon-name "mdi-play"
+                                                                                :on-click (fn []
+                                                                                            (runtime-api/thread-continue rt-api id))
+                                                                                :class "thread-continue-btn")]
+                                            (doto (h-box [(label name "thread-blocked") thread-unblock-btn])
+                                              (.setSpacing 5)))
+                                          (label name))))
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))

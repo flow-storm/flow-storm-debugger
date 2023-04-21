@@ -154,6 +154,10 @@
   #?(:clj (.getName (Thread/currentThread))
      :cljs "main"))
 
+(defn get-thread-object-by-id [thread-id]
+  #?(:clj (some #(when (= (.getId %) thread-id) %) (.keySet (Thread/getAllStackTraces)))
+     :cljs thread-id))
+
 (defn get-memory-info []
   #?(:clj  {:max-heap-bytes (.maxMemory (Runtime/getRuntime))
             :heap-size-bytes (.totalMemory (Runtime/getRuntime))

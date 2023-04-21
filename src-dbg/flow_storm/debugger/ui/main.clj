@@ -136,13 +136,32 @@
     tabs-p))
 
 (defn- build-tool-bar-pane []
-  (let [tools [(icon-button :icon-name "mdi-delete-forever"
+  (let [clear-breaks-btn (icon-button :icon-name "mdi-playlist-remove"
+                                      :tooltip "Remove threads break"
+                                      :on-click (fn [])
+                                      :class "clear-break-btn"
+                                      :disable true)
+        tools [(icon-button :icon-name "mdi-delete-forever"
                             :tooltip "Clean all debugger and runtime values references"
                             :on-click (fn [] (clear-all)))
-               (icon-button :icon-name "mdi-stop-circle-outline"
+               (icon-button :icon-name "mdi-stop"
                             :tooltip "Cancel current running task (search, etc)"
-                            :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api)))]]
+                            :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api)))
+               clear-breaks-btn]]
+    (store-obj "clear-breaks-btn" clear-breaks-btn)
     (ToolBar. (into-array Node tools))))
+
+(defn set-break [_]
+  (let [[clear-breaks-btn] (obj-lookup "clear-breaks-btn")]
+    (doto clear-breaks-btn
+      (.setOnAction (event-handler [_] (runtime-api/clear-breaks rt-api)))
+      (.setDisable false))))
+
+(defn clear-break []
+  (let [[clear-breaks-btn] (obj-lookup "clear-breaks-btn")]
+    (doto clear-breaks-btn
+      (.setOnAction (event-handler [_]))
+      (.setDisable true))))
 
 (defn- build-main-pane []
   (let [mp (border-pane {:top (build-tool-bar-pane)

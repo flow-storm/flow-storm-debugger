@@ -34,6 +34,19 @@
     -fx-text-fill: -fx-theme-button1-text;    
 }
 
+.button.thread-continue-btn {
+	-fx-font-size: 8;
+	-fx-background-color: -fx-theme-breakpoint-continue;
+}
+
+.thread-blocked {
+	-fx-text-fill: -fx-theme-breakpoint;
+}
+
+.button.clear-break-btn {
+	-fx-background-color: -fx-theme-breakpoint;
+}
+
 .link-lbl {
 	-fx-text-fill: -fx-theme-links;
 	-fx-cursor: hand;
@@ -167,6 +180,16 @@
     -fx-font-size: 10;
 	-fx-display: none;
 	visibility: hidden;
+}
+
+.button.browser-break-btn {    
+	visibility: hidden;
+    -fx-font-size: 10;    
+    -fx-background-color: -fx-theme-breakpoint;
+}
+
+.button.browser-break-btn.enable {
+	visibility: visible;
 }
 
 .button.browser-instrument-btn.enable {

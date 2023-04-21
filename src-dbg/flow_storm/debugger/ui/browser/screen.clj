@@ -80,6 +80,7 @@
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]       (obj-lookup "browser-instrument-button")
         [browser-instrument-rec-button]   (obj-lookup "browser-instrument-rec-button")
+        [browser-break-button]            (obj-lookup "browser-break-button")
         [selected-fn-fq-name-label]       (obj-lookup "browser-selected-fn-fq-name-label")
         [selected-fn-added-label]         (obj-lookup "browser-selected-fn-added-label")
         [selected-fn-file-label]          (obj-lookup "browser-selected-fn-file-label")
@@ -91,8 +92,10 @@
 
     (add-class browser-instrument-button "enable")
     (add-class browser-instrument-rec-button "enable")
+    (add-class browser-break-button "enable")
     (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
     (.setOnAction browser-instrument-rec-button (event-handler [_] (instrument-function ns name {:deep? true})))
+    (.setOnAction browser-break-button (event-handler [_] (runtime-api/break-at rt-api (symbol (str ns) (str name)))))
 
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
@@ -185,10 +188,13 @@
 (defn create-fn-details-pane []
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
         inst-button (button :label "Instrument" :class "browser-instrument-btn")
+        break-button (button :label "Break"
+                             :class "browser-break-btn"
+                             :tooltip "Add a breakpoint to this function. Threads hitting this function will be paused")
         inst-rec-button (button :label "Instrument recursively" :class "browser-instrument-btn")
         btns-box (doto (h-box (if ui-vars/clojure-storm-env?
-                                []
-                                [inst-button inst-rec-button])
+                                [break-button]
+                                [inst-button inst-rec-button break-button])
                               "browser-var-buttons")
                    (.setSpacing 5))
         name-box (doto (h-box [selected-fn-fq-name-label])
@@ -208,6 +214,7 @@
                                         selected-fn-static-label])]
 
     (store-obj "browser-instrument-button" inst-button)
+    (store-obj "browser-break-button" break-button)
     (store-obj "browser-instrument-rec-button" inst-rec-button)
     (store-obj "browser-selected-fn-fq-name-label" selected-fn-fq-name-label)
     (store-obj "browser-selected-fn-added-label" selected-fn-added-label)

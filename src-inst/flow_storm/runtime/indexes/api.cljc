@@ -67,9 +67,9 @@
                                                 (utils/log "Storm functions plugged in"))
                                               (let [registry (indexes/start-thread-registry
                                                               (thread-registry/make-thread-registry)
-                                                              {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]                                                                    
+                                                              {:on-thread-created (fn [{:keys [flow-id]}]                                                                    
                                                                                     (events/publish-event!
-                                                                                     (events/make-thread-created-event flow-id thread-id thread-name form-id)))})]                                                
+                                                                                     (events/make-threads-updated-event flow-id)))})]                                                
                                                 registry)))
      
      (alter-var-root #'forms-registry (fn [_]                                       
@@ -82,9 +82,9 @@
    (defn start []
      (set! flow-thread-registry (indexes/start-thread-registry
                                  (thread-registry/make-thread-registry)
-                                 {:on-thread-created (fn [{:keys [flow-id thread-id thread-name form-id]}]
+                                 {:on-thread-created (fn [{:keys [flow-id]}]
                                                        (events/publish-event!
-                                                        (events/make-thread-created-event flow-id thread-id thread-name form-id)))}))     
+                                                        (events/make-threads-updated-event flow-id)))}))     
      (set! forms-registry (indexes/start-form-registry
                            (form-registry/make-form-registry)))
      (utils/log "Runtime index system started")))
@@ -271,10 +271,20 @@
     (when flow-thread-registry
       (indexes/discard-threads flow-thread-registry discard-keys))))
 
-#?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main"}])
+#?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main" :thread/blocked? false}])
    :clj (defn flow-threads-info [flow-id]          
           (when flow-thread-registry
             (indexes/flow-threads-info flow-thread-registry flow-id))))
+
+(defn mark-thread-blocked [flow-id thread-id]
+  (when flow-thread-registry
+    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id true)
+    (events/publish-event! (events/make-threads-updated-event flow-id))))
+
+(defn mark-thread-unblocked [flow-id thread-id]
+  (when flow-thread-registry
+    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id false)
+    (events/publish-event! (events/make-threads-updated-event flow-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

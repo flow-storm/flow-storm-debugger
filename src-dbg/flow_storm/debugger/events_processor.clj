@@ -42,7 +42,7 @@
   (ui-utils/run-now
    (ui-main/create-flow flow-info)))
 
-(defn- thread-created-event [{:keys [flow-id]}]
+(defn- threads-updated-event [{:keys [flow-id]}]
   (ui-utils/run-now
    (flows-screen/update-threads-list flow-id)))
 
@@ -69,6 +69,12 @@
    (ui-main/select-main-tools-tab :docs)
    (docs-screen/show-doc var-symbol)))
 
+(defn- break-installed-event [{:keys [fq-fn-symb]}]
+  (ui-main/set-break fq-fn-symb))
+
+(defn- break-cleared-event [_]
+  (ui-main/clear-break))
+
 (defn process-event [[ev-type ev-args-map]]
   (when debug-mode (log (format "Processing event: %s" [ev-type ev-args-map])))
   (case ev-type
@@ -77,10 +83,12 @@
     :namespace-instrumented (namespace-instrumented-event ev-args-map)
     :namespace-uninstrumented (namespace-uninstrumented-event ev-args-map)
     :flow-created (flow-created-event ev-args-map)
-    :thread-created (thread-created-event ev-args-map)
+    :threads-updated (threads-updated-event ev-args-map)
     :tap (tap-event ev-args-map)
     :task-result (task-result-event ev-args-map)
     :task-progress (task-progress-event ev-args-map)
     :heap-info-update (heap-info-update-event ev-args-map)
     :goto-location (goto-location-event ev-args-map)
-    :show-doc (show-doc-event ev-args-map)))
+    :show-doc (show-doc-event ev-args-map)
+    :break-installed (break-installed-event ev-args-map)
+    :break-cleared (break-cleared-event ev-args-map)))

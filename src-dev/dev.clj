@@ -201,6 +201,9 @@
   (io/copy (io/file "/tmp/1670878691457-36075814-1/samples.edn")
            (io/file "samples.edn"))
 
+  (defn bar [a b] (+ a b)) (defn foo [a b] (let [c (+ a b)] (bar c c))) (flow-storm.api/break-at 'user/bar (constantly true))
+  (.start (Thread. (fn [] (doall (pmap (fn [i] (foo i (inc i))) (range 4))))))
 
+  (flow-storm.api/continue)
 
   )

@@ -26,6 +26,8 @@
 	-fx-theme-fail:                               #ff0000;
 	-fx-theme-title-label:                        #336699;
 	-fx-theme-field-label:                        #9c0084;
+	-fx-theme-breakpoint:                         #ff0000;
+	-fx-theme-breakpoint-continue:                #369658;
 }
 
 .root {

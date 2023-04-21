@@ -11,6 +11,37 @@
 (declare start-tracer)
 (declare stop-tracer)
 
+(def thread-break (atom nil))
+
+#?(:clj
+   (defn- block-this-thread [flow-id]
+     (let [thread-obj (Thread/currentThread)
+           tname (.getName thread-obj)
+           tid (.getId thread-obj)]
+       (if (= tname"JavaFX Application Thread")
+
+         (utils/log "WARNING, skipping thread block, trace is being executed by the UI thread and doing so will freeze the UI.")
+
+         (do
+           (utils/log (format "Blocking thread %d %s" tid tname))
+           (indexes-api/mark-thread-blocked flow-id tid)
+           (locking thread-obj
+             (.wait thread-obj))
+           (indexes-api/mark-thread-unblocked flow-id tid)
+           (utils/log (format "Thread %d %s unlocked, continuing ..." tid tname)))))))
+
+#?(:clj
+   (defn unblock-thread [thread-id]
+     (let [thread-obj (utils/get-thread-object-by-id thread-id)]       
+       (locking thread-obj
+         (.notifyAll thread-obj)))))
+
+(defn set-break! [fn-ns fn-name args-pred]
+  (reset! thread-break [fn-ns fn-name args-pred]))
+
+(defn clear-break! []
+  (reset! thread-break nil))
+
 (defn trace-flow-init-trace
 
   "Send flow initialization trace"
@@ -57,6 +88,12 @@
        (trace-fn-call flow-id ns fn-name fn-args form-id))))
   
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
+
+   #?(:clj (when-let [[target-fn-ns target-fn-name args-pred] @thread-break]
+             (when (and (= fn-ns target-fn-ns)
+                        (= fn-name target-fn-name)
+                        (apply args-pred fn-args))               
+               (block-this-thread flow-id))))
    
    (let [timestamp (utils/get-monotonic-timestamp)
          thread-id (utils/get-current-thread-id)
@@ -92,16 +129,14 @@
   
   "Send expression execution trace."
   
-  ([{:keys [result coor form-id]}]  ;; for using with hansel
-   
+  ([{:keys [result coor form-id]}]  ;; for using with hansel   
    (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
      (when-not tracing-disabled?
        (trace-expr-exec flow-id result coor form-id)))
    
    result)
 
-  ([flow-id result coord form-id]  ;; for using with storm
-   
+  ([flow-id result coord form-id]  ;; for using with storm   
    (let [timestamp (utils/get-monotonic-timestamp)
          thread-id (utils/get-current-thread-id)]
      (indexes-api/add-expr-exec-trace      

@@ -65,6 +65,9 @@
   (clear-api-cache [_])
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
+  (thread-continue [_ thread-id])
+  (break-at [_ fq-fn-symb])
+  (clear-breaks [_])
   (stack-for-frame [_ flow-id thread-id frame-idx]))
 
 (defn cached-apply [cache cache-key f args]
@@ -187,6 +190,15 @@
   (flow-threads-info [_ flow-id]
     (api-call :local "flow-threads-info" [flow-id]))
 
+  (thread-continue [_ thread-id]
+    (api-call :local "thread-continue" [thread-id]))
+
+  (break-at [_ fq-fn-symb]
+    (api-call :local "break-at" [fq-fn-symb]))
+
+  (clear-breaks [_]
+    (api-call :local "clear-breaks" []))
+
   (all-flows-threads [_]
     (api-call :local "all-flows-threads" []))
 
@@ -288,6 +300,15 @@
 
   (flow-threads-info [_ flow-id]
     (api-call :remote "flow-threads-info" [flow-id]))
+
+  (thread-continue [_ thread-id]
+    (api-call :remote "thread-continue" [thread-id]))
+
+  (break-at [_ fq-fn-symb]
+    (api-call :remote "break-at" [fq-fn-symb]))
+
+  (clear-breaks [_]
+    (api-call :remote "clear-breaks" []))
 
   (all-flows-threads [_]
     (api-call :remote "all-flows-threads" []))

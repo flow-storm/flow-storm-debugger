@@ -465,6 +465,10 @@
   `(do (tap> (flow-storm.api/current-stack-trace))
        ~form))
 
+(def break-at dbg-api/break-at)
+(def continue dbg-api/thread-continue)
+(def clear-breaks dbg-api/clear-breaks)
+
 (comment
 
   #rtrace (+ 1 2 (* 3 4))
