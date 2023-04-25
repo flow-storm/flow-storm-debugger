@@ -11,7 +11,19 @@
 (declare start-tracer)
 (declare stop-tracer)
 
+(def recording (atom true))
 (def thread-break (atom nil))
+
+(defn set-recording [x]
+  (if x
+    (do
+      (reset! recording true)
+      (indexes-api/reset-all-threads-trees-build-stack nil))
+
+    (reset! recording false)))
+
+(defn recording? []
+  @recording)
 
 #?(:clj
    (defn- block-this-thread [flow-id]
@@ -42,6 +54,9 @@
 (defn clear-break! []
   (reset! thread-break nil))
 
+(defn break-set? []
+  (boolean @thread-break))
+
 (defn trace-flow-init-trace
 
   "Send flow initialization trace"
@@ -60,22 +75,21 @@
   
   [{:keys [form-id ns def-kind dispatch-val form]}]
   
-  (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
-    (when-not tracing-disabled?
-      (let [thread-id (utils/get-current-thread-id)]
-        (when-not (indexes-api/get-form flow-id thread-id form-id)
-          (let [trace {:trace/type :form-init
-                       :flow-id flow-id
-                       :form-id form-id
-                       :thread-id thread-id
-                       :thread-name (utils/get-current-thread-name)
-                       :form form
-                       :ns ns
-                       :def-kind def-kind
-                       :mm-dispatch-val dispatch-val
-                       :timestamp (utils/get-monotonic-timestamp)}]
+  (let [{:keys [flow-id]} *runtime-ctx*
+        thread-id (utils/get-current-thread-id)]
+    (when-not (indexes-api/get-form flow-id thread-id form-id)
+      (let [trace {:trace/type :form-init
+                   :flow-id flow-id
+                   :form-id form-id
+                   :thread-id thread-id
+                   :thread-name (utils/get-current-thread-name)
+                   :form form
+                   :ns ns
+                   :def-kind def-kind
+                   :mm-dispatch-val dispatch-val
+                   :timestamp (utils/get-monotonic-timestamp)}]
 
-            (indexes-api/add-form-init-trace trace)))))))
+        (indexes-api/add-form-init-trace trace)))))
 
 (defn trace-fn-call
 
@@ -83,27 +97,27 @@
   
   ([{:keys [form-id ns fn-name fn-args]}] ;; for using with hansel
    
-   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
-     (when-not tracing-disabled?
-       (trace-fn-call flow-id ns fn-name fn-args form-id))))
+   (let [{:keys [flow-id]} *runtime-ctx*]
+     (trace-fn-call flow-id ns fn-name fn-args form-id)))
   
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
 
-   #?(:clj (when-let [[target-fn-ns target-fn-name args-pred] @thread-break]
-             (when (and (= fn-ns target-fn-ns)
-                        (= fn-name target-fn-name)
-                        (apply args-pred fn-args))               
-               (block-this-thread flow-id))))
-   
-   (let [timestamp (utils/get-monotonic-timestamp)
-         thread-id (utils/get-current-thread-id)
-         thread-name (utils/get-current-thread-name)
-         args (mapv snapshot-reference fn-args)]
-     (indexes-api/add-fn-call-trace
-      flow-id
-      thread-id
-      thread-name
-      (make-fn-call-trace fn-ns fn-name form-id timestamp args)))))
+   (when @recording
+     #?(:clj (when-let [[target-fn-ns target-fn-name args-pred] @thread-break]
+               (when (and (= fn-ns target-fn-ns)
+                          (= fn-name target-fn-name)
+                          (apply args-pred fn-args))               
+                 (block-this-thread flow-id))))
+     
+     (let [timestamp (utils/get-monotonic-timestamp)
+           thread-id (utils/get-current-thread-id)
+           thread-name (utils/get-current-thread-name)
+           args (mapv snapshot-reference fn-args)]
+       (indexes-api/add-fn-call-trace
+        flow-id
+        thread-id
+        thread-name
+        (make-fn-call-trace fn-ns fn-name form-id timestamp args))))))
 
 (defn trace-fn-return
 
@@ -111,38 +125,37 @@
   
   ([{:keys [return coor form-id]}]  ;; for using with hansel
    
-   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
-     (when-not tracing-disabled?
-       (trace-fn-return flow-id return coor form-id))
+   (let [{:keys [flow-id]} *runtime-ctx*]
+     (trace-fn-return flow-id return coor form-id)
      return))
   
   ([flow-id return coord form-id] ;; for using with storm
-
-   (let [timestamp (utils/get-monotonic-timestamp)
-         thread-id (utils/get-current-thread-id)]
-     (indexes-api/add-fn-return-trace
-      flow-id
-      thread-id      
-      (make-fn-return-trace form-id timestamp coord (snapshot-reference return))))))
+   (when @recording
+     (let [timestamp (utils/get-monotonic-timestamp)
+           thread-id (utils/get-current-thread-id)]
+       (indexes-api/add-fn-return-trace
+        flow-id
+        thread-id      
+        (make-fn-return-trace form-id timestamp coord (snapshot-reference return)))))))
 
 (defn trace-expr-exec
   
   "Send expression execution trace."
   
   ([{:keys [result coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
-     (when-not tracing-disabled?
-       (trace-expr-exec flow-id result coor form-id)))
+   (let [{:keys [flow-id]} *runtime-ctx*]
+     (trace-expr-exec flow-id result coor form-id))
    
    result)
 
-  ([flow-id result coord form-id]  ;; for using with storm   
-   (let [timestamp (utils/get-monotonic-timestamp)
-         thread-id (utils/get-current-thread-id)]
-     (indexes-api/add-expr-exec-trace      
-      flow-id
-      thread-id      
-      (make-expr-trace form-id timestamp coord (snapshot-reference result))))))
+  ([flow-id result coord form-id]  ;; for using with storm
+   (when @recording
+     (let [timestamp (utils/get-monotonic-timestamp)
+           thread-id (utils/get-current-thread-id)]
+       (indexes-api/add-expr-exec-trace      
+        flow-id
+        thread-id      
+        (make-expr-trace form-id timestamp coord (snapshot-reference result)))))))
 
 (defn trace-bind
   
@@ -150,18 +163,17 @@
   
   ([{:keys [symb val coor]}] ;; for using with hansel
 
-   (let [{:keys [flow-id tracing-disabled?]} *runtime-ctx*]
-     (when-not tracing-disabled?
-       (trace-bind flow-id coor (name symb) (snapshot-reference val)))))
+   (let [{:keys [flow-id]} *runtime-ctx*]
+     (trace-bind flow-id coor (name symb) (snapshot-reference val))))
 
   ([flow-id coord sym-name val]  ;; for using with storm
-   
-   (let [timestamp (utils/get-monotonic-timestamp)
-         thread-id (utils/get-current-thread-id)]
-     (indexes-api/add-bind-trace      
-      flow-id
-      thread-id      
-      (make-bind-trace timestamp sym-name val coord)))))
+   (when @recording
+     (let [timestamp (utils/get-monotonic-timestamp)
+           thread-id (utils/get-current-thread-id)]
+       (indexes-api/add-bind-trace      
+        flow-id
+        thread-id      
+        (make-bind-trace timestamp sym-name val coord))))))
 
 (defn hansel-config
 

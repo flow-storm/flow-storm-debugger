@@ -68,7 +68,8 @@
   (thread-continue [_ thread-id])
   (break-at [_ fq-fn-symb])
   (clear-breaks [_])
-  (stack-for-frame [_ flow-id thread-id frame-idx]))
+  (stack-for-frame [_ flow-id thread-id frame-idx])
+  (toggle-recording [_]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -203,7 +204,10 @@
     (api-call :local "all-flows-threads" []))
 
   (stack-for-frame [_ flow-id thread-id frame-idx]
-    (api-call :local "stack-for-frame" [flow-id thread-id frame-idx])))
+    (api-call :local "stack-for-frame" [flow-id thread-id frame-idx]))
+
+  (toggle-recording [_]
+    (api-call :local "toggle-recording" [])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -315,6 +319,9 @@
 
   (stack-for-frame [_ flow-id thread-id frame-idx]
     (api-call :remote "stack-for-frame" [flow-id thread-id frame-idx]))
+
+  (toggle-recording [_]
+    (api-call :remote "toggle-recording" []))
 
   Closeable
   (close [_] (stop-repl))

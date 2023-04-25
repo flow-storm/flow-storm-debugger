@@ -118,6 +118,9 @@
 
     b))
 
+(defn update-button-icon [btn new-icon-name]
+  (.setGraphic btn (FontIcon. new-icon-name)))
+
 (defn v-box
   ([childs] (v-box childs nil))
   ([childs class]

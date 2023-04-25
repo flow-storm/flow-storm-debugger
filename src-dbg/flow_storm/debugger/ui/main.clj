@@ -136,20 +136,44 @@
     tabs-p))
 
 (defn- build-tool-bar-pane []
-  (let [clear-breaks-btn (icon-button :icon-name "mdi-playlist-remove"
+  (let [clear-breaks-btn (icon-button :icon-name "mdi-bookmark-remove"
                                       :tooltip "Remove threads break"
                                       :on-click (fn [])
                                       :class "clear-break-btn"
                                       :disable true)
+        record-btn (icon-button :icon-name "mdi-record"
+                                :tooltip "Start/Stop recording"
+                                :on-click (fn [] (runtime-api/toggle-recording rt-api))
+                                :class "record-btn")
+        task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
+                                     :tooltip "Cancel current running task (search, etc)"
+                                     :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
+                                     :disable true)
         tools [(icon-button :icon-name "mdi-delete-forever"
                             :tooltip "Clean all debugger and runtime values references"
                             :on-click (fn [] (clear-all)))
-               (icon-button :icon-name "mdi-stop"
-                            :tooltip "Cancel current running task (search, etc)"
-                            :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api)))
-               clear-breaks-btn]]
+               task-cancel-btn
+               clear-breaks-btn
+               record-btn]]
+
     (store-obj "clear-breaks-btn" clear-breaks-btn)
+    (store-obj "task-cancel-btn" task-cancel-btn)
+    (store-obj "record-btn" record-btn)
     (ToolBar. (into-array Node tools))))
+
+(defn set-task-cancel-btn-enable [enable?]
+  (ui-utils/run-later
+   (let [[task-cancel-btn] (obj-lookup "task-cancel-btn")]
+     (.setDisable task-cancel-btn (not enable?)))))
+
+(defn set-recording-btn [recording?]
+  (ui-utils/run-later
+   (let [[record-btn] (obj-lookup "record-btn")]
+     (ui-utils/update-button-icon
+      record-btn
+      (if recording?
+        "mdi-pause"
+        "mdi-record")))))
 
 (defn set-break [_]
   (let [[clear-breaks-btn] (obj-lookup "clear-breaks-btn")]
@@ -257,9 +281,6 @@
 (defn start-ui []
   (Platform/setImplicitExit false)
 
-  (let [runtime-config (runtime-api/runtime-config rt-api)]
-    (ui-vars/configure-environment runtime-config))
-
   (ui-utils/run-now
    (try
      (let [scene (Scene. (build-main-pane) 1024 768)
@@ -311,10 +332,14 @@
 
        (-> stage .show)
 
-       ;; after starting load all flows in the current registry
-       (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+       ;; initialize the UI with the server state
+       (let [{:keys [recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
+             all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                                 (map first)
                                 (into #{}))]
+
+         (ui-vars/configure-environment runtime-config)
+         (set-recording-btn recording?)
          (doseq [fid all-flows-ids]
            (create-flow {:flow-id fid})))
 

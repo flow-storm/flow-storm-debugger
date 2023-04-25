@@ -41,6 +41,9 @@
 (defn make-tap-event [tap-val]
   [:tap {:value tap-val}])
 
+(defn make-task-submitted-event [task-id]
+  [:task-submitted {:task-id task-id}])
+
 (defn make-task-result-event [task-id result]
   [:task-result {:task-id task-id :result result}])
 
@@ -58,6 +61,9 @@
 
 (defn make-break-cleared-event []
   [:break-cleared {}])
+
+(defn make-recording-updated-event [recording?]
+  [:recording-updated {:recording? recording?}])
 
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])

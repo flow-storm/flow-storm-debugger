@@ -8,6 +8,7 @@
 	- Add stack tab to code stepping tool
 	- Add a result pane on the functions list tool
 	- Add double click on calls tree tool node steps code
+	- Control recording from the UI
 	
 ### Changes
 	

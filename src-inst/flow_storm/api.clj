@@ -13,6 +13,7 @@
             [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
+            [flow-storm.runtime.indexes.frame-index :as frame-index]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.fn-sampler.core :as fn-sampler]
             [clojure.string :as str]
@@ -61,7 +62,45 @@
      ;; stop remote websocket client if needed
      (remote-websocket-client/stop-remote-websocket-client)
 
+     (tracer/clear-break!)
+
      (log "System stopped"))))
+
+(defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]
+  (let [fn-expr-limit-prop (System/getProperty "flowstorm.fnExpressionsLimit")
+        recording-prop (System/getProperty "flowstorm.startRecording")
+        old-recording-prop (System/getProperty "clojure.storm.traceEnable")
+        theme-prop (System/getProperty "flowstorm.theme")
+        styles-prop (System/getProperty "flowstorm.styles")
+        config (cond-> config
+                 theme-prop  (assoc :theme (keyword theme-prop))
+                 styles-prop (assoc :styles styles-prop))]
+
+    (when fn-expr-limit-prop
+      (alter-var-root #'frame-index/fn-expr-limit (constantly (Integer/parseInt fn-expr-limit-prop))))
+
+    (when-let [tep (or recording-prop old-recording-prop)]
+      (when old-recording-prop (log "WARNING: clojure.storm.traceEnable is deprecated, use flowstorm.startRecording instead !"))
+      (tracer/set-recording (Boolean/parseBoolean tep)))
+
+    ;; NOTE: The order here is important until we replace this code with
+    ;; better component state management
+
+    (when-not skip-index-start?
+      (indexes-api/start))
+
+    ;; start the debugger UI
+    (when-not skip-debugger-start?
+      (let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
+        (start-debugger config)))
+
+    (rt-events/subscribe! events-dispatch-fn)
+
+    (rt-values/clear-values-references)
+
+    (rt-taps/setup-tap!)
+
+    (mem-reporter/run-mem-reporter)))
 
 (defn local-connect
 
@@ -81,54 +120,33 @@
 
   ([] (local-connect {}))
 
-  ([{:keys [skip-index-start?] :as config}]
-   (require debugger-main-ns)
-   (let [config (assoc config :local? true)
-         start-debugger (resolve (symbol (name debugger-main-ns) "start-debugger"))]
+  ([config]
 
-     ;; NOTE: The order here is important until we replace this code with
-     ;; better component state management
+   (let [enqueue-event! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!)
+         config (assoc config
+                       :local? true
+                       :events-dispatch-fn enqueue-event!)]
 
-     (when-not skip-index-start?
-       (indexes-api/start))
-
-     ;; start the debugger UI
-     (start-debugger config)
-
-     (rt-events/subscribe! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!))
-
-     (rt-values/clear-values-references)
-
-     (rt-taps/setup-tap!)
-
-     (mem-reporter/run-mem-reporter))))
+     (start-runtime config))))
 
 (defn remote-connect [config]
-
-  ;; NOTE: The order here is important until we replace this code with
-  ;; better component state management
-  (indexes-api/start)
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
    (assoc config
           :api-call-fn dbg-api/call-by-name
           :on-connected (fn []
-                          (log "Connected to remote websocket")
-                          ;; subscribe after we have a connection
-                          ;; so events don't get pushed before
-                          (rt-events/subscribe! (fn [ev]
-                                                  (-> [:event ev]
-                                                      serializer/serialize
-                                                      remote-websocket-client/send)))
-                          (rt-values/clear-values-references)
+                          (let [config (assoc config
+                                              :skip-debugger-start? true
+                                              :events-dispatch-fn (fn [ev]
+                                                                    (-> [:event ev]
+                                                                        serializer/serialize
+                                                                        remote-websocket-client/send)))]
+                            (log "Connected to remote websocket")
 
-                          ;; setup the tap system so we send tap> to the debugger
-                          (rt-taps/setup-tap!)
+                            (start-runtime config)
 
-                          (mem-reporter/run-mem-reporter)
-
-                          (log "Remote Clojure runtime initialized")))))
+                            (log "Remote Clojure runtime initialized"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;
@@ -468,7 +486,8 @@
 (def break-at dbg-api/break-at)
 (def continue dbg-api/thread-continue)
 (def clear-breaks dbg-api/clear-breaks)
-
+(defn start-recording [] (dbg-api/set-recording true))
+(defn stop-recording [] (dbg-api/set-recording false))
 (comment
 
   #rtrace (+ 1 2 (* 3 4))

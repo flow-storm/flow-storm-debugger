@@ -3,9 +3,9 @@
             [flow-storm.utils :as utils :refer [log]]            
             [flow-storm.runtime.events :as rt-events]                        
             [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
-            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
-            #?@(:clj [[hansel.api :as hansel]
-                      [flow-storm.tracer :as tracer]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
+            [flow-storm.tracer :as tracer]
+            #?@(:clj [[hansel.api :as hansel]                      
                       [hansel.instrument.utils :as hansel-inst-utils]])
             [flow-storm.runtime.indexes.protocols :as index-protos]
             [clojure.string :as str]))
@@ -28,6 +28,7 @@
         interrupt-fn (apply f (-> [] (into args) (into [on-progress on-result])))]
     (swap! interruptible-tasks assoc task-id interrupt-fn)    
     (log (utils/format "Submited interruptible task with task-id: %s" task-id))
+    (rt-events/publish-event! (rt-events/make-task-submitted-event task-id))
     task-id))
 
 (defn interrupt-task [task-id]  
@@ -39,7 +40,9 @@
     (int-fn)))
 
 (defn runtime-config []
-  {:clojure-storm-env? (utils/storm-env?)})
+  {:clojure-storm-env? (utils/storm-env?)
+   :recording? (tracer/recording?)
+   :break-set? (tracer/break-set?)})
 
 (defn val-pprint [vref opts]
   (let [v (get-reference-value vref)]
@@ -233,11 +236,20 @@
             []
             frame-idx-path)))
 
+(defn set-recording [enable?]
+  (tracer/set-recording enable?)
+  (rt-events/publish-event! (rt-events/make-recording-updated-event enable?)))
+
+(defn toggle-recording []
+  (if (tracer/recording?)
+    (set-recording false)
+    (set-recording true)))
+
 (defn jump-to-last-exception []
   (let [last-ex-loc (indexes-api/get-last-exception-location)]
     (if last-ex-loc
       (goto-location nil last-ex-loc)
-      (println "No exception recorded"))))
+      (log "No exception recorded"))))
 
 (defn jump-to-last-expression-in-this-thread
   ([] (jump-to-last-expression-in-this-thread nil))
@@ -249,7 +261,7 @@
                         :thread/idx (dec cnt)})]
      (if last-ex-loc
        (goto-location flow-id last-ex-loc)
-       (println "No recordings for this thread yet")))))
+       (log "No recordings for this thread yet")))))
 
 #?(:clj
    (defn break-at
@@ -391,6 +403,7 @@
              :flow-threads-info flow-threads-info
              :all-flows-threads all-flows-threads
              :stack-for-frame stack-for-frame
+             :toggle-recording toggle-recording
              :ping ping
              #?@(:clj
                  [:all-namespaces all-namespaces

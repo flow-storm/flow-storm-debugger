@@ -30,7 +30,7 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn start-local [] (fs-api/local-connect {:theme :dark}))
+(defn start-local [] (fs-api/local-connect {:theme :ligth}))
 
 (defn start-remote []
 
