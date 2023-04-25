@@ -103,12 +103,15 @@
      (trace-fn-call flow-id ns fn-name fn-args form-id)))
   
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
-
+   
    (when @recording
      #?(:clj (when-let [[target-fn-ns target-fn-name args-pred] @thread-break]
                (when (and (= fn-ns target-fn-ns)
                           (= fn-name target-fn-name)
-                          (apply args-pred fn-args))               
+                          (apply args-pred fn-args)                            
+                          (indexes-api/flow-exists? flow-id))
+                 ;; this is kind of HACKY but do not block if the flow don't exist yet
+                 ;; because the only UI to unblock threads is inside the flow tab 
                  (block-this-thread flow-id))))
      
      (let [timestamp (utils/get-monotonic-timestamp)
