@@ -255,7 +255,7 @@
   ([] (jump-to-last-expression-in-this-thread nil))
   ([flow-id]
    (let [thread-id (utils/get-current-thread-id)
-         last-ex-loc (let [cnt (indexes-api/timeline-count flow-id thread-id)]
+         last-ex-loc (when-let [cnt (indexes-api/timeline-count flow-id thread-id)]
                        {:thread/id thread-id
                         :thread/name (utils/get-current-thread-name)
                         :thread/idx (dec cnt)})]

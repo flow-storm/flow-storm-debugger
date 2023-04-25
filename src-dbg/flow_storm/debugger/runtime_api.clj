@@ -309,7 +309,9 @@
     (api-call :remote "thread-continue" [thread-id]))
 
   (break-at [_ fq-fn-symb]
-    (api-call :remote "break-at" [fq-fn-symb]))
+    (case env-kind
+      :clj (api-call :remote "break-at" [fq-fn-symb])
+      :cljs (show-message "Operation not supported for ClojureScript" :warning)))
 
   (clear-breaks [_]
     (api-call :remote "clear-breaks" []))

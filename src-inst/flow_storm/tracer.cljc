@@ -62,34 +62,36 @@
   "Send flow initialization trace"
   
   [{:keys [flow-id form-ns form]}]
-  (let [trace {:trace/type :flow-init
-               :flow-id flow-id
-               :ns form-ns
-               :form form
-               :timestamp (utils/get-monotonic-timestamp)}]
-    (indexes-api/add-flow-init-trace trace)))
+  (when @recording
+    (let [trace {:trace/type :flow-init
+                 :flow-id flow-id
+                 :ns form-ns
+                 :form form
+                 :timestamp (utils/get-monotonic-timestamp)}]
+      (indexes-api/add-flow-init-trace trace))))
 
 (defn trace-form-init
 
   "Send form initialization trace only once for each thread."
   
   [{:keys [form-id ns def-kind dispatch-val form]}]
-  
-  (let [{:keys [flow-id]} *runtime-ctx*
-        thread-id (utils/get-current-thread-id)]
-    (when-not (indexes-api/get-form flow-id thread-id form-id)
-      (let [trace {:trace/type :form-init
-                   :flow-id flow-id
-                   :form-id form-id
-                   :thread-id thread-id
-                   :thread-name (utils/get-current-thread-name)
-                   :form form
-                   :ns ns
-                   :def-kind def-kind
-                   :mm-dispatch-val dispatch-val
-                   :timestamp (utils/get-monotonic-timestamp)}]
 
-        (indexes-api/add-form-init-trace trace)))))
+  (when @recording  
+    (let [{:keys [flow-id]} *runtime-ctx*
+          thread-id (utils/get-current-thread-id)]
+      (when-not (indexes-api/get-form flow-id thread-id form-id)
+        (let [trace {:trace/type :form-init
+                     :flow-id flow-id
+                     :form-id form-id
+                     :thread-id thread-id
+                     :thread-name (utils/get-current-thread-name)
+                     :form form
+                     :ns ns
+                     :def-kind def-kind
+                     :mm-dispatch-val dispatch-val
+                     :timestamp (utils/get-monotonic-timestamp)}]
+
+          (indexes-api/add-form-init-trace trace))))))
 
 (defn trace-fn-call
 
