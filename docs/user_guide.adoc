@@ -779,6 +779,39 @@ Use the `def` button to define the current value for the repl.
 Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore your objects also.
 ====
 
+== Thread breakpoints
+
+image::user_guide_images/thread_breaks.png[]
+
+FlowStorm is a tracing debugger, wich means it can record what is happening without the need of stopping
+your programs execution. This is all fine but doesn't cover every possible situation. There are
+cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
+and you are probably not interested in all those frames details.
+
+For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define a point
+in the execution of your program where you want your threads to block and wait.
+While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
+click the play buttons next to each blocked thread to tell it to continue until it hits the breakpoint again. Then
+you can analyse the new recordings. Once you are done, you can choose to uninstrument
+your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
+can remove the break and unblock every thread.
+
+You can define breaks in two ways :
+
+- Using the browser, you can navigate to any function and click on the `Break` button. This will block the calling
+  thread everytime the selected function gets called.
+- Or you can also install a break by calling (flow-storm.api/break-at 'my-proj.core/some-fn)
+
+[NOTE]
+.Conditional threads breakpoints
+====
+The break-at fn accepts a second argument where you can provide a predicate that will be called with the same arguments
+of the function you are breaking. It will only break when the predicate returns true. If you don't
+provide a predicate it will default to `(constantly true)`
+====
+
+To remove the current break, click the remove break button on the main toolbar.
+
 == The tool bar
 
 The toolbar provides quick access to some general commands :
@@ -789,6 +822,8 @@ From left to right :
 
 - Clean all. Will clean all flows, taps and every value the debugger is retaining.
 - Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
+- Remove break. Remove the current thread break. See thread breaks
+- Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
 
 == Debug cmd line programs (clj -X, clj -m, etc)
 
