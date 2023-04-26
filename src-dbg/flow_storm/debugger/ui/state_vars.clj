@@ -110,8 +110,8 @@
 (defn thread-form-box-id [form-id]
   (format "form_box_%d" form-id))
 
-(defn thread-pprint-text-area-id [pane-id]
-  (format "pprint_text_area_%s" pane-id))
+(defn thread-pprint-lbl-id [pane-id]
+  (format "pprint_lbl_%s" pane-id))
 
 (defn thread-pprint-def-btn-id [pane-id]
   (format "pprint_def_btn_id_%s" pane-id))

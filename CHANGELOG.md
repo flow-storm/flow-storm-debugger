@@ -9,6 +9,7 @@
 	- Add a result pane on the functions list tool
 	- Add double click on calls tree tool node steps code
 	- Control recording from the UI
+	- Add basic keyboard support 
 	
 ### Changes
 	

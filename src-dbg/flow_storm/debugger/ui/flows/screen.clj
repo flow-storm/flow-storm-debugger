@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.flows.screen
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
+            [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -49,6 +50,22 @@
       (clear)
       (add-all (runtime-api/flow-threads-info rt-api flow-id)))))
 
+(defn- setup-thread-keybindngs [flow-id thread-id pane]
+  (.setOnKeyPressed
+   pane
+   (event-handler
+    [kev]
+    (let [key-txt (.getText kev)]
+      (cond
+        (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
+        (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
+        (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
+        (= key-txt "p") (flow-code/step-prev flow-id thread-id)
+        (= key-txt "n") (flow-code/step-next flow-id thread-id)
+        (= key-txt "^") (flow-code/step-out flow-id thread-id)
+        (= key-txt "<") (flow-code/step-first flow-id thread-id)
+        (= key-txt ">") (flow-code/step-last flow-id thread-id))))))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (tab-pane {:closing-policy :all-tabs
@@ -58,6 +75,11 @@
         flow-tab (if (nil? flow-id)
                    (tab {:graphic (icon "mdi-filter") :content flow-split-pane})
                    (tab {:text (str "flow-" flow-id) :content flow-split-pane}))
+        open-thread (fn [thread-info]
+                      (create-thread {:flow-id (:flow/id thread-info)
+                                      :thread-id (:thread/id thread-info)
+                                      :thread-name (:thread/name thread-info)})
+                      (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree))
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
@@ -76,10 +98,9 @@
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
-                                  (let [thread-info (first sel-items)]
-                                    (create-thread {:flow-id (:flow/id thread-info)
-                                                    :thread-id (:thread/id thread-info)
-                                                    :thread-name (:thread/name thread-info)}))))})]
+                                  (open-thread (first sel-items))))
+                    :on-enter (fn [sel-items]
+                                (open-thread (first sel-items)))})]
 
     ;; this is to keep the divider positions if the user
     ;; resize the window
@@ -111,14 +132,6 @@
     (-> flows-tabs-pane
         .getTabs
         (.addAll [flow-tab]))))
-
-(defn select-code-tools-tab [flow-id thread-id tool]
-  (let [[tools-tab] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")
-        sel-model (.getSelectionModel tools-tab)]
-    (case tool
-      :tree (.select sel-model 0)
-      :code (.select sel-model 1)
-      :functions (.select sel-model 2))))
 
 (defn- create-thread-pane [flow-id thread-id]
   (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")
@@ -160,6 +173,9 @@
             thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
                              :content thread-tab-pane
                              :id (str thread-id)})]
+
+        (setup-thread-keybindngs flow-id thread-id thread-tab-pane)
+
         (.setOnCloseRequest thread-tab
                             (event-handler
                              [ev]

@@ -87,16 +87,16 @@
 
 (defn- create-shallow-seq-pane [ctx shallow-v]
   (let [{:keys [list-view-pane add-all]} (ui-utils/list-view
-                                          {:editable? false
-                                           :cell-factory-fn (fn [list-cell {:keys [val idx]}]
-                                                              (let [[dnode dhandler] (create-dig-node ctx idx val)]
-                                                                (.setText list-cell nil)
-                                                                (.setGraphic list-cell dnode)
-                                                                ;; the dnode will already handle the click
-                                                                ;; but we also add the handler to the list-cell
-                                                                ;; so one single click executes the action instead of
-                                                                ;; selecting the cell
-                                                                (.setOnMouseClicked list-cell dhandler)))})
+                                              {:editable? false
+                                               :cell-factory-fn (fn [list-cell {:keys [val idx]}]
+                                                                  (let [[dnode dhandler] (create-dig-node ctx idx val)]
+                                                                    (.setText list-cell nil)
+                                                                    (.setGraphic list-cell dnode)
+                                                                    ;; the dnode will already handle the click
+                                                                    ;; but we also add the handler to the list-cell
+                                                                    ;; so one single click executes the action instead of
+                                                                    ;; selecting the cell
+                                                                    (.setOnMouseClicked list-cell dhandler)))})
         add-shallow-page-to-list (fn [{:keys [val/page page/offset]}]
                                    (add-all (->> page
                                                  (map-indexed (fn [i v] {:val v :idx (+ offset i)})))))

@@ -231,10 +231,11 @@
   (indexes/get-node-immutable-frame node))
 
 (defn reset-all-threads-trees-build-stack [flow-id]
-  (doseq [{:keys [thread/id]} (indexes/flow-threads-info flow-thread-registry flow-id)]
-    (let [{:keys [frame-idx]} (get-thread-indexes flow-id id)]
-      (when frame-idx
-        (indexes/reset-build-stack frame-idx)))))
+  (when flow-thread-registry
+    (doseq [{:keys [thread/id]} (indexes/flow-threads-info flow-thread-registry flow-id)]
+      (let [{:keys [frame-idx]} (get-thread-indexes flow-id id)]
+        (when frame-idx
+          (indexes/reset-build-stack frame-idx))))))
 
 (defn fn-call-stats [flow-id thread-id]
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]

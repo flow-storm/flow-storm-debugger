@@ -3,6 +3,7 @@
   "Processing events the debugger receives from the runtime"
 
   (:require [flow-storm.debugger.ui.browser.screen :as browser-screen]
+            [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
@@ -65,7 +66,7 @@
    (flows-screen/create-thread {:flow-id flow-id
                                 :thread-id thread-id
                                 :thread-name thread-name})
-   (flows-screen/select-code-tools-tab flow-id thread-id :code)
+   (ui-general/select-thread-tool-tab flow-id thread-id :code)
    (ui-code/jump-to-coord flow-id thread-id idx)))
 
 (defn- show-doc-event [{:keys [var-symbol]}]

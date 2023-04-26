@@ -148,6 +148,8 @@
 
                             (log "Remote Clojure runtime initialized"))))))
 
+(def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

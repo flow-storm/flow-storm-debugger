@@ -222,7 +222,7 @@
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
         jump-to-selected-frame-code (fn [& _]
                                       (let [{:keys [frame-idx]} (get-selected-frame)]
-                                        (ui-flows-gral/select-tool-tab flow-id thread-id :code)
+                                        (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
                                         (flow-code/jump-to-coord flow-id thread-id frame-idx)))
         _ (doto tree-view
             (.setOnMouseClicked (event-handler

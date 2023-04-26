@@ -1,9 +1,9 @@
 (ns flow-storm.debugger.ui.flows.components
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button scroll-pane]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
-  (:import [javafx.scene.control CheckBox TextField TextArea]
+  (:import [javafx.scene.control CheckBox TextField]
            [javafx.scene.layout VBox Priority]
            [javafx.geometry Pos]))
 
@@ -16,8 +16,9 @@
     (label text "anonymous")))
 
 (defn create-pprint-pane [flow-id thread-id pane-id]
-  (let [result-text-area (doto (TextArea.)
-                           (.setEditable false))
+  (let [result-lbl (label "")
+        result-scroll (scroll-pane)
+        _ (.setContent result-scroll result-lbl)
         print-meta-chk (doto (CheckBox.)
                          (.setSelected false))
         print-level-txt (doto (TextField. "5")
@@ -39,9 +40,10 @@
                                 tap-btn])
                     (.setAlignment Pos/CENTER_RIGHT)
                     (.setSpacing 3.0))
-        box (v-box [tools-box result-text-area])]
-    (VBox/setVgrow result-text-area Priority/ALWAYS)
-    (store-obj flow-id thread-id (ui-vars/thread-pprint-text-area-id pane-id) result-text-area)
+        box (v-box [tools-box result-scroll])]
+
+    (VBox/setVgrow result-scroll Priority/ALWAYS)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-lbl-id pane-id) result-lbl)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id) print-level-txt)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id) print-meta-chk)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-def-btn-id pane-id) def-btn)
@@ -50,7 +52,7 @@
     box))
 
 (defn update-pprint-pane [flow-id thread-id pane-id val]
-  (let [[^TextArea text-area] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-text-area-id pane-id))
+  (let [[result-lbl] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-lbl-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id))
         [print-meta-chk]  (obj-lookup flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id))
         [def-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-def-btn-id pane-id))
@@ -64,4 +66,4 @@
     (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
     (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val)))
     (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val)))
-    (.setText text-area val-str)))
+    (.setText result-lbl val-str)))

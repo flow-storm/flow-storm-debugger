@@ -270,7 +270,7 @@
        (add-class sp class))
      sp)))
 
-(defn list-view [{:keys [editable? cell-factory-fn on-click selection-mode search-predicate]
+(defn list-view [{:keys [editable? cell-factory-fn on-click on-enter selection-mode search-predicate]
                   :or {editable? false
                        selection-mode :multiple}}]
   (let [observable-list (FXCollections/observableArrayList)
@@ -291,6 +291,7 @@
                      search-predicate (conj search-bar)
                      true (conj lv)))
         list-view-data {:list-view-pane box
+                        :list-view lv
                         :add-all add-all
                         :clear clear
                         :get-all-items get-all-items
@@ -319,6 +320,14 @@
                               (create-list-cell-factory cell-factory-fn)))))
 
     (.setEditable lv editable?)
+
+    (when on-enter
+      (.setOnKeyPressed
+       lv
+       (event-handler
+        [kev]
+        (when (= "Enter" (.getName (.getCode kev)))
+          (on-enter (selected-items))))))
 
     (when on-click
       (.setOnMouseClicked

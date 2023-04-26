@@ -50,37 +50,42 @@
           (runtime-api/eval-form rt-api form {:instrument? false
                                               :ns form-ns}))))))
 
-(defn- function-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
-  (let [show-function-calls (fn []
-                              (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
-                                    [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "instrument_fn_calls_list")
-                                    fn-call-traces (runtime-api/find-fn-frames-light rt-api flow-id thread-id fn-ns fn-name form-id)]
-                                (clear)
-                                (add-all fn-call-traces)))]
-    (cond
-     (and (= MouseButton/PRIMARY (.getButton mev))
-          (= 2 (.getClickCount mev)))
-     (show-function-calls)
+(defn- show-function-calls [flow-id thread-id selected-items]
+  (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
+        [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
+        fn-call-traces (runtime-api/find-fn-frames-light rt-api flow-id thread-id fn-ns fn-name form-id)]
+    (clear)
+    (add-all fn-call-traces)))
 
-     (and (= MouseButton/SECONDARY (.getButton mev))
-          (not ui-vars/clojure-storm-env?))
-     (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
-           ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
-       (.show ctx-menu
-              list-view-pane
-              (.getScreenX mev)
-              (.getScreenY mev))))))
+(defn function-enter [flow-id thread-id selected-items]
+  (show-function-calls flow-id thread-id selected-items))
+
+(defn- function-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
+  (cond
+    (and (= MouseButton/PRIMARY (.getButton mev))
+         (= 2 (.getClickCount mev)))
+    (show-function-calls flow-id thread-id selected-items)
+
+    (and (= MouseButton/SECONDARY (.getButton mev))
+         (not ui-vars/clojure-storm-env?))
+    (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
+          ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
+      (.show ctx-menu
+             list-view-pane
+             (.getScreenX mev)
+             (.getScreenY mev)))))
 
 (defn- create-fns-list-pane [flow-id thread-id]
   (let [{:keys [list-view-pane] :as lv-data} (list-view
-                                             {:editable? false
-                                              :cell-factory-fn functions-cell-factory
-                                              :on-click (partial function-click flow-id thread-id)
-                                              :selection-mode :multiple
-                                              :search-predicate (fn [{:keys [fn-name fn-ns]} search-str]
-                                                                  (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
+                                                  {:editable? false
+                                                   :cell-factory-fn functions-cell-factory
+                                                   :on-click (partial function-click flow-id thread-id)
+                                                   :on-enter (fn [sel-items] (function-enter flow-id thread-id sel-items))
+                                                   :selection-mode :multiple
+                                                   :search-predicate (fn [{:keys [fn-name fn-ns]} search-str]
+                                                                       (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
 
-    (store-obj flow-id thread-id "instrument_list" lv-data)
+    (store-obj flow-id thread-id "functions_list" lv-data)
 
     list-view-pane))
 
@@ -98,7 +103,7 @@
   (let [idx (-> selected-items first :frame-idx)
         ret-val (-> selected-items first :ret)
         jump-to-idx (fn []
-                      (ui-flows-gral/select-tool-tab flow-id thread-id :code)
+                      (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
                       (flows-code/jump-to-coord flow-id thread-id idx))]
 
     (cond
@@ -122,15 +127,19 @@
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
   (let [args-checks (repeatedly max-args (fn [] (doto (CheckBox.)
-                                                  (.setSelected true))))
+                                                  (.setSelected true)
+                                                  (.setFocusTraversable false))))
         selected-args (fn []
                         (->> args-checks
                              (keep-indexed (fn [idx ^CheckBox cb]
                                              (when (.isSelected cb) idx)))))
         {:keys [list-view-pane] :as lv-data} (list-view {:editable? false
-                                                        :cell-factory-fn (partial functions-calls-cell-factory selected-args)
-                                                        :on-click (partial function-call-click flow-id thread-id)
-                                                        :selection-mode :single})
+                                                         :cell-factory-fn (partial functions-calls-cell-factory selected-args)
+                                                         :on-click (partial function-call-click flow-id thread-id)
+                                                         :on-enter (fn [sel-items]
+                                                                     (let [ret-val (-> sel-items first :ret)]
+                                                                       (flow-cmp/update-pprint-pane flow-id thread-id "functions-calls-ret-val" ret-val)))
+                                                         :selection-mode :single})
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]
                                                          (h-box [(label (format "a%d" (inc idx))) cb])))
@@ -141,7 +150,7 @@
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
-    (store-obj flow-id thread-id "instrument_fn_calls_list" lv-data)
+    (store-obj flow-id thread-id "function_calls_list" lv-data)
     fn-call-list-pane))
 
 (defn create-functions-pane [flow-id thread-id]
@@ -169,6 +178,6 @@
 (defn update-functions-pane [flow-id thread-id]
   (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
                            (sort-by :cnt >))
-        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "instrument_list")]
+        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_list")]
     (clear)
     (add-all fn-call-stats)))

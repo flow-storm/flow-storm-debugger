@@ -278,6 +278,13 @@
   (select-main-tools-tab :flows)
   (flows-screen/update-threads-list flow-id))
 
+(defn select-flow-tab [flow-id]
+  (let [[{:keys [list-view]}] (obj-lookup flow-id "flow_threads_list")]
+    (when list-view
+      (let [list-selection (.getSelectionModel list-view)]
+        (.requestFocus list-view)
+        (.selectFirst list-selection)))))
+
 (defn start-ui []
   (Platform/setImplicitExit false)
 
@@ -309,24 +316,26 @@
        (doto scene
          (.setOnKeyPressed (event-handler
                             [kev]
-                            (let [key-name (.getName (.getCode kev))]
+                            (let [key-name (.getName (.getCode kev))
+                                  shift? (.isShiftDown kev)
+                                  ctrl? (.isControlDown kev)]
                               (cond
 
-                                (and (.isControlDown kev)
-                                     (= key-name "G"))
-                                (do
-                                  (log "Interrupting task")
-                                  (runtime-api/interrupt-all-tasks rt-api))
+                                (and ctrl? (= key-name "G"))
+                                (runtime-api/interrupt-all-tasks rt-api)
 
-                                (and (.isControlDown kev)
-                                     (= key-name "L"))
+                                (and ctrl? (= key-name "L"))
                                 (clear-all)
 
-                                (and (.isControlDown kev)
-                                     (= key-name "D"))
+                                (and ctrl? (= key-name "D"))
                                 (toggle-debug-mode)
-                                ;; :else
-                                ;; (log (format "Unhandled keypress %s" key-name))
+
+                                (and shift? (= key-name "F")) (select-main-tools-tab :flows)
+                                (and shift? (= key-name "B")) (select-main-tools-tab :browser)
+                                (and shift? (= key-name "T")) (select-main-tools-tab :taps)
+                                (and shift? (= key-name "D")) (select-main-tools-tab :docs)
+                                (= key-name "Esc") (select-flow-tab nil)
+                                (= key-name "0")   (select-flow-tab 0)
                                 ))))
          (.setRoot (build-main-pane)))
 

@@ -1048,9 +1048,29 @@ You can overwrite all the styles defined here https://github.com/jpmonettas/flow
 
 == Key bindings
 
+=== General
+
 - `Ctrl-g` Cancel any long running task (only search supported yet)
 - `Ctrl-l` Clean all debugger state
 - `Ctrl-d` Toggle debug-mode. Will log useful debugging information to the console.
+- `F`      "Select the Flows tool"
+- `B`      "Select the Browser tool"
+- `T`      "Select the Taps tool"
+- `D`      "Select the Docs tool"
+
+=== Flows
+
+- `Esc` Select the funnel default flow threads list
+- `0` Select flow id 0 threads list
+- `t` Select the tree tool (needs to be inside a thread)
+- `c` Select the code tool (needs to be inside a thread)
+- `f` Select the functions tool (needs to be inside a thread)
+
+- `p` Step prev
+- `n` Step next
+- `^` Step out
+- `<` Step first
+- `>` Step last
 
 == Debugging react native applications
 

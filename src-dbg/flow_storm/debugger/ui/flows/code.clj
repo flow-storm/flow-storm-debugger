@@ -322,9 +322,18 @@
                    thread-id
                    parent-frame-idx)))
 
+(defn step-first [flow-id thread-id]
+  (jump-to-coord flow-id thread-id 0))
+
+(defn step-last [flow-id thread-id]
+  (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id)]
+    (jump-to-coord flow-id
+                   thread-id
+                   (dec tl-count))))
+
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
-                                        :on-click (fn [] (jump-to-coord flow-id thread-id 0))
+                                        :on-click (fn [] (step-first flow-id thread-id))
                                         :tooltip "Step to the first recorded expression")
         prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
                                        :on-click (fn [] (step-prev flow-id thread-id))
@@ -356,11 +365,7 @@
 
 
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
-                                       :on-click (fn []
-                                                   (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id )]
-                                                     (jump-to-coord flow-id
-                                                                    thread-id
-                                                                    (dec tl-count))))
+                                       :on-click (fn [] (step-last flow-id thread-id))
                                        :tooltip "Step to the last recorded expression")
 
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
@@ -392,7 +397,7 @@
         scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
         controls-pane (create-thread-controls-pane flow-id thread-id)
         outer-box (v-box [controls-pane scroll-pane])]
-    (VBox/setVgrow box Priority/ALWAYS)
+    (VBox/setVgrow scroll-pane Priority/ALWAYS)
     (.setContent scroll-pane box)
     (store-obj flow-id thread-id "forms_box" box)
     (store-obj flow-id thread-id "forms_scroll" scroll-pane)
