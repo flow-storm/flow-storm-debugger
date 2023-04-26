@@ -8,7 +8,8 @@
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
-           [javafx.geometry Orientation]))
+           [javafx.geometry Orientation]
+           [ javafx.beans.value ChangeListener]))
 
 (declare create-or-focus-thread-tab)
 
@@ -79,6 +80,13 @@
                                     (create-thread {:flow-id (:flow/id thread-info)
                                                     :thread-id (:thread/id thread-info)
                                                     :thread-name (:thread/name thread-info)}))))})]
+
+    ;; this is to keep the divider positions if the user
+    ;; resize the window
+    (.addListener (.widthProperty flows-tabs-pane)
+                  (proxy [ChangeListener] []
+                    (changed [_ _ _]
+                      (.setDividerPosition flow-split-pane 0 0.2))))
 
     (-> flow-split-pane
         .getItems

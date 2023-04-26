@@ -20,6 +20,7 @@
 
 	- Don't crash if tracer functions are called before the system is fully started
 	- Fix Clojure remote debugging race condition
+	- Keep the thread list split pane size correct after window resize
 
 ## 3.4.1 (17-04-2023)
 	
