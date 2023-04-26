@@ -15,14 +15,12 @@
 
 (defn def-val [val]
   (let [tdiag (doto (TextInputDialog.)
-                (.setHeaderText "Def var with name (in Clojure under user/ namespace and in ClojureScript under js/) ")
+                (.setHeaderText "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user ")
                 (.setContentText "Var name :"))
         _ (.showAndWait tdiag)
-        val-name (let [txt (-> tdiag .getEditor .getText)]
-                   (if (str/blank? txt)
-                     "val0"
-                     txt))]
-    (runtime-api/def-value rt-api val-name val)))
+        val-name (-> tdiag .getEditor .getText)]
+    (when-not (str/blank? val-name)
+      (runtime-api/def-value rt-api (symbol val-name) val))))
 
 (defn- update-center-pane [{:keys [center-pane]} frame-pane]
   (.clear (.getChildren center-pane))

@@ -10,6 +10,7 @@
 	- Add double click on calls tree tool node steps code
 	- Control recording from the UI
 	- Add basic keyboard support 
+	- Allow DEF button functionality to specify a NS
 	
 ### Changes
 	

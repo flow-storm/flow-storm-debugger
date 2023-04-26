@@ -52,7 +52,8 @@
   (let [v (get-reference-value vref)]
     (runtime-values/shallow-val v)))
 
-(def def-value runtime-values/def-value)
+#?(:clj (def def-value runtime-values/def-value))
+
 (def tap-value runtime-values/tap-value)
 
 (defn get-form [flow-id thread-id form-id]
@@ -394,8 +395,7 @@
              :fn-call-stats fn-call-stats
              :find-fn-frames-light find-fn-frames-light
              :search-next-frame search-next-frame
-             :discard-flow discard-flow
-             :def-value def-value
+             :discard-flow discard-flow             
              :tap-value tap-value
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
@@ -406,7 +406,8 @@
              :toggle-recording toggle-recording
              :ping ping
              #?@(:clj
-                 [:all-namespaces all-namespaces
+                 [:def-value def-value
+                  :all-namespaces all-namespaces
                   :all-vars-for-namespace all-vars-for-namespace
                   :get-var-meta get-var-meta
                   :instrument-var instrument-var

@@ -1,8 +1,7 @@
 (ns flow-storm.runtime.values
   (:require [clojure.pprint :as pp]
             [clojure.datafy :as datafy]
-            [flow-storm.utils :as utils]
-            #?(:cljs [goog.object :as gobj])))
+            [flow-storm.utils :as utils]))
 
 (def values-references (atom nil))
 
@@ -173,11 +172,5 @@
     (tap> v)))
 
 #?(:clj
-   (defn def-value [val-name vref]
-     (intern 'user (symbol val-name) (get-reference-value vref)))
-
-   :cljs
-   (defn def-value [val-name vref]
-     (gobj/set (if (= *target* "nodejs") js/global js/window)
-               val-name
-               (get-reference-value vref))))
+   (defn def-value [var-ns var-name vref]
+     (intern (symbol var-ns) (symbol var-name) (get-reference-value vref))))

@@ -46,7 +46,7 @@
   (search-next-frame [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
-  (def-value [_ v-name v])
+  (def-value [_ var-symb val-ref])
   (tap-value [_ v])
 
   (get-all-namespaces [_])
@@ -124,7 +124,7 @@
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (search-next-frame [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-frame" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
-  (def-value [_ v-name vref] (api-call :local "def-value" [v-name vref]))
+  (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
   (tap-value [_ vref] (api-call :local "tap-value" [vref]))
 
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
@@ -232,7 +232,13 @@
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :remote "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (search-next-frame [_ flow-id thread-id query-str from-idx opts] (api-call :remote "search-next-frame" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
-  (def-value [_ v-name vref] (api-call :remote "def-value" [v-name vref]))
+  (def-value [_ var-symb val-ref]
+    (case env-kind
+      :clj (api-call :remote "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref])
+      :cljs (safe-cljs-eval-code-str (format "(def %s (flow-storm.runtime.values/get-reference-value %s))"
+                                             (name var-symb)
+                                             val-ref)
+                                     (or (namespace var-symb) "cljs.user"))))
   (tap-value [_ vref] (api-call :remote "tap-value" [vref]))
 
   (get-all-namespaces [_]

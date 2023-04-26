@@ -566,7 +566,7 @@ You can configure the print-level and print-meta for the pretty printing by usin
 
 Use the `def` button to define a var pointing to the current inspector value.
 
-Choose a name for the var in the dialog that pops up and it will be created under the `user` namespace in Clojure and under `js` globals in ClojureScript.
+You can use / to provide a namespace, otherwise will be defined under [cljs.]user
 
 ==== Re running a flow
 
