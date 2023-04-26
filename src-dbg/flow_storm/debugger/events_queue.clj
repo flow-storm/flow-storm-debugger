@@ -10,7 +10,7 @@
 
 (defstate events-queue
   :start (fn [_] (start-events-queue))
-  :stop (fn [] stop-events-queue))
+  :stop (fn [] (stop-events-queue)))
 
 (def queue-poll-interval 500)
 (def wait-for-system-started-interval 1000)
@@ -27,7 +27,8 @@
                      (try
                        (loop [ev nil]
                          (when-not (.isInterrupted (Thread/currentThread))
-                           (while (not (dbg-state/system-fully-started?))
+                           (while (and (not (dbg-state/system-fully-started?))
+                                       (not (.isInterrupted (Thread/currentThread))))
                              (utils/log "Waiting for full system start before dispatching events")
                              (Thread/sleep wait-for-system-started-interval))
                            (when ev
@@ -36,7 +37,7 @@
                        (catch java.lang.InterruptedException _
                          (utils/log "Events thread interrupted"))
                        (catch Exception e
-                         (utils/log-error "Error" e))))
+                         (utils/log-error "Events queue thread error" e))))
                    "FlowStorm Events Processor")
         interrupt-fn (fn [] (.interrupt ev-thread))]
 

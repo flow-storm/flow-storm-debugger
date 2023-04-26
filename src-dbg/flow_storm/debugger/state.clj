@@ -11,7 +11,7 @@
 
 (defstate state
   :start (fn [_] (atom initial-state))
-  :stop (fn []))
+  :stop (fn [] (atom initial-state)))
 
 ;;;;;;;;;;;
 ;; Utils ;;
