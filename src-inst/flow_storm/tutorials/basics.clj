@@ -1,4 +1,5 @@
-(ns flow-storm.tutorials.basics)
+(ns flow-storm.tutorials.basics
+  (:require [flow-storm.tracer :as tracer]))
 
 (declare steps)
 
@@ -347,7 +348,7 @@ Cheers and Good luck!!
 
 (defn instrumentation-and-trace-on? []
   (and (clojure.storm.Emitter/getInstrumentationEnable)
-       #_(clojure.storm.Tracer/getTraceEnable)))
+       (tracer/recording?)))
 
 (defn start []
   (if (instrumentation-and-trace-on?)
@@ -357,7 +358,7 @@ Cheers and Good luck!!
       (print-current-step))
 
     (println
-     "Please set instrumentation and trace on.
+     "\nPlease set instrumentation and recording ON.
 
-You can do that by starting the jvm with -Dclojure.storm.traceEnable=true -Dclojure.storm.instrumentEnable=true
+You can do that by starting the jvm with -Dflowstorm.startRecording=true -Dclojure.storm.instrumentEnable=true
 or by evaluating :rec and :inst keywords at the repl and then running :tut/basics again.")))
