@@ -457,9 +457,12 @@
 
 (defn- read-rtrace-tag* [config form]
   (let [{:keys [flow-id] :as full-config} (merge config (meta form))]
-    `(do
-       (runi ~full-config ~form)
-       (dbg-api/jump-to-last-expression-in-this-thread ~flow-id))))
+    `(if (utils/storm-env?)
+       (throw (Exception. "#rtrace and #trace can't be used with ClojureStorm, they aren't needed. All your configured compilations will be automatically instrumented. Please re-run the expression without it. Evaluation skipped."))
+
+       (do
+         (runi ~full-config ~form)
+         (dbg-api/jump-to-last-expression-in-this-thread ~flow-id)))))
 
 (defn read-rtrace-tag [form]  (read-rtrace-tag* {:flow-id 0} form))
 (defn read-rtrace0-tag [form] (read-rtrace-tag* {:flow-id 0} form))

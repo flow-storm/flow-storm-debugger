@@ -17,6 +17,7 @@
 	- Made search functionality faster and simplify it's code
 	- #rtrace automatically opens the code stepping tool in the last position
 	- Upgrade hansel to 0.1.54
+	- Signal error when trying to use #rtrace with ClojureStorm
 	
 ### Bugs fixed
 
