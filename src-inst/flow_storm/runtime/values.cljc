@@ -93,20 +93,26 @@
                     :cljs (if (and pprint? (not print-meta?)) pp/pprint print))] ;; ClojureScript pprint doesn't support *print-meta*
 
     (try
-      (with-out-str
-        (binding [*print-level* print-level
-                  *print-length* print-length
-                  *print-meta* print-meta?]
+      
+      (if (and (utils/blocking-derefable? val)
+               (utils/pending? val))
 
-          (if nth-elems
+        "FlowStorm : Unrealized value"
 
-            (let [max-idx (dec (count val))
-                  nth-valid-elems (filter #(<= % max-idx) nth-elems)]
-              (doseq [n nth-valid-elems]
-                (print-fn (nth val n))
-                (print " ")))
+        (with-out-str
+          (binding [*print-level* print-level
+                    *print-length* print-length
+                    *print-meta* print-meta?]
 
-            (print-fn val))))
+            (if nth-elems
+
+              (let [max-idx (dec (count val))
+                    nth-valid-elems (filter #(<= % max-idx) nth-elems)]
+                (doseq [n nth-valid-elems]
+                  (print-fn (nth val n))
+                  (print " ")))
+
+              (print-fn val)))))
 
       ;; return somthing so the user knows the value can't be trusted
       #?(:clj (catch Exception e

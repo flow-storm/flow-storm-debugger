@@ -13,6 +13,7 @@
 (declare rt-api)
 (declare api-call)
 
+(def api-call-timeout 5000)
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
@@ -96,14 +97,22 @@
 
      (when debug-mode (log (format "%s API-CALL %s %s" call-type fname (pr-str args))))
 
-     (if cache
+     ;; make the calls in a different thread so we don't block the UI thread
+     (let [call-resp-fut (future
+                           (if cache
 
-       (let [cache-key (into [(keyword fname)] args)]
-         (cached-apply cache cache-key f args))
+                             (let [cache-key (into [(keyword fname)] args)]
+                               (cached-apply cache cache-key f args))
 
-       (do
-         (when debug-mode (log (utils/colored-string "CALLED" :red)))
-         (apply f args))))))
+                             (do
+                               (when debug-mode (log (utils/colored-string "CALLED" :red)))
+                               (apply f args))))
+           call-resp (deref call-resp-fut api-call-timeout :flow-storm/call-time-out)]
+       (if (= call-resp :flow-storm/call-time-out)
+         (do
+           (show-message (format "A call to %s timed out" fname) :warning)
+           nil)
+         call-resp)))))
 
 (defrecord LocalRuntimeApi [api-cache]
 
