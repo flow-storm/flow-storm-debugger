@@ -3,8 +3,7 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as debuggers-api]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.indexes.frame-index :as frame-index]
-            [flow-storm.tutorials.basics :as tut-basics]))
+            [flow-storm.runtime.indexes.frame-index :as frame-index]))
 
 (defn start-recorder []
   (indexes-api/start))
@@ -46,7 +45,7 @@
     :rec        (do (tracer/set-recording true)  true)
     :stop       (do (tracer/set-recording false) true)
 
-    :tut/basics (do (tut-basics/start)         true)
-    :tut/next   (do (tut-basics/step-next)     true)
-    :tut/prev   (do (tut-basics/step-prev)     true)
+    :tut/basics (do ((requiring-resolve 'flow-storm.tutorials.basics/start))     true)
+    :tut/next   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-next)) true)
+    :tut/prev   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-prev)) true)
     false))
