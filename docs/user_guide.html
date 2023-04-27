@@ -897,6 +897,22 @@ although you can still do it if you need it. There are also other options you ca
 <div class="paragraph">
 <p>with <code>YOUR_INSTRUMENTATION_STRING</code> as described above.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">#rtrace and #trace</div>
+<div class="paragraph">
+<p>When using FlowStorm with ClojureStorm it is a error to use #trace or #rtrace. They aren&#8217;t needed since
+everything you declared in <code>clojure.storm.instrumentOnlyPrefixes</code> will be automatically instrumented.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_vanilla_flowstorm"><a class="anchor" href="#_vanilla_flowstorm"></a><a class="link" href="#_vanilla_flowstorm">Vanilla FlowStorm</a></h5>
@@ -2564,7 +2580,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-26 16:26:37 -0300
+Last updated 2023-04-27 09:46:12 -0300
 </div>
 </div>
 </body>

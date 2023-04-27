@@ -98,6 +98,14 @@ If your project uses lein, your project.clj file should look something like this
 
 with `YOUR_INSTRUMENTATION_STRING` as described above.
 
+[NOTE]
+.#rtrace and #trace
+====
+When using FlowStorm with ClojureStorm it is a error to use #trace or #rtrace. They aren't needed since
+everything you declared in `clojure.storm.instrumentOnlyPrefixes` will be automatically instrumented.
+====
+
+
 ==== Vanilla FlowStorm
 
 If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the FlowStorm dependency loaded like this :
