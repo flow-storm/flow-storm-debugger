@@ -29,7 +29,9 @@
                     (assoc :multimethod/dispatch-val mm-dispatch-val))]
     (indexes/register-form forms-registry form-id form-data)))
 
-(defn handle-exception [^Thread thread _]  
+(defn handle-exception [thread ex]
+  (utils/log-error (utils/format "Error in thread %s" thread) ex)
+  
   (let [thread-id (.getId thread)
         {:keys [frame-index]} (get-thread-indexes nil thread-id)]
     

@@ -42,7 +42,7 @@
 (defn runtime-config []
   {:clojure-storm-env? (utils/storm-env?)
    :recording? (tracer/recording?)
-   :break-set? (tracer/break-set?)})
+   :breakpoints (tracer/all-breakpoints)})
 
 (defn val-pprint [vref opts]
   (let [v (get-reference-value vref)]
@@ -265,20 +265,27 @@
        (log "No recordings for this thread yet")))))
 
 #?(:clj
-   (defn break-at
-     ([fq-fn-symb] (break-at fq-fn-symb (constantly true)))
-     ([fq-fn-symb args-pred]
-      (tracer/set-break! (namespace fq-fn-symb) (name fq-fn-symb) args-pred)
-      (rt-events/publish-event! (rt-events/make-break-installed-event fq-fn-symb)))))
-
-#?(:clj
    (defn thread-continue [thread-id]     
      (tracer/unblock-thread thread-id)))
 
 #?(:clj
-   (defn clear-breaks []
-     (tracer/clear-break!)
-     (rt-events/publish-event! (rt-events/make-break-cleared-event))))
+   (defn add-breakpoint!
+     ([fq-fn-symb] (add-breakpoint! fq-fn-symb (constantly true)))
+     ([fq-fn-symb args-pred]
+      (tracer/add-breakpoint! (namespace fq-fn-symb) (name fq-fn-symb) args-pred)
+      (rt-events/publish-event! (rt-events/make-break-installed-event fq-fn-symb)))))
+
+#?(:clj
+   (defn remove-breakpoint! [fq-fn-symb]
+     (tracer/remove-breakpoint! (namespace fq-fn-symb) (name fq-fn-symb))
+     (rt-events/publish-event! (rt-events/make-break-removed-event fq-fn-symb))))
+
+#?(:clj
+   (defn clear-breakpoints! []
+     (let [brks (tracer/all-breakpoints)]
+       (tracer/clear-breakpoints!)
+       (doseq [[fn-ns fn-name] brks]
+         (rt-events/publish-event! (rt-events/make-break-removed-event (symbol fn-ns fn-name)))))))
 
 (defn ping [] :pong)
 
@@ -415,8 +422,8 @@
                   :instrument-namespaces instrument-namespaces
                   :uninstrument-namespaces uninstrument-namespaces
                   :thread-continue thread-continue
-                  :break-at break-at
-                  :clear-breaks clear-breaks])})
+                  :add-breakpoint! add-breakpoint!
+                  :remove-breakpoint! remove-breakpoint!])})
 
 (defn call-by-name [fun-key args]  
   (let [f (get api-fn fun-key)]

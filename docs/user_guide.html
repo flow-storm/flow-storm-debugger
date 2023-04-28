@@ -2002,27 +2002,32 @@ cases where recording everything is impractical, like in a game loop, since it w
 and you are probably not interested in all those frames details.</p>
 </div>
 <div class="paragraph">
-<p>For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define a point
+<p>For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define a points
 in the execution of your program where you want your threads to block and wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn&#8217;t enough you can
-click the play buttons next to each blocked thread to tell it to continue until it hits the breakpoint again. Then
+click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again. Then
 you can analyse the new recordings. Once you are done, you can choose to uninstrument
 your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
 can remove the break and unblock every thread.</p>
 </div>
 <div class="paragraph">
-<p>You can define breaks in two ways :</p>
+<p>You can define thread breakpoints in two ways :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Using the browser, you can navigate to any function and click on the <code>Break</code> button. This will block the calling
+<p>Using the browser (like in the image below), you can navigate to any function and click on the <code>Break</code> button. This will block the calling
 thread everytime the selected function gets called.</p>
 </li>
 <li>
 <p>Or you can also install a break by calling (flow-storm.api/break-at 'my-proj.core/some-fn)</p>
 </li>
 </ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_breakpoints.png" alt="browser breakpoints">
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2042,7 +2047,20 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 </table>
 </div>
 <div class="paragraph">
-<p>To remove the current break, click the remove break button on the main toolbar.</p>
+<p>You can remove breakpoints by :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Clicking on the browser intrumentation list delete buttons</p>
+</li>
+<li>
+<p>Calling <code>flow-storm.api/remove-break</code> to remove a single breakpoint</p>
+</li>
+<li>
+<p>Calling <code>flow-storm.api/clear-breaks</code> to remove all breakpoints</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect2">
@@ -2065,9 +2083,6 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 </li>
 <li>
 <p>Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.</p>
-</li>
-<li>
-<p>Remove break. Remove the current thread break. See thread breaks</p>
 </li>
 <li>
 <p>Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.</p>
@@ -2580,7 +2595,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-27 09:46:12 -0300
+Last updated 2023-04-28 10:58:33 -0300
 </div>
 </div>
 </body>

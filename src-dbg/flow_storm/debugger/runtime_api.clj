@@ -67,8 +67,10 @@
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
   (thread-continue [_ thread-id])
-  (break-at [_ fq-fn-symb])
-  (clear-breaks [_])
+
+  (add-breakpoint [_ fq-fn-symb])
+  (remove-breakpoint [_ fq-fn-symb])
+
   (stack-for-frame [_ flow-id thread-id frame-idx])
   (toggle-recording [_]))
 
@@ -203,11 +205,11 @@
   (thread-continue [_ thread-id]
     (api-call :local "thread-continue" [thread-id]))
 
-  (break-at [_ fq-fn-symb]
-    (api-call :local "break-at" [fq-fn-symb]))
+  (add-breakpoint [_ fq-fn-symb]
+    (api-call :local "add-breakpoint!" [fq-fn-symb]))
 
-  (clear-breaks [_]
-    (api-call :local "clear-breaks" []))
+  (remove-breakpoint [_ fq-fn-symb]
+    (api-call :local "remove-breakpoint!" [fq-fn-symb]))
 
   (all-flows-threads [_]
     (api-call :local "all-flows-threads" []))
@@ -323,13 +325,13 @@
   (thread-continue [_ thread-id]
     (api-call :remote "thread-continue" [thread-id]))
 
-  (break-at [_ fq-fn-symb]
+  (add-breakpoint [_ fq-fn-symb]
     (case env-kind
-      :clj (api-call :remote "break-at" [fq-fn-symb])
+      :clj (api-call :remote "add-breakpoint!" [fq-fn-symb])
       :cljs (show-message "Operation not supported for ClojureScript" :warning)))
 
-  (clear-breaks [_]
-    (api-call :remote "clear-breaks" []))
+  (remove-breakpoint [_ fq-fn-symb]
+    (api-call :remote "remove-breakpoint!" [fq-fn-symb]))
 
   (all-flows-threads [_]
     (api-call :remote "all-flows-threads" []))

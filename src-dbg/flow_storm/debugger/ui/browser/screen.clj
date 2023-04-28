@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.ui.browser.screen
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
-            [flow-storm.utils :refer [log-error]]
+            [flow-storm.utils :refer [log-error] :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup show-message] :as ui-vars]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str])
@@ -21,28 +21,34 @@
     :profile profile
     :ns-name ns-name}))
 
+(defn make-inst-break [fq-fn-symb]
+  {:inst-type :break
+   :var-ns (namespace fq-fn-symb)
+   :var-name (name fq-fn-symb)})
+
 (defn clear-instrumentation-list []
   (let [[{:keys [clear]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (clear)))
 
-(defn- contains-var? [items var-ns var-name]
-  (some (fn [item]
-          (boolean
-           (and (= :var (:inst-type item))
-                (= (:var-ns item) var-ns)
-                (= (:var-name item) var-name))))
-        items))
-
-(defn add-to-var-instrumented-list [var-ns var-name]
+(defn add-to-instrumentation-list [inst]
   (let [[{:keys [add-all get-all-items]}] (obj-lookup "browser-observable-instrumentations-list-data")
         items (get-all-items)
-        already-added? (contains-var? items var-ns var-name)]
+        already-added? (some (fn [item]
+                               (boolean
+                                (= item inst)))
+                             items)]
     (when-not already-added?
-      (add-all [(make-inst-var (str var-ns) (str var-name))]))))
+      (add-all [inst]))))
 
-(defn remove-from-var-instrumented-list [var-ns var-name]
+(defn remove-from-instrumentation-list [inst]
   (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
-    (remove-all [(make-inst-var (str var-ns) (str var-name))])))
+    (remove-all [inst])))
+
+(defn- add-breakpoint [fq-fn-symb]
+  (runtime-api/add-breakpoint rt-api fq-fn-symb))
+
+(defn- remove-breakpoint [fq-fn-symb]
+  (runtime-api/remove-breakpoint rt-api fq-fn-symb))
 
 (defn- instrument-function
   ([var-ns var-name] (instrument-function var-ns var-name {}))
@@ -55,14 +61,6 @@
   ([var-ns var-name] (uninstrument-function var-ns var-name {}))
   ([var-ns var-name config]
    (runtime-api/uninstrument-var rt-api (str var-ns) (str var-name) config)))
-
-(defn add-to-namespace-instrumented-list [ns-maps]
-  (let [[{:keys [add-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
-    (add-all ns-maps)))
-
-(defn remove-from-namespace-instrumented-list [ns-maps]
-  (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
-    (remove-all ns-maps)))
 
 (defn- instrument-namespaces
   ([namepsaces] (instrument-namespaces namepsaces {}))
@@ -95,7 +93,7 @@
     (add-class browser-break-button "enable")
     (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
     (.setOnAction browser-instrument-rec-button (event-handler [_] (instrument-function ns name {:deep? true})))
-    (.setOnAction browser-break-button (event-handler [_] (runtime-api/break-at rt-api (symbol (str ns) (str name)))))
+    (.setOnAction browser-break-button (event-handler [_] (add-breakpoint (symbol (str ns) (str name)))))
 
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
@@ -229,7 +227,7 @@
   (try
     (let [inst-box (case inst-type
                      :var (let [{:keys [var-name var-ns]} inst
-                                inst-lbl (doto (h-box [(label "VAR:" "browser-instr-type-lbl")
+                                inst-lbl (doto (h-box [(label "VAR INST:" "browser-instr-type-lbl")
                                                        (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
                                            (.setSpacing 10))
                                 inst-del-btn (button :label "del"
@@ -239,7 +237,7 @@
                               (.setSpacing 10)
                               (.setAlignment Pos/CENTER_LEFT)))
                      :ns (let [{:keys [ns-name] :as inst-ns} inst
-                               inst-lbl (doto (h-box [(label "NS:" "browser-instr-type-lbl")
+                               inst-lbl (doto (h-box [(label "NS INST:" "browser-instr-type-lbl")
                                                       (label ns-name "browser-instr-label")])
                                           (.setSpacing 10))
                                inst-del-btn (button :label "del"
@@ -247,7 +245,17 @@
                                                     :on-click (fn [] (uninstrument-namespaces [inst-ns])))]
                            (doto (h-box [inst-lbl inst-del-btn])
                              (.setSpacing 10)
-                             (.setAlignment Pos/CENTER_LEFT))))]
+                             (.setAlignment Pos/CENTER_LEFT)))
+                     :break (let [{:keys [var-ns var-name]} inst
+                                  inst-lbl (doto (h-box [(label "VAR BREAK:" "browser-instr-type-lbl")
+                                                         (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
+                                             (.setSpacing 10))
+                                  inst-del-btn (button :label "del"
+                                                       :class "browser-instr-del-btn"
+                                                       :on-click (fn [] (remove-breakpoint (symbol var-ns var-name))))]
+                              (doto (h-box [inst-lbl inst-del-btn])
+                                (.setSpacing 10)
+                                (.setAlignment Pos/CENTER_LEFT))))]
       (.setGraphic ^Node list-cell inst-box))
     (catch Exception e (log-error e))))
 
@@ -258,13 +266,17 @@
         delete-all-btn (button :label "Delete all"
                                :on-click (fn []
                                            (let [type-groups (group-by :inst-type (get-all-items))
-                                                 del-namespaces   (:ns type-groups)
-                                                 del-vars (:var type-groups)]
+                                                 del-namespaces (:ns type-groups)
+                                                 del-vars (:var type-groups)
+                                                 del-brks (:break type-groups)]
 
                                              (uninstrument-namespaces del-namespaces)
 
                                              (doseq [v del-vars]
-                                               (uninstrument-function (:var-ns v) (:var-name v))))))
+                                               (uninstrument-function (:var-ns v) (:var-name v)))
+
+                                             (doseq [b del-brks]
+                                               (remove-breakpoint (symbol (:var-ns b) (:var-name b)))))))
         en-dis-chk (doto (CheckBox.)
                      (.setSelected true))
         _ (.setOnAction en-dis-chk
@@ -313,8 +325,8 @@
 
     (-> top-bottom-split-pane
         .getItems
-        (.addAll (cond-> [top-split-pane]
-                   (not ui-vars/clojure-storm-env?) (into [inst-pane]))))
+        (.addAll [top-split-pane
+                  inst-pane]))
 
     (.setDividerPosition top-split-pane 0 0.3)
     (.setDividerPosition top-split-pane 1 0.6)

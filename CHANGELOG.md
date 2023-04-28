@@ -9,12 +9,13 @@
 	- Add a result pane on the functions list tool
 	- Add double click on calls tree tool node steps code
 	- Control recording from the UI
+	- Add threads breakpoints
 	- Add basic keyboard support 
 	- Allow DEF button functionality to specify a NS
 	
 ### Changes
 	
-	- Made search functionality faster and simplify it's code
+	- Made search functionality faster and simplified it's code
 	- #rtrace automatically opens the code stepping tool in the last position
 	- Upgrade hansel to 0.1.54
 	- Signal error when trying to use #rtrace with ClojureStorm

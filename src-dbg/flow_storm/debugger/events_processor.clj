@@ -16,22 +16,22 @@
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
-   (browser-screen/add-to-var-instrumented-list var-ns var-name)
+   (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
    (ui-main/select-main-tools-tab :browser)))
 
 (defn- var-uninstrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
-   (browser-screen/remove-from-var-instrumented-list var-ns var-name)
+   (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
    (ui-main/select-main-tools-tab :browser)))
 
 (defn- namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/add-to-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])
+   (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-ns ns-name))
    (ui-main/select-main-tools-tab :browser)))
 
 (defn- namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
-   (browser-screen/remove-from-namespace-instrumented-list [(browser-screen/make-inst-ns ns-name)])
+   (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-ns ns-name))
    (ui-main/select-main-tools-tab :browser)))
 
 (defn- tap-event [{:keys [value]}]
@@ -75,10 +75,12 @@
    (docs-screen/show-doc var-symbol)))
 
 (defn- break-installed-event [{:keys [fq-fn-symb]}]
-  (ui-main/set-break fq-fn-symb))
+  (ui-utils/run-later
+   (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-break fq-fn-symb))))
 
-(defn- break-cleared-event [_]
-  (ui-main/clear-break))
+(defn- break-removed-event [{:keys [fq-fn-symb]}]
+  (ui-utils/run-later
+   (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-break fq-fn-symb))))
 
 (defn- recording-updated-event [{:keys [recording?]}]
   (ui-main/set-recording-btn recording?))
@@ -100,5 +102,5 @@
     :goto-location (goto-location-event ev-args-map)
     :show-doc (show-doc-event ev-args-map)
     :break-installed (break-installed-event ev-args-map)
-    :break-cleared (break-cleared-event ev-args-map)
+    :break-removed (break-removed-event ev-args-map)
     :recording-updated (recording-updated-event ev-args-map)))

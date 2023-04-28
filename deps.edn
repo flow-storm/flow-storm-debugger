@@ -25,6 +25,7 @@
                    :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}}
                    :jvm-opts ["-Dproject-name=StormTest"
                               "-Dflowstorm.startRecording=true"
+                              "-Dflowstorm.theme=light"
                               "-Dclojure.storm.instrumentEnable=true"
                               "-Dclojure.storm.instrumentSkipPrefixes=clojure.,flow-storm.,cider.,nrepl.,hansel.,refactor-nrepl."]}
 

@@ -62,7 +62,7 @@
      ;; stop remote websocket client if needed
      (remote-websocket-client/stop-remote-websocket-client)
 
-     (tracer/clear-break!)
+     (tracer/clear-breakpoints!)
 
      (log "System stopped"))))
 
@@ -488,9 +488,16 @@
   `(do (tap> (flow-storm.api/current-stack-trace))
        ~form))
 
-(def break-at dbg-api/break-at)
+(defn break-at
+  ([fq-fn-symb] (dbg-api/add-breakpoint! fq-fn-symb))
+  ([fq-fn-symb args-pred] (dbg-api/add-breakpoint! fq-fn-symb args-pred)))
+
+(defn remove-break [fq-fn-symb]
+  (dbg-api/remove-breakpoint! fq-fn-symb))
+
 (def continue dbg-api/thread-continue)
-(def clear-breaks dbg-api/clear-breaks)
+(def clear-breaks dbg-api/clear-breakpoints!)
+
 (defn start-recording [] (dbg-api/set-recording true))
 (defn stop-recording [] (dbg-api/set-recording false))
 (comment

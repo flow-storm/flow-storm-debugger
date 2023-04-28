@@ -59,8 +59,8 @@
 (defn make-break-installed-event [fq-fn-symb]
   [:break-installed {:fq-fn-symb fq-fn-symb}])
 
-(defn make-break-cleared-event []
-  [:break-cleared {}])
+(defn make-break-removed-event [fq-fn-symb]
+  [:break-removed {:fq-fn-symb fq-fn-symb}])
 
 (defn make-recording-updated-event [recording?]
   [:recording-updated {:recording? recording?}])

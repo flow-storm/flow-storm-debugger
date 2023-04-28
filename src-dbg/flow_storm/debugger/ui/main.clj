@@ -136,12 +136,7 @@
     tabs-p))
 
 (defn- build-tool-bar-pane []
-  (let [clear-breaks-btn (icon-button :icon-name "mdi-bookmark-remove"
-                                      :tooltip "Remove threads break"
-                                      :on-click (fn [])
-                                      :class "clear-break-btn"
-                                      :disable true)
-        record-btn (icon-button :icon-name "mdi-record"
+  (let [record-btn (icon-button :icon-name "mdi-record"
                                 :tooltip "Start/Stop recording"
                                 :on-click (fn [] (runtime-api/toggle-recording rt-api))
                                 :class "record-btn")
@@ -153,10 +148,8 @@
                             :tooltip "Clean all debugger and runtime values references"
                             :on-click (fn [] (clear-all)))
                task-cancel-btn
-               clear-breaks-btn
                record-btn]]
 
-    (store-obj "clear-breaks-btn" clear-breaks-btn)
     (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "record-btn" record-btn)
     (ToolBar. (into-array Node tools))))
@@ -174,18 +167,6 @@
       (if recording?
         "mdi-pause"
         "mdi-record")))))
-
-(defn set-break [_]
-  (let [[clear-breaks-btn] (obj-lookup "clear-breaks-btn")]
-    (doto clear-breaks-btn
-      (.setOnAction (event-handler [_] (runtime-api/clear-breaks rt-api)))
-      (.setDisable false))))
-
-(defn clear-break []
-  (let [[clear-breaks-btn] (obj-lookup "clear-breaks-btn")]
-    (doto clear-breaks-btn
-      (.setOnAction (event-handler [_]))
-      (.setDisable true))))
 
 (defn- build-main-pane []
   (let [mp (border-pane {:top (build-tool-bar-pane)
@@ -290,7 +271,11 @@
 
   (ui-utils/run-now
    (try
-     (let [scene (Scene. (build-main-pane) 1024 768)
+     (let [{:keys [recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
+           ;; retrieve runtime configuration and configure before creating the UI
+           ;; since some components creation depend on it
+           _ (ui-vars/configure-environment runtime-config)
+           scene (Scene. (build-main-pane) 1024 768)
            stage (doto (Stage.)
                    (.setTitle "Flowstorm debugger")
                    (.setScene scene)
@@ -342,12 +327,10 @@
        (-> stage .show)
 
        ;; initialize the UI with the server state
-       (let [{:keys [recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
-             all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+       (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                                 (map first)
                                 (into #{}))]
 
-         (ui-vars/configure-environment runtime-config)
          (set-recording-btn recording?)
          (doseq [fid all-flows-ids]
            (create-flow {:flow-id fid})))

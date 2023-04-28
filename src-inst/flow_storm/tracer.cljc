@@ -12,7 +12,7 @@
 (declare stop-tracer)
 
 (def recording (atom true))
-(def thread-break (atom nil))
+(def breakpoints (atom #{}))
 
 (defn set-recording [x]
   (if x
@@ -48,14 +48,17 @@
        (locking thread-obj
          (.notifyAll thread-obj)))))
 
-(defn set-break! [fn-ns fn-name args-pred]
-  (reset! thread-break [fn-ns fn-name args-pred]))
+(defn add-breakpoint! [fn-ns fn-name args-pred]
+  (swap! breakpoints conj (with-meta [fn-ns fn-name] {:predicate args-pred})))
 
-(defn clear-break! []
-  (reset! thread-break nil))
+(defn remove-breakpoint! [fn-ns fn-name]
+  (swap! breakpoints disj [fn-ns fn-name]))
 
-(defn break-set? []
-  (boolean @thread-break))
+(defn clear-breakpoints! []
+  (reset! breakpoints nil))
+
+(defn all-breakpoints []
+  @breakpoints)
 
 (defn trace-flow-init-trace
 
@@ -105,14 +108,15 @@
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
    
    (when @recording
-     #?(:clj (when-let [[target-fn-ns target-fn-name args-pred] @thread-break]
-               (when (and (= fn-ns target-fn-ns)
-                          (= fn-name target-fn-name)
-                          (apply args-pred fn-args)                            
-                          (indexes-api/flow-exists? flow-id))
-                 ;; this is kind of HACKY but do not block if the flow don't exist yet
-                 ;; because the only UI to unblock threads is inside the flow tab 
-                 (block-this-thread flow-id))))
+     #?(:clj
+        (let [brks @breakpoints]
+          (when (and (pos? (count brks))
+                     (contains? brks [fn-ns fn-name])
+                     (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args)
+                     ;; this is kind of HACKY but do not block if the flow don't exist yet
+                     ;; because the only UI to unblock threads is inside the flow tab 
+                     (indexes-api/flow-exists? flow-id))
+            (block-this-thread flow-id))))
      
      (let [timestamp (utils/get-monotonic-timestamp)
            thread-id (utils/get-current-thread-id)
