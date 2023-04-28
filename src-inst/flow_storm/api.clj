@@ -495,7 +495,7 @@
 (defn remove-break [fq-fn-symb]
   (dbg-api/remove-breakpoint! fq-fn-symb))
 
-(def continue dbg-api/thread-continue)
+(def unblock-thread dbg-api/unblock-thread)
 (def clear-breaks dbg-api/clear-breakpoints!)
 
 (defn start-recording [] (dbg-api/set-recording true))

@@ -265,8 +265,12 @@
        (log "No recordings for this thread yet")))))
 
 #?(:clj
-   (defn thread-continue [thread-id]     
+   (defn unblock-thread [thread-id]     
      (tracer/unblock-thread thread-id)))
+
+#?(:clj
+   (defn unblock-all-threads []
+     (tracer/unblock-all-threads)))
 
 #?(:clj
    (defn add-breakpoint!
@@ -421,7 +425,8 @@
                   :uninstrument-var uninstrument-var
                   :instrument-namespaces instrument-namespaces
                   :uninstrument-namespaces uninstrument-namespaces
-                  :thread-continue thread-continue
+                  :unblock-thread unblock-thread
+                  :unblock-all-threads unblock-all-threads
                   :add-breakpoint! add-breakpoint!
                   :remove-breakpoint! remove-breakpoint!])})
 

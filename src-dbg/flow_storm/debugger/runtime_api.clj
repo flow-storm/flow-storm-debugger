@@ -66,7 +66,8 @@
   (clear-api-cache [_])
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
-  (thread-continue [_ thread-id])
+  (unblock-thread [_ thread-id])
+  (unblock-all-threads [_])
 
   (add-breakpoint [_ fq-fn-symb])
   (remove-breakpoint [_ fq-fn-symb])
@@ -202,8 +203,11 @@
   (flow-threads-info [_ flow-id]
     (api-call :local "flow-threads-info" [flow-id]))
 
-  (thread-continue [_ thread-id]
-    (api-call :local "thread-continue" [thread-id]))
+  (unblock-thread [_ thread-id]
+    (api-call :local "unblock-thread" [thread-id]))
+
+  (unblock-all-threads [_]
+    (api-call :local "unblock-all-threads" []))
 
   (add-breakpoint [_ fq-fn-symb]
     (api-call :local "add-breakpoint!" [fq-fn-symb]))
@@ -322,8 +326,11 @@
   (flow-threads-info [_ flow-id]
     (api-call :remote "flow-threads-info" [flow-id]))
 
-  (thread-continue [_ thread-id]
-    (api-call :remote "thread-continue" [thread-id]))
+  (unblock-thread [_ thread-id]
+    (api-call :remote "unblock-thread" [thread-id]))
+
+  (unblock-all-threads [_]
+    (api-call :remote "unblock-all-threads" []))
 
   (add-breakpoint [_ fq-fn-symb]
     (case env-kind

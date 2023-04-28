@@ -13,6 +13,7 @@
 
 (def recording (atom true))
 (def breakpoints (atom #{}))
+(def blocked-threads (atom #{}))
 
 (defn set-recording [x]
   (if x
@@ -37,6 +38,7 @@
          (do
            (utils/log (format "Blocking thread %d %s" tid tname))
            (indexes-api/mark-thread-blocked flow-id tid)
+           (swap! blocked-threads conj thread-obj)
            (locking thread-obj
              (.wait thread-obj))
            (indexes-api/mark-thread-unblocked flow-id tid)
@@ -44,7 +46,14 @@
 
 #?(:clj
    (defn unblock-thread [thread-id]
-     (let [thread-obj (utils/get-thread-object-by-id thread-id)]       
+     (let [thread-obj (utils/get-thread-object-by-id thread-id)]
+       (swap! blocked-threads dissoc thread-obj)
+       (locking thread-obj
+         (.notifyAll thread-obj)))))
+
+#?(:clj
+   (defn unblock-all-threads []
+     (doseq [thread-obj @blocked-threads]
        (locking thread-obj
          (.notifyAll thread-obj)))))
 

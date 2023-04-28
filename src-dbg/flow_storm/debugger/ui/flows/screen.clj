@@ -88,12 +88,27 @@
                                        (.setGraphic
                                         list-cell
                                         (if blocked?
+                                          ;; build blocked thread node
                                           (let [thread-unblock-btn (icon-button :icon-name "mdi-play"
                                                                                 :on-click (fn []
-                                                                                            (runtime-api/thread-continue rt-api id))
-                                                                                :class "thread-continue-btn")]
-                                            (doto (h-box [(label name "thread-blocked") thread-unblock-btn])
-                                              (.setSpacing 5)))
+                                                                                            (runtime-api/unblock-thread rt-api id))
+                                                                                :class "thread-continue-btn")
+                                                ctx-menu-unblock-all-threads {:text "Unblock all threads"
+                                                                              :on-click (fn []
+                                                                                          (runtime-api/unblock-all-threads rt-api))}
+                                                ctx-menu (ui-utils/make-context-menu [ctx-menu-unblock-all-threads])
+                                                blocked-thread-box (h-box [(label name "thread-blocked") thread-unblock-btn])]
+                                            (doto blocked-thread-box
+                                              (.setSpacing 5)
+                                              (.setOnContextMenuRequested
+                                               (event-handler
+                                                [mev]
+                                                (.show ctx-menu
+                                                       blocked-thread-box
+                                                       (.getScreenX mev)
+                                                       (.getScreenY mev))))))
+
+                                          ;; if not blocked just render a label
                                           (label name))))
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
