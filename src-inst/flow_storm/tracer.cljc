@@ -27,7 +27,7 @@
   @recording)
 
 #?(:clj
-   (defn- block-this-thread [flow-id]
+   (defn- block-this-thread [flow-id breakpoint]
      (let [thread-obj (Thread/currentThread)
            tname (.getName thread-obj)
            tid (.getId thread-obj)]
@@ -37,7 +37,7 @@
 
          (do
            (utils/log (format "Blocking thread %d %s" tid tname))
-           (indexes-api/mark-thread-blocked flow-id tid)
+           (indexes-api/mark-thread-blocked flow-id tid breakpoint)
            (swap! blocked-threads conj thread-obj)
            (locking thread-obj
              (.wait thread-obj))
@@ -47,7 +47,7 @@
 #?(:clj
    (defn unblock-thread [thread-id]
      (let [thread-obj (utils/get-thread-object-by-id thread-id)]
-       (swap! blocked-threads dissoc thread-obj)
+       (swap! blocked-threads disj thread-obj)
        (locking thread-obj
          (.notifyAll thread-obj)))))
 
@@ -115,27 +115,27 @@
      (trace-fn-call flow-id ns fn-name fn-args form-id)))
   
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
-   
-   (when @recording
+      
+   (let [thread-id (utils/get-current-thread-id)
+         thread-name (utils/get-current-thread-name)]
+     
      #?(:clj
         (let [brks @breakpoints]
           (when (and (pos? (count brks))
                      (contains? brks [fn-ns fn-name])
-                     (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args)
-                     ;; this is kind of HACKY but do not block if the flow don't exist yet
-                     ;; because the only UI to unblock threads is inside the flow tab 
-                     (indexes-api/flow-exists? flow-id))
-            (block-this-thread flow-id))))
+                     (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args))
+            ;; before blocking, let's make sure the thread exists
+            (indexes-api/get-or-create-thread-indexes flow-id thread-id thread-name form-id)
+            (block-this-thread flow-id [fn-ns fn-name]))))
      
-     (let [timestamp (utils/get-monotonic-timestamp)
-           thread-id (utils/get-current-thread-id)
-           thread-name (utils/get-current-thread-name)
-           args (mapv snapshot-reference fn-args)]
-       (indexes-api/add-fn-call-trace
-        flow-id
-        thread-id
-        thread-name
-        (make-fn-call-trace fn-ns fn-name form-id timestamp args))))))
+     (when @recording            
+       (let [timestamp (utils/get-monotonic-timestamp)                          
+             args (mapv snapshot-reference fn-args)]
+         (indexes-api/add-fn-call-trace
+          flow-id
+          thread-id
+          thread-name
+          (make-fn-call-trace fn-ns fn-name form-id timestamp args)))))))
 
 (defn trace-fn-return
 

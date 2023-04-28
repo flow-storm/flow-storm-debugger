@@ -5,7 +5,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box]]
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
@@ -83,13 +83,14 @@
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
-                    :cell-factory-fn (fn [list-cell {:keys [thread/name thread/blocked? thread/id]}]
+                    :cell-factory-fn (fn [list-cell {:keys [thread/name thread/blocked thread/id]}]
                                        (.setText list-cell nil)
                                        (.setGraphic
                                         list-cell
-                                        (if blocked?
+                                        (if blocked
                                           ;; build blocked thread node
-                                          (let [thread-unblock-btn (icon-button :icon-name "mdi-play"
+                                          (let [[bp-var-ns bp-var-name] blocked
+                                                thread-unblock-btn (icon-button :icon-name "mdi-play"
                                                                                 :on-click (fn []
                                                                                             (runtime-api/unblock-thread rt-api id))
                                                                                 :class "thread-continue-btn")
@@ -97,14 +98,16 @@
                                                                               :on-click (fn []
                                                                                           (runtime-api/unblock-all-threads rt-api))}
                                                 ctx-menu (ui-utils/make-context-menu [ctx-menu-unblock-all-threads])
-                                                blocked-thread-box (h-box [(label name "thread-blocked") thread-unblock-btn])]
-                                            (doto blocked-thread-box
+                                                blocked-thread (h-box [(v-box [(label name "thread-blocked")
+                                                                               (label (format "%s/%s" bp-var-ns bp-var-name) "light")])
+                                                                       thread-unblock-btn])]
+                                            (doto blocked-thread
                                               (.setSpacing 5)
                                               (.setOnContextMenuRequested
                                                (event-handler
                                                 [mev]
                                                 (.show ctx-menu
-                                                       blocked-thread-box
+                                                       blocked-thread
                                                        (.getScreenX mev)
                                                        (.getScreenY mev))))))
 

@@ -127,9 +127,9 @@
     (indexes/get-thread-indexes flow-thread-registry flow-id thread-id)))
 
 (defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
-  (when (and (nil? flow-id)
-             (not (flow-exists? nil)))
-    (create-flow {:flow-id nil}))
+  ;; create the `nil` (funnel) flow if it doesn't exist
+   (when (and (nil? flow-id) (not (flow-exists? nil)))
+     (create-flow {:flow-id nil}))
   
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti
@@ -279,14 +279,14 @@
           (when flow-thread-registry
             (indexes/flow-threads-info flow-thread-registry flow-id))))
 
-(defn mark-thread-blocked [flow-id thread-id]
+(defn mark-thread-blocked [flow-id thread-id breakpoint]
   (when flow-thread-registry
-    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id true)
+    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id breakpoint)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
 
 (defn mark-thread-unblocked [flow-id thread-id]
   (when flow-thread-registry
-    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id false)
+    (indexes/set-thread-blocked flow-thread-registry flow-id thread-id nil)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

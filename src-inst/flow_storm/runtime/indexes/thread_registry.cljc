@@ -1,6 +1,7 @@
 (ns flow-storm.runtime.indexes.thread-registry
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :refer [make-mutable-concurrent-hashmap mch->immutable-map mch-put mch-remove mch-keys mch-get]]))
+            [flow-storm.runtime.indexes.utils :refer [make-mutable-concurrent-hashmap mch->immutable-map mch-put mch-remove mch-keys mch-get]]
+            [clojure.string :as str]))
 
 (defrecord ThreadRegistry [flows-ids-set registry *callbacks]
 
@@ -16,7 +17,7 @@
                {:flow/id fid
                 :thread/id tid
                 :thread/name (:thread/name tinfo)
-                :thread/blocked? (:thread/blocked? tinfo)})))))
+                :thread/blocked (:thread/blocked tinfo)})))))
 
   (flow-exists? [_ flow-id]    
     (contains? @flows-ids-set flow-id))
@@ -28,18 +29,20 @@
 
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
     (swap! flows-ids-set conj flow-id)
-    (mch-put registry [flow-id thread-id] {:thread/name thread-name
+    (mch-put registry [flow-id thread-id] {:thread/name (if (str/blank? thread-name)
+                                                          (str "Thread-" thread-id)
+                                                          thread-name)
                                            :thread/indexes indexes
-                                           :thread/blocked? false})
+                                           :thread/blocked nil})
     (when-let [otc (:on-thread-created @*callbacks)]
       (otc {:flow-id flow-id
             :thread-id thread-id
             :thread-name thread-name
             :form-id form-id})))
 
-  (set-thread-blocked [_ flow-id thread-id blocked?]
+  (set-thread-blocked [_ flow-id thread-id breakpoint]
     (let [th-info (mch-get registry [flow-id thread-id])]
-      (mch-put registry [flow-id thread-id] (assoc th-info :thread/blocked? blocked?))))
+      (mch-put registry [flow-id thread-id] (assoc th-info :thread/blocked breakpoint))))
 
   (discard-threads [_ flow-threads-ids]
     (swap! flows-ids-set disj (ffirst flow-threads-ids))

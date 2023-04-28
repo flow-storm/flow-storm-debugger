@@ -45,7 +45,7 @@
 (defprotocol ThreadRegistryP
   (all-threads [_])
   (flow-threads-info [_ flow-id])
-  (set-thread-blocked [_ flow-id thread-id blocked?])
+  (set-thread-blocked [_ flow-id thread-id breakpoint])
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
