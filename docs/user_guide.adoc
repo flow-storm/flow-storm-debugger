@@ -796,14 +796,14 @@ your programs execution. This is all fine but doesn't cover every possible situa
 cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
 and you are probably not interested in all those frames details.
 
-For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define a points
-in the execution of your program where you want your threads to block and wait.
+For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define points
+in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
 click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
-click on any of the blocked threads and selecting `Unblock all threads` to unlock all of them.
+click on any of the blocked threads and select `Unblock all threads` to unlock all of them.
 Then you can analyse the new recordings. Once you are done, you can choose to uninstrument
 your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
-can remove the break and unblock every thread.
+can remove the breakpoints and un-block every thread.
 
 You can define thread breakpoints in two ways :
 

@@ -118,13 +118,9 @@
 (def find-fn-frames indexes-api/find-fn-frames)
 
 (defn find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id]
-  (let [fn-frames (indexes-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)]
-    (->> fn-frames
-         (mapv (fn [fr]
-                 (-> fr
-                     (dissoc :bindings :expr-executions)
-                     reference-frame-data!))))))
-
+  (let [fn-frames (indexes-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
+        frames (into [] (map reference-frame-data!) fn-frames)]
+    frames))
 
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues

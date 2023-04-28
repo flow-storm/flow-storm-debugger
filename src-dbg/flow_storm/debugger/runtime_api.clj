@@ -13,7 +13,6 @@
 (declare rt-api)
 (declare api-call)
 
-(def api-call-timeout 5000)
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
@@ -92,8 +91,8 @@
         res))))
 
 (defn api-call
-  ([call-type fn-name args] (api-call call-type nil fn-name args))
-  ([call-type cache fname args]
+  ([call-type fname args] (api-call call-type fname args {}))
+  ([call-type fname args {:keys [cache timeout]}]
    (let [f (case call-type
              :local (requiring-resolve (symbol "flow-storm.runtime.debuggers-api" fname))
              :remote (fn [& args] (websocket/sync-remote-api-request (keyword fname) args)))]
@@ -110,7 +109,9 @@
                              (do
                                (when debug-mode (log (utils/colored-string "CALLED" :red)))
                                (apply f args))))
-           call-resp (deref call-resp-fut api-call-timeout :flow-storm/call-time-out)]
+           call-resp (if timeout
+                       (deref call-resp-fut timeout :flow-storm/call-time-out)
+                       (deref call-resp-fut))]
        (if (= call-resp :flow-storm/call-time-out)
          (do
            (show-message (format "A call to %s timed out" fname) :warning)
@@ -122,9 +123,9 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :local "runtime-config" []))
-  (val-pprint [_ v opts] (api-call :local api-cache "val-pprint" [v opts])) ;; CACHED
-  (shallow-val [_ v] (api-call :local api-cache "shallow-val" [v]))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :local api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
+  (val-pprint [_ v opts] (api-call :local "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
+  (shallow-val [_ v] (api-call :local "shallow-val" [v] {:cache api-cache}))  ;; CACHED
+  (get-form [_ flow-id thread-id form-id] (api-call :local "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :local "timeline-entry" [flow-id thread-id idx]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :local "frame-data" [flow-id thread-id idx opts]))
@@ -233,9 +234,9 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :remote "runtime-config" []))
-  (val-pprint [_ v opts] (api-call :remote api-cache "val-pprint" [v opts])) ;; CACHED
-  (shallow-val [_ v] (api-call :remote api-cache "shallow-val" [v]))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :remote api-cache "get-form" [flow-id thread-id form-id]))  ;; CACHED
+  (val-pprint [_ v opts] (api-call :remote "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
+  (shallow-val [_ v] (api-call :remote "shallow-val" [v] {:cache api-cache}))  ;; CACHED
+  (get-form [_ flow-id thread-id form-id] (api-call :remote "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx] (api-call :remote "timeline-entry" [flow-id thread-id idx]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :remote "frame-data" [flow-id thread-id idx opts]))

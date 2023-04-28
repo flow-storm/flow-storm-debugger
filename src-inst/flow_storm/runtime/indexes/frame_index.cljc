@@ -43,22 +43,22 @@
   
   index-protos/CallStackFrameP
 
-  (get-immutable-frame [_]
+  (get-immutable-frame [_ full?]
 
     (if fn-call-trace      
       (let [fn-name (fn-call-trace/get-fn-name fn-call-trace)
             fn-ns (fn-call-trace/get-fn-ns fn-call-trace)
             fn-args (fn-call-trace/get-fn-args fn-call-trace)
             form-id (fn-call-trace/get-form-id fn-call-trace)]
-        {:fn-ns fn-ns
-         :fn-name fn-name
-         :args-vec fn-args
-         :bindings (mapv binding-map bindings) 
-         :expr-executions (mapv expr-exec-map expr-executions)
-         :ret (when ret-trace (fn-return-trace/get-ret-val ret-trace))
-         :form-id form-id
-         :frame-idx timeline-idx
-         :parent-frame-idx parent-timeline-idx})
+        (cond-> {:fn-ns fn-ns
+                 :fn-name fn-name
+                 :args-vec fn-args                 
+                 :ret (when ret-trace (fn-return-trace/get-ret-val ret-trace))
+                 :form-id form-id
+                 :frame-idx timeline-idx
+                 :parent-frame-idx parent-timeline-idx}
+          full? (assoc :bindings (mapv binding-map bindings) 
+                       :expr-executions (mapv expr-exec-map expr-executions))))
       {:root? true}))
 
   (add-binding-to-frame [_ b]
@@ -96,7 +96,7 @@
   index-protos/TreeNodeP
 
   (get-frame [_] frame)
-  (get-node-immutable-frame [_] (index-protos/get-immutable-frame frame))
+  (get-node-immutable-frame [_] (index-protos/get-immutable-frame frame true))
   (has-childs? [_] (zero? (ml-count childs)))
   (add-child [_ node]
     (locking childs
@@ -195,7 +195,7 @@
           (fn-call-trace/fn-call-trace? tl-entry)
           (-> (fn-call-trace/get-frame-node tl-entry)
               index-protos/get-frame
-              index-protos/get-immutable-frame
+              (index-protos/get-immutable-frame true)
               (assoc :timeline/type :frame))
 
           (fn-return-trace/fn-return-trace? tl-entry)
@@ -213,12 +213,12 @@
                    (when (fn-call-trace/fn-call-trace? tl-entry)                     
                      (-> (fn-call-trace/get-frame-node tl-entry)
                          index-protos/get-frame 
-                         index-protos/get-immutable-frame))))
+                         (index-protos/get-immutable-frame true)))))
            doall)))
 
   (timeline-seq [this]
     (locking this
-      (doall (seq timeline))))
+      (into [] timeline)))
 
   (timeline-sub-seq [this from to]
     (locking this
@@ -235,7 +235,7 @@
                          (expr-trace/expr-trace? tl-entry) (expr-trace/get-frame-node tl-entry))
             {:keys [frame-idx] :as fr-data} (-> frame-node
                                                 index-protos/get-frame 
-                                                index-protos/get-immutable-frame)]        
+                                                (index-protos/get-immutable-frame true))]        
         (cond-> fr-data
           include-path? (assoc :frame-idx-path (get-frame-idx-path timeline frame-idx))))))
 

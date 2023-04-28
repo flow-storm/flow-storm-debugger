@@ -32,14 +32,15 @@
 (defn handle-exception [thread ex]
   (utils/log-error (utils/format "Error in thread %s" thread) ex)
   
-  (let [thread-id (.getId thread)
+  (let [thread-id #?(:clj (.getId thread) :cljs 0)
+        thread-name  #?(:clj (.getName thread) :cljs "main")
         {:keys [frame-index]} (get-thread-indexes nil thread-id)]
     
     (when frame-index
       (indexes/reset-build-stack frame-index)
       
       (reset! last-exception-location {:thread/id thread-id
-                                       :thread/name (.getName thread)
+                                       :thread/name thread-name
                                        :thread/idx (dec (indexes/timeline-count frame-index))}))))
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
@@ -254,16 +255,16 @@
                      (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form)))))))))
 
 (defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
-  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)]
-    (->> (indexes/timeline-seq frame-index)
-         (keep (fn [tl-entry]
-                 (when (and (fn-call-trace/fn-call-trace? tl-entry)
-                            (= form-id (fn-call-trace/get-form-id tl-entry))
-                            (= fn-name (fn-call-trace/get-fn-name tl-entry))
-                            (= fn-ns (fn-call-trace/get-fn-ns tl-entry)))                   
-                   (-> (fn-call-trace/get-frame-node tl-entry)
-                       indexes/get-frame 
-                       indexes/get-immutable-frame)))))))
+  (let [{:keys [frame-index]} (get-thread-indexes flow-id thread-id)
+        frames-xform (keep (fn [tl-entry]
+                            (when (and (fn-call-trace/fn-call-trace? tl-entry)
+                                       (= form-id (fn-call-trace/get-form-id tl-entry))
+                                       (= fn-name (fn-call-trace/get-fn-name tl-entry))
+                                       (= fn-ns (fn-call-trace/get-fn-ns tl-entry)))                   
+                              (-> (fn-call-trace/get-frame-node tl-entry)
+                                  indexes/get-frame 
+                                  (indexes/get-immutable-frame false)))))]
+    (into [] frames-xform (indexes/timeline-seq frame-index))))
 
 
 (defn discard-flow [flow-id] 
