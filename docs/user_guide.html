@@ -672,7 +672,11 @@ pre.rouge {
 <li><a href="#_clojurescript">1.2. ClojureScript</a></li>
 </ul>
 </li>
-<li><a href="#_remote_debugging">2. Remote debugging</a></li>
+<li><a href="#_remote_debugging">2. Remote debugging</a>
+<ul class="sectlevel3">
+<li><a href="#_ssh_tunnel">2.1. SSH tunnel</a></li>
+</ul>
+</li>
 <li><a href="#_instrument_code">3. Instrument code</a>
 <ul class="sectlevel3">
 <li><a href="#_instrument_from_the_repl">3.1. Instrument from the repl</a>
@@ -1199,6 +1203,20 @@ doesn&#8217;t contain some libraries used only by the UI, but using the full <co
 <p><code>:debugger-host</code> should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"</p>
 </li>
 </ul>
+</div>
+<div class="sect3">
+<h4 id="_ssh_tunnel"><a class="anchor" href="#_ssh_tunnel"></a><a class="link" href="#_ssh_tunnel">2.1. SSH tunnel</a></h4>
+<div class="paragraph">
+<p>You can debug remote process through a ssh tunnel by creating a tunnel like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">ssh <span class="nt">-L</span> 9000:localhost:9000 <span class="nt">-R</span> 7722:localhost:7722 my-debuggee-box.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -2002,14 +2020,14 @@ cases where recording everything is impractical, like in a game loop, since it w
 and you are probably not interested in all those frames details.</p>
 </div>
 <div class="paragraph">
-<p>For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define a points
-in the execution of your program where you want your threads to block and wait.
+<p>For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define points
+in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn&#8217;t enough you can
 click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
-click on any of the blocked threads and selecting <code>Unblock all threads</code> to unlock all of them.
+click on any of the blocked threads and select <code>Unblock all threads</code> to unlock all of them.
 Then you can analyse the new recordings. Once you are done, you can choose to uninstrument
 your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
-can remove the break and unblock every thread.</p>
+can remove the breakpoints and un-block every thread.</p>
 </div>
 <div class="paragraph">
 <p>You can define thread breakpoints in two ways :</p>
@@ -2596,7 +2614,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-04-28 15:26:38 -0300
+Last updated 2023-04-30 20:14:21 -0300
 </div>
 </div>
 </body>

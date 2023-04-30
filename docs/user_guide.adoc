@@ -303,6 +303,18 @@ If your application is running in a different box you can also provide two extra
    - `:runtime-host` should be the ip of the debuggee (defaults to localhost)
    - `:debugger-host` should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
 
+=== SSH tunnel
+
+You can debug remote process through a ssh tunnel by creating a tunnel like this :
+
+[,bash]
+----
+ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
+----
+
+assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000.
+
+
 == Instrument code
 
 [NOTE]
