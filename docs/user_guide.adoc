@@ -280,6 +280,8 @@ will have to require flow-storm.api yourself, probably in your main. All the tra
 once it is connected.
 ====
 
+Here is a repo you can use if you want to try FlowStorm with shadow-cljs https://github.com/jpmonettas/shadow-flow-storm-basic
+
 == Remote debugging
 
 You can remotely debug any Clojure application the exposes a nrepl server.
@@ -314,6 +316,10 @@ ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
 
 assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000.
 
+=== Docker
+
+If you run you process inside a docker container, here is a basic template for using FlowStorm with it
+https://github.com/jpmonettas/docker-flow-storm-basic
 
 == Instrument code
 
