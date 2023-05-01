@@ -1,6 +1,14 @@
 # Changelog
 
-## 3.5.-alpha-1 (unreleased)
+## master (unreleased)
+	
+### New Features
+
+### Changes
+	
+### Bugs fixed
+
+## 3.5.0 (01-05-2023)
 	
 ### New Features
 
