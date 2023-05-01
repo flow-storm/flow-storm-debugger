@@ -64,7 +64,7 @@
   (swap! breakpoints disj [fn-ns fn-name]))
 
 (defn clear-breakpoints! []
-  (reset! breakpoints nil))
+  (reset! breakpoints #{}))
 
 (defn all-breakpoints []
   @breakpoints)

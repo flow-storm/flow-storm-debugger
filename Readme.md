@@ -36,8 +36,8 @@ A slimmer version with no GUI, you may want to use it for Clojure or ClojureScri
 
 ClojureStorm releases : 
 
-- Clojure 1.12.0 [com.github.jpmonettas/clojure "1.12.0-alpha2"]
-- Clojure 1.11.1 [com.github.jpmonettas/clojure "1.11.1-1""]
+- Clojure 1.12.0 [com.github.jpmonettas/clojure "1.12.0-alpha3"]
+- Clojure 1.11.1 [com.github.jpmonettas/clojure "1.11.1-2""]
 	
 # Prerequisites
 
