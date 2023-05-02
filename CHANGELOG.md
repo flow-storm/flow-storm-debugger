@@ -6,11 +6,9 @@
 
 ### Changes
 	
-### Bugs fixed
-
-	- Fix :rec/:stop ui synchronization
+### Bugs fixed	
 	
-## 3.5.0 (01-05-2023)
+## 3.5.1 (01-05-2023)
 	
 ### New Features
 
