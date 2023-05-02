@@ -39,11 +39,11 @@
 
 (defn maybe-execute-flow-storm-specials [input]
   (case input
-    :dbg        (do (start-debugger)             true)
-    :ex         (do (jump-to-last-exception)     true)
-    :last       (do (jump-to-last-expression)    true)
-    :rec        (do (tracer/set-recording true)  true)
-    :stop       (do (tracer/set-recording false) true)
+    :dbg        (do (start-debugger)                    true)
+    :ex         (do (jump-to-last-exception)            true)
+    :last       (do (jump-to-last-expression)           true)
+    :rec        (do (debuggers-api/set-recording true)  true)
+    :stop       (do (debuggers-api/set-recording false) true)
 
     :tut/basics (do ((requiring-resolve 'flow-storm.tutorials.basics/start))     true)
     :tut/next   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-next)) true)

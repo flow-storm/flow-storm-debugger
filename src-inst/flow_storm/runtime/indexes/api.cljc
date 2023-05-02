@@ -30,8 +30,11 @@
     (indexes/register-form forms-registry form-id form-data)))
 
 (defn handle-exception [thread ex]
-  (when-not (instance? java.lang.InterruptedException ex)
-    (utils/log-error (utils/format "Error in thread %s" thread) ex))
+  
+  #?(:clj
+     (when-not (instance? java.lang.InterruptedException ex)
+       (utils/log-error (utils/format "Error in thread %s" thread) ex))
+     :cljs (utils/log-error (utils/format "Error in thread %s" thread) ex))
   
   (let [thread-id #?(:clj (.getId thread) :cljs 0)
         thread-name  #?(:clj (.getName thread) :cljs "main")
