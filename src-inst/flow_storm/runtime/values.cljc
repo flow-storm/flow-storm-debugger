@@ -10,23 +10,21 @@
   (get-value [_ vid])
   (get-value-id [_ v]))
 
-(defn maybe-wrapped [o]
-  (cond-> o
-    (not (counted? o)) utils/wrap))
-
-;; This is tricky.
-;; All this stuff in ValuesReferences is so we can assign unique stable ids to objects
-;; First I tried directly with utils/object-id but on the JVM it is using System/identityHashCode which isn't
-;; reliable since it is pretty easy to find collisions.
-;; The current approach is to keep two maps vid->v, v->vid and an incrementing id value.
-;; Also if the value we are about to store isn't counted? we need to wrap it, since we can only have hashable values
-;; as keys of a map, which infinite sequences are not.
-
+;; Fast way of going from
+;;    value-id -> value 
+;;    value    -> value-id
+;;
+;; every object gets wrapped into a wapping object that will have
+;; hashCode based on unique object-id, calculated by `utils/object-id`
+;; This is so ^:a [] and ^:b [] get a different value-id, which won't get unless
+;; you wrap them, since both will have the same hashCode because meta isn't used for hashCode calculation
+;; Wrapping is also useful for infinite sequences, since you can put a val as a key of a hash-map if it
+;; is a infinite seq
 (defrecord ValuesReferences [vid->v v->vid max-vid]
   PValueRef
 
   (ref-value [this v]
-    (let [v (maybe-wrapped v)]
+    (let [v (utils/wrap v)]
       (if (contains? v->vid v)
         this
         (let [next-vid (inc max-vid)]
@@ -42,7 +40,7 @@
         maybe-wrapped-v)))
 
   (get-value-id [_ v]
-    (let [v (maybe-wrapped v)]
+    (let [v (utils/wrap v)]
       (get v->vid v))))
 
 (defn get-reference-value [vid]  
@@ -50,6 +48,7 @@
 
 (defn reference-value! [v]
   (try
+    
     (swap! values-references ref-value v)
     (get-value-id @values-references v)
 
@@ -155,7 +154,7 @@
              :total-count cnt}
       (seq more-elems) (assoc :val/more (reference-value! (with-meta more-elems {:page/offset (+ offset shallow-page-cnt)}))))))
 
-(defn shallow-val [v]
+(defn shallow-val [v]  
   (let [v-meta (meta v)
         data (cond-> (datafy/datafy v) ;; forward meta since we are storing meta like :page/offset in references
                v-meta (with-meta v-meta))
@@ -171,7 +170,9 @@
                               :val/str (pr-str v)})]
     (assoc shallow-data
            :val/type type-name
-           :val/full (reference-value! v))))
+           :val/full (reference-value! v)
+           :val/shallow-meta (when-let [m (meta v)]
+                               (shallow-val m)))))
 
 (defn tap-value [vref]
   (let [v (get-reference-value vref)]

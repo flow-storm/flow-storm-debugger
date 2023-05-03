@@ -6,6 +6,8 @@
 
 ### Changes
 	
+	- Much improved value inspector
+	
 ### Bugs fixed	
 	
 ## 3.5.1 (01-05-2023)

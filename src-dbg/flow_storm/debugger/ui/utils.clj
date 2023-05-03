@@ -285,7 +285,7 @@
         selected-items (fn [] (.getSelectedItems list-selection))
 
         search-field (TextField.)
-        search-bar (h-box [search-field (doto (Label.) (.setGraphic (icon "mdi-magnify")))])
+        search-bar (h-box [(doto (Label.) (.setGraphic (icon "mdi-magnify"))) search-field])
 
         box (v-box (cond-> []
                      search-predicate (conj search-bar)
@@ -345,7 +345,7 @@
   `cell-factory-fn` a fn that gets called with each item (from `items`) and should return a Node for the cell.
   `items` a collection of data items for the table. Each one should be a vector with the same amount "
 
-  [{:keys [columns cell-factory-fn items]}]
+  [{:keys [columns cell-factory-fn items key-search-predicate]}]
 
   (assert (every? #(= (count %) (count columns)) items) "Every item should have the same amount of elements as columns")
 
@@ -376,16 +376,35 @@
                                                          (.setText nil)
                                                          (.setGraphic cell-graphic))))))))))))
         columns (map-indexed make-column columns)
-        items-array (FXCollections/observableArrayList (into-array Object items))]
+
+        search-field (TextField.)
+        search-bar (h-box [(doto (Label.) (.setGraphic (icon "mdi-magnify"))) search-field])
+
+        box (v-box (cond-> []
+                     key-search-predicate (conj search-bar)
+                     true (conj tv)))
+
+        items-array-list (FXCollections/observableArrayList (into-array Object items))
+        filtered-items-array (FilteredList. items-array-list)]
 
     (.clear (.getColumns tv))
     (.addAll (.getColumns tv) columns)
 
-    (.setItems tv items-array)
+    (.setItems tv filtered-items-array)
 
+    (HBox/setHgrow search-field Priority/ALWAYS)
     (HBox/setHgrow tv Priority/ALWAYS)
 
-    tv))
+    (when key-search-predicate
+      (.addListener (.textProperty search-field)
+                    (proxy [ChangeListener] []
+                      (changed [_ _ new-val]
+                        (.setPredicate filtered-items-array
+                                       (proxy [Predicate] []
+                                         (test [item]
+                                           (key-search-predicate item new-val))))))))
+    {:table-view tv
+     :table-view-pane box}))
 
 (defn normalize-newlines [s]
   (-> s
