@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -12,20 +12,21 @@
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
-(defn- functions-cell-factory [list-cell {:keys [form-def-kind fn-name fn-ns dispatch-val cnt]}]
-  (let [fn-lbl (doto (case form-def-kind
-                       :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
-                       :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                       :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                       :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                       :deftype          (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                       :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))
-                 (.setPrefWidth 450))
-        cnt-lbl (doto (label (str cnt))
-                  (.setPrefWidth 100))
-        hbox (h-box [fn-lbl cnt-lbl])]
-    (.setGraphic ^Node list-cell hbox)))
+(defn- functions-cell-factory [x]
+  (if (number? x)
+    (label (str x))
+
+    (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} x
+          fn-lbl (doto (case form-def-kind
+                         :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
+                         :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                         :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                         :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                         :deftype          (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                         :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                         (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))
+                   (.setPrefWidth 450))]
+      fn-lbl)))
 
 (defn- uninstrument-items [items]
   (let [groups (->> items
@@ -58,36 +59,41 @@
     (add-all fn-call-traces)))
 
 (defn function-enter [flow-id thread-id selected-items]
-  (show-function-calls flow-id thread-id selected-items))
+  ;; selected items contains rows like [{...fn-call...} cnt]
+  (let [selected-items (map first selected-items)]
+    (show-function-calls flow-id thread-id selected-items)))
 
-(defn- function-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
-  (cond
-    (and (= MouseButton/PRIMARY (.getButton mev))
-         (= 2 (.getClickCount mev)))
-    (show-function-calls flow-id thread-id selected-items)
+(defn- function-click [flow-id thread-id mev selected-items {:keys [table-view-pane]}]
+  ;; selected items contains rows like [{...fn-call...} cnt]
+  (let [selected-items (map first selected-items)]
+    (cond
+      (and (= MouseButton/PRIMARY (.getButton mev))
+           (= 2 (.getClickCount mev)))
+      (show-function-calls flow-id thread-id selected-items)
 
-    (and (= MouseButton/SECONDARY (.getButton mev))
-         (not ui-vars/clojure-storm-env?))
-    (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
-          ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
-      (.show ctx-menu
-             list-view-pane
-             (.getScreenX mev)
-             (.getScreenY mev)))))
+      (and (= MouseButton/SECONDARY (.getButton mev))
+           (not ui-vars/clojure-storm-env?))
+      (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
+            ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
+        (.show ctx-menu
+               table-view-pane
+               (.getScreenX mev)
+               (.getScreenY mev))))))
 
 (defn- create-fns-list-pane [flow-id thread-id]
-  (let [{:keys [list-view-pane] :as lv-data} (list-view
-                                                  {:editable? false
-                                                   :cell-factory-fn functions-cell-factory
-                                                   :on-click (partial function-click flow-id thread-id)
-                                                   :on-enter (fn [sel-items] (function-enter flow-id thread-id sel-items))
-                                                   :selection-mode :multiple
-                                                   :search-predicate (fn [{:keys [fn-name fn-ns]} search-str]
-                                                                       (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
+  (let [{:keys [table-view-pane] :as tv-data} (table-view
+                                               {:columns ["Functions" "Count"]
+                                                :cell-factory-fn functions-cell-factory
+                                                :resize-policy :constrained
+                                                :on-click (partial function-click flow-id thread-id)
+                                                :on-enter (fn [sel-items] (function-enter flow-id thread-id sel-items))
+                                                :selection-mode :multiple
+                                                :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
+                                                                    (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
 
-    (store-obj flow-id thread-id "functions_list" lv-data)
+    (store-obj flow-id thread-id "functions_table_data" tv-data)
 
-    list-view-pane))
+    table-view-pane))
 
 (def max-args 9)
 
@@ -177,7 +183,9 @@
 
 (defn update-functions-pane [flow-id thread-id]
   (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
-                           (sort-by :cnt >))
-        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_list")]
+                           (sort-by :cnt >)
+                           (map (fn [{:keys [cnt] :as fn-call}]
+                                  [fn-call cnt])))
+        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_table_data")]
     (clear)
     (add-all fn-call-stats)))

@@ -146,10 +146,10 @@
         (table-view {:columns ["Key" "Value"]
                      :cell-factory-fn (fn [item]
                                         (:node-obj (make-node ctx item)))
-                     :key-search-predicate (fn [[k-item v-item] search-str]
-                                             (boolean
-                                              (or (str/includes? (:val-txt k-item) search-str)
-                                                  (str/includes? (:val-txt v-item) search-str))))
+                     :search-predicate (fn [[k-item v-item] search-str]
+                                         (boolean
+                                          (or (str/includes? (:val-txt k-item) search-str)
+                                              (str/includes? (:val-txt v-item) search-str))))
                      :items (->> (:val/map-entries shallow-v)
                                  (map (fn [[k v]]
                                         [(make-item "<key>" k) (make-item k v)])))})]

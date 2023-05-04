@@ -345,7 +345,9 @@
   `cell-factory-fn` a fn that gets called with each item (from `items`) and should return a Node for the cell.
   `items` a collection of data items for the table. Each one should be a vector with the same amount "
 
-  [{:keys [columns cell-factory-fn items key-search-predicate]}]
+  [{:keys [columns cell-factory-fn items selection-mode search-predicate on-click on-enter resize-policy]
+    :or {selection-mode :multiple
+         resize-policy :unconstrained}}]
 
   (assert (every? #(= (count %) (count columns)) items) "Every item should have the same amount of elements as columns")
 
@@ -376,35 +378,63 @@
                                                          (.setText nil)
                                                          (.setGraphic cell-graphic))))))))))))
         columns (map-indexed make-column columns)
-
+        table-selection (.getSelectionModel tv)
+        selected-items (fn [] (.getSelectedItems table-selection))
         search-field (TextField.)
         search-bar (h-box [(doto (Label.) (.setGraphic (icon "mdi-magnify"))) search-field])
 
         box (v-box (cond-> []
-                     key-search-predicate (conj search-bar)
+                     search-predicate (conj search-bar)
                      true (conj tv)))
 
         items-array-list (FXCollections/observableArrayList (into-array Object items))
-        filtered-items-array (FilteredList. items-array-list)]
+        filtered-items-array (FilteredList. items-array-list)
+        add-all (fn [elems] (.addAll items-array-list (into-array Object elems)))
+        clear (fn [] (.clear items-array-list))
+        table-data {:table-view tv
+                    :table-view-pane box
+                    :clear clear
+                    :add-all add-all}]
 
     (.clear (.getColumns tv))
     (.addAll (.getColumns tv) columns)
 
     (.setItems tv filtered-items-array)
-
+    (.setColumnResizePolicy tv (case resize-policy
+                                 :unconstrained TableView/UNCONSTRAINED_RESIZE_POLICY
+                                 :constrained TableView/CONSTRAINED_RESIZE_POLICY))
     (HBox/setHgrow search-field Priority/ALWAYS)
     (HBox/setHgrow tv Priority/ALWAYS)
 
-    (when key-search-predicate
+    (case selection-mode
+      :multiple (.setSelectionMode table-selection SelectionMode/MULTIPLE)
+      :single   (.setSelectionMode table-selection SelectionMode/SINGLE))
+
+    (when search-predicate
       (.addListener (.textProperty search-field)
                     (proxy [ChangeListener] []
                       (changed [_ _ new-val]
                         (.setPredicate filtered-items-array
                                        (proxy [Predicate] []
                                          (test [item]
-                                           (key-search-predicate item new-val))))))))
-    {:table-view tv
-     :table-view-pane box}))
+                                           (search-predicate item new-val))))))))
+
+    (when on-enter
+      (.setOnKeyPressed
+       tv
+       (event-handler
+        [kev]
+        (when (= "Enter" (.getName (.getCode kev)))
+          (on-enter (selected-items))))))
+
+    (when on-click
+      (.setOnMouseClicked
+       tv
+       (event-handler
+        [mev]
+        (on-click mev (selected-items) table-data))))
+
+    table-data))
 
 (defn normalize-newlines [s]
   (-> s
