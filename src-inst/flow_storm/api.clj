@@ -55,7 +55,7 @@
 
      (dbg-api/interrupt-all-tasks)
 
-     (rt-values/clear-values-references)
+     (rt-values/clear-vals-ref-registry)
 
      (mem-reporter/stop-mem-reporter)
 
@@ -96,7 +96,7 @@
 
     (rt-events/subscribe! events-dispatch-fn)
 
-    (rt-values/clear-values-references)
+    (rt-values/clear-vals-ref-registry)
 
     (rt-taps/setup-tap!)
 

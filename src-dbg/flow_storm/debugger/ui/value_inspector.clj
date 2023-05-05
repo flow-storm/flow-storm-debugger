@@ -5,14 +5,15 @@
             [clojure.string :as str]
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars])
+            [flow-storm.debugger.ui.state-vars :as ui-vars]
+            [flow-storm.types :as types])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
            [javafx.scene.layout HBox VBox Priority]
            [javafx.geometry Orientation]
            [javafx.scene.control TextInputDialog SplitPane]))
 
-(declare create-shallow-frame-pane)
+(declare create-value-pane)
 
 (defn def-val [val]
   (let [tdiag (doto (TextInputDialog.)
@@ -78,24 +79,16 @@
                        (update-stack-bar-pane ctx)))))
                  (reverse @vals-stack))))
 
-(defn- make-stack-frame [ctx stack-txt v]
-  (let [shallow-val (runtime-api/shallow-val rt-api v)]
+(defn- make-stack-frame [ctx stack-txt vref]
+  (let [{:keys [val/shallow-meta] :as shallow-val} (runtime-api/shallow-val rt-api vref)]
     {:stack-txt stack-txt
-     :val-pane (create-shallow-frame-pane ctx shallow-val)
-     :meta-pane (when-let [sm (:val/shallow-meta shallow-val)] (create-shallow-frame-pane ctx sm))
-     :def-fn (fn [] (def-val (:val/full shallow-val)))
-     :tap-fn (fn [] (runtime-api/tap-value rt-api (:val/full shallow-val)))
+     :val-pane (create-value-pane ctx shallow-val)
+     :meta-pane (when shallow-meta (create-value-pane ctx shallow-meta))
+     :def-fn (fn [] (def-val vref))
+     :tap-fn (fn [] (runtime-api/tap-value rt-api vref))
      :shallow-val shallow-val}))
 
-(defn dig-node? [x]
-  (and (vector? x)
-       (= :val/dig-node (first x))))
-
-(defn dig-node-val [v]
-  (when (dig-node? v)
-    (second v)))
-
-(defn- create-dig-node [ctx {:keys [stack-txt val-ref val-txt]}]
+(defn- create-browsable-node [{:keys [val-txt] :as item} on-selected]
   (let [node-in-prev-pane? (fn [node]
                              (loop [n node]
                                (when n
@@ -105,105 +98,103 @@
 
         click-handler (event-handler
                        [mev]
-                       (let [new-frame (make-stack-frame ctx stack-txt val-ref)]
-
-                         ;; this is kind of HACKY, so if a dig link is clicked on the
-                         ;; prev-pane, discard the top of the stack
-                         (when (node-in-prev-pane? (.getSource mev))
-                           (swap! (:vals-stack ctx) pop))
-
-                         (swap! (:vals-stack ctx) conj new-frame)
-                         (update-vals-panes ctx)
-                         (update-stack-bar-pane ctx)))
+                       (on-selected item (node-in-prev-pane? (.getSource mev))))
         lbl (doto (label val-txt "link-lbl")
               (.setOnMouseClicked click-handler))]
     {:node-obj lbl
      :click-handler click-handler}))
 
-(defn make-node [ctx {:keys [dig-val? val-txt] :as item}]
-  (if dig-val?
-    (create-dig-node ctx item)
+(defn make-node [{:keys [browsable-val? val-txt] :as item} on-selected]
+  (if browsable-val?
+    (create-browsable-node item on-selected)
     {:node-obj (label val-txt)}))
 
-(defn make-item [stack-key maybe-dig-v]
-  (let [dig-val? (dig-node? maybe-dig-v)
-        item {:dig-val? dig-val?
-              :stack-txt (if (dig-node? stack-key)
-                           (runtime-api/val-pprint rt-api (dig-node-val stack-key) {:print-level 4 :pprint? false :print-length 20})
+(defn make-item [stack-key v]
+  (let [browsable-val? (types/value-ref? v)
+        item {:browsable-val? browsable-val?
+              :stack-txt (if (types/value-ref? stack-key)
+                           (runtime-api/val-pprint rt-api stack-key {:print-level 4 :pprint? false :print-length 20})
                            (pr-str stack-key))}]
-    (if dig-val?
-      (let [val-ref (dig-node-val maybe-dig-v)]
-        (assoc item
-               :val-ref val-ref
-               :val-txt (runtime-api/val-pprint rt-api val-ref {:print-level 4 :pprint? false :print-length 20})))
+    (if :browsable-val?
+      (assoc item
+             :val-ref v
+             :val-txt (runtime-api/val-pprint rt-api v {:print-level 4 :pprint? false :print-length 20}))
 
       (assoc item
-             :val-ref maybe-dig-v
-             :val-txt (pr-str maybe-dig-v)))))
+             :val-ref v
+             :val-txt (pr-str v)))))
 
-(defn- create-shallow-map-pane [ctx shallow-v]
+(defn- create-map-browser-pane [amap on-selected]
   (let [{:keys [table-view-pane]}
         (table-view {:columns ["Key" "Value"]
                      :cell-factory-fn (fn [item]
-                                        (:node-obj (make-node ctx item)))
+                                        (:node-obj (make-node item on-selected)))
                      :search-predicate (fn [[k-item v-item] search-str]
                                          (boolean
                                           (or (str/includes? (:val-txt k-item) search-str)
                                               (str/includes? (:val-txt v-item) search-str))))
-                     :items (->> (:val/map-entries shallow-v)
+                     :items (->> amap
                                  (map (fn [[k v]]
                                         [(make-item "<key>" k) (make-item k v)])))})]
     (VBox/setVgrow table-view-pane Priority/ALWAYS)
     (HBox/setHgrow table-view-pane Priority/ALWAYS)
     table-view-pane))
 
-(defn- create-shallow-seq-pane [ctx shallow-v]
+(defn- create-seq-browser-pane [seq-page seq-offset seq-more-ref on-selected]
   (let [{:keys [list-view-pane add-all]} (ui-utils/list-view
-                                              {:editable? false
-                                               :cell-factory-fn (fn [list-cell item]
-                                                                  (let [{:keys [node-obj click-handler]} (make-node ctx item)]
-                                                                    (.setText list-cell nil)
-                                                                    (.setGraphic list-cell node-obj)
-                                                                    ;; the node-obj will already handle the click
-                                                                    ;; but we also add the handler to the list-cell
-                                                                    ;; so one single click executes the action instead of
-                                                                    ;; selecting the cell
-                                                                    (.setOnMouseClicked list-cell click-handler)))
-                                               :search-predicate (fn [item search-str]
-                                                                   (str/includes? (:val-txt item) search-str))})
-        add-shallow-page-to-list (fn [{:keys [val/page page/offset]}]
+                                          {:editable? false
+                                           :cell-factory-fn (fn [list-cell item]
+                                                              (let [{:keys [node-obj click-handler]} (make-node item on-selected)]
+                                                                (.setText list-cell nil)
+                                                                (.setGraphic list-cell node-obj)
+                                                                ;; the node-obj will already handle the click
+                                                                ;; but we also add the handler to the list-cell
+                                                                ;; so one single click executes the action instead of
+                                                                ;; selecting the cell
+                                                                (.setOnMouseClicked list-cell click-handler)))
+                                           :search-predicate (fn [item search-str]
+                                                               (str/includes? (:val-txt item) search-str))})
+        add-shallow-page-to-list (fn [page offset]
                                    (add-all (map-indexed
                                              (fn [i v]
                                                (make-item (+ offset i) v))
                                              page)))
-        more-button (when (:val/more shallow-v) (button :label "More.."))
-        change-more-handler-for-shallow (fn change-more-handler-for-shallow [{:keys [val/more]}]
-                                          (if more
-                                            (doto more-button
-                                              (.setOnAction (event-handler
-                                                             [_]
-                                                             (let [new-shallow-v (runtime-api/shallow-val rt-api more)]
-                                                               (add-shallow-page-to-list new-shallow-v)
-                                                               (change-more-handler-for-shallow new-shallow-v)))))
-                                            (doto more-button
-                                              (.setDisable true)
-                                              (.setOnAction (event-handler [_])))))
+        more-button (when seq-more-ref (button :label "More.."))
+        load-more (fn load-more [more-ref]
+                    (if more-ref
+                      (doto more-button
+                        (.setOnAction (event-handler
+                                       [_]
+                                       (let [new-shallow-v (runtime-api/shallow-val rt-api more-ref)]
+                                         (add-shallow-page-to-list (:val/page new-shallow-v) (:page/offset new-shallow-v))
+                                         (load-more (:val/more new-shallow-v))))))
+                      (doto more-button
+                        (.setDisable true)
+                        (.setOnAction (event-handler [_])))))
 
         container (v-box (cond-> [list-view-pane]
-                           more-button (conj (change-more-handler-for-shallow shallow-v))))]
+                           more-button (conj (load-more seq-more-ref))))]
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
     (HBox/setHgrow container Priority/ALWAYS)
-    (add-shallow-page-to-list shallow-v)
+    (add-shallow-page-to-list seq-page seq-offset)
 
     container))
 
-(defn- create-shallow-frame-pane [ctx shallow-v]
-  (case (:val/kind shallow-v)
-    :simple (h-box [(label (:val/str shallow-v))])
-    :map (create-shallow-map-pane ctx shallow-v)
-    :seq (create-shallow-seq-pane ctx shallow-v)))
+(defn- create-value-pane [ctx shallow-val]
+  (let [on-selected (fn [{:keys [stack-txt val-ref]} prev-pane?]
+                      (let [new-frame (make-stack-frame ctx stack-txt val-ref)]
+                        (when prev-pane?
+                          (swap! (:vals-stack ctx) pop))
 
-(defn- create-inspector-pane [v]
+                        (swap! (:vals-stack ctx) conj new-frame)
+                        (update-vals-panes ctx)
+                        (update-stack-bar-pane ctx)))]
+    (case (:val/kind shallow-val)
+      :object (h-box [(label (:val/str shallow-val))])
+      :map (create-map-browser-pane (:val/map-entries shallow-val) on-selected)
+      :seq (create-seq-browser-pane (:val/page shallow-val) (:page/offset shallow-val) (:val/more shallow-val) on-selected))))
+
+(defn- create-inspector-pane [vref]
   (let [*vals-stack (atom nil)
         stack-bar-pane (doto (h-box [] "value-inspector-stack-pane")
                          (.setSpacing 5))
@@ -219,15 +210,15 @@
                         "value-inspector-main-pane")]
 
 
-    (swap! *vals-stack conj (make-stack-frame ctx "/" v))
+    (swap! *vals-stack conj (make-stack-frame ctx "/" vref))
     (update-vals-panes ctx)
     (update-stack-bar-pane ctx)
 
     mp))
 
-(defn create-inspector [v]
+(defn create-inspector [vref]
   (try
-    (let [scene (Scene. (create-inspector-pane v) 500 500)
+    (let [scene (Scene. (create-inspector-pane vref) 500 500)
           stage (doto (Stage.)
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]

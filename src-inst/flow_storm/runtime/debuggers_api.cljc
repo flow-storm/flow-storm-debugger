@@ -2,7 +2,7 @@
   (:require [flow-storm.runtime.indexes.api :as indexes-api]            
             [flow-storm.utils :as utils :refer [log]]            
             [flow-storm.runtime.events :as rt-events]                        
-            [flow-storm.runtime.values :as runtime-values :refer [reference-value! get-reference-value]]
+            [flow-storm.runtime.values :as runtime-values :refer [reference-value! deref-value]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.tracer :as tracer]
             #?@(:clj [[hansel.api :as hansel]                      
@@ -45,12 +45,10 @@
    :breakpoints (tracer/all-breakpoints)})
 
 (defn val-pprint [vref opts]
-  (let [v (get-reference-value vref)]
-    (runtime-values/val-pprint v opts)))
+  (runtime-values/val-pprint vref opts))
 
 (defn shallow-val [vref]
-  (let [v (get-reference-value vref)]
-    (runtime-values/shallow-val v)))
+  (runtime-values/shallow-val vref))
 
 #?(:clj (def def-value runtime-values/def-value))
 
@@ -99,13 +97,13 @@
     node-id))
 
 (defn callstack-node-childs [node-ref]
-  (let [node (get-reference-value node-ref)
+  (let [node (deref-value node-ref)
         childs (indexes-api/callstack-node-childs node)
         childs-ids (mapv reference-value! childs)]
     childs-ids))
 
 (defn callstack-node-frame [node-ref]
-  (let [node (get-reference-value node-ref)
+  (let [node (deref-value node-ref)
         frame-data (indexes-api/callstack-node-frame node)]
     (reference-frame-data! frame-data)))
 
@@ -215,7 +213,7 @@
 
 (def discard-flow indexes-api/discard-flow)
 
-(def clear-values-references runtime-values/clear-values-references)
+(def clear-values-references runtime-values/clear-vals-ref-registry)
 
 (def flow-threads-info indexes-api/flow-threads-info)
 

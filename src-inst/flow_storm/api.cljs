@@ -34,7 +34,7 @@
                               serializer/serialize
                               remote-websocket-client/send)))
 
-  (rt-values/clear-values-references)
+  (rt-values/clear-vals-ref-registry)
 
   (rt-taps/setup-tap!)
   (println "Remote ClojureScript runtime initialized"))
@@ -43,7 +43,7 @@
   (rt-taps/remove-tap!)
   (rt-events/clear-subscription!)
   (rt-events/clear-pending-events!)
-  (rt-values/clear-values-references)
+  (rt-values/clear-vals-ref-registry)
   (indexes-api/stop)
   (remote-websocket-client/stop-remote-websocket-client)
   (log "System stopped"))

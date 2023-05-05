@@ -1,56 +1,93 @@
 (ns flow-storm.runtime.values
   (:require [clojure.pprint :as pp]
             [clojure.datafy :as datafy]
-            [flow-storm.utils :as utils]))
+            [flow-storm.utils :as utils]
+            [flow-storm.types :as types]))
 
-(def values-references (atom nil))
+(def values-ref-registry (atom nil))
 
-(defprotocol PValueRef
-  (ref-value [_ v])
-  (get-value [_ vid])
-  (get-value-id [_ v]))
+(defprotocol PWrapped
+  (unwrap [_]))
+
+(deftype HashableObjWrap [obj]
+  #?@(:clj
+      [clojure.lang.IHashEq
+       (hasheq [_] (utils/object-id obj))
+       (hashCode [_] (utils/object-id obj))
+       (equals [_ that]
+               (if (instance? HashableObjWrap that)
+                 (identical? obj (unwrap that))
+                 false))]
+
+      :cljs
+      [IEquiv
+       (-equiv [_ that]
+               (if (instance? HashableObjWrap that)
+                 (identical? obj (unwrap that))
+                 false))
+
+       IHash
+       (-hash [_]
+              (utils/object-id obj))])
+  
+  PWrapped
+  (unwrap [_]
+    obj))
+
+(defn hashable-obj-wrap [o]
+  (->HashableObjWrap o))
+
+(defn hashable-obj-wrapped? [o]
+  (instance? HashableObjWrap o))
+
+(defprotocol PValueRefRegistry
+  (add-val-ref [_ v])
+  (get-value [_ vref])
+  (get-value-ref [_ v]))
 
 ;; Fast way of going from
-;;    value-id -> value 
-;;    value    -> value-id
+;;    value-ref -> value 
+;;    value     -> value-ref
 ;;
-;; every object gets wrapped into a wapping object that will have
+;; every object gets wrapped into a HashableObjWrap that will have
 ;; hashCode based on unique object-id, calculated by `utils/object-id`
-;; This is so ^:a [] and ^:b [] get a different value-id, which won't get unless
-;; you wrap them, since both will have the same hashCode because meta isn't used for hashCode calculation
-;; Wrapping is also useful for infinite sequences, since you can put a val as a key of a hash-map if it
+;; This is so ^:a [] and ^:b [] get a different value-ref, which won't get unless
+;; we wrap them, since both will have the same hashCode because meta isn't used for hashCode calculation
+;; Wrapping is also useful for infinite sequences, since you can't put a val as a key of a hash-map if it
 ;; is a infinite seq
-(defrecord ValuesReferences [vid->v v->vid max-vid]
-  PValueRef
+(defrecord ValueRefRegistry [vref->wv wv->vref max-vid]
+  PValueRefRegistry
 
-  (ref-value [this v]
-    (let [v (utils/wrap v)]
-      (if (contains? v->vid v)
+  (add-val-ref [this v]
+    (let [wv (hashable-obj-wrap v)]
+      (if (contains? wv->vref wv)
         this
-        (let [next-vid (inc max-vid)]
+        (let [next-vid (inc max-vid)
+              vref (types/make-value-ref next-vid)]
           (-> this
               (assoc :max-vid next-vid)
-              (update :vid->v assoc next-vid v)
-              (update :v->vid assoc v next-vid))))))
+              (update :vref->wv assoc vref wv)
+              (update :wv->vref assoc wv vref))))))
   
-  (get-value [_ vid]
-    (let [maybe-wrapped-v (get vid->v vid)]
-      (if (utils/wrapped? maybe-wrapped-v)
-        (utils/unwrap maybe-wrapped-v)
-        maybe-wrapped-v)))
+  (get-value [_ vref]
+    (unwrap (get vref->wv vref)))
 
-  (get-value-id [_ v]
-    (let [v (utils/wrap v)]
-      (get v->vid v))))
+  (get-value-ref [_ v]
+    (let [wv (hashable-obj-wrap v)]
+      (get wv->vref wv))))
 
-(defn get-reference-value [vid]  
-  (get-value @values-references vid))
+(defn deref-value [vref]
+  (if (types/value-ref? vref)
+    (get-value @values-ref-registry vref)
+
+    ;; if vref is not a ref, assume it is a value and just return it
+    vref))
 
 (defn reference-value! [v]
   (try
     
-    (swap! values-references ref-value v)
-    (get-value-id @values-references v)
+    (swap! values-ref-registry add-val-ref v)
+    (get-value-ref @values-ref-registry v)
 
     ;; if for whatever reason we can't reference the value
     ;; let's be explicit so at least the user knows that 
@@ -63,8 +100,8 @@
                (utils/log-error "Error referencing value" e)    
                (reference-value! :flow-storm/error-referencing-value)))))
 
-(defn clear-values-references []
-  (reset! values-references (map->ValuesReferences {:vid->v {} :v->vid {} :max-vid 0})))
+(defn clear-vals-ref-registry []
+  (reset! values-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0})))
 
 (defmulti snapshot-value type)
 
@@ -87,8 +124,9 @@
 
     :else (snapshot-value x)))
 
-(defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
-  (let [print-fn #?(:clj (if pprint? pp/pprint print) 
+(defn val-pprint [vref {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
+  (let [val (deref-value vref)
+        print-fn #?(:clj (if pprint? pp/pprint print) 
                     :cljs (if (and pprint? (not print-meta?)) pp/pprint print))] ;; ClojureScript pprint doesn't support *print-meta*
 
     (try
@@ -121,7 +159,7 @@
                  (utils/log-error "Error pprinting value" e)
                  "Flow-storm error, value couldn't be pprinted")))))
 
-(defn- maybe-dig-node! [x]
+(defn- maybe-ref! [x]
   (if (or (string? x)
           (number? x)
           (keyword? x)
@@ -129,12 +167,12 @@
     
     x
 
-    [:val/dig-node (reference-value! x)]))
+    (reference-value! x)))
 
 (defn- build-shallow-map [data]
   (let [entries (->> (into {} data)
                      (mapv (fn [[k v]]
-                             [(maybe-dig-node! k) (maybe-dig-node! v)])))]
+                             [(maybe-ref! k) (maybe-ref! v)])))]
     {:val/kind :map
      :val/map-entries entries}))
 
@@ -143,7 +181,7 @@
         page-size 50
         cnt (when (counted? data) (count data))
         shallow-page (->> data
-                          (map #(maybe-dig-node! %))
+                          (map #(maybe-ref! %))
                           (take page-size)
                           doall)
         shallow-page-cnt (count shallow-page)
@@ -154,8 +192,11 @@
              :total-count cnt}
       (seq more-elems) (assoc :val/more (reference-value! (with-meta more-elems {:page/offset (+ offset shallow-page-cnt)}))))))
 
-(defn shallow-val [v]  
-  (let [v-meta (meta v)
+(defn shallow-val
+  
+  [vref]  
+  (let [v (deref-value vref)
+        v-meta (meta v)
         data (cond-> (datafy/datafy v) ;; forward meta since we are storing meta like :page/offset in references
                v-meta (with-meta v-meta))
         type-name (pr-str (type v))
@@ -166,18 +207,20 @@
                        (or (coll? data) (utils/seq-like? data))
                        (build-shallow-seq data)
 
-                       :else {:val/kind :simple
-                              :val/str (pr-str v)})]
-    (assoc shallow-data
-           :val/type type-name
-           :val/full (reference-value! v)
-           :val/shallow-meta (when-let [m (meta v)]
-                               (shallow-val m)))))
+                       :else {:val/kind :object
+                              :val/str (pr-str v)})
+        shallow-data (assoc shallow-data
+                            :val/type type-name                            
+                            :val/shallow-meta (when-let [m (meta v)]
+                                                (shallow-val m)))]    
+    shallow-data))
 
 (defn tap-value [vref]
-  (let [v (get-reference-value vref)]
+  (let [v (deref-value vref)]
     (tap> v)))
 
 #?(:clj
-   (defn def-value [var-ns var-name vref]
-     (intern (symbol var-ns) (symbol var-name) (get-reference-value vref))))
+   (defn def-value [var-ns var-name x]     
+     (intern (symbol var-ns)
+             (symbol var-name)
+             (deref-value x))))

@@ -251,9 +251,9 @@
   (def-value [_ var-symb val-ref]
     (case env-kind
       :clj (api-call :remote "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref])
-      :cljs (safe-cljs-eval-code-str (format "(def %s (flow-storm.runtime.values/get-reference-value %s))"
+      :cljs (safe-cljs-eval-code-str (format "(def %s (flow-storm.runtime.values/deref-value (flow-storm.types/make-value-ref %d)))"
                                              (name var-symb)
-                                             val-ref)
+                                             (:vid val-ref))
                                      (or (namespace var-symb) "cljs.user"))))
   (tap-value [_ vref] (api-call :remote "tap-value" [vref]))
 
