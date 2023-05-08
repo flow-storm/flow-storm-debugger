@@ -163,7 +163,9 @@
   (if (or (string? x)
           (number? x)
           (keyword? x)
-          (symbol? x))
+          (symbol? x)
+          (boolean? x)
+          (nil? x))
     
     x
 

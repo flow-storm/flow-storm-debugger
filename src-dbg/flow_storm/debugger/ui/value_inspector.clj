@@ -1,15 +1,16 @@
 (ns flow-storm.debugger.ui.value-inspector
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [event-handler button label h-box v-box border-pane table-view]]
+             :refer [event-handler button label h-box v-box border-pane]]
             [clojure.string :as str]
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :as ui-vars]
-            [flow-storm.types :as types])
+            [flow-storm.types :as types]
+            [flow-storm.debugger.ui.value-renderers :as renderers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
-           [javafx.scene.layout HBox VBox Priority]
+           [javafx.scene.layout HBox Priority]
            [javafx.geometry Orientation]
            [javafx.scene.control TextInputDialog SplitPane]))
 
@@ -88,27 +89,6 @@
      :tap-fn (fn [] (runtime-api/tap-value rt-api vref))
      :shallow-val shallow-val}))
 
-(defn- create-browsable-node [{:keys [val-txt] :as item} on-selected]
-  (let [node-in-prev-pane? (fn [node]
-                             (loop [n node]
-                               (when n
-                                 (if (= "prev-pane" (.getId n))
-                                   true
-                                   (recur (.getParent n))))))
-
-        click-handler (event-handler
-                       [mev]
-                       (on-selected item (node-in-prev-pane? (.getSource mev))))
-        lbl (doto (label val-txt "link-lbl")
-              (.setOnMouseClicked click-handler))]
-    {:node-obj lbl
-     :click-handler click-handler}))
-
-(defn make-node [{:keys [browsable-val? val-txt] :as item} on-selected]
-  (if browsable-val?
-    (create-browsable-node item on-selected)
-    {:node-obj (label val-txt)}))
-
 (defn make-item [stack-key v]
   (let [browsable-val? (types/value-ref? v)
         item {:browsable-val? browsable-val?
@@ -124,62 +104,6 @@
              :val-ref v
              :val-txt (pr-str v)))))
 
-(defn- create-map-browser-pane [amap on-selected]
-  (let [{:keys [table-view-pane]}
-        (table-view {:columns ["Key" "Value"]
-                     :cell-factory-fn (fn [item]
-                                        (:node-obj (make-node item on-selected)))
-                     :search-predicate (fn [[k-item v-item] search-str]
-                                         (boolean
-                                          (or (str/includes? (:val-txt k-item) search-str)
-                                              (str/includes? (:val-txt v-item) search-str))))
-                     :items (->> amap
-                                 (map (fn [[k v]]
-                                        [(make-item "<key>" k) (make-item k v)])))})]
-    (VBox/setVgrow table-view-pane Priority/ALWAYS)
-    (HBox/setHgrow table-view-pane Priority/ALWAYS)
-    table-view-pane))
-
-(defn- create-seq-browser-pane [seq-page seq-offset seq-more-ref on-selected]
-  (let [{:keys [list-view-pane add-all]} (ui-utils/list-view
-                                          {:editable? false
-                                           :cell-factory-fn (fn [list-cell item]
-                                                              (let [{:keys [node-obj click-handler]} (make-node item on-selected)]
-                                                                (.setText list-cell nil)
-                                                                (.setGraphic list-cell node-obj)
-                                                                ;; the node-obj will already handle the click
-                                                                ;; but we also add the handler to the list-cell
-                                                                ;; so one single click executes the action instead of
-                                                                ;; selecting the cell
-                                                                (.setOnMouseClicked list-cell click-handler)))
-                                           :search-predicate (fn [item search-str]
-                                                               (str/includes? (:val-txt item) search-str))})
-        add-shallow-page-to-list (fn [page offset]
-                                   (add-all (map-indexed
-                                             (fn [i v]
-                                               (make-item (+ offset i) v))
-                                             page)))
-        more-button (when seq-more-ref (button :label "More.."))
-        load-more (fn load-more [more-ref]
-                    (if more-ref
-                      (doto more-button
-                        (.setOnAction (event-handler
-                                       [_]
-                                       (let [new-shallow-v (runtime-api/shallow-val rt-api more-ref)]
-                                         (add-shallow-page-to-list (:val/page new-shallow-v) (:page/offset new-shallow-v))
-                                         (load-more (:val/more new-shallow-v))))))
-                      (doto more-button
-                        (.setDisable true)
-                        (.setOnAction (event-handler [_])))))
-
-        container (v-box (cond-> [list-view-pane]
-                           more-button (conj (load-more seq-more-ref))))]
-    (VBox/setVgrow list-view-pane Priority/ALWAYS)
-    (HBox/setHgrow container Priority/ALWAYS)
-    (add-shallow-page-to-list seq-page seq-offset)
-
-    container))
-
 (defn- create-value-pane [ctx shallow-val]
   (let [on-selected (fn [{:keys [stack-txt val-ref]} prev-pane?]
                       (let [new-frame (make-stack-frame ctx stack-txt val-ref)]
@@ -188,11 +112,29 @@
 
                         (swap! (:vals-stack ctx) conj new-frame)
                         (update-vals-panes ctx)
-                        (update-stack-bar-pane ctx)))]
+                        (update-stack-bar-pane ctx)))
+        renderer-val (case (:val/kind shallow-val)
+                       :object (:val/str shallow-val)
+                       :map (->> (:val/map-entries shallow-val)
+                                 (map (fn [[k v]]
+                                        [(make-item "<key>" k) (make-item k v)])))
+                       :seq (map-indexed (fn [i v] (make-item i v)) (:val/page shallow-val)))]
+
     (case (:val/kind shallow-val)
       :object (h-box [(label (:val/str shallow-val))])
-      :map (create-map-browser-pane (:val/map-entries shallow-val) on-selected)
-      :seq (create-seq-browser-pane (:val/page shallow-val) (:page/offset shallow-val) (:val/more shallow-val) on-selected))))
+      :map (renderers/create-map-browser-pane renderer-val on-selected)
+      :seq (let [load-next-page (when (:val/more shallow-val)
+                                  (fn load-next [more-ref]
+                                    (let [{:keys [page/offset val/page val/more]} (runtime-api/shallow-val rt-api more-ref)
+                                          new-page (map-indexed
+                                                    (fn [i v]
+                                                      (make-item (+ offset i) v))
+                                                    page)]
+                                      {:page new-page
+                                       :load-next (partial load-next more)})))]
+             (renderers/create-seq-browser-pane renderer-val
+                                                (when load-next-page (partial load-next-page (:val/more shallow-val)))
+                                                on-selected)))))
 
 (defn- create-inspector-pane [vref]
   (let [*vals-stack (atom nil)
