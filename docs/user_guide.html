@@ -684,7 +684,6 @@ pre.rouge {
 <ul class="sectlevel4">
 <li><a href="#_instrument_any_form_with_trace">Instrument any form with #trace</a></li>
 <li><a href="#_run_code_with_rtrace">Run code with #rtrace</a></li>
-<li><a href="#_conditional_tracing_with_ctrace">Conditional tracing with #ctrace</a></li>
 <li><a href="#_instrument_namespaces">Instrument namespaces</a></li>
 <li><a href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></li>
 <li><a href="#_un_instrument_code">Un-instrument code</a></li>
@@ -1301,55 +1300,6 @@ Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (r
 <div class="paragraph">
 <p><code>#rtrace</code> by default will instrument and run the form with flow id 0, but you can use
 <code>#rtrace0</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, <code>#rtrace3</code>, <code>#rtrace4</code>, <code>#rtrace5</code> to trace with flows ids [0..5].</p>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_conditional_tracing_with_ctrace"><a class="anchor" href="#_conditional_tracing_with_ctrace"></a><a class="link" href="#_conditional_tracing_with_ctrace">Conditional tracing with #ctrace</a></h5>
-<div class="paragraph">
-<p>Some times you need to debug a function that is being constantly called many times per second, like in a game loop.</p>
-</div>
-<div class="paragraph">
-<p>Adding a <code>#trace</code> on this functions will make it generate too many traces and everything will get slow.</p>
-</div>
-<div class="paragraph">
-<p>In most of this cases you probably don&#8217;t want to trace absolutely everything, but are probably interested in executions under
-certain conditions. This is what <code>#ctrace</code> is for.</p>
-</div>
-<div class="paragraph">
-<p><code>#ctrace</code> is exactly like <code>#trace</code> but with the difference that you can control when tracing will be disable/enable
-by the use of <code>^{trace:/when &#8230;&#8203;}</code> meta.</p>
-</div>
-<div class="paragraph">
-<p>For example :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">trace</span><span class="w">
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">called-many-times</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="w">
-  </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="mi">10</span><span class="p">))</span><span class="w">
-
-</span><span class="o">#</span><span class="n">ctrace</span><span class="w">
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">foo</span><span class="w"> </span><span class="p">[]</span><span class="w">
-  </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10000</span><span class="p">)</span><span class="w">
-       </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="n">sc</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w">
-              </span><span class="o">^</span><span class="p">{</span><span class="no">:trace/when</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">4</span><span class="p">)}</span><span class="w">
-              </span><span class="p">(</span><span class="nf">called-many-times</span><span class="w"> </span><span class="n">i</span><span class="p">)))</span><span class="w">
-       </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="p">)))</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">foo</span><span class="p">)</span><span class="w"> </span><span class="c1">;; =&gt; 50095000</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you take a look at the <a href="#_call_stack_tree_tool">call stack tree</a> you will see :</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/ctrace_example.png" alt="ctrace example">
-</div>
-</div>
-<div class="paragraph">
-<p>Notice that we only added <code>#ctrace</code> to the function that needs to control trace disabling, the rest of the
-functions can be instrumented normally.</p>
 </div>
 </div>
 <div class="sect4">
@@ -2443,10 +2393,16 @@ want to change colors, make your fonts bigger, etc. <code>:theme</code> could be
 <p><code>f</code> Select the functions tool (needs to be inside a thread)</p>
 </li>
 <li>
+<p><code>P</code> Step prev over. Go to previous step on the same frame</p>
+</li>
+<li>
 <p><code>p</code> Step prev</p>
 </li>
 <li>
 <p><code>n</code> Step next</p>
+</li>
+<li>
+<p><code>N</code> Step next over. Go to next step on the same frame</p>
 </li>
 <li>
 <p><code>^</code> Step out</p>
@@ -2625,7 +2581,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-05-01 10:36:55 -0300
+Last updated 2023-05-08 14:13:22 -0300
 </div>
 </div>
 </body>

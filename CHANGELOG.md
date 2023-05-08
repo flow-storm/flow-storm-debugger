@@ -5,6 +5,7 @@
 ### New Features
 	
 	- Add functions list refresh button
+	- Add step-prev-over and step-next-over buttons and keybindings
 	
 ### Changes
 	

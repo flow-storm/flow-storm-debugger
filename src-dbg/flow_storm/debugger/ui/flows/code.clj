@@ -280,6 +280,9 @@
 
          (when (or first-jump? changing-frame?)
 
+           (let [frame-data (runtime-api/frame-data rt-api flow-id thread-id next-idx {})]
+             (state/set-current-frame flow-id thread-id frame-data))
+
            (update-frames-stack flow-id thread-id (:frame-idx next-frame))
 
            (when (or first-jump? changing-form?)
@@ -315,6 +318,30 @@
                  thread-id
                  (inc (state/current-idx flow-id thread-id))))
 
+(defn step-next-over [flow-id thread-id]
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        next-frame-idx (state/next-idx-in-frame flow-id thread-id)
+        ;; if next-frame-idx didn't move, means we reached the end of the frame
+        ;; in which case we behave just like step-next
+        next-idx (if (= curr-idx next-frame-idx)
+                   (inc curr-idx)
+                   next-frame-idx)]
+    (jump-to-coord flow-id
+                   thread-id
+                   next-idx)))
+
+(defn step-prev-over [flow-id thread-id]
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        prev-frame-idx (state/prev-idx-in-frame flow-id thread-id)
+        ;; if prev-frame-idx didn't move, means we reached the beginning of the frame
+        ;; in which case we behave just like step-prev
+        prev-idx (if (= curr-idx prev-frame-idx)
+                   (dec curr-idx)
+                   prev-frame-idx)]
+    (jump-to-coord flow-id
+                   thread-id
+                   prev-idx)))
+
 (defn step-out [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
         {:keys [parent-frame-idx]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {})]
@@ -335,11 +362,14 @@
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
                                         :on-click (fn [] (step-first flow-id thread-id))
                                         :tooltip "Step to the first recorded expression")
+        prev-over-btn (ui-utils/icon-button :icon-name "mdi-step-backward"
+                                       :on-click (fn [] (step-prev-over flow-id thread-id))
+                                       :tooltip "Step to the previous recorded interesting expression in the current frame")
         prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
                                        :on-click (fn [] (step-prev flow-id thread-id))
                                        :tooltip "Step to the previous recorded interesting expression")
 
-        out-btn (ui-utils/icon-button :icon-name "mdi-chevron-up"
+        out-btn (ui-utils/icon-button :icon-name "mdi-debug-step-out"
                                       :on-click (fn []
                                                   (step-out flow-id thread-id))
                                       :tooltip "Step to the parent first expression")
@@ -362,6 +392,9 @@
         next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
                                        :on-click (fn [] (step-next flow-id thread-id))
                                        :tooltip "Step to the next recorded interesting expression")
+        next-over-btn (ui-utils/icon-button :icon-name "mdi-step-forward"
+                                            :on-click (fn [] (step-next-over flow-id thread-id))
+                                            :tooltip "Step to the next recorded interesting expression in the current frame")
 
 
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
@@ -378,7 +411,7 @@
 
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
-        controls-box (doto (h-box [first-btn prev-btn out-btn re-run-flow-btn next-btn last-btn])
+        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn])
                        (.setSpacing 2.0))]
 
     (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")

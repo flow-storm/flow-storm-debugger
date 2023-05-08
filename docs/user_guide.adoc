@@ -369,44 +369,6 @@ Second, when you want to run a form with a certain flow id (see <<#_flows_tool,f
 `#rtrace` by default will instrument and run the form with flow id 0, but you can use
 `#rtrace0`, `#rtrace1`, `#rtrace2`, `#rtrace3`, `#rtrace4`, `#rtrace5` to trace with flows ids [0..5].
 
-==== Conditional tracing with #ctrace
-
-Some times you need to debug a function that is being constantly called many times per second, like in a game loop.
-
-Adding a `#trace` on this functions will make it generate too many traces and everything will get slow.
-
-In most of this cases you probably don't want to trace absolutely everything, but are probably interested in executions under
-certain conditions. This is what `#ctrace` is for.
-
-`#ctrace` is exactly like `#trace` but with the difference that you can control when tracing will be disable/enable
-by the use of `^{trace:/when ...}` meta.
-
-For example :
-
-[,clojure]
-----
-#trace
-(defn called-many-times [a]
-  (+ a 10))
-
-#ctrace
-(defn foo []
-  (->> (range 10000)
-       (map (fn sc [i]
-              ^{:trace/when (<= 2 i 4)}
-              (called-many-times i)))
-       (reduce +)))
-
-(foo) ;; => 50095000
-----
-
-If you take a look at the <<#_call_stack_tree_tool, call stack tree>> you will see :
-
-image::user_guide_images/ctrace_example.png[]
-
-Notice that we only added `#ctrace` to the function that needs to control trace disabling, the rest of the
-functions can be instrumented normally.
-
 ==== Instrument namespaces
 
 FlowStorm allows you to instrument entire namespaces by providing `flow-strom.api/instrument-namespaces-clj`.
@@ -1098,8 +1060,10 @@ You can overwrite all the styles defined here https://github.com/jpmonettas/flow
 - `c` Select the code tool (needs to be inside a thread)
 - `f` Select the functions tool (needs to be inside a thread)
 
+- `P` Step prev over. Go to previous step on the same frame
 - `p` Step prev
 - `n` Step next
+- `N` Step next over. Go to next step on the same frame
 - `^` Step out
 - `<` Step first
 - `>` Step last
