@@ -3,9 +3,12 @@
 ## master (unreleased)
 	
 ### New Features
-
+	
+	- Add functions list refresh button
+	
 ### Changes
 	
+	- Keep functions and tree state when switching tabs
 	- Much improved value inspector
 	
 ### Bugs fixed	

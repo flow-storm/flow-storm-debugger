@@ -270,4 +270,6 @@
         (.addAll [(v-box [top-pane tree-view])
                   args-ret-pane]))
 
+    (update-call-stack-tree-pane flow-id thread-id)
+
     top-bottom-split))

@@ -1,13 +1,13 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
-           [javafx.geometry Orientation]
+           [javafx.geometry Orientation Insets]
            [javafx.scene Node]
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
@@ -159,16 +159,34 @@
     (store-obj flow-id thread-id "function_calls_list" lv-data)
     fn-call-list-pane))
 
+
+(defn update-functions-pane [flow-id thread-id]
+  (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
+                           (sort-by :cnt >)
+                           (map (fn [{:keys [cnt] :as fn-call}]
+                                  [fn-call cnt])))
+        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_table_data")]
+    (clear)
+    (add-all fn-call-stats)))
+
 (defn create-functions-pane [flow-id thread-id]
-  (let [fns-list-pane (create-fns-list-pane flow-id thread-id)
+  (let [refresh-btn (icon-button :icon-name "mdi-reload"
+                                 :on-click (fn [] (update-functions-pane flow-id thread-id))
+                                 :tooltip "Refresh the content of the functions list.")
+        controls-box (doto (h-box [refresh-btn])
+                       (.setPadding (Insets. 10.0)))
+        fns-list-pane (create-fns-list-pane flow-id thread-id)
         fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
         fn-calls-ret-pane (flow-cmp/create-pprint-pane flow-id thread-id "functions-calls-ret-val")
         right-split-pane (doto (SplitPane.)
                            (.setOrientation (Orientation/VERTICAL)))
         split-pane (doto (SplitPane.)
-                     (.setOrientation (Orientation/HORIZONTAL)))]
+                     (.setOrientation (Orientation/HORIZONTAL)))
+        functions-pane (v-box [controls-box
+                               split-pane])]
 
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
+    (VBox/setVgrow split-pane Priority/ALWAYS)
 
     (-> right-split-pane
         .getItems
@@ -179,13 +197,7 @@
     (-> split-pane
         .getItems
         (.addAll [fns-list-pane right-split-pane]))
-    split-pane))
 
-(defn update-functions-pane [flow-id thread-id]
-  (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
-                           (sort-by :cnt >)
-                           (map (fn [{:keys [cnt] :as fn-call}]
-                                  [fn-call cnt])))
-        [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_table_data")]
-    (clear)
-    (add-all fn-call-stats)))
+    (update-functions-pane flow-id thread-id)
+
+    functions-pane))
