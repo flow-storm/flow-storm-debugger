@@ -41,9 +41,7 @@
   (swap! state assoc-in [:flows flow-id :flow/threads thread-id]
          {:thread/id thread-id
           :thread/curr-idx nil
-          :thread/callstack-tree-hidden-fns #{}
-          :thread/callstack-expanded-traces #{}
-          :thread/callstack-selected-idx nil}))
+          :thread/callstack-tree-hidden-fns #{}}))
 
 (defn get-thread [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id]))

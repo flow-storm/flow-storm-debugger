@@ -38,12 +38,6 @@
   ;; remove it from the ui
   (remove-flow flow-id))
 
-(defn create-thread [{:keys [flow-id thread-id thread-name]}]
-  (dbg-state/create-thread flow-id thread-id)
-  (dbg-state/set-idx flow-id thread-id 0)
-  (create-or-focus-thread-tab flow-id thread-id thread-name)
-  (flow-code/jump-to-coord flow-id thread-id 0))
-
 (defn update-threads-list [flow-id]
   (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]
     (when lv-data
@@ -66,6 +60,19 @@
         (= key-txt "<") (flow-code/step-first flow-id thread-id)
         (= key-txt ">") (flow-code/step-last flow-id thread-id))))))
 
+(defn open-thread [thread-info]
+  (let [flow-id (:flow/id thread-info)
+        thread-id (:thread/id thread-info)
+        thread-name (:thread/name thread-info)]
+
+    (when-not (dbg-state/get-thread flow-id thread-id)
+      (dbg-state/create-thread flow-id thread-id)
+      (dbg-state/set-idx flow-id thread-id 0))
+
+    (create-or-focus-thread-tab flow-id thread-id thread-name)
+    (flow-code/jump-to-coord flow-id thread-id 0)
+    (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (tab-pane {:closing-policy :all-tabs
@@ -73,13 +80,9 @@
         flow-split-pane (doto (SplitPane.)
                           (.setOrientation (Orientation/HORIZONTAL)))
         flow-tab (if (nil? flow-id)
-                   (tab {:graphic (icon "mdi-filter") :content flow-split-pane})
-                   (tab {:text (str "flow-" flow-id) :content flow-split-pane}))
-        open-thread (fn [thread-info]
-                      (create-thread {:flow-id (:flow/id thread-info)
-                                      :thread-id (:thread/id thread-info)
-                                      :thread-name (:thread/name thread-info)})
-                      (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree))
+                   (tab {:id (str "flow-tab-" flow-id) :graphic (icon "mdi-filter") :content flow-split-pane})
+                   (tab {:id (str "flow-tab-" flow-id) :text (str "flow-" flow-id) :content flow-split-pane}))
+
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
@@ -198,6 +201,26 @@
                              (ui-vars/clean-objs flow-id thread-id)))
         (-> all-tabs
             (.addAll [thread-tab]))))))
+
+(defn select-flow-tab [flow-id]
+  (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
+        sel-model (.getSelectionModel flows-tabs-pane)
+        all-tabs (.getTabs flows-tabs-pane)
+        tab-for-flow (some (fn [^Tab t]
+                             (when (= (.getId t) (str "flow-tab-" flow-id))
+                               t))
+                           all-tabs)]
+
+    ;; select the flow tab
+    (when tab-for-flow
+      (.select ^SingleSelectionModel sel-model ^Tab tab-for-flow)
+
+      ;; focus the threads list
+      (let [[{:keys [list-view]}] (obj-lookup flow-id "flow_threads_list")]
+        (when list-view
+          (let [list-selection (.getSelectionModel list-view)]
+            (.requestFocus list-view)
+            (.selectFirst list-selection)))))))
 
 (defn main-pane []
   (let [t-pane (tab-pane {:closing-policy :all-tabs

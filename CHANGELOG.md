@@ -12,6 +12,8 @@
 	- Much improved value inspector
 	
 ### Bugs fixed	
+
+	- Fix goto-location
 	
 ## 3.5.1 (01-05-2023)
 	

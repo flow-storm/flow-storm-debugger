@@ -63,9 +63,10 @@
 (defn- goto-location-event [{:keys [flow-id thread-id thread-name idx]}]
   (ui-utils/run-now
    (ui-main/select-main-tools-tab :flows)
-   (flows-screen/create-thread {:flow-id flow-id
-                                :thread-id thread-id
-                                :thread-name thread-name})
+   (flows-screen/select-flow-tab flow-id)
+   (flows-screen/open-thread {:flow/id flow-id
+                              :thread/id thread-id
+                              :thread/name thread-name})
    (ui-general/select-thread-tool-tab flow-id thread-id :code)
    (ui-code/jump-to-coord flow-id thread-id idx)))
 
