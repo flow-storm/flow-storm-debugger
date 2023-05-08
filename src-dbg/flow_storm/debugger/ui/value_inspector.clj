@@ -160,7 +160,7 @@
 
 (defn create-inspector [vref]
   (try
-    (let [scene (Scene. (create-inspector-pane vref) 500 500)
+    (let [scene (Scene. (create-inspector-pane vref) 1000 600)
           stage (doto (Stage.)
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]
