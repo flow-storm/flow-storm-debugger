@@ -11,7 +11,7 @@
 (declare start-tracer)
 (declare stop-tracer)
 
-(def recording (atom true))
+(def recording (atom false))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
 

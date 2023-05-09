@@ -66,22 +66,30 @@
 
      (log "System stopped"))))
 
-(defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]
+(defn setup-runtime
+
+  "Setup runtime based on jvm properties. Returns a config map."
+
+  []
   (let [fn-expr-limit-prop (System/getProperty "flowstorm.fnExpressionsLimit")
         recording-prop (System/getProperty "flowstorm.startRecording")
         old-recording-prop (System/getProperty "clojure.storm.traceEnable")
         theme-prop (System/getProperty "flowstorm.theme")
         styles-prop (System/getProperty "flowstorm.styles")
-        config (cond-> config
+        config (cond-> {}
                  theme-prop  (assoc :theme (keyword theme-prop))
                  styles-prop (assoc :styles styles-prop))]
-
     (when fn-expr-limit-prop
       (alter-var-root #'frame-index/fn-expr-limit (constantly (Integer/parseInt fn-expr-limit-prop))))
 
     (when-let [tep (or recording-prop old-recording-prop)]
       (when old-recording-prop (log "WARNING: clojure.storm.traceEnable is deprecated, use flowstorm.startRecording instead !"))
       (tracer/set-recording (Boolean/parseBoolean tep)))
+
+    config))
+
+(defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]
+  (let [config (merge config (setup-runtime))]
 
     ;; NOTE: The order here is important until we replace this code with
     ;; better component state management

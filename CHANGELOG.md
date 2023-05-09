@@ -15,6 +15,7 @@
 ### Bugs fixed	
 
 	- Fix goto-location
+	- Respect flowstorm.startRecording before :dbg on ClojureStorm
 	
 ## 3.5.1 (01-05-2023)
 	

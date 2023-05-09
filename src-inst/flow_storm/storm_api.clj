@@ -6,6 +6,7 @@
             [flow-storm.runtime.indexes.frame-index :as frame-index]))
 
 (defn start-recorder []
+  (fs-api/setup-runtime)
   (indexes-api/start))
 
 (defn start-debugger []
