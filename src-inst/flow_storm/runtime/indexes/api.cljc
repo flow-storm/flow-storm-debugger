@@ -27,7 +27,11 @@
                            :form/def-kind def-kind}
                     (= def-kind :defmethod)
                     (assoc :multimethod/dispatch-val mm-dispatch-val))]
-    (indexes/register-form forms-registry form-id form-data)))
+    (if forms-registry
+      
+      (indexes/register-form forms-registry form-id form-data)
+
+      (utils/log "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger."))))
 
 (defn handle-exception [thread ex]
   
