@@ -6,12 +6,13 @@
             [flow-storm.runtime.types.fn-call-trace :refer [make-fn-call-trace]]
             [flow-storm.runtime.types.fn-return-trace :refer [make-fn-return-trace]]
             [flow-storm.runtime.types.expr-trace :refer [make-expr-trace]]
-            [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]))
+            [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]
+            [clojure.string :as str]))
 
 (declare start-tracer)
 (declare stop-tracer)
 
-(def recording (atom false))
+(def recording (atom true))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
 
@@ -137,6 +138,9 @@
           thread-name
           (make-fn-call-trace fn-ns fn-name form-id timestamp args)))))))
 
+(defn- stringify-coord [coord-vec]
+  (str/join "," coord-vec))
+
 (defn trace-fn-return
 
   "Send function return traces"
@@ -144,7 +148,7 @@
   ([{:keys [return coor form-id]}]  ;; for using with hansel
    
    (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-fn-return flow-id return coor form-id)
+     (trace-fn-return flow-id return (stringify-coord coor) form-id)
      return))
   
   ([flow-id return coord form-id] ;; for using with storm
@@ -162,7 +166,7 @@
   
   ([{:keys [result coor form-id]}]  ;; for using with hansel   
    (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-expr-exec flow-id result coor form-id))
+     (trace-expr-exec flow-id result (stringify-coord coor) form-id))
    
    result)
 
@@ -182,7 +186,7 @@
   ([{:keys [symb val coor]}] ;; for using with hansel
 
    (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-bind flow-id coor (name symb) (snapshot-reference val))))
+     (trace-bind flow-id (stringify-coord coor) (name symb) (snapshot-reference val))))
 
   ([flow-id coord sym-name val]  ;; for using with storm
    (when @recording

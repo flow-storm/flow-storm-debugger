@@ -37,6 +37,10 @@
    (defn colored-string [_ _]
      "UNIMPLEMENTED"))
 
+(defn parse-int [s]
+  #?(:clj (Integer/parseInt s)
+     :cljs (js/parseInt s)))
+
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
 #?(:cljs (defn map-like? [x] (map? x)))
 

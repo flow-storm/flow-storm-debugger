@@ -5,16 +5,24 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]
-            [flow-storm.runtime.types.bind-trace :as bind-trace]))
+            [flow-storm.runtime.types.bind-trace :as bind-trace]
+            [flow-storm.utils :refer [parse-int]]
+            [clojure.string :as str]))
 
 (def fn-expr-limit
   #?(:cljs 9007199254740992 ;; MAX safe integer     
      :clj 10000))
 
+(defn str-coord->vec [str-coord]
+  (if (str/blank? str-coord)
+    []
+    (->> (str/split str-coord #",")
+         (map parse-int))))
+
 (defn expr-exec-map [et]
   {:idx (expr-trace/get-timeline-idx et)
    :form-id (expr-trace/get-form-id et)
-   :coor (expr-trace/get-coord et)
+   :coor (str-coord->vec (expr-trace/get-coord et))
    :timestamp (expr-trace/get-timestamp et)
    :result (expr-trace/get-expr-val et)
    :outer-form? false})
@@ -25,11 +33,11 @@
      :form-id (fn-return-trace/get-form-id rt)
      :result (fn-return-trace/get-ret-val rt)
      :outer-form? true
-     :coor (fn-return-trace/get-coord rt)
+     :coor (str-coord->vec (fn-return-trace/get-coord rt))
      :timestamp (fn-return-trace/get-timestamp rt)}))
 
 (defn binding-map [bt]
-  {:coor (bind-trace/get-coord bt)
+  {:coor (str-coord->vec (bind-trace/get-coord bt))
    :timestamp (bind-trace/get-timestamp bt)
    :symbol (bind-trace/get-sym-name bt)
    :value (bind-trace/get-val bt)})
