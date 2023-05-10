@@ -468,9 +468,9 @@
     `(if (utils/storm-env?)
        (throw (ex-info "#rtrace and #trace can't be used with ClojureStorm, they aren't needed. All your configured compilations will be automatically instrumented. Please re-run the expression without it. Evaluation skipped." {}))
 
-       (do
-         (runi ~full-config ~form)
-         (dbg-api/jump-to-last-expression-in-this-thread ~flow-id)))))
+       (let [res# (runi ~full-config ~form)]
+         (dbg-api/jump-to-last-expression-in-this-thread ~flow-id)
+         res#))))
 
 (defn read-rtrace-tag [form]  (read-rtrace-tag* {:flow-id 0} form))
 (defn read-rtrace0-tag [form] (read-rtrace-tag* {:flow-id 0} form))
