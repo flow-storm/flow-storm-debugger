@@ -81,7 +81,7 @@
                (.getScreenY mev))))))
 
 (defn- create-fns-list-pane [flow-id thread-id]
-  (let [{:keys [table-view-pane] :as tv-data} (table-view
+  (let [{:keys [table-view-pane table-view] :as tv-data} (table-view
                                                {:columns ["Functions" "Count"]
                                                 :cell-factory-fn functions-cell-factory
                                                 :resize-policy :constrained
@@ -92,6 +92,7 @@
                                                                     (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
 
     (store-obj flow-id thread-id "functions_table_data" tv-data)
+    (VBox/setVgrow table-view Priority/ALWAYS)
 
     table-view-pane))
 
