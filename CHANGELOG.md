@@ -13,6 +13,7 @@
 	- Keep functions and tree state when switching tabs
 	- Much improved value inspector
 	- Update hansel to 0.1.56 so #trace (deftest ...) works
+	- BREAKING! flow-storm.runtime.values/snapshot-value defmethod was replaced by flow-storm.runtime.values/SnapshotP protocol for performance
 	
 ### Bugs fixed	
 

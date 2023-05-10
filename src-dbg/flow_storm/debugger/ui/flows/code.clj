@@ -118,9 +118,11 @@
   (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name]}]
                        (.setGraphic list-cell (label (str fn-ns "/" fn-name) "link-lbl")))
         item-click (fn [mev selected-items _]
-                     (let [{:keys [frame-idx]} (first selected-items)]
+                     (let [{:keys [fn-call-idx]} (first selected-items)]
                        (when (= MouseButton/PRIMARY (.getButton mev))
-                         (jump-to-coord flow-id thread-id frame-idx))))
+                         (jump-to-coord flow-id
+                                        thread-id
+                                        (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)))))
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
@@ -130,8 +132,8 @@
 
     list-view-pane))
 
-(defn- update-frames-stack [flow-id thread-id frame-idx]
-  (let [stack (runtime-api/stack-for-frame rt-api flow-id thread-id frame-idx)
+(defn- update-frames-stack [flow-id thread-id fn-call-idx]
+  (let [stack (runtime-api/stack-for-frame rt-api flow-id thread-id fn-call-idx)
         [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "stack_list")]
     (clear)
     (add-all stack)))
@@ -150,7 +152,7 @@
 
 (defn- unhighlight-form [flow-id thread-id form-id]
   (let [[form-pane] (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))]
-    (doto form-pane
+    (doto ^Node form-pane
       (.setOnMouseClicked (event-handler [_])))
     (ui-utils/rm-class form-pane "form-background-highlighted")))
 
@@ -176,7 +178,7 @@
                                                                :ns (:form/ns form)}))}]
         ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
 
-    (.setOnMouseClicked form-pane
+    (.setOnMouseClicked ^Node form-pane
                         (event-handler
                          [mev]
                          (when (and (= MouseButton/SECONDARY (.getButton mev))
@@ -201,11 +203,15 @@
           make-menu-item (fn [{:keys [idx result]}]
                            (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
                              {:text (format "%s" (utils/elide-string v-str 80))
-                              :on-click #(jump-to-coord flow-id thread-id idx)}))
+                              :on-click #(jump-to-coord flow-id
+                                                        thread-id
+                                                        (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
           ctx-menu-options (->> traces
                                 (map make-menu-item)
                                 (into [{:text "Goto Last Iteration"
-                                        :on-click #(jump-to-coord flow-id thread-id last-idx)}]))
+                                        :on-click #(jump-to-coord flow-id
+                                                                  thread-id
+                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
           ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
       (.setOnMouseClicked token-text (event-handler
                                       [^MouseEvent ev]
@@ -216,147 +222,145 @@
 
     (.setOnMouseClicked token-text (event-handler
                                     [ev]
-                                    (jump-to-coord flow-id thread-id (-> traces first :idx))))))
+                                    (jump-to-coord flow-id
+                                                   thread-id
+                                                   (runtime-api/timeline-entry rt-api flow-id thread-id (-> traces first :idx) :at))))))
 
 (defn un-highlight-form-tokens [flow-id thread-id form-id]
   (let [token-texts (ui-vars/form-tokens flow-id thread-id form-id)]
     (doseq [text token-texts]
       (un-highlight text))))
 
-(defn remove-exec-mark-tokens [flow-id thread-id timeline-entry leave-unmarked?]
-  (when (= :expr (:timeline/type timeline-entry))
-    (let [curr-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id timeline-entry)
-                                                                                (:coor timeline-entry)))]
-      (doseq [text curr-token-texts]
-        (if leave-unmarked?
-          (highlight-interesting text)
-          (un-highlight text))))))
+(defn remove-exec-mark-tokens [flow-id thread-id form-id coord leave-unmarked?]
+  (let [curr-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id form-id coord))]
+    (doseq [text curr-token-texts]
+      (if leave-unmarked?
+        (highlight-interesting text)
+        (un-highlight text)))))
 
-(defn highlight-exec-mark-tokens [flow-id thread-id timeline-entry]
-  (when (= :expr (:timeline/type timeline-entry))
-    (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id (:form-id timeline-entry)
-                                                                                (:coor timeline-entry)))]
-      (doseq [text next-token-texts]
-        (highlight-executing text)))))
+(defn highlight-exec-mark-tokens [flow-id thread-id form-id coord]
+  (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id form-id coord))]
+    (doseq [text next-token-texts]
+      (highlight-executing text))))
 
-(defn arm-and-highlight-interesting-form-tokens [flow-id thread-id next-form-id next-idx]
-  (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-idx {})
+(defn arm-and-highlight-interesting-form-tokens [flow-id thread-id next-form-id next-fn-call-idx]
+  (let [{:keys [expr-executions]} (runtime-api/frame-data rt-api flow-id thread-id next-fn-call-idx {:include-exprs? true})
         next-exec-expr (->> expr-executions
-                            (group-by :coor))]
+                            (group-by :coord))]
 
-    (doseq [[coor traces] next-exec-expr]
-      (let [token-id (ui-vars/form-token-id next-form-id coor)
+    (doseq [[coord traces] next-exec-expr]
+      (let [token-id (ui-vars/form-token-id next-form-id coord)
             token-texts (obj-lookup flow-id thread-id token-id)]
         (doseq [text token-texts]
           (arm-interesting flow-id thread-id text traces)
           (highlight-interesting text))))))
 
-(defn jump-to-coord [flow-id thread-id next-idx]
+
+(defn jump-to-coord [flow-id thread-id next-tentry]
   (try
-    (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)]
-     (when (<= 0 next-idx (dec trace-count))
-       (let [curr-idx (state/current-idx flow-id thread-id)
-             curr-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx)
-             curr-form-id (:form-id curr-tentry)
-             next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id next-idx)
-             next-form-id (:form-id next-tentry)
-             [curr-trace-text-field] (obj-lookup flow-id thread-id "thread_curr_trace_tf")
-             ;; because how frames are cached by trace, their pointers can't be compared
-             ;; so a content comparision is needed. Comparing :frame-idx is enough since it is
-             ;; a frame
-             first-jump? (and (zero? curr-idx) (zero? next-idx))
-             curr-frame (runtime-api/frame-data rt-api flow-id thread-id curr-idx {})
-             next-frame (runtime-api/frame-data rt-api flow-id thread-id next-idx {})
-             changing-frame? (not= (:frame-idx curr-frame)
-                                   (:frame-idx next-frame))
-             changing-form? (not= curr-form-id next-form-id)]
+    (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)
+          curr-frame (if-let [cfr (state/current-frame flow-id thread-id)]
+                       cfr
+                       ;; if we don't have a current frame it means it is the first
+                       ;; jump so, initialize the debugger thread state
+                       (let [first-frame (runtime-api/frame-data rt-api flow-id thread-id 0 {})
+                             first-tentry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
+                         (state/set-current-frame flow-id thread-id first-frame)
+                         (state/set-current-timeline-entry flow-id thread-id first-tentry)
+                         first-frame))
 
-         ;; update thread current trace label and total traces
-         (.setText curr-trace-text-field (str (inc next-idx)))
-         (update-thread-trace-count-lbl flow-id thread-id trace-count)
+          curr-tentry (state/current-timeline-entry flow-id thread-id)
+          curr-idx (:idx curr-tentry)
+          next-idx (:idx next-tentry)
 
-         (when first-jump?
-           (highlight-form flow-id thread-id next-form-id))
+          curr-fn-call-idx (:fn-call-idx curr-frame)
+          next-fn-call-idx (:fn-call-idx next-tentry)
+          changing-frame? (not= curr-fn-call-idx next-fn-call-idx)
+          next-frame (if changing-frame?
+                       (let [nfr (runtime-api/frame-data rt-api flow-id thread-id next-fn-call-idx {})]
+                         nfr)
+                       curr-frame)
+          curr-form-id (:form-id curr-frame)
+          next-form-id (:form-id next-frame)
 
-         (when (or first-jump? changing-frame?)
+          [curr-trace-text-field] (obj-lookup flow-id thread-id "thread_curr_trace_tf")
+          ;; because how frames are cached by trace, their pointers can't be compared
+          ;; so a content comparision is needed. Comparing :fn-call-idx is enough since it is
+          ;; a frame
+          first-jump? (and (zero? curr-idx) (zero? next-idx))
+          changing-form? (not= curr-form-id next-form-id)]
 
-           (let [frame-data (runtime-api/frame-data rt-api flow-id thread-id next-idx {})]
-             (state/set-current-frame flow-id thread-id frame-data))
+      ;; update thread current trace label and total traces
+      (.setText curr-trace-text-field (str (inc next-idx)))
+      (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
-           (update-frames-stack flow-id thread-id (:frame-idx next-frame))
+      (when first-jump?
+        (highlight-form flow-id thread-id next-form-id))
 
-           (when (or first-jump? changing-form?)
-             (unhighlight-form flow-id thread-id curr-form-id)
-             (highlight-form flow-id thread-id next-form-id))
+      (when (or first-jump? changing-frame?)
 
-           (un-highlight-form-tokens flow-id thread-id curr-form-id)
+        (update-frames-stack flow-id thread-id next-fn-call-idx)
 
-           (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-idx))
+        (when (or first-jump? changing-form?)
+          (unhighlight-form flow-id thread-id curr-form-id)
+          (highlight-form flow-id thread-id next-form-id))
 
-         (when-not first-jump?
-           (remove-exec-mark-tokens flow-id thread-id curr-tentry (= curr-form-id next-form-id)))
+        (un-highlight-form-tokens flow-id thread-id curr-form-id)
 
-         (highlight-exec-mark-tokens flow-id thread-id next-tentry)
+        (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-fn-call-idx))
 
-         ;; update reusult panel
-         (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
+      (when (and (not first-jump?) (= :expr (:type curr-tentry)))
+        (remove-exec-mark-tokens flow-id thread-id curr-form-id (:coord curr-tentry) (not changing-form?)))
 
-         ;; update locals panel
-         (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
+      (when (= :expr (:type next-tentry))
+        (highlight-exec-mark-tokens flow-id thread-id next-form-id (:coord next-tentry)))
 
-         (state/set-idx flow-id thread-id next-idx))))
+      ;; update reusult panel
+      (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
+
+      ;; update locals panel
+      (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
+
+      (when changing-frame?
+        (state/set-current-frame flow-id thread-id next-frame))
+
+      (state/set-current-timeline-entry flow-id thread-id next-tentry))
     (catch Throwable e
-      (utils/log-error (str "Error jumping into " flow-id " " thread-id " " next-idx) e))))
+      (utils/log-error (str "Error jumping into " flow-id " " thread-id " " next-tentry) e))))
 
 (defn step-prev [flow-id thread-id]
-  (jump-to-coord flow-id
-                 thread-id
-                 (dec (state/current-idx flow-id thread-id))))
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        prev-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :prev)]
+    (jump-to-coord flow-id thread-id prev-tentry)))
 
 (defn step-next [flow-id thread-id]
-  (jump-to-coord flow-id
-                 thread-id
-                 (inc (state/current-idx flow-id thread-id))))
+  (let [curr-idx (state/current-idx flow-id thread-id)
+        next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next)]
+    (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn step-next-over [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
-        next-frame-idx (state/next-idx-in-frame flow-id thread-id)
-        ;; if next-frame-idx didn't move, means we reached the end of the frame
-        ;; in which case we behave just like step-next
-        next-idx (if (= curr-idx next-frame-idx)
-                   (inc curr-idx)
-                   next-frame-idx)]
-    (jump-to-coord flow-id
-                   thread-id
-                   next-idx)))
+        next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next-over)]
+    (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn step-prev-over [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
-        prev-frame-idx (state/prev-idx-in-frame flow-id thread-id)
-        ;; if prev-frame-idx didn't move, means we reached the beginning of the frame
-        ;; in which case we behave just like step-prev
-        prev-idx (if (= curr-idx prev-frame-idx)
-                   (dec curr-idx)
-                   prev-frame-idx)]
-    (jump-to-coord flow-id
-                   thread-id
-                   prev-idx)))
+        prev-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :prev-over)]
+    (jump-to-coord flow-id thread-id prev-tentry)))
 
 (defn step-out [flow-id thread-id]
   (let [curr-idx (state/current-idx flow-id thread-id)
-        {:keys [parent-frame-idx]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {})]
-    (jump-to-coord flow-id
-                   thread-id
-                   parent-frame-idx)))
+        out-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next-out)]
+    (jump-to-coord flow-id thread-id out-tentry)))
 
 (defn step-first [flow-id thread-id]
-  (jump-to-coord flow-id thread-id 0))
+  (let [first-tentry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
+    (jump-to-coord flow-id thread-id first-tentry)))
 
 (defn step-last [flow-id thread-id]
-  (let [tl-count (runtime-api/timeline-count rt-api flow-id thread-id)]
-    (jump-to-coord flow-id
-                   thread-id
-                   (dec tl-count))))
+  (let [last-idx (dec (runtime-api/timeline-count rt-api flow-id thread-id))
+        last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
+    (jump-to-coord flow-id thread-id last-tentry)))
 
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
@@ -376,9 +380,9 @@
 
         curr-trace-text-field (doto (text-field {:initial-text "1"
                                                  :on-return-key (fn [idx-str]
-                                                                  (jump-to-coord flow-id
-                                                                                 thread-id
-                                                                                 (dec (Long/parseLong idx-str))))
+                                                                  (let [target-idx (dec (Long/parseLong idx-str))
+                                                                        target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
+                                                                    (jump-to-coord flow-id thread-id target-tentry)))
                                                  :align :right})
                                 (.setPrefWidth 80))
 

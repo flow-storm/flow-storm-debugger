@@ -182,9 +182,6 @@ There is one special option at the beginning of all loop menus which reads `Goto
 This is going to be useful when debugging loops with many iterations since the menu is only going to list the first 100.
 Most of the time we are also interested in the end of the loop, so we can use this options to quickly jump there.
 
-Note: When working with big loops `flowstorm.fnExpressionsLimit` jvm property can be used to limit
-      how many expressions get recorded per function frame.
-
 Before finishing the execution exploring tools, let's check one more tool, the `functions list tool`,
 so go ahead and click on the last tab in the bottom left corner.
 "

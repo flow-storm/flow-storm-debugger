@@ -21,7 +21,7 @@
    'flow-storm.api
    'flow-storm.runtime.debuggers-api
    'flow-storm.runtime.types.fn-call-trace
-   'flow-storm.runtime.indexes.frame-index
+   'flow-storm.runtime.indexes.timeline-index
    'flow-storm.runtime.indexes.api
    'flow-storm.runtime.indexes.protocols
    'flow-storm.runtime.types.fn-return-trace
@@ -49,8 +49,7 @@
                     :src-dirs src-dirs
                     :class-dir class-dir
                     :compile-opts {:direct-linking false}
-                    :ns-compile aot-compile-nses
-                    })
+                    :ns-compile aot-compile-nses})
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     (b/jar {:class-dir class-dir
@@ -65,7 +64,10 @@
                                               'com.cognitect/transit-clj {:mvn/version "1.0.333"}
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions ['com.google.guava/guava]}
-                                              'com.github.jpmonettas/hansel {:mvn/version "0.1.58"}}
+
+                                              'com.github.jpmonettas/hansel {:mvn/version "0.1.58"}
+                                              'org.clojure/data.int-map {:mvn/version "1.2.1"}}
+
                                        :paths src-dirs}})
         jar-file (format "%s/%s.jar" target-dir (name lib))]
     (b/write-pom {:class-dir class-dir

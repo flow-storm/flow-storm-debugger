@@ -5,32 +5,27 @@
   (add-fn-call [_ trace])
   (add-fn-return [_ trace])
   (add-expr-exec [_ trace])  
-  (add-bind [_ trace]))
+  (add-bind [_ trace])
+  (reset-build-stack [_]))
 
-(defprotocol FrameIndexP
+(defprotocol TimelineP
   (timeline-count [_])
-  (timeline-entry [_ idx])
-  (timeline-frame-seq [_])
-  (timeline-seq [_])
-  (timeline-sub-seq [_ from to])
-  (frame-data [_ idx opts])
-  (reset-build-stack [_])
-  (callstack-tree-root-node [_]))
+  (timeline-entry [_ idx drift])
+  (timeline-frames [_ from-idx to-idx pred])
+  (timeline-raw-entries [_ from-idx to-idx]))
 
-(defprotocol TreeNodeP
-  (get-frame [_])
-  (get-node-immutable-frame [_])
-  (has-childs? [_])
-  (add-child [_ node])
-  (get-childs [_]))
+(defprotocol TimelineEntryP
+  (entry-type [_])
+  (entry-idx [_])
+  (fn-call-idx [_]))
 
-(defprotocol CallStackFrameP
-  (get-immutable-frame [_ full?])  
-  (add-binding-to-frame [_ bind-trace])
-  (add-expr-exec-to-frame [_ exec-trace])
-  (set-return [_ ret-trace])
-  (get-parent-timeline-idx [_])
-  (get-timeline-idx [_]))
+(defprotocol TreeP
+  (tree-root-index [_])
+  (tree-childs-indexes [_ fn-call-idx])
+  (tree-frame-data [_ fn-call-idx opts]))
+
+(defprotocol ImmutableP
+  (as-immutable [_]))
 
 (defprotocol FnCallStatsP
   (all-stats [_]))

@@ -4,7 +4,8 @@
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.config :refer [config]]
             [flow-storm.utils :as utils]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:import [java.io OutputStream]))
 
 (declare start-repl)
 (declare stop-repl)
@@ -75,8 +76,8 @@
   (when (:connect-to-repl? config)
     (let [{:keys [repl-kind]} config
           log-file (io/file log-file-path)
-          log-output-stream (io/make-output-stream log-file {:append true
-                                                             :encoding "UTF-8"})
+          ^OutputStream log-output-stream (io/make-output-stream log-file {:append true
+                                                                           :encoding "UTF-8"})
 
           ;; repl here will be a map with :repl-eval (fn [code-str ns] ) and :close-connection (fn [])
           ;; :repl-eval fn will eval on the specific repl and return the value always as a string

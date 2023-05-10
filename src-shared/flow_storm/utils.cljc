@@ -1,4 +1,5 @@
 (ns flow-storm.utils
+  (:require [clojure.string :as str])
   #?(:cljs (:require [goog.string :as gstr]
                      [goog.string.format]
                      [goog :as g])
@@ -40,6 +41,12 @@
 (defn parse-int [s]
   #?(:clj (Integer/parseInt s)
      :cljs (js/parseInt s)))
+
+(defn str-coord->vec [str-coord]
+  (if (str/blank? str-coord)
+    []
+    (->> (str/split str-coord #",")
+         (map parse-int))))
 
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
 #?(:cljs (defn map-like? [x] (map? x)))
@@ -174,14 +181,14 @@
      :cljs (instance? cljs.core.IPending x)))
 
 (defn walk-indexed
-  "Walk through form calling (f coor element).
-  The value of coor is a vector of indices representing element's
+  "Walk through form calling (f coord element).
+  The value of coord is a vector of indices representing element's
   address in the form. Unlike `clojure.walk/walk`, all metadata of
   objects in the form is preserved."
   ([f form] (walk-indexed [] f form))
-  ([coor f form]
+  ([coord f form]
    (let [map-inner (fn [forms]
-                     (map-indexed #(walk-indexed (conj coor %1) f %2)
+                     (map-indexed #(walk-indexed (conj coord %1) f %2)
                                   forms))
          ;; Clojure uses array-maps up to some map size (8 currently).
          ;; So for small maps we take advantage of that, otherwise fall
@@ -193,8 +200,8 @@
          ;; This depends on Clojure implementation details.
          walk-indexed-map (fn [map]
                             (map-indexed (fn [i [k v]]
-                                           [(walk-indexed (conj coor (* 2 i)) f k)
-                                            (walk-indexed (conj coor (inc (* 2 i))) f v)])
+                                           [(walk-indexed (conj coord (* 2 i)) f k)
+                                            (walk-indexed (conj coord (inc (* 2 i))) f v)])
                                          map))
          result (cond
                   (map? form) (if (<= (count form) 8)
@@ -211,14 +218,14 @@
                   (seq? form)  (doall (map-inner form))
                   (coll? form) (into (empty form) (map-inner form))
                   :else form)]
-     (f coor (merge-meta result (meta form))))))
+     (f coord (merge-meta result (meta form))))))
 
 (defn tag-form-recursively
   "Recursively add coordinates to all forms"
   [form key]
   ;; Don't use `postwalk` because it destroys previous metadata.
-  (walk-indexed (fn [coor frm]
-                  (merge-meta frm {key coor}))
+  (walk-indexed (fn [coord frm]
+                  (merge-meta frm {key coord}))
                 form))
 
 

@@ -12,9 +12,9 @@
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.json-serializer :as serializer]
+            [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
-            [flow-storm.runtime.indexes.frame-index :as frame-index]
-            [flow-storm.runtime.indexes.api :as indexes-api]
+            [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.fn-sampler.core :as fn-sampler]
             [clojure.string :as str]
             [clojure.stacktrace :as stacktrace]))
@@ -41,7 +41,7 @@
      ;; better component state management
 
      (when-not skip-index-stop?
-       (indexes-api/stop))
+       (index-api/stop))
 
      ;; if we are running in local mode and running a debugger stop it
      (when stop-debugger
@@ -71,16 +71,13 @@
   "Setup runtime based on jvm properties. Returns a config map."
 
   []
-  (let [fn-expr-limit-prop (System/getProperty "flowstorm.fnExpressionsLimit")
-        recording-prop (System/getProperty "flowstorm.startRecording")
+  (let [recording-prop (System/getProperty "flowstorm.startRecording")
         old-recording-prop (System/getProperty "clojure.storm.traceEnable")
         theme-prop (System/getProperty "flowstorm.theme")
         styles-prop (System/getProperty "flowstorm.styles")
         config (cond-> {}
                  theme-prop  (assoc :theme (keyword theme-prop))
                  styles-prop (assoc :styles styles-prop))]
-    (when fn-expr-limit-prop
-      (alter-var-root #'frame-index/fn-expr-limit (constantly (Integer/parseInt fn-expr-limit-prop))))
 
     (when-let [tep (or recording-prop old-recording-prop)]
       (when old-recording-prop (log "WARNING: clojure.storm.traceEnable is deprecated, use flowstorm.startRecording instead !"))
@@ -95,7 +92,7 @@
     ;; better component state management
 
     (when-not skip-index-start?
-      (indexes-api/start))
+      (index-api/start))
 
     ;; start the debugger UI
     (when-not skip-debugger-start?
@@ -508,43 +505,3 @@
 
 (defn start-recording [] (dbg-api/set-recording true))
 (defn stop-recording [] (dbg-api/set-recording false))
-(comment
-
-  #rtrace (+ 1 2 (* 3 4))
-
-  #trace (defn factorial [n] (if (zero? n) 1 (* n (factorial (dec n)))))
-  #rtrace (factorial 5)
-
-  (indexes-api/start)
-
-  (indexes-api/all-threads)
-
-  (do
-    (def flow-id (-> (indexes-api/all-threads) first first))
-    (def thread-id (-> (indexes-api/all-threads) first second)))
-
-  (indexes-api/all-forms flow-id thread-id)
-
-  (indexes-api/timeline-count flow-id thread-id)
-
-  (indexes-api/timeline-entry flow-id thread-id 2)
-
-  (indexes-api/frame-data flow-id thread-id 2 {})
-
-  (indexes-api/bindings flow-id thread-id 52)
-
-  (def r-node (indexes-api/callstack-tree-root-node flow-id thread-id))
-
-  (-> r-node
-      indexes-api/callstack-node-childs
-      (nth 0)
-      indexes-api/callstack-node-frame)
-
-  (indexes-api/callstack-node-childs r-node)
-
-  (indexes-api/fn-call-stats flow-id thread-id)
-
-  (indexes-api/find-fn-frames flow-id thread-id "flow-storm.api" "factorial" 71712880)
-
-  (indexes-api/discard-flow flow-id)
-  )

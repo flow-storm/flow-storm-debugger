@@ -1,4 +1,5 @@
-(ns flow-storm.runtime.indexes.utils  
+(ns flow-storm.runtime.indexes.utils
+  #?(:clj (:require [clojure.data.int-map :as int-map]))
   #?(:clj (:import [java.util ArrayList ArrayDeque HashMap]
                    [java.util.concurrent ConcurrentHashMap])))
 
@@ -85,6 +86,16 @@
    :cljs (defn mh-get [mh k]
            (get @mh k)))
 
+#?(:clj (defn mh-remove [^HashMap mh k]
+          (.remove mh k))
+   :cljs (defn mh-remove [mh k]
+           (swap! mh dissoc k)))
+
+#?(:clj (defn mh-keys [^HashMap mh]
+          (.keySet mh))
+   :cljs (defn mh-keys [mh]
+           (keys @mh)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mutable concurrent hashmap ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -121,3 +132,10 @@
           (.remove mh k))
    :cljs (defn mch-remove [mh k]
            (swap! mh dissoc k)))
+
+;;;;;;;;;;;;;
+;; Int Map ;;
+;;;;;;;;;;;;;
+
+#?(:clj  (defn int-map [] (int-map/int-map))
+   :cljs (defn int-map [] {}))

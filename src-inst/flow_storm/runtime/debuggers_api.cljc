@@ -1,14 +1,14 @@
 (ns flow-storm.runtime.debuggers-api
-  (:require [flow-storm.runtime.indexes.api :as indexes-api]            
+  (:require [flow-storm.runtime.indexes.api :as index-api]
+            [flow-storm.runtime.indexes.protocols :as index-protos]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.utils :as utils :refer [log]]            
             [flow-storm.runtime.events :as rt-events]                        
-            [flow-storm.runtime.values :as runtime-values :refer [reference-value! deref-value]]
-            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
+            [flow-storm.runtime.values :as runtime-values :refer [reference-value!]]
             [flow-storm.tracer :as tracer]
+            [clojure.string :as str]
             #?@(:clj [[hansel.api :as hansel]                      
-                      [hansel.instrument.utils :as hansel-inst-utils]])
-            [flow-storm.runtime.indexes.protocols :as index-protos]
-            [clojure.string :as str]))
+                      [hansel.instrument.utils :as hansel-inst-utils]])))
 
 ;; Utilities for long interruptible tasks
 
@@ -55,12 +55,12 @@
 (def tap-value runtime-values/tap-value)
 
 (defn get-form [flow-id thread-id form-id]
-  (let [form (indexes-api/get-form flow-id thread-id form-id)]
+  (let [form (index-api/get-form flow-id thread-id form-id)]
     (if (:multimethod/dispatch-val form)
       (update form :multimethod/dispatch-val reference-value!)
       form)))
 
-(def timeline-count indexes-api/timeline-count)
+(def timeline-count index-api/timeline-count)
 
 (defn- reference-frame-data! [{:keys [dispatch-val] :as frame-data}]
   (cond-> frame-data
@@ -73,50 +73,46 @@
     true         (update :expr-executions (fn [ee]
                                             (mapv #(update % :result reference-value!) ee)))))
 
-(defn timeline-entry [flow-id thread-id idx]
-  (let [entry (indexes-api/timeline-entry flow-id thread-id idx)
-        ref-entry (case (:timeline/type entry)
-                    :frame (reference-frame-data! entry)
-                    :expr (update entry :result reference-value!))]
+(defn timeline-entry [flow-id thread-id idx drift]
+  (let [entry (index-api/timeline-entry flow-id thread-id idx drift)
+        ref-entry (case (:type entry)
+                    :fn-call   (update entry :fn-args reference-value!)
+                    :fn-return (update entry :result reference-value!)
+                    :bind      (update entry :value reference-value!)
+                    :expr      (update entry :result reference-value!))]
     ref-entry)) 
 
 (defn frame-data [flow-id thread-id idx opts]
-  (let [frame-data (indexes-api/frame-data flow-id thread-id idx opts)]
+  (let [frame-data (index-api/frame-data flow-id thread-id idx opts)]
     (reference-frame-data! frame-data)))
 
 (defn bindings [flow-id thread-id idx]
-  (let [bs-map (indexes-api/bindings flow-id thread-id idx)]
+  (let [bs-map (index-api/bindings flow-id thread-id idx)]
     (reduce-kv (fn [bs s v]
                  (assoc bs s (reference-value! v)))
                {}
                bs-map)))
 
 (defn callstack-tree-root-node [flow-id thread-id]
-  (let [rnode (indexes-api/callstack-tree-root-node flow-id thread-id)
-        node-id (reference-value! rnode)]
-    node-id))
+  (index-api/callstack-root-node flow-id thread-id))
 
-(defn callstack-node-childs [node-ref]
-  (let [node (deref-value node-ref)
-        childs (indexes-api/callstack-node-childs node)
-        childs-ids (mapv reference-value! childs)]
-    childs-ids))
+(defn callstack-node-childs [node]
+  (index-api/callstack-node-childs node))
 
-(defn callstack-node-frame [node-ref]
-  (let [node (deref-value node-ref)
-        frame-data (indexes-api/callstack-node-frame node)]
+(defn callstack-node-frame [node]
+  (let [frame-data (index-api/callstack-node-frame-data node)]
     (reference-frame-data! frame-data)))
 
 (defn fn-call-stats [flow-id thread-id]
-  (let [stats (indexes-api/fn-call-stats flow-id thread-id)]
+  (let [stats (index-api/fn-call-stats flow-id thread-id)]
     (->> stats
          (mapv (fn [fstats]
                  (update fstats :dispatch-val reference-value!))))))
 
-(def find-fn-frames indexes-api/find-fn-frames)
+(def find-fn-frames index-api/find-fn-frames)
 
 (defn find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id]
-  (let [fn-frames (indexes-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
+  (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
         frames (into [] (map reference-frame-data!) fn-frames)]
     frames))
 
@@ -127,8 +123,8 @@
      (let [thread (Thread.
                    (fn []
                      (try
-                       (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)                             
-                             tl-entries (index-protos/timeline-sub-seq frame-index from-idx nil)
+                       (let [{:keys [timeline-index]} (index-api/get-thread-indexes flow-id thread-id)                             
+                             tl-entries (index-protos/timeline-raw-entries timeline-index from-idx nil)
                              total-entries (count tl-entries)                             
                              found-idx (loop [i 0
                                               [tl-entry & tl-rest] tl-entries]
@@ -141,14 +137,13 @@
                                            (if (fn-call-trace/fn-call-trace? tl-entry)
                                              
                                              (let [fn-name (fn-call-trace/get-fn-name tl-entry)
-                                                   args-vec (fn-call-trace/get-fn-args tl-entry)]
+                                                   args-vec (fn-call-trace/get-fn-args tl-entry)
+                                                   fn-call-idx (index-protos/entry-idx tl-entry)]
                                                (if (or (str/includes? fn-name query-str)
                                                        (str/includes? (:val-str (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false})) query-str))
 
                                                  ;; if matches, finish the loop the found idx
-                                                 (-> (fn-call-trace/get-frame-node tl-entry)
-                                                     index-protos/get-frame
-                                                     index-protos/get-timeline-idx)
+                                                 fn-call-idx
 
                                                  ;; else, keep looping
                                                  (recur (inc i) tl-rest)))
@@ -156,8 +151,7 @@
                                              ;; else
                                              (recur (inc i) tl-rest))))
                              result (when found-idx
-                                      (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
-                                          (dissoc :bindings :expr-executions)
+                                      (-> (index-protos/tree-frame-data timeline-index found-idx {:include-path? true})
                                           reference-frame-data!))]                         
                          (on-result result))
                        (catch java.lang.InterruptedException _
@@ -171,8 +165,8 @@
    (defn search-next-frame* [flow-id thread-id query-str from-idx {:keys [print-level] :or {print-level 2}} on-progress on-result]     
      (let [interrupted (atom false)
            interrupt-fn (fn [] (reset! interrupted true))
-           {:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)           
-           tl-entries (index-protos/timeline-sub-seq frame-index from-idx nil)
+           {:keys [timeline-index]} (index-api/get-thread-indexes flow-id thread-id)           
+           tl-entries (index-protos/timeline-raw-entries timeline-index from-idx nil)
            total-entries (count tl-entries)
            search-next (fn search-next [i [tl-entry & tl-rest]]
                          (when (and tl-entry
@@ -184,18 +178,16 @@
                            (if (fn-call-trace/fn-call-trace? tl-entry)
                              
                              (let [fn-name (fn-call-trace/get-fn-name tl-entry)
-                                   args-vec (fn-call-trace/get-fn-args tl-entry)]
+                                   args-vec (fn-call-trace/get-fn-args tl-entry)
+                                   fn-call-idx (index-protos/entry-idx tl-entry)]
                                (js/console.log (str "Looking at" fn-name args-vec))
                                (if (or (str/includes? fn-name query-str)
                                        (str/includes? (:val-str (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false})) query-str))
 
                                  ;; if matches, finish the loop the found idx
-                                 (let [found-idx (-> (fn-call-trace/get-frame-node tl-entry)
-                                                     index-protos/get-frame
-                                                     index-protos/get-timeline-idx)
+                                 (let [found-idx fn-call-idx
                                        result (when found-idx
-                                                (-> (index-protos/frame-data frame-index found-idx {:include-path? true})
-                                                    (dissoc :bindings :expr-executions)
+                                                (-> (index-protos/tree-frame-data timeline-index found-idx {:include-path? true})
                                                     reference-frame-data!))]
                                    (js/console.log (str "calling on result with " result))
                                    (on-result result))
@@ -211,25 +203,19 @@
 (defn search-next-frame [& args]
   (submit-interruptible-task! search-next-frame* args))
 
-(def discard-flow indexes-api/discard-flow)
+(def discard-flow index-api/discard-flow)
 
 (def clear-values-references runtime-values/clear-vals-ref-registry)
 
-(def flow-threads-info indexes-api/flow-threads-info)
+(def flow-threads-info index-api/flow-threads-info)
 
-(def all-flows-threads indexes-api/all-threads)
+(def all-flows-threads index-api/all-threads)
 
 (defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
   (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
 
-(defn stack-for-frame [flow-id thread-id frame-idx]
-  (let [{:keys [frame-index]} (indexes-api/get-thread-indexes flow-id thread-id)
-        {:keys [frame-idx-path]} (index-protos/frame-data frame-index frame-idx {:include-path? true})]
-    (reduce (fn [stack fidx]
-              (conj stack (select-keys (index-protos/frame-data frame-index fidx {:include-path? false})
-                                       [:fn-ns :fn-name :frame-idx])))
-            []
-            frame-idx-path)))
+(defn stack-for-frame [flow-id thread-id fn-call-idx]
+  (index-api/stack-for-frame flow-id thread-id fn-call-idx))
 
 (defn set-recording [enable?]
   (tracer/set-recording enable?)
@@ -241,7 +227,7 @@
     (set-recording true)))
 
 (defn jump-to-last-exception []
-  (let [last-ex-loc (indexes-api/get-last-exception-location)]
+  (let [last-ex-loc (index-api/get-last-exception-location)]
     (if last-ex-loc
       (goto-location nil last-ex-loc)
       (log "No exception recorded"))))
@@ -250,7 +236,7 @@
   ([] (jump-to-last-expression-in-this-thread nil))
   ([flow-id]
    (let [thread-id (utils/get-current-thread-id)
-         last-ex-loc (when-let [cnt (indexes-api/timeline-count flow-id thread-id)]
+         last-ex-loc (when-let [cnt (index-api/timeline-count flow-id thread-id)]
                        {:thread/id thread-id
                         :thread/name (utils/get-current-thread-name)
                         :thread/idx (dec cnt)})]

@@ -10,7 +10,7 @@
       ["#{" "}"])))
 
 (defn- form-tokens [form]
-  (let [curr-coord (::coor (meta form))]
+  (let [curr-coord (::coord (meta form))]
     (cond
       (or (seq? form) (vector? form) (set? form))
       (let [[db de] (seq-delims form)]
@@ -74,7 +74,7 @@
   (#'pp/use-method pp/code-dispatch clojure.lang.ISeq #'pp/pprint-code-list))
 
 (defn pprint-tokens [form]
-  (let [form (utils/tag-form-recursively form ::coor)
+  (let [form (utils/tag-form-recursively form ::coord)
         pprinted-str (ui-utils/normalize-newlines (with-out-str (code-pprint form)))
         pos->layout-char (->> pprinted-str
                               (keep-indexed (fn [i c]
@@ -114,8 +114,8 @@
       (let [txt (case tok
                   :sp " "
                   :nl "\n"
-                  (let [[txt coor] tok]
-                    (if (= coor c)
+                  (let [[txt coord] tok]
+                    (if (= coord c)
                       (utils/colored-string txt :red)
                       txt)))]
         (print txt)))))

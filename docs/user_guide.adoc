@@ -868,18 +868,15 @@ Collect all the types information for parameters that flow into a function
 [,clojure]
 ----
 (defn fn-signatures [fn-ns fn-name]
-  (let [[flow-id thread-id] @index-api/selected-thread
-        {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-        frames (index-api/timeline-frame-seq flow-id thread-id)]
-    (->> frames
-         (reduce (fn [coll-samples frame]
-                   (if (and (= fn-ns (:fn-ns frame))
-                            (= fn-name (:fn-name frame)))
-
-                     (conj coll-samples (mapv type (:args-vec frame)))
-
-                     coll-samples))
-                 #{}))))
+    (let [[flow-id thread-id] @index-api/selected-thread
+          frames (index-api/all-frames flow-id thread-id (fn [fns fname _ _]
+                                                           (and (= fn-name fname)
+                                                                (= fn-ns fns))))
+          signature-types (->> frames
+                               (reduce (fn [coll-samples frame]
+                                         (conj coll-samples (mapv type (:args-vec frame))))
+                                       #{}))]
+      signature-types))
 
 (fn-signatures "user" "factorial")
 ----
@@ -895,22 +892,18 @@ and we want to work with all the values for that coordinate from the repl, then 
 
 [,clojure]
 ----
-;; for this example we are also going to need indexes.protocols
-(require '[flow-storm.runtime.indexes.protocols :as indexes])
-
 (defn frame-similar-values [idx]
-  (let [[flow-id thread-id] @index-api/selected-thread
-        {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-        {:keys [expr-executions]} (indexes/frame-data frame-index idx {})
-        {:keys [coor]} (indexes/timeline-entry frame-index idx)]
+    (let [[flow-id thread-id] @index-api/selected-thread
+          {:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
+          {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
 
-    (->> expr-executions
-         (reduce (fn [coll-vals expr-exec]
-                   (if (= coor (:coor expr-exec))
-                     (conj coll-vals (:result expr-exec))
-                     coll-vals))
-                 []))))
-
+      (->> expr-executions
+           (reduce (fn [coll-vals expr-exec]
+                     (if (= coord (:coord expr-exec))
+                       (conj coll-vals (:result expr-exec))
+                       coll-vals))
+                   []))))
+				   
 (frame-similar-values 109) ;; get all the values
 ----
 
@@ -928,13 +921,17 @@ Create a small stepper for the repl
 (def idx (atom 0)) ;; the state of our debugger, where we are in the timeline
 
 (defn show-current []
-  (let [[flow-id thread-id] @index-api/selected-thread
-        {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
-        {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
-    (when coor
-      (form-pprinter/pprint-form-hl-coord form coor)
-      (println "\n")
-      (println "==[VAL]==>" (utils/colored-string result :yellow)))))
+    (let [[flow-id thread-id] @index-api/selected-thread
+          {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
+          {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
+          {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
+      (case type
+        :fn-call (let [{:keys [fn-name fn-ns]} idx-entry]
+                   (println "Called" fn-ns fn-name))
+        (:expr :fn-return) (let [{:keys [coord result]} idx-entry]
+                             (form-pprinter/pprint-form-hl-coord form coord)
+                             (println "\n")
+                             (println "==[VAL]==>" (utils/colored-string result :yellow))))))
 
 (defn step-next []
   (swap! idx inc)
@@ -968,13 +965,13 @@ when your code uses mutable values like this :
 
 then every time you step over `a` it will contain the last value ["hello" "world" "!"].
 
-You can fix this situation by implementing a multimethod like this :
+You can fix this situation by extending the flow-storm.runtime.values/SnapshotP protocol like this :
 
 [,clojure]
 ----
-(defmethod flow-storm.runtime.values/snapshot-value java.util.ArrayList
-    [a]	   
-    (into [] a))
+(extend-protocol flow-storm.runtime.values/SnapshotP
+  java.util.ArrayList
+  (snapshot-value [a] (into [] a)))
 ----
 
 to provide FlowStorm a way of creating a snapshot of the mutable value.
@@ -1015,10 +1012,6 @@ For preventing this FlowStorm provides a couple of tools :
 
 the infinite loop will be cut after 200 iterations by a thread-trace-limit exceeded exception, and you will have the traces on
 the debugger to figure out what went wrong.
-
-*If you are using ClojureStorm* then there is `-Dflowstorm.fnExpressionsLimit=200` which will stop recording expressions for the
-frame after 200 expressions. This is not exactly the same as the previous `:thread-trace-limit` since it will not cut an infinite
-loop, that part you can do it with your IDE, but will prevent the debugger for collapsing under too many traces.
 
 == Styling and theming
 

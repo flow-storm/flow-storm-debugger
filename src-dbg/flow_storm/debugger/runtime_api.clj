@@ -35,7 +35,7 @@
   (shallow-val [_ v])
   (get-form [_ flow-id thread-id form-id])
   (timeline-count [_ flow-id thread-id])
-  (timeline-entry [_ flow-id thread-id idx])
+  (timeline-entry [_ flow-id thread-id idx drift])
   (frame-data [_ flow-id thread-id idx opts])
   (bindings [_ flow-id thread-id idx])
   (callstack-tree-root-node [_ flow-id thread-id])
@@ -71,7 +71,7 @@
   (add-breakpoint [_ fq-fn-symb])
   (remove-breakpoint [_ fq-fn-symb])
 
-  (stack-for-frame [_ flow-id thread-id frame-idx])
+  (stack-for-frame [_ flow-id thread-id fn-call-idx])
   (toggle-recording [_]))
 
 (defn cached-apply [cache cache-key f args]
@@ -127,7 +127,7 @@
   (shallow-val [_ v] (api-call :local "shallow-val" [v] {:cache api-cache}))  ;; CACHED
   (get-form [_ flow-id thread-id form-id] (api-call :local "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
-  (timeline-entry [_ flow-id thread-id idx] (api-call :local "timeline-entry" [flow-id thread-id idx]))
+  (timeline-entry [_ flow-id thread-id idx drift] (api-call :local "timeline-entry" [flow-id thread-id idx drift]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :local "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx] (api-call :local "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :local "callstack-tree-root-node" [flow-id thread-id]))
@@ -219,8 +219,8 @@
   (all-flows-threads [_]
     (api-call :local "all-flows-threads" []))
 
-  (stack-for-frame [_ flow-id thread-id frame-idx]
-    (api-call :local "stack-for-frame" [flow-id thread-id frame-idx]))
+  (stack-for-frame [_ flow-id thread-id fn-call-idx]
+    (api-call :local "stack-for-frame" [flow-id thread-id fn-call-idx]))
 
   (toggle-recording [_]
     (api-call :local "toggle-recording" [])))
@@ -238,7 +238,7 @@
   (shallow-val [_ v] (api-call :remote "shallow-val" [v] {:cache api-cache}))  ;; CACHED
   (get-form [_ flow-id thread-id form-id] (api-call :remote "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
-  (timeline-entry [_ flow-id thread-id idx] (api-call :remote "timeline-entry" [flow-id thread-id idx]))
+  (timeline-entry [_ flow-id thread-id idx drift] (api-call :remote "timeline-entry" [flow-id thread-id idx drift]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :remote "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx] (api-call :remote "bindings" [flow-id thread-id idx]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :remote "callstack-tree-root-node" [flow-id thread-id]))
@@ -344,8 +344,8 @@
   (all-flows-threads [_]
     (api-call :remote "all-flows-threads" []))
 
-  (stack-for-frame [_ flow-id thread-id frame-idx]
-    (api-call :remote "stack-for-frame" [flow-id thread-id frame-idx]))
+  (stack-for-frame [_ flow-id thread-id fn-call-idx]
+    (api-call :remote "stack-for-frame" [flow-id thread-id fn-call-idx]))
 
   (toggle-recording [_]
     (api-call :remote "toggle-recording" []))

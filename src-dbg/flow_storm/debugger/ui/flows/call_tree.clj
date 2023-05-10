@@ -78,17 +78,17 @@
   (when-not (.isEmpty (.getChildren tree-item))
     (doseq [child-item (.getChildren tree-item)]
       (let [cnode (.getValue child-item)
-            {:keys [frame-idx]} (runtime-api/callstack-node-frame rt-api cnode)]
-        (when (path-set frame-idx)
+            {:keys [fn-call-idx]} (runtime-api/callstack-node-frame rt-api cnode)]
+        (when (path-set fn-call-idx)
           (.setExpanded tree-item true)
-          (when-not (= select-idx frame-idx)
+          (when-not (= select-idx fn-call-idx)
             (expand-path child-item select-idx path-set)))))))
 
-(defn expand-and-highlight [flow-id thread-id [curr-idx :as frame-idx-path]]
+(defn expand-and-highlight [flow-id thread-id [curr-idx :as fn-call-idx-path]]
   (ui-utils/run-later
    (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
          root-item (.getRoot tree-view)]
-     (expand-path root-item curr-idx (into #{} frame-idx-path))
+     (expand-path root-item curr-idx (into #{} fn-call-idx-path))
      (select-call-stack-tree-node flow-id thread-id curr-idx))))
 
 (defn- create-tree-search-pane [flow-id thread-id]
@@ -125,13 +125,13 @@
 
                    (ui-vars/subscribe-to-task-event :result
                                                     task-id
-                                                    (fn [{:keys [frame-idx-path] :as frame-data}]
+                                                    (fn [{:keys [fn-call-idx-path] :as frame-data}]
 
                                                       (if frame-data
-                                                        (let [[match-idx] frame-idx-path]
+                                                        (let [[match-idx] fn-call-idx-path]
 
                                                           (ui-utils/run-later
-                                                           (expand-and-highlight flow-id thread-id frame-idx-path)
+                                                           (expand-and-highlight flow-id thread-id fn-call-idx-path)
                                                            (doto search-match-lbl
                                                              (.setText  (format "Match idx %d" match-idx))
                                                              (.setOnMouseClicked (event-handler
@@ -176,7 +176,7 @@
             (let [^TreeItem tree-item (.getTreeItem this)
                   item-level (.getTreeItemLevel tree-view tree-item)
                   frame (runtime-api/callstack-node-frame rt-api tree-node)
-                  frame-idx (:frame-idx frame)
+                  fn-call-idx (:fn-call-idx frame)
                   update-tree-btn (icon-button :icon-name "mdi-reload"
                                                :class "reload-tree-btn"
                                                :on-click (fn []
@@ -196,12 +196,12 @@
                   (.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id item-level))
                   (.setText nil)))
 
-              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell frame-idx) this))))))))
+              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell fn-call-idx) this))))))))
 
 (defn highlight-current-frame [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
-        {:keys [frame-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
-    (expand-and-highlight flow-id thread-id frame-idx-path)))
+  (let [curr-idx (:idx (state/current-timeline-entry flow-id thread-id))
+        {:keys [fn-call-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
+    (expand-and-highlight flow-id thread-id fn-call-idx-path)))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
   (let [tree-view (doto (TreeView.)
@@ -222,9 +222,11 @@
                              (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
         jump-to-selected-frame-code (fn [& _]
-                                      (let [{:keys [frame-idx]} (get-selected-frame)]
+                                      (let [{:keys [fn-call-idx]} (get-selected-frame)]
                                         (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
-                                        (flow-code/jump-to-coord flow-id thread-id frame-idx)))
+                                        (flow-code/jump-to-coord flow-id
+                                                                 thread-id
+                                                                 (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at))))
         _ (doto tree-view
             (.setOnMouseClicked (event-handler
                                  [mev]

@@ -5,7 +5,7 @@
             [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
-            [flow-storm.runtime.indexes.frame-index :as frame-index]
+            [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error log]]
             [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
@@ -105,22 +105,19 @@
 (comment
 
   (index-api/print-threads)
-  (index-api/select-thread 0 18)
+  (index-api/select-thread nil 18)
   (index-api/print-forms)
+
 
   ;; Synthesizing all the spec information for parameters that flow into a function
   (defn fn-signatures [fn-ns fn-name]
     (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-          frames (frame-index/timeline-frame-seq frame-index)
+          frames (index-api/all-frames flow-id thread-id (fn [fns fname _ _]
+                                                           (and (= fn-name fname)
+                                                                (= fn-ns fns))))
           signature-types (->> frames
                                (reduce (fn [coll-samples frame]
-                                         (if (and (= fn-ns (:fn-ns frame))
-                                                  (= fn-name (:fn-name frame)))
-
-                                           (conj coll-samples (mapv type (:args-vec frame)))
-
-                                           coll-samples))
+                                         (conj coll-samples (mapv type (:args-vec frame))))
                                        #{}))]
       signature-types))
 
@@ -132,32 +129,36 @@
   ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
   (defn frame-similar-values [idx]
     (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [frame-index]} (index-api/get-thread-indexes flow-id thread-id)
-          {:keys [expr-executions]} (frame-index/frame-data frame-index idx {})
-          {:keys [coor]} (frame-index/timeline-entry frame-index idx)]
+          {:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
+          {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
 
       (->> expr-executions
            (reduce (fn [coll-vals expr-exec]
-                     (if (= coor (:coor expr-exec))
+                     (if (= coord (:coord expr-exec))
                        (conj coll-vals (:result expr-exec))
                        coll-vals))
                    []))))
 
-  (frame-similar-values (dec 109)) ;; sum
+  (frame-similar-values (dec 161)) ;; sum
 
   ;; Create a small debugger for the repl
   ;; -------------------------------------------------------------------------------------------
 
+  (require '[flow-storm.debugger.form-pprinter :as form-pprinter])
   (def idx (atom 0))
 
   (defn show-current []
     (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [coor form-id result]} (index-api/timeline-entry flow-id thread-id @idx)
+          {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
+          {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
           {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
-      (when coor
-        (form-pprinter/pprint-form-hl-coord form coor)
-        (println "\n")
-        (println "==[VAL]==>" (utils/colored-string result :yellow)))))
+      (case type
+        :fn-call (let [{:keys [fn-name fn-ns]} idx-entry]
+                   (println "Called" fn-ns fn-name))
+        (:expr :fn-return) (let [{:keys [coord result]} idx-entry]
+                             (form-pprinter/pprint-form-hl-coord form coord)
+                             (println "\n")
+                             (println "==[VAL]==>" (utils/colored-string result :yellow))))))
 
   (defn step-next []
     (swap! idx inc)
@@ -201,8 +202,12 @@
   (io/copy (io/file "/tmp/1670878691457-36075814-1/samples.edn")
            (io/file "samples.edn"))
 
-  (defn bar [a b] (+ a b)) (defn foo [a b] (let [c (+ a b)] (bar c c))) (flow-storm.api/break-at 'user/bar (constantly true))
+  (defn bar [a b] (+ a b))
+  (defn foo [a b] (let [c (+ a b)] (bar c c)))
+
   (doall (pmap (fn [i] (foo i (inc i))) (range 4)))
+
+  (dev-tester/boo [1 "hello" 4])
 
   (flow-storm.api/continue)
 

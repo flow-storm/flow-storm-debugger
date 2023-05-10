@@ -28,7 +28,7 @@
      (try
        (let [request-id (str (UUID/randomUUID))
              packet-str (serializer/serialize [:api-request request-id method args])]
-         (.send conn packet-str)
+         (.send ^WebSocket conn ^String packet-str)
          (swap! (:pending-commands-callbacks websocket-server) assoc request-id callback))
        (catch WebsocketNotConnectedException _ nil)
        (catch Exception e

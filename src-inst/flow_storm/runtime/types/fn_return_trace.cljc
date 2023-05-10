@@ -1,43 +1,57 @@
 (ns flow-storm.runtime.types.fn-return-trace
-  #?(:clj (:require [flow-storm.utils :as utils])))
+  (:require [flow-storm.runtime.indexes.protocols :as index-protos]
+            [flow-storm.utils :as utils]))
+
+(def nil-idx -1)
 
 (defprotocol FnReturnTraceP
-  (get-form-id [_])
-  (get-timestamp [_])
   (get-coord [_])
   (get-ret-val [_])
-  (get-timeline-idx [_])
-  (set-timeline-idx [_ idx])
-  (get-frame-node [_])
-  (set-frame-node [_ node]))
+  (set-fn-call-idx [_ idx])
+  (set-idx [_ idx]))
 
 (deftype FnReturnTrace
-    [^int                          formId
-     ^:unsynchronized-mutable ^int timelineIdx
-     ^long                         timestamp
-                                   coord
+    [                              coord
                                    retVal
-     ^:unsynchronized-mutable      frameNode]
+     ^:unsynchronized-mutable ^int fnCallIdx
+     ^:unsynchronized-mutable ^int thisIdx]
 
   FnReturnTraceP
 
-  (get-form-id [_] formId)
-  (get-timestamp [_] timestamp)
-  (get-coord [_] coord)
+  (get-coord [_] (utils/str-coord->vec coord))
   (get-ret-val [_] retVal)
-  (get-timeline-idx [_] timelineIdx)
-  (set-timeline-idx [_ idx] (set! timelineIdx (int idx)))
-  (get-frame-node [_] frameNode)
-  (set-frame-node [_ node]
-    (set! frameNode node))
+  (set-fn-call-idx [_ idx]
+    (set! fnCallIdx (int idx)))
+  (set-idx [_ idx]
+    (set! thisIdx (int idx)))
 
+  index-protos/TimelineEntryP
+
+  (entry-type [_] :fn-return)
+  (entry-idx [_]
+    (when (not= thisIdx nil-idx)
+      thisIdx))
+  (fn-call-idx [_]
+    (when (not= fnCallIdx nil-idx)
+      fnCallIdx))
+
+  
+  index-protos/ImmutableP
+  
+  (as-immutable [this]
+    {:type :fn-return
+     :coord (get-coord this)
+     :result (get-ret-val this)
+     :fn-call-idx (index-protos/fn-call-idx this)
+     :idx (index-protos/entry-idx this)})
+  
   #?@(:clj
       [Object
        (toString [_] (utils/format "[FnReturnTrace] retValType: %s" (type retVal)))])
   )
 
-(defn make-fn-return-trace [form-id timestamp coord ret-val]
-  (->FnReturnTrace form-id 0 timestamp coord ret-val nil))
+(defn make-fn-return-trace [coord ret-val]
+  (->FnReturnTrace coord ret-val nil-idx nil-idx))
 
 (defn fn-return-trace? [x]
   (and x (instance? FnReturnTrace x)))

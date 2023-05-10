@@ -3,7 +3,7 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as debuggers-api]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.indexes.frame-index :as frame-index]))
+            [flow-storm.runtime.indexes.timeline-index :as timeline-index]))
 
 (defn start-recorder []
   (fs-api/setup-runtime)
@@ -20,7 +20,7 @@
 (defn print-flow-storm-help []
   (println "Flow Storm settings: \n")
   (println (format "  Recording : %s" (tracer/recording?)))
-  (println (format "  Fn expressions limit : %d" frame-index/fn-expr-limit))
+  (println (format "  Fn expressions limit : %d" timeline-index/fn-expr-limit))
   (println)
   (println "ClojureStorm Commands: \n")
   (println "  :dbg        - Show the FlowStorm debugger UI, you can dispose it by closing the window.")
@@ -33,7 +33,6 @@
   (println)
   (println "JVM config properties: \n")
   (println "  -Dflowstorm.startRecording              [true|false]")
-  (println "  -Dflowstorm.fnExpressionsLimit          INTEGER (defaults to 10000)")
   (println "  -Dflowstorm.theme                       [dark|light|auto] (defaults to auto)")
   (println "  -Dflowstorm.styles                      [STRING] Ex: /home/user/my-styles.css")
   (println))

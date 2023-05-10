@@ -1,53 +1,90 @@
 (ns flow-storm.runtime.indexes.thread-registry
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :refer [make-mutable-concurrent-hashmap mch->immutable-map mch-put mch-remove mch-keys mch-get]]
-            [clojure.string :as str]))
+            [flow-storm.runtime.indexes.utils :refer [int-map]]
+            [clojure.string :as str])
+  #?(:clj (:import [clojure.data.int_map PersistentIntMap])))
 
-(defrecord ThreadRegistry [flows-ids-set registry *callbacks]
+(defn flow-id-key [fid]
+  (or fid 10))
+
+(defn flow-key-id [fk]
+  (when-not (= fk 10)
+    fk))
+
+(defrecord ThreadRegistry [registry
+                           *callbacks]
 
   index-protos/ThreadRegistryP
 
   (all-threads [_]
-    (mch-keys registry))
+    (reduce-kv (fn [all-ths fk threads]
+                 (into all-ths (mapv
+                                (fn [tid] [(flow-key-id fk) tid])
+                                (keys threads))))
+               #{}
+     @registry))
 
   (flow-threads-info [_ flow-id]
-    (->> (mch->immutable-map registry)
-         (keep (fn [[[fid tid] tinfo]]
-             (when (= fid flow-id)
-               {:flow/id fid
-                :thread/id tid
-                :thread/name (:thread/name tinfo)
-                :thread/blocked (:thread/blocked tinfo)})))))
+    (->> (get @registry (flow-id-key flow-id))
+         vals
+         (mapv (fn [tinfo]
+                 {:flow/id flow-id
+                  :thread/id (:thread/id tinfo)
+                  :thread/name (:thread/name tinfo)
+                  :thread/blocked (:thread/blocked tinfo)}))))
 
-  (flow-exists? [_ flow-id]    
-    (contains? @flows-ids-set flow-id))
+  (flow-exists? [_ flow-id]
+    (let [flow-int-key (flow-id-key flow-id)]
+      (contains? @registry flow-int-key)))
 
   (get-thread-indexes [_ flow-id thread-id]
-    (some-> registry
-            (mch-get [flow-id thread-id])
-            (get :thread/indexes)))
+    (let [flow-int-key (flow-id-key flow-id)]      
+      #?(:clj
+         (some-> ^PersistentIntMap                @registry
+                 ^PersistentIntMap                (.get flow-int-key)
+                 ^clojure.lang.PersistentArrayMap (.get thread-id)
+                                                  (.get :thread/indexes))
+         :cljs
+         (some-> @registry
+                 (get flow-int-key)
+                 (get thread-id)
+                 (get :thread/indexes)))))
 
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
-    (swap! flows-ids-set conj flow-id)
-    (mch-put registry [flow-id thread-id] {:thread/name (if (str/blank? thread-name)
-                                                          (str "Thread-" thread-id)
-                                                          thread-name)
-                                           :thread/indexes indexes
-                                           :thread/blocked nil})
+    (let [flow-int-key (flow-id-key flow-id)]
+      (swap! registry update flow-int-key
+             (fn [threads]               
+               (assoc (or threads (int-map)) thread-id {:thread/id thread-id
+                                                        :thread/name (if (str/blank? thread-name)
+                                                                       (str "Thread-" thread-id)
+                                                                       thread-name)
+                                                        :thread/indexes indexes
+                                                        :thread/blocked nil}))))
+    
     (when-let [otc (:on-thread-created @*callbacks)]
       (otc {:flow-id flow-id
             :thread-id thread-id
             :thread-name thread-name
             :form-id form-id})))
 
-  (set-thread-blocked [_ flow-id thread-id breakpoint]
-    (let [th-info (mch-get registry [flow-id thread-id])]
-      (mch-put registry [flow-id thread-id] (assoc th-info :thread/blocked breakpoint))))
+  (set-thread-blocked [_ flow-id thread-id breakpoint]    
+    (let [flow-int-key (flow-id-key flow-id)]
+      (swap! registry assoc-in [flow-int-key thread-id :thread/blocked]  breakpoint)))
 
   (discard-threads [_ flow-threads-ids]
-    (swap! flows-ids-set disj (ffirst flow-threads-ids))
-    (doseq [ftid flow-threads-ids]
-      (mch-remove registry ftid)))
+    (doseq [[fid tid] flow-threads-ids]
+      (let [fk (flow-id-key fid)]
+        (swap! registry update fk dissoc tid)))
+    
+    ;; remove empty flows from the registry since flow-exist? uses it
+    ;; kind of HACKY...
+    (let [empty-flow-keys (reduce-kv (fn [efks fk threads-map]
+                                       (if (empty? threads-map)
+                                         (conj efks fk)
+                                         efks))
+                                     #{}
+                                     @registry)]      
+      (swap! registry (fn [flows-map] (apply dissoc flows-map empty-flow-keys)))))
 
   (start-thread-registry [thread-reg callbacks]    
     (reset! *callbacks callbacks)
@@ -56,4 +93,5 @@
   (stop-thread-registry [_]))
 
 (defn make-thread-registry []
-  (->ThreadRegistry (atom #{}) (make-mutable-concurrent-hashmap) (atom {})))
+  (map->ThreadRegistry {:registry (atom (int-map))
+                        :*callbacks (atom {})}))

@@ -103,26 +103,30 @@
 (defn clear-vals-ref-registry []
   (reset! values-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0})))
 
-(defmulti snapshot-value type)
+(defprotocol SnapshotP
+  (snapshot-value [_]))
 
-(defmethod snapshot-value :default [v] v)
+(extend-protocol SnapshotP
+  #?(:clj Object :cljs default)
+  (snapshot-value [v] v))
 
-(defn snapshot-reference [x]  
-  (cond
+(defn snapshot-reference [x]
+  (when x
+    (cond
 
-    (and (utils/blocking-derefable? x)
-         (utils/pending? x))
-    (merge
-     {:ref/type (type x)}
-     (if (realized? x)
-       {:ref/snapshot (deref x)}
-       {:ref/timeout x}))
+      (and (utils/blocking-derefable? x)
+           (utils/pending? x))
+      (merge
+       {:ref/type (type x)}
+       (if (realized? x)
+         {:ref/snapshot (deref x)}
+         {:ref/timeout x}))
 
-    (utils/derefable? x)
-    {:ref/snapshot (deref x)
-     :ref/type (type x)}
+      (utils/derefable? x)
+      {:ref/snapshot (deref x)
+       :ref/type (type x)}
 
-    :else (snapshot-value x)))
+      :else (snapshot-value x))))
 
 (defn value-type [v]
   (if (and (map? v)

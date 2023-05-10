@@ -17,7 +17,7 @@
 
 (defn enqueue-event! [e]
   (when-let [queue (:queue events-queue)]
-    (.put queue e)))
+    (.put ^ArrayBlockingQueue queue e)))
 
 (defn start-events-queue []
   (let [process-event (requiring-resolve 'flow-storm.debugger.events-processor/process-event)

@@ -7,6 +7,7 @@
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as ui-code]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.config :refer [debug-mode]]
@@ -68,7 +69,9 @@
                               :thread/id thread-id
                               :thread/name thread-name})
    (ui-general/select-thread-tool-tab flow-id thread-id :code)
-   (ui-code/jump-to-coord flow-id thread-id idx)))
+   (ui-code/jump-to-coord flow-id
+                          thread-id
+                          (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))))
 
 (defn- show-doc-event [{:keys [var-symbol]}]
   (ui-utils/run-now

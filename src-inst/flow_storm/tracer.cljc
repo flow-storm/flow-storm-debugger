@@ -116,7 +116,6 @@
      (trace-fn-call flow-id ns fn-name fn-args form-id)))
   
   ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
-      
    (let [thread-id (utils/get-current-thread-id)
          thread-name (utils/get-current-thread-name)]
      
@@ -130,13 +129,12 @@
             (block-this-thread flow-id [fn-ns fn-name]))))
      
      (when @recording            
-       (let [timestamp (utils/get-monotonic-timestamp)                          
-             args (mapv snapshot-reference fn-args)]
+       (let [args (mapv snapshot-reference fn-args)]
          (indexes-api/add-fn-call-trace
           flow-id
           thread-id
           thread-name
-          (make-fn-call-trace fn-ns fn-name form-id timestamp args)))))))
+          (make-fn-call-trace fn-ns fn-name form-id args)))))))
 
 (defn- stringify-coord [coord-vec]
   (str/join "," coord-vec))
@@ -151,14 +149,13 @@
      (trace-fn-return flow-id return (stringify-coord coor) form-id)
      return))
   
-  ([flow-id return coord form-id] ;; for using with storm
+  ([flow-id return coord _] ;; for using with storm
    (when @recording
-     (let [timestamp (utils/get-monotonic-timestamp)
-           thread-id (utils/get-current-thread-id)]
+     (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-fn-return-trace
         flow-id
         thread-id      
-        (make-fn-return-trace form-id timestamp coord (snapshot-reference return)))))))
+        (make-fn-return-trace coord (snapshot-reference return)))))))
 
 (defn trace-expr-exec
   
@@ -170,14 +167,13 @@
    
    result)
 
-  ([flow-id result coord form-id]  ;; for using with storm
+  ([flow-id result coord _]  ;; for using with storm
    (when @recording
-     (let [timestamp (utils/get-monotonic-timestamp)
-           thread-id (utils/get-current-thread-id)]
+     (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-expr-exec-trace      
         flow-id
         thread-id      
-        (make-expr-trace form-id timestamp coord (snapshot-reference result)))))))
+        (make-expr-trace coord (snapshot-reference result)))))))
 
 (defn trace-bind
   
@@ -186,16 +182,15 @@
   ([{:keys [symb val coor]}] ;; for using with hansel
 
    (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-bind flow-id (stringify-coord coor) (name symb) (snapshot-reference val))))
+     (trace-bind flow-id (stringify-coord coor) (name symb) val)))
 
   ([flow-id coord sym-name val]  ;; for using with storm
    (when @recording
-     (let [timestamp (utils/get-monotonic-timestamp)
-           thread-id (utils/get-current-thread-id)]
+     (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-bind-trace      
         flow-id
         thread-id      
-        (make-bind-trace timestamp sym-name val coord))))))
+        (make-bind-trace sym-name (snapshot-reference val) coord))))))
 
 (defn hansel-config
 

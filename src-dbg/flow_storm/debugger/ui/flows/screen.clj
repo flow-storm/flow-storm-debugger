@@ -68,11 +68,10 @@
         thread-name (:thread/name thread-info)]
 
     (when-not (dbg-state/get-thread flow-id thread-id)
-      (dbg-state/create-thread flow-id thread-id)
-      (dbg-state/set-idx flow-id thread-id 0))
+      (dbg-state/create-thread flow-id thread-id))
 
     (create-or-focus-thread-tab flow-id thread-id thread-name)
-    (flow-code/jump-to-coord flow-id thread-id 0)
+    (flow-code/jump-to-coord flow-id thread-id (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at))
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
 
 (defn create-empty-flow [flow-id]
