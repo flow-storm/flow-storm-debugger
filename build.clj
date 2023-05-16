@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]))
 
-(def version "3.5.1")
+(def version "3.6.0-SNAPSHOT")
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))
 
@@ -65,7 +65,7 @@
                                               'com.cognitect/transit-clj {:mvn/version "1.0.333"}
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions ['com.google.guava/guava]}
-                                              'com.github.jpmonettas/hansel {:mvn/version "0.1.54"}}
+                                              'com.github.jpmonettas/hansel {:mvn/version "0.1.58"}}
                                        :paths src-dirs}})
         jar-file (format "%s/%s.jar" target-dir (name lib))]
     (b/write-pom {:class-dir class-dir

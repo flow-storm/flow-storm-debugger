@@ -11,6 +11,7 @@
 	
 	- Keep functions and tree state when switching tabs
 	- Much improved value inspector
+	- Update hansel to 0.1.56 so #trace (deftest ...) works
 	
 ### Bugs fixed	
 
