@@ -23,10 +23,10 @@
   (let [{:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :cell-factory-fn (fn [list-cell val]
-                                       (let [val-list-text (runtime-api/val-pprint rt-api val {:print-length 50
-                                                                                               :print-level 5
-                                                                                               :print-meta? false
-                                                                                               :pprint? false})]
+                                       (let [val-list-text (:val-str (runtime-api/val-pprint rt-api val {:print-length 50
+                                                                                                         :print-level 5
+                                                                                                         :print-meta? false
+                                                                                                         :pprint? false}))]
                                          (.setText list-cell nil)
                                          (.setGraphic list-cell (label val-list-text))))
                     :on-click (fn [mev sel-items _]

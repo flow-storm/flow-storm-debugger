@@ -18,7 +18,7 @@
 
     (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} x
           fn-lbl (doto (case form-def-kind
-                         :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) form-def-kind)
+                         :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}))) form-def-kind)
                          :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                          :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                          :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
@@ -101,8 +101,8 @@
 (defn- functions-calls-cell-factory [selected-args list-cell {:keys [args-vec]}]
   (let [sel-args (selected-args)
         args-vec-str (if (= (count sel-args) max-args)
-                       (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false})
-                       (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args}))
+                       (:val-str (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false}))
+                       (:val-str (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args})))
         args-lbl (label args-vec-str)]
     (.setGraphic ^Node list-cell args-lbl)))
 

@@ -113,6 +113,9 @@
 (defn thread-pprint-lbl-id [pane-id]
   (format "pprint_lbl_%s" pane-id))
 
+(defn thread-pprint-type-lbl-id [pane-id]
+  (format "pprint_type_lbl_%s" pane-id))
+
 (defn thread-pprint-def-btn-id [pane-id]
   (format "pprint_def_btn_id_%s" pane-id))
 

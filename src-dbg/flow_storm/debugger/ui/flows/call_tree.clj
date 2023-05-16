@@ -39,6 +39,7 @@
 
 (defn format-tree-fn-call-args [args-vec]
   (let [v-str (-> (runtime-api/val-pprint rt-api args-vec {:print-length 3 :print-level 3 :pprint? false})
+                  :val-str
                   (ui-utils/remove-newlines))
         step-1 (utils/elide-string v-str 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
@@ -59,7 +60,7 @@
                       "")]
 
       (h-box [(label (if dispatch-val
-                       (format "(%s/%s %s %s) " fn-ns fn-name (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}) (format-tree-fn-call-args args-vec))
+                       (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false})) (format-tree-fn-call-args args-vec))
                        (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
               (label form-hint "light")]))))
 

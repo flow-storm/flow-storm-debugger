@@ -124,40 +124,48 @@
 
     :else (snapshot-value x)))
 
+(defn value-type [v]
+  (if (and (map? v)
+           (contains? v :ref/type))
+    (pr-str (:ref/type v))
+    (pr-str (type v))))
+
 (defn val-pprint [vref {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
   (let [val (deref-value vref)
+        val-type (value-type val)
         print-fn #?(:clj (if pprint? pp/pprint print) 
-                    :cljs (if (and pprint? (not print-meta?)) pp/pprint print))] ;; ClojureScript pprint doesn't support *print-meta*
+                    :cljs (if (and pprint? (not print-meta?)) pp/pprint print)) ;; ClojureScript pprint doesn't support *print-meta*
+        val-str (try
+                  
+                  (if (and (utils/blocking-derefable? val)
+                           (utils/pending? val))
 
-    (try
-      
-      (if (and (utils/blocking-derefable? val)
-               (utils/pending? val))
+                    "FlowStorm : Unrealized value"
 
-        "FlowStorm : Unrealized value"
+                    (with-out-str
+                      (binding [*print-level* print-level
+                                *print-length* print-length
+                                *print-meta* print-meta?]
 
-        (with-out-str
-          (binding [*print-level* print-level
-                    *print-length* print-length
-                    *print-meta* print-meta?]
+                        (if nth-elems
 
-            (if nth-elems
+                          (let [max-idx (dec (count val))
+                                nth-valid-elems (filter #(<= % max-idx) nth-elems)]
+                            (doseq [n nth-valid-elems]
+                              (print-fn (nth val n))
+                              (print " ")))
 
-              (let [max-idx (dec (count val))
-                    nth-valid-elems (filter #(<= % max-idx) nth-elems)]
-                (doseq [n nth-valid-elems]
-                  (print-fn (nth val n))
-                  (print " ")))
+                          (print-fn val)))))
 
-              (print-fn val)))))
-
-      ;; return somthing so the user knows the value can't be trusted
-      #?(:clj (catch Exception e
-                (utils/log-error "Error pprinting value" e)
-                "Flow-storm error, value couldn't be pprinted")
-         :cljs (catch js/Error e
-                 (utils/log-error "Error pprinting value" e)
-                 "Flow-storm error, value couldn't be pprinted")))))
+                  ;; return somthing so the user knows the value can't be trusted
+                  #?(:clj (catch Exception e
+                            (utils/log-error "Error pprinting value" e)
+                            "Flow-storm error, value couldn't be pprinted")
+                     :cljs (catch js/Error e
+                             (utils/log-error "Error pprinting value" e)
+                             "Flow-storm error, value couldn't be pprinted")))]
+    {:val-str val-str
+     :val-type val-type}))
 
 (defn- maybe-ref! [x]
   (if (or (string? x)
@@ -201,7 +209,7 @@
         v-meta (meta v)
         data (cond-> (datafy/datafy v) ;; forward meta since we are storing meta like :page/offset in references
                v-meta (with-meta v-meta))
-        type-name (pr-str (type v))
+        type-name (value-type v)
         shallow-data (cond
                        (utils/map-like? data)
                        (build-shallow-map data)

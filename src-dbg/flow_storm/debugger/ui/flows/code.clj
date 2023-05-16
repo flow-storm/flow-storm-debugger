@@ -74,10 +74,10 @@
 (defn- locals-list-cell-factory [list-cell symb-val]
   (let [symb-lbl (doto (label (first symb-val))
                    (.setPrefWidth 100))
-        val-lbl (label  (utils/elide-string (runtime-api/val-pprint rt-api (second symb-val)
-                                                                    {:print-length 20
-                                                                     :print-level 5
-                                                                     :pprint? false})
+        val-lbl (label  (utils/elide-string (:val-str (runtime-api/val-pprint rt-api (second symb-val)
+                                                                              {:print-length 20
+                                                                               :print-level 5
+                                                                               :pprint? false}))
                                             80))
         hbox (h-box [symb-lbl val-lbl])]
     (.setGraphic ^Node list-cell hbox)))
@@ -199,9 +199,9 @@
   (if (> (count traces) 1)
     (let [last-idx (get-in traces [(dec (count traces)) :idx])
           make-menu-item (fn [{:keys [idx result]}]
-                          (let [v-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})]
-                            {:text (format "%s" (utils/elide-string v-str 80))
-                             :on-click #(jump-to-coord flow-id thread-id idx)}))
+                           (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
+                             {:text (format "%s" (utils/elide-string v-str 80))
+                              :on-click #(jump-to-coord flow-id thread-id idx)}))
           ctx-menu-options (->> traces
                                 (map make-menu-item)
                                 (into [{:text "Goto Last Iteration"

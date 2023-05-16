@@ -40,9 +40,13 @@
                                 tap-btn])
                     (.setAlignment Pos/CENTER_RIGHT)
                     (.setSpacing 3.0))
-        box (v-box [tools-box result-scroll])]
+        result-type-lbl (label "")
+        box (v-box [tools-box
+                    result-type-lbl
+                    result-scroll])]
 
     (VBox/setVgrow result-scroll Priority/ALWAYS)
+    (store-obj flow-id thread-id (ui-vars/thread-pprint-type-lbl-id pane-id) result-type-lbl)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-lbl-id pane-id) result-lbl)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id) print-level-txt)
     (store-obj flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id) print-meta-chk)
@@ -52,18 +56,21 @@
     box))
 
 (defn update-pprint-pane [flow-id thread-id pane-id val]
-  (let [[result-lbl] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-lbl-id pane-id))
+  (let [[result-type-lbl] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-type-lbl-id pane-id))
+        [result-lbl] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-lbl-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id))
         [print-meta-chk]  (obj-lookup flow-id thread-id (ui-vars/thread-pprint-meta-chk-id pane-id))
         [def-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-def-btn-id pane-id))
         [inspect-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-inspect-btn-id pane-id))
         [tap-btn] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-tap-btn-id pane-id))
-        val-str (when val
-                  (runtime-api/val-pprint rt-api val {:print-length 50
-                                                      :print-level (Integer/parseInt (.getText print-level-txt))
-                                                      :print-meta? (.isSelected print-meta-chk)
-                                                      :pprint? true}))]
+        {:keys [val-str val-type]} (when val
+                                     (runtime-api/val-pprint rt-api val {:print-length 50
+                                                                         :print-level (Integer/parseInt (.getText print-level-txt))
+                                                                         :print-meta? (.isSelected print-meta-chk)
+                                                                         :pprint? true}))]
     (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
     (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val)))
     (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val)))
-    (.setText result-lbl val-str)))
+
+    (.setText result-lbl val-str)
+    (.setText result-type-lbl (format "Type: %s" val-type))))

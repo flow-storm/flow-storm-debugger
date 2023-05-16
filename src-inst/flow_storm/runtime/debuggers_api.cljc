@@ -143,7 +143,7 @@
                                              (let [fn-name (fn-call-trace/get-fn-name tl-entry)
                                                    args-vec (fn-call-trace/get-fn-args tl-entry)]
                                                (if (or (str/includes? fn-name query-str)
-                                                       (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str))
+                                                       (str/includes? (:val-str (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false})) query-str))
 
                                                  ;; if matches, finish the loop the found idx
                                                  (-> (fn-call-trace/get-frame-node tl-entry)
@@ -187,7 +187,7 @@
                                    args-vec (fn-call-trace/get-fn-args tl-entry)]
                                (js/console.log (str "Looking at" fn-name args-vec))
                                (if (or (str/includes? fn-name query-str)
-                                       (str/includes? (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false}) query-str))
+                                       (str/includes? (:val-str (runtime-values/val-pprint args-vec {:print-length 10 :print-level print-level :pprint? false})) query-str))
 
                                  ;; if matches, finish the loop the found idx
                                  (let [found-idx (-> (fn-call-trace/get-frame-node tl-entry)
