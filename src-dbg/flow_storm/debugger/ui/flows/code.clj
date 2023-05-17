@@ -82,10 +82,18 @@
         hbox (h-box [symb-lbl val-lbl])]
     (.setGraphic ^Node list-cell hbox)))
 
-(defn- on-locals-list-item-click [mev selected-items {:keys [list-view-pane]}]
+(defn- on-locals-list-item-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (when (= MouseButton/SECONDARY (.getButton mev))
     (let [[_ val] (first selected-items)
-          ctx-menu (ui-utils/make-context-menu [{:text "Define var for val"
+          ctx-menu (ui-utils/make-context-menu [{:text "Define all frame vars"
+                                                 :on-click (fn []
+                                                             (let [curr-idx (state/current-idx flow-id thread-id)
+                                                                   {:keys [fn-ns]} (state/current-frame flow-id thread-id)
+                                                                   all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {:all-frame? true})]
+                                                               (doseq [[symb-name vref] all-bindings]
+                                                                 (let [symb (symbol fn-ns symb-name)]
+                                                                   (runtime-api/def-value rt-api symb vref)))))}
+                                                {:text "Define var for val"
                                                  :on-click (fn []
                                                              (value-inspector/def-val val))}
                                                 {:text "Tap val"
@@ -104,7 +112,7 @@
         (list-view {:editable? false
                     :selection-mode :single
                     :cell-factory-fn locals-list-cell-factory
-                    :on-click on-locals-list-item-click})]
+                    :on-click (partial on-locals-list-item-click flow-id thread-id)})]
     (store-obj flow-id thread-id "locals_list" lv-data)
 
     list-view-pane))
@@ -319,7 +327,7 @@
       (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
 
       ;; update locals panel
-      (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx))
+      (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx {}))
 
       (when changing-frame?
         (state/set-current-frame flow-id thread-id next-frame))

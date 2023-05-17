@@ -210,7 +210,7 @@
     (and (every? true? (map = scope-coord current-coord))
          (> (count current-coord) (count scope-coord)))))
 
-(defn bindings [flow-id thread-id idx]
+(defn bindings [flow-id thread-id idx {:keys [all-frame?]}]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
         {:keys [fn-call-idx] :as entry} (index-protos/timeline-entry timeline-index idx :at)
         frame-data (index-protos/tree-frame-data timeline-index fn-call-idx {:include-binds? true})
@@ -219,12 +219,13 @@
                                   :fn-return [(:coord entry) (:idx entry)]
                                   :expr      [(:coord entry) (:idx entry)])]
     
-    (->> (:bindings frame-data)
-         (keep (fn [bind]
-                 (when (and (coord-in-scope? (:coord bind) entry-coord)
-                            (>= entry-idx (:visible-after bind)))
-                   [(:symbol bind) (:value bind)])))
-         (into {}))))
+    (cond->> (:bindings frame-data)
+      (not all-frame?) (filter (fn [bind]
+                                 (and (coord-in-scope? (:coord bind) entry-coord)
+                                      (>= entry-idx (:visible-after bind)))))
+      true             (map (fn [bind]
+                              [(:symbol bind) (:value bind)]))
+      true             (into {}))))
 
 (defn callstack-root-node [flow-id thread-id]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)

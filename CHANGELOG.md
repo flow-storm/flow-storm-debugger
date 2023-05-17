@@ -7,6 +7,7 @@
 	- Add functions list refresh button
 	- Add step-prev-over and step-next-over buttons and keybindings
 	- Pprint panel now display value type
+	- Add define all current frame bindings
 	
 ### Changes
 	

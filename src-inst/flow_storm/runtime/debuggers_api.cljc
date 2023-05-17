@@ -86,8 +86,8 @@
   (let [frame-data (index-api/frame-data flow-id thread-id idx opts)]
     (reference-frame-data! frame-data)))
 
-(defn bindings [flow-id thread-id idx]
-  (let [bs-map (index-api/bindings flow-id thread-id idx)]
+(defn bindings [flow-id thread-id idx opts]
+  (let [bs-map (index-api/bindings flow-id thread-id idx opts)]
     (reduce-kv (fn [bs s v]
                  (assoc bs s (reference-value! v)))
                {}
