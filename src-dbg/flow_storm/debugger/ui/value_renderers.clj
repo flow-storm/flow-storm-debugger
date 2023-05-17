@@ -60,7 +60,7 @@
     {:node-obj (label val-txt)}))
 
 (defn create-map-browser-pane [amap on-selected]
-  (let [{:keys [table-view-pane]}
+  (let [{:keys [table-view-pane table-view]}
         (table-view {:columns ["Key" "Value"]
                      :cell-factory-fn (fn [item]
                                         (:node-obj (make-node item on-selected)))
@@ -69,6 +69,7 @@
                                           (or (str/includes? (:val-txt k-item) search-str)
                                               (str/includes? (:val-txt v-item) search-str))))
                      :items amap})]
+    (VBox/setVgrow table-view Priority/ALWAYS)
     (VBox/setVgrow table-view-pane Priority/ALWAYS)
     (HBox/setHgrow table-view-pane Priority/ALWAYS)
     table-view-pane))

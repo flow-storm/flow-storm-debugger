@@ -10,7 +10,7 @@
             [flow-storm.debugger.ui.value-renderers :as renderers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
-           [javafx.scene.layout HBox Priority]
+           [javafx.scene.layout VBox HBox Priority]
            [javafx.geometry Orientation]
            [javafx.scene.control TextInputDialog SplitPane]))
 
@@ -49,6 +49,7 @@
                               val-full-pane (v-box (if meta-box
                                                      [meta-box val-pane]
                                                      [val-pane]))]
+                          (VBox/setVgrow val-pane Priority/ALWAYS)
                           val-full-pane)]
     (HBox/setHgrow value-full-pane Priority/ALWAYS)
 
