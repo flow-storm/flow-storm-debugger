@@ -12,7 +12,6 @@
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.json-serializer :as serializer]
-            [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.fn-sampler.core :as fn-sampler]

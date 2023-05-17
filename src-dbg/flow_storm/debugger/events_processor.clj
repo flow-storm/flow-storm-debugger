@@ -90,7 +90,9 @@
   (ui-main/set-recording-btn recording?))
 
 (defn process-event [[ev-type ev-args-map]]
-  (when debug-mode (log (format "Processing event: %s" [ev-type ev-args-map])))
+  (when (and debug-mode
+             (not (= ev-type :heap-info-update)))
+    (log (format "Processing event: %s" [ev-type ev-args-map])))
   (case ev-type
     :var-instrumented (var-instrumented-event ev-args-map)
     :var-uninstrumented (var-uninstrumented-event ev-args-map)
