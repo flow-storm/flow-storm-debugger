@@ -43,14 +43,14 @@
 
 (defn- get-fn-call-idx-path
 
-  "Return a path of timeline indexes from (0 ... frame)"
+  "Return a path of timeline indexes from (root ... frame)"
   
   [timeline fn-call-idx]  
   (loop [curr-fn-call-idx fn-call-idx
          fn-call-idx-path []]
-    (if (zero? curr-fn-call-idx)
-      (conj fn-call-idx-path 0) 
-      (recur (or (fn-call-trace/get-parent-idx (ml-get timeline curr-fn-call-idx)) 0)
+    (if (nil? curr-fn-call-idx)
+      fn-call-idx-path
+      (recur (fn-call-trace/get-parent-idx (ml-get timeline curr-fn-call-idx))
              (conj fn-call-idx-path curr-fn-call-idx)))))
 
 (defn- timeline-next-out-idx
