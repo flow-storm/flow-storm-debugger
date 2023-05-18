@@ -110,6 +110,10 @@
   #?(:clj Object :cljs default)
   (snapshot-value [v] v))
 
+(extend-protocol SnapshotP
+  nil
+  (snapshot-value [_] nil))
+
 (defn snapshot-reference [x]
   (when x
     (cond
