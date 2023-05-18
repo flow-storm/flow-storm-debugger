@@ -58,15 +58,40 @@
         (.addAll (into-array MenuItem cm-items)))
     cm))
 
-(defn center-node-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
-  (let [h (-> scroll-pane .getContent .getBoundsInLocal .getHeight)
-        y (/ (+ (-> node .getBoundsInParent .getMaxY)
-                (-> node .getBoundsInParent .getMinY))
-             2.0)
-        v (-> scroll-pane .getViewportBounds .getHeight)]
-    (.setVvalue scroll-pane (* (.getVmax scroll-pane)
-                               (/ (- y (* v 0.5))
-                                  (- h v))))))
+(defn enusure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
+  (let [scroll-pane-content (.getContent scroll-pane)
+
+        ;; first take the top left corner of the `node` and the `scroll-pane` into scene coordinates
+        ;; we are using the `scroll-pane` top left corner as the view-port top left corner
+        scene-node-bounds (.localToScene node (.getBoundsInLocal node))
+        scene-scroll-pane-bounds (.localToScene scroll-pane (.getBoundsInLocal scroll-pane))
+
+        ;; now transform those related to the content pane, so we have everything in content coordinates
+        ;; and can make calculations
+        node-bounds-in-content (.sceneToLocal scroll-pane-content scene-node-bounds)
+        viewport-bounds-in-content (.sceneToLocal scroll-pane-content scene-scroll-pane-bounds)
+
+        pane-w (-> scroll-pane .getContent .getBoundsInLocal .getWidth)
+        pane-h (-> scroll-pane .getContent .getBoundsInLocal .getHeight)
+
+        node-min-x-in-content (.getMinX node-bounds-in-content)
+        node-min-y-in-content (.getMinY node-bounds-in-content)
+
+        pane-view-min-x (.getMinX viewport-bounds-in-content)
+        pane-view-max-x (+ pane-view-min-x (-> scroll-pane .getViewportBounds .getWidth))
+
+        pane-view-min-y (.getMinY viewport-bounds-in-content)
+        pane-view-max-y (+ pane-view-min-y (-> scroll-pane .getViewportBounds .getHeight))
+
+        ;; check if the node is visible in both axis
+        node-visible-x? (<= pane-view-min-x node-min-x-in-content pane-view-max-x)
+        node-visible-y? (<= pane-view-min-y node-min-y-in-content pane-view-max-y)]
+
+    ;; if the node isn't visible in any of the axis scroll accordingly
+    (when-not node-visible-x?
+      (.setHvalue scroll-pane (/ node-min-x-in-content pane-w)))
+    (when-not node-visible-y?
+      (.setVvalue scroll-pane (/ node-min-y-in-content pane-h)))))
 
 (defn create-list-cell-factory [update-item-fn]
   (proxy [ListCell] []

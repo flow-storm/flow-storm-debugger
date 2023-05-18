@@ -8,6 +8,7 @@
 	- Add step-prev-over and step-next-over buttons and keybindings
 	- Pprint panel now display value type
 	- Add define all current frame bindings
+	- Improve auto-scrolling when stepping on the code tool
 	
 ### Changes
 	

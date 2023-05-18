@@ -196,8 +196,7 @@
                                   (.getScreenX mev)
                                   (.getScreenY mev)))))
 
-
-    (ui-utils/center-node-in-scroll-pane thread-scroll-pane form-pane)
+    (ui-utils/enusure-node-visible-in-scroll-pane thread-scroll-pane form-pane)
     (ui-utils/add-class form-pane "form-background-highlighted")))
 
 (defn- un-highlight [^Text token-text]
@@ -247,7 +246,12 @@
         (un-highlight text)))))
 
 (defn highlight-exec-mark-tokens [flow-id thread-id form-id coord]
-  (let [next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id form-id coord))]
+  (let [[thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
+        next-token-texts (obj-lookup flow-id thread-id (ui-vars/form-token-id form-id coord))]
+
+    (when-let [text (first next-token-texts)]
+      (ui-utils/enusure-node-visible-in-scroll-pane thread-scroll-pane text))
+
     (doseq [text next-token-texts]
       (highlight-executing text))))
 
@@ -442,6 +446,7 @@
         scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
         controls-pane (create-thread-controls-pane flow-id thread-id)
         outer-box (v-box [controls-pane scroll-pane])]
+    (VBox/setVgrow box Priority/ALWAYS)
     (VBox/setVgrow scroll-pane Priority/ALWAYS)
     (.setContent scroll-pane box)
     (store-obj flow-id thread-id "forms_box" box)
