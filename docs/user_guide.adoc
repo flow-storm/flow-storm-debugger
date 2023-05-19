@@ -49,11 +49,20 @@ The easiest way to run and learn FlowStorm with ClojureStorm is by running the r
 [,bash]
 ----
 ;; on linux and mac-os
-clj -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dflowstorm.startRecording=true" "-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dflowstorm.startRecording=true" "-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
 
 ;; on windows
-clj -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dflowstorm.startRecording=true""" """-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dflowstorm.startRecording=true""" """-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
 ----
+
+[IMPORTANT]
+.On using maven RELEASE as version
+====
+Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
+but it will be cached unless you run with -Sforce.
+Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+====
+
 
 Pasting that command on your terminal will bring up a repl with FlowStorm and the compiler swapped by ClojureStorm. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of what it can do.
@@ -118,6 +127,14 @@ clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "
 ;; on windows
 clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}}}'
 ----
+
+[IMPORTANT]
+.On using maven RELEASE as version
+====
+Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
+but it will be cached unless you run with -Sforce.
+Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+====
 
 If you are a https://leiningen.org/[lein] user add the dependency to your project.clj `:dependencies` and run `lein repl`.
 
@@ -184,6 +201,15 @@ $ cat shadow-cljs.edn
  :my-build-id {:devtools {:preloads [flow-storm.api]}}
  ...} 
 ----
+
+[IMPORTANT]
+.On using maven RELEASE as version
+====
+Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
+but it will be cached unless you run with -Sforce.
+Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+====
+
 
 Then lets say you start your repl like :
 

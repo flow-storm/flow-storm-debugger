@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+		
+### Changes
+		
+### Bugs fixed
+
+## 3.6.0 (19-05-2023)
+	
+### New Features
 	
 	- Add functions list refresh button
 	- Add step-prev-over and step-next-over buttons and keybindings
