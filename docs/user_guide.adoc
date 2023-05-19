@@ -49,10 +49,10 @@ The easiest way to run and learn FlowStorm with ClojureStorm is by running the r
 [,bash]
 ----
 ;; on linux and mac-os
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dflowstorm.startRecording=true" "-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
 
 ;; on windows
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dflowstorm.startRecording=true""" """-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.jpmonettas/clojure {:mvn/version """RELEASE"""} com.github.jpmonettas/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
 ----
 
 [IMPORTANT]
@@ -77,8 +77,7 @@ If your project is using deps.edn, your deps.edn file should look like this :
  :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
                  :extra-deps {com.github.jpmonettas/clojure {:mvn/version "RELEASE"}
                               com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}
-                 :jvm-opts ["-Dflowstorm.startRecording=true"
-                            "-Dclojure.storm.instrumentEnable=true"
+                 :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
                             "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}}
 ----
 
@@ -99,8 +98,7 @@ If your project uses lein, your project.clj file should look something like this
   :profiles {:dev {:dependencies [[com.github.jpmonettas/clojure "RELEASE"]
                                   [com.github.jpmonettas/flow-storm-dbg "RELEASE"] ]
                    :exclusions [org.clojure/clojure] ;; for disabling the official compiler
-                   :jvm-opts ["-Dflowstorm.startRecording=true"
-                              "-Dclojure.storm.instrumentEnable=true"
+                   :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
                               "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}
   :main foo.core)
 ----
