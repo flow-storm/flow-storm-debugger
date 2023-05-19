@@ -60,7 +60,7 @@ clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/
 ====
 Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
 but it will be cached unless you run with -Sforce.
-Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+It is much safer to just write the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
 ====
 
 
@@ -133,7 +133,7 @@ clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "
 ====
 Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
 but it will be cached unless you run with -Sforce.
-Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+It is much safer to just write the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
 ====
 
 If you are a https://leiningen.org/[lein] user add the dependency to your project.clj `:dependencies` and run `lein repl`.
@@ -207,7 +207,7 @@ $ cat shadow-cljs.edn
 ====
 Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
 but it will be cached unless you run with -Sforce.
-Is much safer to just wright the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
+It is much safer to just write the latest versions. Check out  the https://github.com/jpmonettas/flow-storm-debugger/[github page] for the latest stable releases.
 ====
 
 
