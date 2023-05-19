@@ -39,8 +39,9 @@ FlowStorm <-> ClojureStorm compatibility table
 
 | FlowStorm/ClojureStorm | 1.12.0-alpha3 | 1.11.1-2 | 1.12.0-alpha3_1 | 1.11.1-3 |
 |------------------------|---------------|----------|-----------------|----------|
-| 3.5.1                  | ✓            | ✓       |                 |          |
 | 3.6.0                  |               |          | ✓              | ✓       |
+| 3.5.1                  | ✓            | ✓       |                 |          |
+
 
 # Prerequisites
 
