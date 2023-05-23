@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.utils
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
-            Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TableView TableColumn TableCell
+            Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
@@ -184,6 +184,16 @@
      (when class
        (add-class lbl class))
      lbl)))
+
+(defn text-area [text {:keys [:editable?] :or {editable? true}}]
+  (let [ta (TextArea.)]
+
+    (when text
+      (.setText ta text))
+
+    (.setEditable ta editable?)
+
+    ta))
 
 (defn set-min-size-wrap-content [node]
   (doto node

@@ -5,7 +5,9 @@
 ### New Features
 		
 ### Changes
-		
+
+	- Make pprint panes a TextArea so we can copy it's content
+	
 ### Bugs fixed
 
 ## 3.6.0 (19-05-2023)
