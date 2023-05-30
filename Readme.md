@@ -27,8 +27,8 @@ If you are looking for ClojureStorm sources here they are : https://github.com/j
 
 FlowStorm latest stable releases :
 
-- [com.github.jpmonettas/flow-storm-dbg "3.6.0"] The complete debugger (includes flow-storm-inst)
-- [com.github.jpmonettas/flow-storm-inst "3.6.0"] A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
+- [com.github.jpmonettas/flow-storm-dbg "3.6.1"] The complete debugger (includes flow-storm-inst)
+- [com.github.jpmonettas/flow-storm-inst "3.6.1"] A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
 
 ClojureStorm latest stable releases : 
 
@@ -39,7 +39,7 @@ FlowStorm <-> ClojureStorm compatibility table
 
 | FlowStorm/ClojureStorm | 1.12.0-alpha3 | 1.11.1-2 | 1.12.0-alpha3_1 | 1.11.1-3 |
 |------------------------|---------------|----------|-----------------|----------|
-| 3.6.0                  |               |          | ✓              | ✓       |
+| > 3.6.0                |               |          | ✓              | ✓       |
 | 3.5.1                  | ✓            | ✓       |                 |          |
 
 

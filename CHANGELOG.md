@@ -5,6 +5,14 @@
 ### New Features
 		
 ### Changes
+	
+### Bugs fixed
+
+## 3.6.01 (30-05-2023)
+	
+### New Features
+		
+### Changes
 
 	- Make pprint panes a TextArea so we can copy it's content
 	- Upgrade hansel to 0.1.60 to fix ClojureScript namespace instrumentation issue
