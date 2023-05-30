@@ -12,7 +12,8 @@
   (timeline-count [_])
   (timeline-entry [_ idx drift])
   (timeline-frames [_ from-idx to-idx pred])
-  (timeline-raw-entries [_ from-idx to-idx]))
+  (timeline-raw-entries [_ from-idx to-idx])
+  (timeline-find-entry [_ from-idx backwards? pred]))
 
 (defprotocol TimelineEntryP
   (entry-type [_])

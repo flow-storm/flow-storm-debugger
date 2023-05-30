@@ -322,3 +322,9 @@
                   (transient {}))
                 m))
     (meta m)))
+
+#?(:clj
+   (defn normalize-newlines [s]
+     (-> s
+         (.replaceAll "\\r\\n" "\n")
+         (.replaceAll "\\r" "\n"))))

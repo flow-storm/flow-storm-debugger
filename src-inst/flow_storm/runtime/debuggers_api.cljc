@@ -73,14 +73,16 @@
     true         (update :expr-executions (fn [ee]
                                             (mapv #(update % :result reference-value!) ee)))))
 
+(defn reference-timeline-entry! [entry]
+  (case (:type entry)
+    :fn-call   (update entry :fn-args reference-value!)
+    :fn-return (update entry :result reference-value!)
+    :bind      (update entry :value reference-value!)
+    :expr      (update entry :result reference-value!)))
+
 (defn timeline-entry [flow-id thread-id idx drift]
-  (let [entry (index-api/timeline-entry flow-id thread-id idx drift)
-        ref-entry (case (:type entry)
-                    :fn-call   (update entry :fn-args reference-value!)
-                    :fn-return (update entry :result reference-value!)
-                    :bind      (update entry :value reference-value!)
-                    :expr      (update entry :result reference-value!))]
-    ref-entry)) 
+  (some-> (index-api/timeline-entry flow-id thread-id idx drift)
+          reference-timeline-entry!)) 
 
 (defn frame-data [flow-id thread-id idx opts]
   (let [frame-data (index-api/frame-data flow-id thread-id idx opts)]
@@ -109,12 +111,26 @@
          (mapv (fn [fstats]
                  (update fstats :dispatch-val reference-value!))))))
 
+(defn all-fn-call-stats []
+  (reduce (fn [r [flow-id thread-id]]
+            (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
+              (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
+                        (update rr (str (symbol fn-ns fn-name)) #(+ (or % 0) cnt)))
+                      r
+                      thread-stats)))
+          {}
+          (index-api/all-threads)))
+
 (def find-fn-frames index-api/find-fn-frames)
 
 (defn find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id]
   (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
         frames (into [] (map reference-frame-data!) fn-frames)]
     frames))
+
+(defn find-fn-call [fq-fn-call-symb from-idx opts]
+  (some-> (index-api/find-fn-call fq-fn-call-symb from-idx opts)
+          reference-timeline-entry!))
 
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
@@ -205,11 +221,18 @@
 
 (def discard-flow index-api/discard-flow)
 
-(def clear-values-references runtime-values/clear-vals-ref-registry)
+(def all-flows-threads index-api/all-threads)
+
+(defn clear-recordings []
+  (let [flows-ids (->> (all-flows-threads)
+                       (map first)
+                       (into #{}))]
+    (doseq [fid flows-ids]
+      (discard-flow fid))
+    
+    (runtime-values/clear-vals-ref-registry)))
 
 (def flow-threads-info index-api/flow-threads-info)
-
-(def all-flows-threads index-api/all-threads)
 
 (defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
   (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
@@ -390,7 +413,7 @@
              :tap-value tap-value
              :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
-             :clear-values-references clear-values-references
+             :clear-recordings clear-recordings
              :flow-threads-info flow-threads-info
              :all-flows-threads all-flows-threads
              :stack-for-frame stack-for-frame

@@ -87,24 +87,20 @@
 
   "Send form initialization trace only once for each thread."
   
-  [{:keys [form-id ns def-kind dispatch-val form]}]
+  [{:keys [form-id ns def-kind dispatch-val form file line]}]
 
   (when @recording  
-    (let [{:keys [flow-id]} *runtime-ctx*
-          thread-id (utils/get-current-thread-id)]
-      (when-not (indexes-api/get-form flow-id thread-id form-id)
-        (let [trace {:trace/type :form-init
-                     :flow-id flow-id
-                     :form-id form-id
-                     :thread-id thread-id
-                     :thread-name (utils/get-current-thread-name)
-                     :form form
-                     :ns ns
-                     :def-kind def-kind
-                     :mm-dispatch-val dispatch-val
-                     :timestamp (utils/get-monotonic-timestamp)}]
+    (when-not (indexes-api/get-form nil nil form-id)
+      (let [trace (cond-> {:trace/type :form-init
+                           :form/id form-id
+                           :form/form form
+                           :form/ns ns
+                           :form/def-kind def-kind
+                           :form/file file
+                           :form/line line}
+                    (= def-kind :defmethod) (assoc :multimethod/dispatch-val dispatch-val))]
 
-          (indexes-api/add-form-init-trace trace))))))
+        (indexes-api/add-form-init-trace trace)))))
 
 (defn trace-fn-call
 

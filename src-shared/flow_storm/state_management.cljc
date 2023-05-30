@@ -14,14 +14,14 @@
 
 (defn start-state [{:keys [status start var]} config]
   (when-not (= status :started)
-    (println "Starting " var)    
+    #_(println "Starting " var)    
     (let [new-state (start config)]
       (alter-state-var var new-state))
     (swap! states assoc-in [(str var) :status] :started)))
 
 (defn stop-state [{:keys [status stop var]}]
   (when-not (= status :stopped)
-    (println "Stopping " var)    
+    #_(println "Stopping " var)    
     (let [new-state (stop)]      
       (alter-state-var var new-state))
     (swap! states assoc-in [(str var) :status] :stopped)))

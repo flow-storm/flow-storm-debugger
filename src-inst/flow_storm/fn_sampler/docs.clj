@@ -47,7 +47,8 @@
 
 (defn- read-docs [files]
 
-  (utils/log (format "Loading docs using %s files" (pr-str files)))
+  (when (seq files)
+    (utils/log (format "Loading docs using %s files" (pr-str files))))
 
   (reduce (fn [r file]
             (merge-with merge  r (-> file

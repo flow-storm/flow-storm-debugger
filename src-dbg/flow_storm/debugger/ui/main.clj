@@ -34,15 +34,12 @@
   :stop  (fn [] (stop-ui)))
 
 (defn clear-all []
-  (log "Removing all taps")
   (taps-screen/clear-all-taps)
 
-  (log "Removing all flows")
   (doseq [fid (dbg-state/all-flows-ids)]
     (flows-screen/fully-remove-flow fid))
 
-  (log "Clearing values and api cache")
-  (runtime-api/clear-values-references rt-api)
+  (runtime-api/clear-recordings rt-api)
   (runtime-api/clear-api-cache rt-api))
 
 (defn bottom-box []

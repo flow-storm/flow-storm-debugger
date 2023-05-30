@@ -1,7 +1,6 @@
-(ns flow-storm.debugger.form-pprinter
+(ns flow-storm.form-pprinter
   (:require [clojure.pprint :as pp]
-            [flow-storm.utils :as utils]
-            [flow-storm.debugger.ui.utils :as ui-utils]))
+            [flow-storm.utils :as utils]))
 
 (defn- seq-delims [form]
   (let [delims (pr-str (empty form))]
@@ -55,7 +54,7 @@
          'struct-map #'pp/pprint-hold-first, 'ns #'pp/pprint-ns
          })))
 
-(defn- code-pprint [form]
+(defn code-pprint [form]
   ;; Had to hack pprint like this because code pprinting replace (fn [arg#] ... arg# ...) with #(... % ...)
   ;; and #' with var, deref with @ etc, wich breaks our pprintln system
   ;; This is super hacky! because I wasn't able to use with-redefs (it didn't work) I replace
@@ -68,14 +67,18 @@
 
   (binding [pp/*print-pprint-dispatch* pp/code-dispatch
             pp/*code-table* hacked-code-table]
-    (pp/pprint form))
+    (let [pprinted-form-str (utils/normalize-newlines
+                             (with-out-str
+                               (pp/pprint form)))]
 
-  ;; restore the original pprint so we don't break it
-  (#'pp/use-method pp/code-dispatch clojure.lang.ISeq #'pp/pprint-code-list))
+      ;; restore the original pprint so we don't break it
+      (#'pp/use-method pp/code-dispatch clojure.lang.ISeq #'pp/pprint-code-list)
+
+      pprinted-form-str)))
 
 (defn pprint-tokens [form]
   (let [form (utils/tag-form-recursively form ::coord)
-        pprinted-str (ui-utils/normalize-newlines (with-out-str (code-pprint form)))
+        pprinted-str (code-pprint form)
         pos->layout-char (->> pprinted-str
                               (keep-indexed (fn [i c]
                                               (cond

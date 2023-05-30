@@ -61,7 +61,7 @@
   (eval-form [_ form-str opts])
 
   (interrupt-all-tasks [_])
-  (clear-values-references [_])
+  (clear-recordings [_])
   (clear-api-cache [_])
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
@@ -195,8 +195,8 @@
   (interrupt-all-tasks [_]
     (api-call :local "interrupt-all-tasks" []))
 
-  (clear-values-references [_]
-    (api-call :local "clear-values-references" []))
+  (clear-recordings [_]
+    (api-call :local "clear-recordings" []))
 
   (clear-api-cache [_]
     (reset! api-cache {}))
@@ -318,8 +318,8 @@
   (interrupt-all-tasks [_]
     (api-call :remote "interrupt-all-tasks" []))
 
-  (clear-values-references [_]
-    (api-call :remote "clear-values-references" []))
+  (clear-recordings [_]
+    (api-call :remote "clear-recordings" []))
 
   (clear-api-cache [_]
     (reset! api-cache {}))

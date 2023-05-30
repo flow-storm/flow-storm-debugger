@@ -942,7 +942,7 @@ Create a small stepper for the repl
 [,clojure]
 ----
 ;; a helper for pprinting forms with highlighted parts
-(require '[flow-storm.debugger.form-pprinter :as form-pprinter])
+(require '[flow-storm.form-pprinter :as form-pprinter])
 ;; and some utils for printing with colors
 (require '[flow-storm.utils :as utils]) 
 

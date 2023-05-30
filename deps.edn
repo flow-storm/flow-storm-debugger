@@ -20,7 +20,7 @@
  :aliases {:cljs {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
                                cider/piggieback {:mvn/version "0.5.2"}
-                               thheller/shadow-cljs {:mvn/version "2.20.10"}}}
+                               thheller/shadow-cljs {:mvn/version "2.23.3"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
                    :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}}

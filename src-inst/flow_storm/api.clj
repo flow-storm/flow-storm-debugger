@@ -415,7 +415,9 @@
         ;; full-instr-form contains (do (trace-init-form ...) instr-form)
         {:keys [inst-form init-forms]} (hansel/instrument-form (merge config
                                                                       (tracer/hansel-config config)
-                                                                      {:env env})
+                                                                      {:env env
+                                                                       :form-file *file*
+                                                                       :form-line (:line (meta form))})
                                                                form)]
 
     (if (and (= compiler :clj)

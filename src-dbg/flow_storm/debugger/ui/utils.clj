@@ -471,11 +471,6 @@
 
     table-data))
 
-(defn normalize-newlines [s]
-  (-> s
-      (.replaceAll "\\r\\n" "\n")
-      (.replaceAll "\\r" "\n")))
-
 (defn remove-newlines [s]
   (-> s
       (.replaceAll "\\n" "")

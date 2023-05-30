@@ -4,8 +4,6 @@
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]))
 
-(def values-ref-registry (atom nil))
-
 (defprotocol PWrapped
   (unwrap [_]))
 
@@ -76,6 +74,10 @@
     (let [wv (hashable-obj-wrap v)]
       (get wv->vref wv))))
 
+(def init-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0}))
+
+(def values-ref-registry (atom init-ref-registry))
+
 (defn deref-value [vref]
   (if (types/value-ref? vref)
     (get-value @values-ref-registry vref)
@@ -101,7 +103,7 @@
                (reference-value! :flow-storm/error-referencing-value)))))
 
 (defn clear-vals-ref-registry []
-  (reset! values-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0})))
+  (reset! values-ref-registry init-ref-registry))
 
 (defprotocol SnapshotP
   (snapshot-value [_]))

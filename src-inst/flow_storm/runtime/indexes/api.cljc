@@ -19,19 +19,12 @@
 (defn get-last-exception-location []
   @last-exception-location)
 
-(defn register-form [{:keys [flow-id form-id ns form def-kind mm-dispatch-val]}]
-  (let [form-data (cond-> {:form/id form-id
-                           :form/flow-id flow-id
-                           :form/ns ns
-                           :form/form form
-                           :form/def-kind def-kind}
-                    (= def-kind :defmethod)
-                    (assoc :multimethod/dispatch-val mm-dispatch-val))]
-    (if forms-registry
-      
-      (index-protos/register-form forms-registry form-id form-data)
+(defn register-form [form-data]
+  (if forms-registry
+    
+    (index-protos/register-form forms-registry (:form/id form-data) form-data)
 
-      (utils/log "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger."))))
+    (utils/log "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger.")))
 
 (defn handle-exception [thread ex]
   
@@ -198,7 +191,8 @@
 
 (defn timeline-entry [flow-id thread-id idx drift]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (index-protos/timeline-entry timeline-index idx drift)))
+    (when timeline-index
+      (index-protos/timeline-entry timeline-index idx drift))))
 
 (defn frame-data [flow-id thread-id idx opts]  
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
@@ -311,6 +305,22 @@
   (when flow-thread-registry
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id nil)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
+
+(defn find-fn-call [fq-fn-call-symb from-idx {:keys [from-back?]}]  
+  (some (fn [[flow-id thread-id]]
+          (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+            (when-let [fn-call (index-protos/timeline-find-entry
+                                timeline-index
+                                from-idx
+                                from-back?
+                                (fn [entry]
+                                  (and (fn-call-trace/fn-call-trace? entry)
+                                       (= (fn-call-trace/get-fn-ns entry)   (namespace fq-fn-call-symb))
+                                       (= (fn-call-trace/get-fn-name entry) (name fq-fn-call-symb)))))]
+              (assoc fn-call
+                     :flow-id flow-id
+                     :thread-id thread-id))))
+        (index-protos/all-threads flow-thread-registry)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

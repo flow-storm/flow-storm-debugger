@@ -9,7 +9,7 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error log]]
             [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
-            [flow-storm.debugger.form-pprinter :as form-pprinter]
+            [flow-storm.form-pprinter :as form-pprinter]
             [dev-tester]
             [flow-storm.fn-sampler.core :as sampler]
             [flow-storm.utils :as utils]
@@ -144,7 +144,7 @@
   ;; Create a small debugger for the repl
   ;; -------------------------------------------------------------------------------------------
 
-  (require '[flow-storm.debugger.form-pprinter :as form-pprinter])
+  (require '[flow-storm.form-pprinter :as form-pprinter])
   (def idx (atom 0))
 
   (defn show-current []

@@ -96,6 +96,7 @@
 		  (clj-cmd (format "(flow-storm.api/runi {} %s)" form)))
 	 (cider-interactive-eval clj-cmd nil nil `(("ns" ,current-ns))))))
 
+
 (defvar cider-flow-storm-map
   (let (cider-flow-storm-map)
     (define-prefix-command 'cider-flow-storm-map)

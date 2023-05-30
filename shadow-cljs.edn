@@ -9,5 +9,6 @@
  :nrepl {:port 9000
          :middleware [refactor-nrepl.middleware/wrap-refactor
                       cider.nrepl/cider-middleware
-                      cider.piggieback/wrap-cljs-repl]}
+                      cider.piggieback/wrap-cljs-repl
+                      flow-storm.nrepl.middleware/wrap-flow-storm]}
  }

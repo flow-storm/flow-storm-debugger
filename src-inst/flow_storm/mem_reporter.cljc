@@ -9,7 +9,6 @@
    (defn run-mem-reporter []  
      (let [thread (Thread.
                    (fn []
-                     (utils/log "Runtime starting mem reporting subsystem")
                      (loop []
                        (if (.isInterrupted (Thread/currentThread))
 
