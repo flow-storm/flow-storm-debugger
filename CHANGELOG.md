@@ -7,6 +7,7 @@
 ### Changes
 
 	- Make pprint panes a TextArea so we can copy it's content
+	- Upgrade hansel to 0.1.60 to fix ClojureScript namespace instrumentation issue
 	
 ### Bugs fixed
 
