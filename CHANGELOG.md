@@ -6,11 +6,19 @@
 		
 ### Changes
 	
+### Bugs fixed
+
+## 3.6.2 (01-06-2023)
+	
+### New Features
+		
+### Changes
+	
 	- Exclude org.slf4j/slf4j-nop
 	
 ### Bugs fixed
 
-## 3.6.01 (30-05-2023)
+## 3.6.1 (30-05-2023)
 	
 ### New Features
 		
