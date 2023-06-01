@@ -6,6 +6,8 @@
 		
 ### Changes
 	
+	- Exclude org.slf4j/slf4j-nop
+	
 ### Bugs fixed
 
 ## 3.6.01 (30-05-2023)
