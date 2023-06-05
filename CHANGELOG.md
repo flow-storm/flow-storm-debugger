@@ -6,6 +6,8 @@
 		
 ### Changes
 	
+	- Fix flow-storm.runtime.values/value-type for sorte-maps
+	
 ### Bugs fixed
 
 ## 3.6.2 (01-06-2023)

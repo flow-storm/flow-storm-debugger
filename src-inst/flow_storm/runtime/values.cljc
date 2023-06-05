@@ -134,7 +134,9 @@
 
 (defn value-type [v]
   (if (and (map? v)
-           (contains? v :ref/type))
+           (try ;; the try/catch is for things like sorted-map of symbol keys
+             (contains? v :ref/type)
+             (catch  #?(:clj Exception :cljs js/Error) _e nil)))
     (pr-str (:ref/type v))
     (pr-str (type v))))
 
