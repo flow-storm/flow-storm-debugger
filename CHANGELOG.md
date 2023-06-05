@@ -10,6 +10,8 @@
 	
 ### Bugs fixed
 
+	- Fix step over for the (map some-fn) etc cases
+	
 ## 3.6.2 (01-06-2023)
 	
 ### New Features

@@ -71,23 +71,25 @@
                                                                  last-idx))))))))
 
 (defn- timeline-next-over-idx [timeline idx]
-  (let [last-idx (dec (ml-count timeline))]
-    (if (>= idx last-idx)
-      last-idx
-      (let [tl-entry (ml-get timeline (inc idx))]
-        (if (fn-call-trace/fn-call-trace? tl-entry)
-          (min last-idx (if-let [ret-idx (fn-call-trace/get-ret-idx tl-entry)]
-                          (inc ret-idx)
-                          last-idx))
-          (inc idx))))))
+  (let [last-idx (dec (ml-count timeline))
+        init-fn-call-idx (index-protos/fn-call-idx (ml-get timeline idx))]
+    (loop [i (inc idx)]
+      (if (>= i last-idx)
+        idx
+        (let [tl-entry (ml-get timeline i)]
+          (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+            i
+            (recur (inc i))))))))
 
 (defn- timeline-prev-over-idx [timeline idx]
-  (if-not (pos? idx)
-    0
-    (let [tl-entry (ml-get timeline (dec idx))]
-      (if (fn-return-trace/fn-return-trace? tl-entry)
-        (max 0 (dec (index-protos/fn-call-idx tl-entry)))
-        (dec idx)))))
+  (let [init-fn-call-idx (index-protos/fn-call-idx (ml-get timeline idx))]
+    (loop [i (dec idx)]
+      (if-not (pos? i)
+        idx
+        (let [tl-entry (ml-get timeline i)]
+          (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+            i
+            (recur (dec i))))))))
 
 (defn- timeline-prev-idx [timeline idx]
   (if-not (pos? idx)
