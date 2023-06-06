@@ -5,6 +5,8 @@
 ### New Features
 		
 ### Changes
+
+	- Improve step out functionality
 	
 ### Bugs fixed
 

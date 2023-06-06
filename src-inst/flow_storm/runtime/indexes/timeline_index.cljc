@@ -58,17 +58,13 @@
   "Given `idx` return the next index after the current call frame for the `timeline`."
 
   [timeline idx]
-  (let [last-idx (dec (ml-count timeline))]
-    (loop [i idx]
-      (if (>= i last-idx)
-        last-idx ;; we reached the end of the timeline
-        (let [tl-entry (ml-get timeline i)]
-          (cond
-            (fn-return-trace/fn-return-trace? tl-entry) (inc i)
-            (expr-trace/expr-trace? tl-entry)           (recur (inc i))
-            (fn-call-trace/fn-call-trace? tl-entry)     (recur (if-let [ret-idx (fn-call-trace/get-ret-idx tl-entry)]
-                                                                 (inc ret-idx)
-                                                                 last-idx))))))))
+  (let [last-idx (dec (ml-count timeline))
+        curr-fn-call (ml-get timeline (index-protos/fn-call-idx (ml-get timeline idx)))
+        curr-fn-call-ret-idx (fn-call-trace/get-ret-idx curr-fn-call)]
+    (min last-idx
+         (if curr-fn-call-ret-idx
+           (inc curr-fn-call-ret-idx)
+           last-idx))))
 
 (defn- timeline-next-over-idx [timeline idx]
   (let [last-idx (dec (ml-count timeline))
