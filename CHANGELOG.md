@@ -7,6 +7,7 @@
 ### Changes
 	
 	- Fix flow-storm.runtime.values/value-type for sorte-maps
+	- Upgrade hansel to 0.1.63
 	
 ### Bugs fixed
 
