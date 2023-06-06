@@ -6,6 +6,14 @@
 		
 ### Changes
 	
+### Bugs fixed
+
+## 3.6.3 (06-06-2023)
+	
+### New Features
+		
+### Changes
+	
 	- Fix flow-storm.runtime.values/value-type for sorte-maps
 	- Upgrade hansel to 0.1.63
 	
