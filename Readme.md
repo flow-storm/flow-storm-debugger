@@ -46,7 +46,7 @@ FlowStorm <-> ClojureStorm compatibility table
 # Prerequisites
 
   - jdk11+
-  - clojure 1.10.0+
+  - clojure 1.11.0+
 
 # QuickStart and Documentation
 
