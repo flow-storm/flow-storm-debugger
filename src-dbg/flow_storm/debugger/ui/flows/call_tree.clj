@@ -46,7 +46,7 @@
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
 
-(defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} flow-id thread-id item-level]
+(defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} item-level]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast
@@ -54,7 +54,7 @@
 
     (label ".")
 
-    (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api flow-id thread-id form-id)
+    (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api form-id)
           form-hint (if (= item-level 1)
                       (utils/elide-string (pr-str form) 80)
                       "")]
@@ -193,7 +193,7 @@
 
                 ;; else, put the frame
                 (doto this
-                  (.setGraphic (create-call-stack-tree-graphic-node frame flow-id thread-id item-level))
+                  (.setGraphic (create-call-stack-tree-graphic-node frame item-level))
                   (.setText nil)))
 
               (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell fn-call-idx) this))))))))

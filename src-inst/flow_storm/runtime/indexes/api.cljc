@@ -175,7 +175,7 @@
 ;; Indexes API ;;
 ;;;;;;;;;;;;;;;;;
 
-(defn get-form [_ _ form-id]
+(defn get-form [form-id]
   (when forms-registry
     (index-protos/get-form forms-registry form-id)))
 
@@ -258,7 +258,7 @@
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
     (->> (index-protos/all-stats fn-call-stats-index)
          (keep (fn [[fn-call cnt]]
-                 (let [form (get-form flow-id thread-id (:form-id fn-call))]
+                 (let [form (get-form (:form-id fn-call))]
                    (cond-> {:fn-ns (:fn-ns fn-call)
                             :fn-name (:fn-name fn-call)
                             :form-id (:form-id fn-call)

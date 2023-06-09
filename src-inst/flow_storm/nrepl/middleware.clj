@@ -40,7 +40,7 @@
                  :fn-call (value-ref->int fn-call :fn-args)})})
 
 (defn get-form [{:keys [form-id]}]
-  {:code `(debuggers-api/get-form nil nil ~form-id)
+  {:code `(debuggers-api/get-form ~form-id)
    :post-proc (fn [form]
                 (let [{:keys [form/id form/form form/ns form/def-kind form/file form/line]} form
                       file-path (when-let [f (when (not= file "NO_SOURCE_PATH")

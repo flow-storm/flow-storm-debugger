@@ -151,7 +151,7 @@
     (let [[flow-id thread-id] @index-api/selected-thread
           {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
           {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
-          {:keys [form/form]} (index-api/get-form flow-id thread-id form-id)]
+          {:keys [form/form]} (index-api/get-form form-id)]
       (case type
         :fn-call (let [{:keys [fn-name fn-ns]} idx-entry]
                    (println "Called" fn-ns fn-name))

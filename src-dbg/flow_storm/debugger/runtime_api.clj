@@ -33,7 +33,7 @@
   (runtime-config [_])
   (val-pprint [_ v opts])
   (shallow-val [_ v])
-  (get-form [_ flow-id thread-id form-id])
+  (get-form [_ form-id])
   (timeline-count [_ flow-id thread-id])
   (timeline-entry [_ flow-id thread-id idx drift])
   (frame-data [_ flow-id thread-id idx opts])
@@ -125,7 +125,7 @@
   (runtime-config [_] (api-call :local "runtime-config" []))
   (val-pprint [_ v opts] (api-call :local "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
   (shallow-val [_ v] (api-call :local "shallow-val" [v] {:cache api-cache}))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :local "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
+  (get-form [_ form-id] (api-call :local "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :local "timeline-entry" [flow-id thread-id idx drift]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :local "frame-data" [flow-id thread-id idx opts]))
@@ -236,7 +236,7 @@
   (runtime-config [_] (api-call :remote "runtime-config" []))
   (val-pprint [_ v opts] (api-call :remote "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
   (shallow-val [_ v] (api-call :remote "shallow-val" [v] {:cache api-cache}))  ;; CACHED
-  (get-form [_ flow-id thread-id form-id] (api-call :remote "get-form" [flow-id thread-id form-id] {:cache api-cache}))  ;; CACHED
+  (get-form [_ form-id] (api-call :remote "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :remote "timeline-entry" [flow-id thread-id idx drift]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :remote "frame-data" [flow-id thread-id idx opts]))

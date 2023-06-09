@@ -90,7 +90,7 @@
   [{:keys [form-id ns def-kind dispatch-val form file line]}]
 
   (when @recording  
-    (when-not (indexes-api/get-form nil nil form-id)
+    (when-not (indexes-api/get-form form-id)
       (let [trace (cond-> {:trace/type :form-init
                            :form/id form-id
                            :form/form form

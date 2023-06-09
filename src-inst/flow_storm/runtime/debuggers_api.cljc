@@ -54,8 +54,8 @@
 
 (def tap-value runtime-values/tap-value)
 
-(defn get-form [flow-id thread-id form-id]
-  (let [form (index-api/get-form flow-id thread-id form-id)]
+(defn get-form [form-id]
+  (let [form (index-api/get-form form-id)]
     (if (:multimethod/dispatch-val form)
       (update form :multimethod/dispatch-val reference-value!)
       form)))

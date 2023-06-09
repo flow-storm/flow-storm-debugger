@@ -35,7 +35,7 @@
     print-tokens))
 
 (defn- add-form [flow-id thread-id form-id]
-  (let [form (runtime-api/get-form rt-api flow-id thread-id form-id)
+  (let [form (runtime-api/get-form rt-api form-id)
         print-tokens (binding [pp/*print-right-margin* 80]
                        (-> (form-pprinter/pprint-tokens (:form/form form))
                            ;; if it is a wrapped repl expression discard some tokens that the user
@@ -165,7 +165,7 @@
     (ui-utils/rm-class form-pane "form-background-highlighted")))
 
 (defn highlight-form [flow-id thread-id form-id]
-  (let [form (runtime-api/get-form rt-api flow-id thread-id form-id)
+  (let [form (runtime-api/get-form rt-api form-id)
         [form-pane]          (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))
         [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
