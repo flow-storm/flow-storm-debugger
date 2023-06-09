@@ -321,10 +321,12 @@
 
         (arm-and-highlight-interesting-form-tokens flow-id thread-id next-form-id next-fn-call-idx))
 
-      (when (and (not first-jump?) (= :expr (:type curr-tentry)))
+      (when (and (not first-jump?) (or (= :expr (:type curr-tentry))
+                                       (= :fn-return (:type curr-tentry))))
         (remove-exec-mark-tokens flow-id thread-id curr-form-id (:coord curr-tentry) (not changing-form?)))
 
-      (when (= :expr (:type next-tentry))
+      (when (or (= :expr (:type next-tentry))
+                (= :fn-return (:type next-tentry)))
         (highlight-exec-mark-tokens flow-id thread-id next-form-id (:coord next-tentry)))
 
       ;; update reusult panel

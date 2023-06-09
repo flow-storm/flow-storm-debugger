@@ -282,11 +282,12 @@
           (let [fn-call (ml-get timeline fn-call-idx)
                 _ (assert (fn-call-trace/fn-call-trace? fn-call) "Frame data should be called with a idx that correspond to a fn-call")
                 fn-ret-idx (fn-call-trace/get-ret-idx fn-call)
+                fn-return (when fn-ret-idx (ml-get timeline fn-ret-idx))
                 fr-data {:fn-ns (fn-call-trace/get-fn-ns fn-call)
                          :fn-name (fn-call-trace/get-fn-name fn-call)
                          :args-vec (fn-call-trace/get-fn-args fn-call)                 
-                         :ret (when fn-ret-idx
-                                (fn-return-trace/get-ret-val (ml-get timeline fn-ret-idx)))
+                         :ret (when fn-return
+                                (fn-return-trace/get-ret-val fn-return))
                          :form-id (fn-call-trace/get-form-id fn-call)
                          :fn-call-idx fn-call-idx
                          :parent-fn-call-idx (fn-call-trace/get-parent-idx fn-call)}
@@ -295,7 +296,9 @@
                           fr-data)
                 fr-data (if include-exprs?
                           (let [expressions (fn-call-exprs timeline fn-call-idx)]
-                            (assoc fr-data :expr-executions (map index-protos/as-immutable expressions)))
+                            ;; expr-executions will contain also the fn-return at the end
+                            (assoc fr-data :expr-executions (-> (mapv index-protos/as-immutable expressions)
+                                                                (conj (index-protos/as-immutable fn-return)))))
                           fr-data)
                 fr-data (if include-binds?
                           (assoc fr-data :bindings (map index-protos/as-immutable (fn-call-trace/bindings fn-call)))
