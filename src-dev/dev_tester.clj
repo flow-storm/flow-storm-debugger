@@ -30,6 +30,10 @@
   Adder
   (add [_] (+ n 1000)))
 
+(deftype AType [^int n]
+  Adder
+  (add [_] (int (+ n 42))))
+
 (defprotocol Suber
   (sub [x]))
 
@@ -65,6 +69,7 @@
         mm (assoc m :c 10)
         c (+ a b 7)
         d (add (->ARecord 5))
+        e (add (AType. 10))
         j (loop [i 100
                  sum 0]
             (if (> i 0)
@@ -75,4 +80,4 @@
          (reduce + )
          add
          sub
-         (+ c d j (hinted a c d j)))))
+         (+ c d j e (hinted a c d j)))))
