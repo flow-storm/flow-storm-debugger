@@ -290,6 +290,7 @@ q - Quit the debugger mode.")
 		  (setq cider-storm-current-thread-id thread-id)
 		  (setq cider-storm-initial-entry fn-call)
 		  (setq cider-storm-current-thread-trace-cnt trace-cnt)
+		  (setq cider-storm-current-frame nil)
 		  (cider-storm--display-step form-id fn-call cider-storm-current-thread-trace-cnt))
 	  (message "No recording found for %s/%s" fn-ns fn-name))))
 

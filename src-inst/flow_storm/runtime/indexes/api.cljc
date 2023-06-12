@@ -120,7 +120,8 @@
   (let [thread-indexes {:timeline-index (timeline-index/make-index)
                         :fn-call-stats-index (fn-call-stats-index/make-index)}]    
 
-    (index-protos/register-thread-indexes flow-thread-registry flow-id thread-id thread-name form-id thread-indexes)
+    (when flow-thread-registry
+        (index-protos/register-thread-indexes flow-thread-registry flow-id thread-id thread-name form-id thread-indexes))
     
     thread-indexes))
 

@@ -43,7 +43,8 @@
   {:code `(debuggers-api/get-form ~form-id)
    :post-proc (fn [form]
                 (let [{:keys [form/id form/form form/ns form/def-kind form/file form/line]} form
-                      file-path (when-let [f (when (not= file "NO_SOURCE_PATH")
+                      file-path (when-let [f (when (and file
+                                                        (not= file "NO_SOURCE_PATH"))
                                                (if (str/starts-with? file "/")
                                                  (io/file file)
                                                  (io/resource file)))]
