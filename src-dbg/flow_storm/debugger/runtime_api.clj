@@ -260,43 +260,43 @@
   (get-all-namespaces [_]
     (case env-kind
       :clj  (api-call :remote "all-namespaces" [:clj])
-      :cljs (safe-eval-code-str (format "(dbg-api/all-namespaces :cljs %s)" (:build-id config)))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-namespaces :cljs %s)" (:build-id config)))))
 
   (get-all-vars-for-ns [_ nsname]
     (case env-kind
       :clj  (api-call :remote "all-vars-for-namespace" [:clj (symbol nsname)])
-      :cljs (safe-eval-code-str (format "(dbg-api/all-vars-for-namespace :cljs '%s %s)" nsname (:build-id config)))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-vars-for-namespace :cljs '%s %s)" nsname (:build-id config)))))
 
   (get-var-meta [_ var-ns var-name]
     (case env-kind
       :clj  (api-call :remote "get-var-meta" [:clj (symbol var-ns var-name)])
-      :cljs (safe-eval-code-str (format "(dbg-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name (select-keys config [:build-id])))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name (select-keys config [:build-id])))))
 
   (instrument-var [_ var-ns var-name opts]
     (case env-kind
       :clj (api-call :remote "instrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [opts (assoc opts :build-id (:build-id config))]
               (show-message "FlowStorm ClojureScript single var instrumentation is pretty limited. You can instrument them only once, and the only way of uninstrumenting them is by reloading your page or restarting your node process. Also deep instrumentation is missing some cases. So for most cases you are going to be better with [un]instrumenting entire namespaces." :warning)
-              (safe-eval-code-str (format "(dbg-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (uninstrument-var [_ var-ns var-name opts]
     (case env-kind
       :clj (api-call :remote "uninstrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [_opts (assoc opts :build-id (:build-id config))]
               (show-message "FlowStorm currently can't uninstrument single vars in ClojureScript. You can only [un]instrument entire namespaces. If you want to get rid of the current vars instrumentation please reload your browser page, or restart your node process." :warning)
-              #_(safe-eval-code-str (format "(dbg-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+              #_(safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
     (let [opts (assoc opts :disable (utils/disable-from-profile profile))]
       (case env-kind
         :cljs (let [opts (assoc opts :build-id (:build-id config))]
-                (safe-eval-code-str (format "(dbg-api/instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+                (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
         :clj (api-call :remote "instrument-namespaces" [:clj nsnames opts]))))
 
   (uninstrument-namespaces [_ nsnames opts]
     (case env-kind
       :cljs (let [opts (assoc opts :build-id (:build-id config))]
-              (safe-eval-code-str (format "(dbg-api/uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
 
       ;; for Clojure just call the api
       :clj (api-call :remote "uninstrument-namespaces" [:clj nsnames opts])))

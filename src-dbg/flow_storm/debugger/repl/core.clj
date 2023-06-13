@@ -50,7 +50,7 @@
     [{:code "(do (in-ns 'shadow.user) nil)"                                                  :ns nil           :repl :clj}
      {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api])"                      :ns "shadow.user" :repl :clj}
      {:code "(require '[flow-storm.api :as fsa :include-macros true])"                       :ns "cljs.user"   :repl :cljs}
-     {:code (format "(fsa/remote-connect %s)" (pr-str remote-opts))                          :ns "cljs.user"   :repl :cljs}
+     {:code (format "(flow-storm.api/remote-connect %s)" (pr-str remote-opts))               :ns "cljs.user"   :repl :cljs}
      {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "cljs.user"   :repl :cljs}]))
 
 (defn make-clj-repl-init-sequence [config]
@@ -58,7 +58,7 @@
 
     [{:code "(do (in-ns 'user) nil)"                                                         :ns nil    :repl :clj}
      {:code "(require '[flow-storm.api :as fsa])"                                            :ns "user" :repl :clj}
-     {:code (format "(fsa/remote-connect %s)" (pr-str remote-opts))                          :ns "user" :repl :clj}
+     {:code (format "(flow-storm.api/remote-connect %s)" (pr-str remote-opts))               :ns "user" :repl :clj}
      {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "user" :repl :clj}]))
 
 (defn init-repl
