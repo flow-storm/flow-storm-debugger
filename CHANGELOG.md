@@ -5,6 +5,16 @@
 ### New Features
 		
 ### Changes
+	
+### Bugs fixed
+
+## 3.6.4 (13-06-2023)
+	
+### New Features
+
+	- Add flow-storm.nrepl.middleware for editors integration
+		
+### Changes
 
 	- Improve step out functionality
 	
