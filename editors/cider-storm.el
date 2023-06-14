@@ -18,6 +18,7 @@
 (defvar cider-storm-initial-entry nil)
 (defvar cider-storm-current-frame nil)
 (defvar cider-storm-current-thread-trace-cnt nil)
+(defvar cider-storm-disabled-evil-mode-p nil)
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Middleware api ;;
@@ -84,6 +85,25 @@
 ;; Debugger implementation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun cider-storm--debug-mode-enter ()
+  (cider-storm-debugging-mode 1)
+  
+  (when (and (boundp 'evil-local-mode)
+			 evil-local-mode)
+	;; if evil-mode disable evil-mode for the buffer 
+	(evil-local-mode -1)
+	(setq cider-storm-disabled-evil-mode-p t)
+	(message "Evil mode disabled for this buffer while the debugger is on")))
+
+(defun cider-storm--debug-mode-quit ()
+  (cider--debug-remove-overlays)  
+  (cider-storm-debugging-mode -1)
+
+  ;; restore evil-mode for the buffer if we disabled it
+  (when cider-storm-disabled-evil-mode-p
+	(evil-local-mode 1)
+	(message "Evil mode restored in this buffer")))
+
 (defun cider-storm--select-form (form-id)
   (let* ((form (cider-storm--get-form form-id))
 		 (form-file (nrepl-dict-get form "file"))
@@ -93,7 +113,7 @@
 		(when-let* ((buf (cider--find-buffer-for-file form-file)))
 		  (with-current-buffer buf
 			(switch-to-buffer buf)
-			(cider-storm-debugging-mode 1)
+			(cider-storm--debug-mode-enter)
 			(forward-line (- form-line (line-number-at-pos)))
 			form-line))
 
@@ -101,7 +121,7 @@
 			 (dbg-buf (cider-popup-buffer "*cider-storm-dbg*" 'select 'clojure-mode)))
 		(with-current-buffer dbg-buf
 		  (let ((inhibit-read-only t))
-			(cider-storm-debugging-mode 1)
+			(cider-storm--debug-mode-enter)
 			(insert "\n")
 			(insert pprinted-form)
 			(goto-line 2)
@@ -341,7 +361,7 @@ q - Quit the debugger mode.")
   :lighter " STORM-DBG"
   ;; The minor mode bindings.
   :keymap
-  '(("q" . (lambda () (interactive) (cider--debug-remove-overlays) (cider-storm-debugging-mode -1)))
+  '(("q" . (lambda () (interactive) (cider-storm--debug-mode-quit)))
 	("^" . (lambda () (interactive) (cider-storm--step "next-out")))
 	("n" . (lambda () (interactive) (cider-storm--step "next")))
 	("N" . (lambda () (interactive) (cider-storm--step "next-over")))
