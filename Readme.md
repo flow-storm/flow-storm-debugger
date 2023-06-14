@@ -32,8 +32,8 @@ FlowStorm latest stable releases :
 
 ClojureStorm latest stable releases : 
 
-- Clojure 1.12.0 [com.github.jpmonettas/clojure "1.12.0-alpha3_2"]
-- Clojure 1.11.1 [com.github.jpmonettas/clojure "1.11.1-4"]
+- Clojure 1.12.0 [com.github.jpmonettas/clojure "1.12.0-alpha3_3"]
+- Clojure 1.11.1 [com.github.jpmonettas/clojure "1.11.1-5"]
 
 FlowStorm <-> ClojureStorm compatibility table
 
