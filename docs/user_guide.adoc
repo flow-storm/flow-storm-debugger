@@ -1136,7 +1136,13 @@ Then everything should work. The steps are:
 
 == Editors/IDEs integration
 
-https://github.com/jpmonettas/flow-storm-debugger/tree/master/editors[This document] will track information on different ways to integrate editors/IDEs with FlowStorm.
+=== Emacs
+
+Checkout [Cider Storm](https://github.com/jpmonettas/cider-storm) an Emacs Cider front-end with support for Clojure and ClojureScript.
+
+=== VSCode
+
+=== IntelliJ IDEA (Cursive)
 
 == Tutorials and demos
 
