@@ -1138,7 +1138,7 @@ Then everything should work. The steps are:
 
 === Emacs
 
-Checkout [Cider Storm](https://github.com/jpmonettas/cider-storm) an Emacs Cider front-end with support for Clojure and ClojureScript.
+Checkout https://github.com/jpmonettas/cider-storm[Cider Storm] an Emacs Cider front-end with support for Clojure and ClojureScript.
 
 === VSCode
 
