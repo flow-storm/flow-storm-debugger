@@ -5,7 +5,9 @@
 ### New Features
 		
 ### Changes
-	
+
+    - Add flow-storm-find-flow-fn-call to nrepl middleware
+    
 ### Bugs fixed
 
 ## 3.6.4 (13-06-2023)

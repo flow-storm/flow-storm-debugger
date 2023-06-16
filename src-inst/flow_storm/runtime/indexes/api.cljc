@@ -323,6 +323,16 @@
                      :thread-id thread-id))))
         (index-protos/all-threads flow-thread-registry)))
 
+(defn find-flow-fn-call [flow-id]
+  (some (fn [[fid tid]]
+          (when (= flow-id fid)
+            (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
+              (when-let [fn-call (index-protos/timeline-find-entry timeline-index 0 false fn-call-trace/fn-call-trace?)]
+                (assoc fn-call
+                       :flow-id fid
+                       :thread-id tid)))))
+        (index-protos/all-threads flow-thread-registry)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

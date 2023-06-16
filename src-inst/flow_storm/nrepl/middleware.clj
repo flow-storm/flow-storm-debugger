@@ -39,6 +39,12 @@
                 {:status :done
                  :fn-call (value-ref->int fn-call :fn-args)})})
 
+(defn find-flow-fn-call [{:keys [flow-id]}]
+  {:code `(debuggers-api/find-flow-fn-call ~(if (number? flow-id) flow-id nil))
+   :post-proc (fn [fn-call]
+                {:status :done
+                 :fn-call (value-ref->int fn-call :fn-args)})})
+
 (defn get-form [{:keys [form-id]}]
   {:code `(debuggers-api/get-form ~form-id)
    :post-proc (fn [form]
@@ -175,6 +181,7 @@
       (case op
         "flow-storm-trace-count"        (process-msg next-handler msg trace-count        piggieback?)
         "flow-storm-find-fn-call"       (process-msg next-handler msg find-fn-call       piggieback?)
+        "flow-storm-find-flow-fn-call"  (process-msg next-handler msg find-flow-fn-call  piggieback?)
         "flow-storm-get-form"           (process-msg next-handler msg get-form           piggieback?)
         "flow-storm-timeline-entry"     (process-msg next-handler msg timeline-entry     piggieback?)
         "flow-storm-frame-data"         (process-msg next-handler msg frame-data         piggieback?)
@@ -213,6 +220,12 @@
                 :requires {"fq-fn-symb" "The Fully qualified function symbol"
                            "from-idx" "The starting timeline idx to search from"
                            "from-back" "When true, searches for a fn-call starting from the back of the timeline"}
+                :optional {}
+                :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"}}
+
+               "flow-storm-find-flow-fn-call"
+               {:doc "Find the first FnCall for a flow"
+                :requires {"flow-id" "The id of the flow"}
                 :optional {}
                 :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"}}
 

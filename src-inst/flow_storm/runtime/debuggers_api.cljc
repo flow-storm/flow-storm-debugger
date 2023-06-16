@@ -132,6 +132,10 @@
   (some-> (index-api/find-fn-call fq-fn-call-symb from-idx opts)
           reference-timeline-entry!))
 
+(defn find-flow-fn-call [flow-id]
+  (some-> (index-api/find-flow-fn-call flow-id)
+          reference-timeline-entry!))
+
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
 #?(:clj
