@@ -158,7 +158,13 @@
   "Send expression execution trace."
   
   ([{:keys [result coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id]} *runtime-ctx*]
+   (let [{:keys [flow-id thread-trace-limit]} *runtime-ctx*
+         thread-id (utils/get-current-thread-id)]
+
+     (when thread-trace-limit
+       (when (> (indexes-api/timeline-count flow-id thread-id) thread-trace-limit)
+         (throw (ex-info "thread-trace-limit exceeded" {}))))
+
      (trace-expr-exec flow-id result (stringify-coord coor) form-id))
    
    result)

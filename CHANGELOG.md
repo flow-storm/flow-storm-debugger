@@ -5,6 +5,9 @@
 ### New Features
 		
 ### Changes
+
+    - Reintroduced #rtrace ^{:thread-trace-limit N}
+
 ### Bugs fixed
 
 ## 3.6.5 (16-06-2023)
