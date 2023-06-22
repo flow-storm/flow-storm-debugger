@@ -10,6 +10,8 @@
 
 ### Bugs fixed
 
+    - issues/65 GUI icon hover making the icon unreadable
+
 ## 3.6.5 (16-06-2023)
 	
 ### New Features

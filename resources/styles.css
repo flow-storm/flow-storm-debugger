@@ -57,8 +57,8 @@
 }
 
 .button:hover {
-        -fx-background-color: -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-body-color;
-        -fx-color: -fx-hover-base;
+    -fx-background-color: -fx-theme-button-hover;
+    -fx-color: -fx-hover-base;
 }
 
 .button:focused { /* this is so buttons doesn't look smaller when they are focused */
