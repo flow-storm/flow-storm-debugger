@@ -3,7 +3,9 @@
 ## master (unreleased)
 	
 ### New Features
-		
+
+    - Add debugger window title configurable via :title and flowstorm.title prop
+    
 ### Changes
 
     - Reintroduced #rtrace ^{:thread-trace-limit N}

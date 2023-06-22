@@ -267,7 +267,7 @@
            _ (ui-vars/configure-environment runtime-config)
            scene (Scene. (build-main-pane) 1024 768)
            stage (doto (Stage.)
-                   (.setTitle "Flowstorm debugger")
+                   (.setTitle (or (:title config) "Flowstorm debugger"))
                    (.setScene scene)
                    (.setOnCloseRequest
                     (event-handler

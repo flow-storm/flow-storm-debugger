@@ -1044,18 +1044,20 @@ the debugger to figure out what went wrong.
 == Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map
-with the `:styles` and `:theme` keywords. If `:styles` points to a css file it will be used to overwrite the default styles, in case you 
-want to change colors, make your fonts bigger, etc. `:theme` could be one of `:auto` (default), `:light`, `:dark`.
+with the `:styles`, `:title` and `:theme` keywords. If `:styles` points to a css file it will be used to overwrite the default styles, in case you 
+want to change colors, make your fonts bigger, etc. `:theme` could be one of `:auto` (default), `:light`, `:dark`. Title can be used to
+distinguish between multiple debugger instances.
 
 Like this :
 
 [,clojure]
 ----
-user> (local-connect {:styles "~/.flow-storm/big-fonts.css" :theme :dark})
+user> (local-connect {:styles "~/.flow-storm/big-fonts.css", :theme :dark, :title "FlowStormMainDebugger"})
 ----
 
 If you are using ClojureStorm you can also provide them with :
 
+   -Dflowstorm.title=FlowStormMainDebugger
    -Dflowstorm.theme=dark
    -Dflowstorm.styles=~/.flow-storm/big-fonts.css
    

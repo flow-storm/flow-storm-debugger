@@ -73,10 +73,12 @@
   (let [recording-prop (System/getProperty "flowstorm.startRecording")
         old-recording-prop (System/getProperty "clojure.storm.traceEnable")
         theme-prop (System/getProperty "flowstorm.theme")
+        title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
         config (cond-> {}
                  theme-prop  (assoc :theme (keyword theme-prop))
-                 styles-prop (assoc :styles styles-prop))]
+                 styles-prop (assoc :styles styles-prop)
+                 title-prop  (assoc :title  title-prop))]
 
     (when-let [tep (or recording-prop old-recording-prop)]
       (when old-recording-prop (log "WARNING: clojure.storm.traceEnable is deprecated, use flowstorm.startRecording instead !"))
