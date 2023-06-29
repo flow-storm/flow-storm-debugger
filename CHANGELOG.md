@@ -5,9 +5,11 @@
 ### New Features
 
     - Add debugger window title configurable via :title and flowstorm.title prop
+    - Add support for debugging litteral maps and sets of any size
     
 ### Changes
 
+    - Upgrades to hansel 0.1.65 and supports new coordinate system
     - Reintroduced #rtrace ^{:thread-trace-limit N}
 
 ### Bugs fixed

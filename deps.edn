@@ -6,7 +6,7 @@
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
         io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions [com.google.guava/guava org.slf4j/slf4j-nop]}
-        com.github.jpmonettas/hansel {:mvn/version "0.1.63"}
+        com.github.jpmonettas/hansel {:mvn/version "0.1.65"}
         org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
         org.openjfx/javafx-base {:mvn/version "19.0.2.1"}
         org.openjfx/javafx-graphics {:mvn/version "19.0.2.1"}
@@ -23,7 +23,7 @@
                                thheller/shadow-cljs {:mvn/version "2.23.3"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-alpha3_2"}}
+                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-alpha4"}}
                    :jvm-opts ["-Dproject-name=StormTest"
                               "-Dflowstorm.startRecording=true"
                               "-Dflowstorm.theme=light"

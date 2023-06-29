@@ -1,6 +1,7 @@
 (ns flow-storm.form-pprinter
   (:require [clojure.pprint :as pp]
-            [flow-storm.utils :as utils]))
+            [flow-storm.utils :as utils]
+            [hansel.utils :as hansel-utils]))
 
 (defn- seq-delims [form]
   (let [delims (pr-str (empty form))]
@@ -77,7 +78,7 @@
       pprinted-form-str)))
 
 (defn pprint-tokens [form]
-  (let [form (utils/tag-form-recursively form ::coord)
+  (let [form (hansel-utils/tag-form-recursively form ::coord)
         pprinted-str (code-pprint form)
         pos->layout-char (->> pprinted-str
                               (keep-indexed (fn [i c]

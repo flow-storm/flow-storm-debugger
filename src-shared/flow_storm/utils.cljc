@@ -46,7 +46,11 @@
   (if (str/blank? str-coord)
     []
     (->> (str/split str-coord #",")
-         (map parse-int))))
+         (map (fn [x]
+                (if (or (str/starts-with? x "K")
+                        (str/starts-with? x "V"))
+                  x
+                  (parse-int x)))))))
 
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
 #?(:cljs (defn map-like? [x] (map? x)))
@@ -179,55 +183,6 @@
 (defn pending? [x]
   #?(:clj  (instance? clojure.lang.IPending x)
      :cljs (instance? cljs.core.IPending x)))
-
-(defn walk-indexed
-  "Walk through form calling (f coord element).
-  The value of coord is a vector of indices representing element's
-  address in the form. Unlike `clojure.walk/walk`, all metadata of
-  objects in the form is preserved."
-  ([f form] (walk-indexed [] f form))
-  ([coord f form]
-   (let [map-inner (fn [forms]
-                     (map-indexed #(walk-indexed (conj coord %1) f %2)
-                                  forms))
-         ;; Clojure uses array-maps up to some map size (8 currently).
-         ;; So for small maps we take advantage of that, otherwise fall
-         ;; back to the heuristic below.
-         ;; Maps are unordered, but we can try to use the keys as order
-         ;; hoping they can be compared one by one and that the user
-         ;; has specified them in that order. If that fails we don't
-         ;; instrument the map. We also don't instrument sets.
-         ;; This depends on Clojure implementation details.
-         walk-indexed-map (fn [map]
-                            (map-indexed (fn [i [k v]]
-                                           [(walk-indexed (conj coord (* 2 i)) f k)
-                                            (walk-indexed (conj coord (inc (* 2 i))) f v)])
-                                         map))
-         result (cond
-                  (map? form) (if (<= (count form) 8)
-                                (into {} (walk-indexed-map form))
-                                (try
-                                  (into (sorted-map) (walk-indexed-map (into (sorted-map) form)))
-                                  #?(:clj (catch Exception _ form)
-                                     :cljs (catch js/Error _ form))))
-                  ;; Order of sets is unpredictable, unfortunately.
-                  (set? form)  form
-                  ;; Borrowed from clojure.walk/walk
-                  (list? form) (apply list (map-inner form))
-                  (map-entry? form) (vec (map-inner form))
-                  (seq? form)  (doall (map-inner form))
-                  (coll? form) (into (empty form) (map-inner form))
-                  :else form)]
-     (f coord (merge-meta result (meta form))))))
-
-(defn tag-form-recursively
-  "Recursively add coordinates to all forms"
-  [form key]
-  ;; Don't use `postwalk` because it destroys previous metadata.
-  (walk-indexed (fn [coord frm]
-                  (merge-meta frm {key coord}))
-                form))
-
 
 #?(:clj
    (defn source-fn [x]    
