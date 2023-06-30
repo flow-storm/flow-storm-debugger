@@ -57,7 +57,6 @@
                                   (.getPath f))]
                   {:status :done
                    :form {:id       id
-                          :form     form
                           :ns       ns
                           :def-kind def-kind
                           :line     line
@@ -233,7 +232,7 @@
                {:doc "Return a registered form"
                 :requires {"form-id" "The id of the form"}
                 :optional {}
-                :returns {"form" "A map with {:keys [id form ns def-kind line pprint file]}"}}
+                :returns {"form" "A map with {:keys [id ns def-kind line pprint file]}"}}
 
                "flow-storm-timeline-entry"
                {:doc "Return a timeline entry"
