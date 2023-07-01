@@ -5,7 +5,17 @@
 ### New Features
         
 ### Changes
+        
+### Bugs fixed
 
+## 3.6.7 (30-06-2023)
+	
+### New Features
+        
+### Changes
+
+    - Upgrade to hansel 0.1.69 with improved coordinate system
+    
 ### Bugs fixed
 
     - Fix call tree highlight current frame
