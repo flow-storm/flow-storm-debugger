@@ -199,7 +199,7 @@
               (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell fn-call-idx) this))))))))
 
 (defn highlight-current-frame [flow-id thread-id]
-  (let [curr-idx (:idx (state/current-timeline-entry flow-id thread-id))
+  (let [curr-idx (:fn-call-idx (state/current-timeline-entry flow-id thread-id))
         {:keys [fn-call-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
     (expand-and-highlight flow-id thread-id fn-call-idx-path)))
 

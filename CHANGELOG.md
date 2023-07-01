@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+        
+### Changes
+
+### Bugs fixed
+
+    - Fix call tree highlight current frame
+
+## 3.6.6 (29-06-2023)
+	
+### New Features
 
     - Add debugger window title configurable via :title and flowstorm.title prop
     - Add support for debugging litteral maps and sets of any size
