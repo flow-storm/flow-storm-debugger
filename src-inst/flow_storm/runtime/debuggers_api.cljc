@@ -4,7 +4,7 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.utils :as utils :refer [log]]            
             [flow-storm.runtime.events :as rt-events]                        
-            [flow-storm.runtime.values :as runtime-values :refer [reference-value!]]
+            [flow-storm.runtime.values :as runtime-values :refer [reference-value! deref-value]]
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
             #?@(:clj [[hansel.api :as hansel]                      
@@ -135,6 +135,12 @@
 (defn find-flow-fn-call [flow-id]
   (some-> (index-api/find-flow-fn-call flow-id)
           reference-timeline-entry!))
+
+(defn find-timeline-entry [{:keys [eq-val-ref] :as criteria}]
+  (let [criteria (cond-> criteria
+                   eq-val-ref (assoc :eq-val (deref-value eq-val-ref)))]
+    (some-> (index-api/find-timeline-entry criteria)
+            reference-timeline-entry!)))
 
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
@@ -412,6 +418,7 @@
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
              :find-fn-frames-light find-fn-frames-light
+             :find-timeline-entry find-timeline-entry
              :search-next-frame search-next-frame
              :discard-flow discard-flow             
              :tap-value tap-value

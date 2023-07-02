@@ -31,10 +31,10 @@
                 {:status :done
                  :trace-cnt cnt})})
 
-(defn find-fn-call [{:keys [fq-fn-symb from-idx from-back]}]
+(defn find-fn-call [{:keys [fq-fn-symb from-idx backward]}]
   {:code `(debuggers-api/find-fn-call (symbol ~fq-fn-symb)
                                       ~from-idx
-                                      {:from-back? ~(Boolean/parseBoolean from-back)})
+                                      {:backward? ~(Boolean/parseBoolean backward)})
    :post-proc (fn [fn-call]
                 {:status :done
                  :fn-call (value-ref->int fn-call :fn-args)})})
@@ -218,7 +218,7 @@
                {:doc "Find the first FnCall for a symbol"
                 :requires {"fq-fn-symb" "The Fully qualified function symbol"
                            "from-idx" "The starting timeline idx to search from"
-                           "from-back" "When true, searches for a fn-call starting from the back of the timeline"}
+                           "backward" "When true, searches for a fn-call by walking the timeline backwards"}
                 :optional {}
                 :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"}}
 

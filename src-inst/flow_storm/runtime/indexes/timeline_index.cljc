@@ -223,12 +223,12 @@
                                                       {}))))
               sub-timeline))))
 
-  (timeline-find-entry [this from-idx backwards? pred]
+  (timeline-find-entry [this from-idx backward? pred]
     (locking this
-      (let [last-idx (if backwards?
+      (let [last-idx (if backward?
                        0
                        (dec (ml-count timeline)))
-            next-idx (if backwards? dec inc)]
+            next-idx (if backward? dec inc)]
         (loop [i from-idx]
           (when (not= i last-idx)
             (let [tl-entry (ml-get timeline i)]

@@ -6,6 +6,7 @@
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
             [flow-storm.runtime.indexes.form-registry :as form-registry]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
+            [flow-storm.runtime.types.expr-trace :as expr-trace]            
             [clojure.pprint :as pp]
             [flow-storm.utils :as utils]))
 
@@ -307,13 +308,13 @@
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id nil)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
 
-(defn find-fn-call [fq-fn-call-symb from-idx {:keys [from-back?]}]  
+(defn find-fn-call [fq-fn-call-symb from-idx {:keys [backward?]}]  
   (some (fn [[flow-id thread-id]]
           (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
             (when-let [fn-call (index-protos/timeline-find-entry
                                 timeline-index
                                 from-idx
-                                from-back?
+                                backward?
                                 (fn [entry]
                                   (and (fn-call-trace/fn-call-trace? entry)
                                        (= (fn-call-trace/get-fn-ns entry)   (namespace fq-fn-call-symb))
@@ -332,6 +333,24 @@
                        :flow-id fid
                        :thread-id tid)))))
         (index-protos/all-threads flow-thread-registry)))
+
+(defn find-timeline-entry [{:keys [flow-id thread-id from-idx eq-val backward?] :as criteria
+                            :or {from-idx 0}}]
+  (let [search-pred (fn [tl-entry]
+                      (and (expr-trace/expr-trace? tl-entry)
+                           (identical? (expr-trace/get-expr-val tl-entry) eq-val)))]
+    (some (fn [[fid tid]]
+            (when (and (or (not (contains? criteria :flow-id))
+                           (= flow-id fid))
+                       (or (not (contains? criteria :thread-id))
+                           (= thread-id tid)))
+              (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
+                (when-let [entry (index-protos/timeline-find-entry timeline-index
+                                                                   from-idx
+                                                                   backward?
+                                                                   search-pred)]
+                  entry))))
+          (index-protos/all-threads flow-thread-registry))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

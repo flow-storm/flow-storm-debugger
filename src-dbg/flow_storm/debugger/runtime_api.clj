@@ -43,6 +43,7 @@
   (callstack-node-frame [_ node])
   (fn-call-stats [_ flow-id thread-id])
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id])
+  (find-timeline-entry [_ criteria])
   (search-next-frame [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
@@ -135,6 +136,7 @@
   (callstack-node-frame [_ node] (api-call :local "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
+  (find-timeline-entry [_ criteria] (api-call :local "find-timeline-entry" [criteria]))
   (search-next-frame [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-frame" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
@@ -246,6 +248,7 @@
   (callstack-node-frame [_ node] (api-call :remote "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :remote "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :remote "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
+  (find-timeline-entry [_ criteria] (api-call :remote "find-timeline-entry" [criteria]))
   (search-next-frame [_ flow-id thread-id query-str from-idx opts] (api-call :remote "search-next-frame" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]

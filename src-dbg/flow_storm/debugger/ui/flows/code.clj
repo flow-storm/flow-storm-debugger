@@ -376,6 +376,18 @@
         last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
     (jump-to-coord flow-id thread-id last-tentry)))
 
+(defn step-same-val [flow-id thread-id backward?]
+  (let [{:keys [type idx result]} (state/current-timeline-entry flow-id thread-id)]
+    (when (#{:expr :fn-return} type)
+      (when-let [next-tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
+                                                                      :thread-id thread-id
+                                                                      :from-idx (if backward?
+                                                                                  (dec idx)
+                                                                                  (inc idx))
+                                                                      :backward? backward?
+                                                                      :eq-val-ref result})]
+        (jump-to-coord flow-id thread-id next-tentry)))))
+
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
                                         :on-click (fn [] (step-first flow-id thread-id))
@@ -418,6 +430,12 @@
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
                                        :on-click (fn [] (step-last flow-id thread-id))
                                        :tooltip "Step to the last recorded expression")
+        val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
+                                           :on-click (fn [] (step-same-val flow-id thread-id true))
+                                           :tooltip "Find the prev expression that contains this value")
+        val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
+                                           :on-click (fn [] (step-same-val flow-id thread-id false))
+                                           :tooltip "Find the next expression that contains this value")
 
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
                                               :on-click (fn []
@@ -429,7 +447,7 @@
 
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
-        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn])
+        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn val-prev-btn val-next-btn])
                        (.setSpacing 2.0))]
 
     (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")
