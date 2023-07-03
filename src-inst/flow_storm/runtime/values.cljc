@@ -180,11 +180,7 @@
      :val-type val-type}))
 
 (defn- maybe-ref! [x]
-  (if (or (string? x)
-          (number? x)
-          (keyword? x)
-          (symbol? x)
-          (boolean? x)
+  (if (or (boolean? x)
           (nil? x))
     
     x
