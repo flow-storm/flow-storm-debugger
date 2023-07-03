@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+         
+### Changes
+    
+### Bugs fixed
+
+## 3.6.8 (03-07-2023)
+	
+### New Features
 
     - Code stepping follow value allows you to step to the next/prev expression that evaluates to the same value. Useful for understanding how values flow through programs
     - Value inspector follow value, same as before.
