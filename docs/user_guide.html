@@ -704,6 +704,8 @@ pre.rouge {
 <li><a href="#_code_tool">4.1. Code tool</a>
 <ul class="sectlevel4">
 <li><a href="#_code_stepping">Code stepping</a></li>
+<li><a href="#_searching">Searching</a></li>
+<li><a href="#_loops">Loops</a></li>
 <li><a href="#_exception_debugging">Exception debugging</a></li>
 <li><a href="#_locals">Locals</a></li>
 <li><a href="#_stack">Stack</a></li>
@@ -711,11 +713,7 @@ pre.rouge {
 <li><a href="#_re_running_a_flow">Re running a flow</a></li>
 </ul>
 </li>
-<li><a href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a>
-<ul class="sectlevel4">
-<li><a href="#_searching">Searching</a></li>
-</ul>
-</li>
+<li><a href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a></li>
 <li><a href="#_functions_tool">4.3. Functions tool</a>
 <ul class="sectlevel4">
 <li><a href="#_function_calls">Function calls</a></li>
@@ -1630,6 +1628,21 @@ positions you find and then use this text box to jump back to it if you need.</p
 <div class="paragraph">
 <p>Only the forms that were executed at least once for the flow and thread will be highlighted.</p>
 </div>
+</div>
+<div class="sect4">
+<h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
+<div class="paragraph">
+<p>You can use the search box under the controls to search for the next expression (starting at your current step) which it&#8217;s string
+serialization contains your search text.</p>
+</div>
+<div class="paragraph">
+<p>You can use the print-level and print-length fields to control how deep this serialization will be made. If this numbers are big
+and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
+and you can always use Ctrl-g to stop the search if it is taking too long.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_loops"><a class="anchor" href="#_loops"></a><a class="link" href="#_loops">Loops</a></h5>
 <div class="paragraph">
 <p>When clicking on a highlighted form two things can happen :</p>
 </div>
@@ -1783,31 +1796,6 @@ You can use the refresh button at the root to update it.</p>
 </div>
 <div class="paragraph">
 <p>There are also two <a href="#_value_panels">value panels</a> at the bottom that show the arguments and return value for the currently selected function call.</p>
-</div>
-<div class="sect4">
-<h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
-<div class="paragraph">
-<p>You can search over function names and a string serialization of the arguments using the search tool at the top.</p>
-</div>
-<div class="paragraph">
-<p><code>*print-level*</code> controls how deeply it will serialize the arguments it will search over.</p>
-</div>
-<div class="paragraph">
-<p>Use <code>From index</code> if you don&#8217;t want to search from the beginning. It will be automatically set after each match so it is easy to keep searching forward.</p>
-</div>
-<div class="paragraph">
-<p>If the search is taking too long you can always cancel it by hitting <code>Ctrl-g</code> on the keyboard. You can always make your search faster by choosing a
-lower value for <code>*print-level*</code> or by <a href="#_un_instrument_code_2">un-instrumenting</a> unnecessary code so you have less information to search over.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/search_match.png" alt="search match">
-</div>
-</div>
-<div class="paragraph">
-<p>Once you have a search match the tree will auto expand but not auto scroll. If the expansion is big you will have to manually
-scroll down and use the blue link at the top to help you locate the match.</p>
-</div>
 </div>
 </div>
 <div class="sect3">
@@ -2697,7 +2685,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-07-03 08:58:09 -0300
+Last updated 2023-07-03 14:23:35 -0300
 </div>
 </div>
 </body>

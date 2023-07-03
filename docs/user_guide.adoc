@@ -543,6 +543,17 @@ From left to right this are the controls you have available :
 
 Only the forms that were executed at least once for the flow and thread will be highlighted.
 
+==== Searching
+
+You can use the search box under the controls to search for the next expression (starting at your current step) which it's string
+serialization contains your search text.
+
+You can use the print-level and print-length fields to control how deep this serialization will be made. If this numbers are big
+and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
+and you can always use Ctrl-g to stop the search if it is taking too long.
+
+==== Loops
+
 When clicking on a highlighted form two things can happen :
 
 	 - If the form was executed only once for the current frame, the debugger will immediately jump to it.
@@ -625,22 +636,6 @@ You can use the refresh button at the root to update it.
 Use the button at the top left corner of the tree tool to show the current frame of the debugger in the tree.
 
 There are also two <<#_value_panels,value panels>> at the bottom that show the arguments and return value for the currently selected function call.
-
-==== Searching
-
-You can search over function names and a string serialization of the arguments using the search tool at the top.
-
-`\*print-level*` controls how deeply it will serialize the arguments it will search over.
-
-Use `From index` if you don't want to search from the beginning. It will be automatically set after each match so it is easy to keep searching forward.
-
-If the search is taking too long you can always cancel it by hitting `Ctrl-g` on the keyboard. You can always make your search faster by choosing a
-lower value for `\*print-level*` or by <<#_un_instrument_code_2,un-instrumenting>> unnecessary code so you have less information to search over.
-
-image::user_guide_images/search_match.png[]
-
-Once you have a search match the tree will auto expand but not auto scroll. If the expansion is big you will have to manually
-scroll down and use the blue link at the top to help you locate the match.
 
 === Functions tool
 
