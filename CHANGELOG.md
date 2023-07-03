@@ -6,9 +6,12 @@
 
     - Code stepping follow value allows you to step to the next/prev expression that evaluates to the same value. Useful for understanding how values flow through programs
     - Value inspector follow value, same as before.
-
+    - New code stepping search tool
+    
 ### Changes
-        
+    
+    - The call stack tree search tool was removed since it was buggy and hard to fix because of how javaFx lazy TreeView works
+    
 ### Bugs fixed
 
 ## 3.6.7 (30-06-2023)

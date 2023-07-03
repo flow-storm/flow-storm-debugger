@@ -8,12 +8,12 @@
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
-  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane]
+  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField]
            [javafx.scene Node]
-           [javafx.geometry Orientation Pos]
+           [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox]
            [javafx.scene.text TextFlow Text Font]
-           [javafx.scene.input MouseEvent MouseButton]))
+           [javafx.scene.input KeyCode MouseEvent MouseButton]))
 
 (declare jump-to-coord)
 (declare find-and-jump-same-val)
@@ -463,6 +463,66 @@
     (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")
       (.setSpacing 2.0))))
 
+(defn- create-search-pane [flow-id thread-id]
+  (let [search-txt (doto (TextField.)
+                     (.setPromptText "Search"))
+        search-lvl-txt (doto (TextField. "2")
+                         (.setPrefWidth 50)
+                         (.setAlignment Pos/CENTER))
+        search-len-txt (doto (TextField. "10")
+                         (.setPrefWidth 50)
+                         (.setAlignment Pos/CENTER))
+        search-progress-lbl (label "")
+
+        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
+                                         :class "tree-search")
+        search (fn []
+                 (.setDisable search-btn true)
+                 (.setText search-progress-lbl "% 0.0 %%")
+                 (let [task-id (runtime-api/async-search-next-timeline-entry
+                                rt-api
+                                flow-id
+                                thread-id
+                                (.getText search-txt)
+                                (inc (state/current-idx flow-id thread-id))
+                                {:print-level (Integer/parseInt (.getText search-lvl-txt))
+                                 :print-length (Integer/parseInt (.getText search-len-txt))})]
+
+                   (ui-vars/subscribe-to-task-event :progress
+                                                    task-id
+                                                    (fn [progress-perc]
+                                                      (ui-utils/run-later
+                                                       (.setText search-progress-lbl (format "%.2f %%" (double progress-perc))))))
+
+                   (ui-vars/subscribe-to-task-event :result
+                                                    task-id
+                                                    (fn [tl-entry]
+
+                                                      (if tl-entry
+
+                                                        (ui-utils/run-later
+                                                         (.setText search-progress-lbl "")
+                                                         (jump-to-coord flow-id thread-id tl-entry))
+
+                                                        (ui-utils/run-later (.setText search-progress-lbl "No match found")))
+
+                                                      (ui-utils/run-later (.setDisable search-btn false))))))]
+
+    (.setOnAction search-btn (event-handler [_] (search)))
+
+    (.setOnKeyReleased search-txt (event-handler
+                                   [kev]
+                                   (when (= (.getCode kev) KeyCode/ENTER)
+                                     (search))))
+
+    (doto (h-box [search-txt
+                  (label "*print-level* : ") search-lvl-txt
+                  (label "*print-length* : ") search-len-txt
+                  search-btn
+                  search-progress-lbl])
+      (.setSpacing 3.0)
+      (.setPadding (Insets. 4.0)))))
+
 (defn- create-forms-pane [flow-id thread-id]
   (let [box (doto (v-box [])
               (.setOnScroll (event-handler
@@ -475,7 +535,8 @@
               (.setSpacing 5))
         scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
         controls-pane (create-thread-controls-pane flow-id thread-id)
-        outer-box (v-box [controls-pane scroll-pane])]
+        search-pane (create-search-pane flow-id thread-id)
+        outer-box (v-box [controls-pane search-pane scroll-pane])]
     (VBox/setVgrow box Priority/ALWAYS)
     (VBox/setVgrow scroll-pane Priority/ALWAYS)
     (.setContent scroll-pane box)

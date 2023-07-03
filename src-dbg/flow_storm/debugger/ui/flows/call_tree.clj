@@ -2,16 +2,16 @@
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.utils :as utils :refer [log]]
+            [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button border-pane]])
   (:import [javafx.collections ObservableList]
-           [javafx.scene.control SelectionModel SplitPane TreeCell TextField TreeView TreeItem]
-           [javafx.scene.input KeyCode MouseButton]
+           [javafx.scene.control SelectionModel SplitPane TreeCell TreeView TreeItem]
+           [javafx.scene.input MouseButton]
            [ javafx.beans.value ChangeListener]
-           [javafx.geometry Insets Pos Orientation]
+           [javafx.geometry Pos Orientation]
            [javafx.scene.layout HBox Priority VBox]))
 
 (defn update-call-stack-tree-pane [flow-id thread-id]
@@ -91,76 +91,6 @@
      (expand-path root-item curr-idx (into #{} fn-call-idx-path))
      (select-call-stack-tree-node flow-id thread-id curr-idx))))
 
-(defn- create-tree-search-pane [flow-id thread-id]
-  (let [search-txt (doto (TextField.)
-                     (.setPromptText "Search"))
-        search-from-txt (doto (TextField. "0")
-                          (.setPrefWidth 70)
-                          (.setAlignment Pos/CENTER))
-        search-lvl-txt (doto (TextField. "2")
-                         (.setPrefWidth 50)
-                         (.setAlignment Pos/CENTER))
-        search-match-lbl (label "" "link-lbl")
-        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
-                                         :class "tree-search")
-        search (fn [] (log "Searching")
-                 (.setDisable search-btn true)
-                 (doto search-match-lbl
-                   (.setOnMouseClicked (event-handler [ev]))
-                   (.setStyle ""))
-
-                 (let [task-id (runtime-api/search-next-frame
-                                rt-api
-                                flow-id
-                                thread-id
-                                (.getText search-txt)
-                                (Integer/parseInt (.getText search-from-txt))
-                                {:print-level (Integer/parseInt (.getText search-lvl-txt))})]
-
-                   (ui-vars/subscribe-to-task-event :progress
-                                                    task-id
-                                                    (fn [progress-perc]
-                                                      (ui-utils/run-later
-                                                       (.setText search-match-lbl (format "%.2f %%" (double progress-perc))))))
-
-                   (ui-vars/subscribe-to-task-event :result
-                                                    task-id
-                                                    (fn [{:keys [fn-call-idx-path] :as frame-data}]
-
-                                                      (if frame-data
-                                                        (let [[match-idx] fn-call-idx-path]
-
-                                                          (ui-utils/run-later
-                                                           (expand-and-highlight flow-id thread-id fn-call-idx-path)
-                                                           (doto search-match-lbl
-                                                             (.setText  (format "Match idx %d" match-idx))
-                                                             (.setOnMouseClicked (event-handler
-                                                                                  [ev]
-                                                                                  (select-call-stack-tree-node flow-id thread-id match-idx))))
-                                                           (.setText search-from-txt (str (inc match-idx)))))
-
-                                                        (do
-                                                          (ui-utils/run-later (.setText search-match-lbl ""))
-                                                          (log "No match found")))
-
-                                                      (ui-utils/run-later (.setDisable search-btn false))))))]
-
-    (.setOnAction search-btn (event-handler [_] (search)))
-
-    (.setOnKeyReleased search-txt (event-handler
-                                   [kev]
-                                   (when (= (.getCode kev) KeyCode/ENTER)
-                                     (search))))
-
-    (doto (h-box [search-match-lbl
-                  search-txt
-                  (label "From Idx: ")   search-from-txt
-                  (label "*print-level* : ") search-lvl-txt
-                  search-btn])
-      (.setSpacing 3.0)
-      (.setAlignment Pos/CENTER_RIGHT)
-      (.setPadding (Insets. 4.0)))))
-
 (defn- build-tree-cell-factory [flow-id thread-id ^TreeView tree-view]
   (proxy [javafx.util.Callback] []
     (call [tv]
@@ -207,14 +137,12 @@
   (let [tree-view (doto (TreeView.)
                     (.setEditable false))
         tree-cell-factory (build-tree-cell-factory flow-id thread-id tree-view)
-        search-pane (create-tree-search-pane flow-id thread-id)
         controls-box (doto (h-box [(icon-button :icon-name "mdi-adjust"
                                                 :on-click (fn [] (highlight-current-frame flow-id thread-id))
                                                 :tooltip "Highlight current frame")])
                        (.setAlignment Pos/CENTER_RIGHT)
                        (.setSpacing 3.0))
-        top-pane (border-pane {:left controls-box
-                               :right search-pane})
+        top-pane (border-pane {:left controls-box})
         _ (doto tree-view
             (.setCellFactory tree-cell-factory))
         tree-view-sel-model (.getSelectionModel tree-view)
