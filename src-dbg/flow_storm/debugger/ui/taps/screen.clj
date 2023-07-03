@@ -33,7 +33,7 @@
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
                                   (let [val (first sel-items)]
-                                    (value-inspector/create-inspector val))))
+                                    (value-inspector/create-inspector val {}))))
                     :selection-mode :single})
         clear-btn (button :label "clear"
                           :on-click (fn [] (clear-all-taps)))

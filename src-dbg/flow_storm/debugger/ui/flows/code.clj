@@ -16,6 +16,7 @@
            [javafx.scene.input MouseEvent MouseButton]))
 
 (declare jump-to-coord)
+(declare find-and-jump-same-val)
 
 (defn- maybe-unwrap-runi-tokens
 
@@ -101,7 +102,7 @@
                                                              (runtime-api/tap-value rt-api val))}
                                                 {:text "Inspect"
                                                  :on-click (fn []
-                                                             (value-inspector/create-inspector val))}])]
+                                                             (value-inspector/create-inspector val {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)}))}])]
       (.show ctx-menu
              list-view-pane
              (.getScreenX mev)
@@ -330,7 +331,11 @@
         (highlight-exec-mark-tokens flow-id thread-id next-form-id (:coord next-tentry)))
 
       ;; update reusult panel
-      (flow-cmp/update-pprint-pane flow-id thread-id "expr_result" (:result next-tentry))
+      (flow-cmp/update-pprint-pane flow-id
+                                   thread-id
+                                   "expr_result"
+                                   (:result next-tentry)
+                                   {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)})
 
       ;; update locals panel
       (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx {}))
@@ -376,17 +381,22 @@
         last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
     (jump-to-coord flow-id thread-id last-tentry)))
 
+(defn find-and-jump-same-val [flow-id thread-id vref backward?]
+  (let [{:keys [idx]} (state/current-timeline-entry flow-id thread-id)]
+    (when-let [next-tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
+                                                                    :thread-id thread-id
+                                                                    :from-idx (if backward?
+                                                                                (dec idx)
+                                                                                (inc idx))
+                                                                    :backward? backward?
+                                                                    :eq-val-ref vref})]
+      (jump-to-coord flow-id thread-id next-tentry))))
+
 (defn step-same-val [flow-id thread-id backward?]
-  (let [{:keys [type idx result]} (state/current-timeline-entry flow-id thread-id)]
+  (let [{:keys [type result]} (state/current-timeline-entry flow-id thread-id)]
     (when (#{:expr :fn-return} type)
-      (when-let [next-tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
-                                                                      :thread-id thread-id
-                                                                      :from-idx (if backward?
-                                                                                  (dec idx)
-                                                                                  (inc idx))
-                                                                      :backward? backward?
-                                                                      :eq-val-ref result})]
-        (jump-to-coord flow-id thread-id next-tentry)))))
+      (find-and-jump-same-val flow-id thread-id result backward?))))
+
 
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"

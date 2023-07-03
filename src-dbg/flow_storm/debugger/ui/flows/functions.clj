@@ -119,7 +119,11 @@
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 1 (.getClickCount mev)))
 
-      (flow-cmp/update-pprint-pane flow-id thread-id "functions-calls-ret-val" ret-val)
+      (flow-cmp/update-pprint-pane flow-id
+                                   thread-id
+                                   "functions-calls-ret-val"
+                                   ret-val
+                                   {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})
 
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 2 (.getClickCount mev)))
@@ -147,7 +151,11 @@
                                                          :on-click (partial function-call-click flow-id thread-id)
                                                          :on-enter (fn [sel-items]
                                                                      (let [ret-val (-> sel-items first :ret)]
-                                                                       (flow-cmp/update-pprint-pane flow-id thread-id "functions-calls-ret-val" ret-val)))
+                                                                       (flow-cmp/update-pprint-pane flow-id
+                                                                                                    thread-id
+                                                                                                    "functions-calls-ret-val"
+                                                                                                    ret-val
+                                                                                                    {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})))
                                                          :selection-mode :single})
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]

@@ -28,12 +28,20 @@
 (defn- update-vals-panes [{:keys [main-split vals-stack]}]
   (let [[head prev & _] @vals-stack
         value-full-pane (let [def-btn (button :label "def"
-                                              :class "def-btn"
                                               :on-click (:def-fn head))
                               tap-btn (button :label "tap"
-                                              :class "def-btn"
                                               :on-click (:tap-fn head))
-                              buttons-box (doto (h-box [def-btn tap-btn])
+                              val-prev-btn (when-let [fvf (:find-val-fn head)]
+                                             (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
+                                                                   :on-click (fn [] (fvf true))
+                                                                   :tooltip "Find the prev expression that contains this value"))
+                              val-next-btn (when-let [fvf (:find-val-fn head)]
+                                             (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
+                                                                   :on-click (fn [] (fvf false))
+                                                                   :tooltip "Find the next expression that contains this value"))
+                              buttons-box (doto (h-box (cond-> [def-btn tap-btn]
+                                                         val-prev-btn (conj val-prev-btn)
+                                                         val-next-btn (conj val-next-btn)))
                                             (.setSpacing 5))
                               type-lbl (label (format "Type: %s" (-> head :shallow-val :val/type)))
                               val-header-box (border-pane {:left (v-box (if-let [cnt (-> head :shallow-val :total-count)]
@@ -81,13 +89,15 @@
                        (update-stack-bar-pane ctx)))))
                  (reverse @vals-stack))))
 
-(defn- make-stack-frame [ctx stack-txt vref]
+(defn- make-stack-frame [{:keys [find-and-jump-same-val] :as ctx} stack-txt vref]
   (let [{:keys [val/shallow-meta] :as shallow-val} (runtime-api/shallow-val rt-api vref)]
     {:stack-txt stack-txt
      :val-pane (create-value-pane ctx shallow-val)
      :meta-pane (when shallow-meta (create-value-pane ctx shallow-meta))
      :def-fn (fn [] (def-val vref))
      :tap-fn (fn [] (runtime-api/tap-value rt-api vref))
+     :find-val-fn (when find-and-jump-same-val
+                    (fn [backward?] (find-and-jump-same-val vref backward?)))
      :shallow-val shallow-val}))
 
 (defn make-item [stack-key v]
@@ -137,7 +147,7 @@
                                                 (when load-next-page (partial load-next-page (:val/more shallow-val)))
                                                 on-selected)))))
 
-(defn- create-inspector-pane [vref]
+(defn- create-inspector-pane [vref {:keys [find-and-jump-same-val]}]
   (let [*vals-stack (atom nil)
         stack-bar-pane (doto (h-box [] "value-inspector-stack-pane")
                          (.setSpacing 5))
@@ -146,7 +156,8 @@
                    (.setDividerPosition 0 0.5))
         ctx {:stack-bar-pane stack-bar-pane
              :main-split main-split
-             :vals-stack *vals-stack}
+             :vals-stack *vals-stack
+             :find-and-jump-same-val find-and-jump-same-val}
 
         mp (border-pane {:top stack-bar-pane
                          :center main-split}
@@ -159,9 +170,9 @@
 
     mp))
 
-(defn create-inspector [vref]
+(defn create-inspector [vref opts]
   (try
-    (let [scene (Scene. (create-inspector-pane vref) 1000 600)
+    (let [scene (Scene. (create-inspector-pane vref opts) 1000 600)
           stage (doto (Stage.)
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]

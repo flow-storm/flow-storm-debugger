@@ -53,7 +53,7 @@
     (store-obj flow-id thread-id (ui-vars/thread-pprint-tap-btn-id pane-id) tap-btn)
     box))
 
-(defn update-pprint-pane [flow-id thread-id pane-id val]
+(defn update-pprint-pane [flow-id thread-id pane-id val opts]
   (let [[result-type-lbl] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-type-lbl-id pane-id))
         [result-txt] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-area-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-vars/thread-pprint-level-txt-id pane-id))
@@ -67,7 +67,7 @@
                                                                          :print-meta? (.isSelected print-meta-chk)
                                                                          :pprint? true}))]
     (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
-    (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val)))
+    (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val opts)))
     (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val)))
 
     (.setText result-txt val-str)
