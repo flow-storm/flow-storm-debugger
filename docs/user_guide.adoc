@@ -516,16 +516,30 @@ You can use it to step over each expression, visualize values, locals and more.
 
 image::user_guide_images/controls.png[]
 
-The numbers at the end show `current_trace_index / total_traces`.
+The numbers at the end show `current_step_index / total_steps`. This means that a total of `total_steps` has been recorded
+for this thread so far.
 
-Write any number (less than total_traces) on the text box to jump into that position in time. When jumping around you can write down any interesting
-positions you find and then use the text box to jump back to it if you need.
+Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
+positions you find and then use this text box to jump back to it if you need.
 
 The code tool allows you to step and "travel thought time" in two ways:
 
 - You can use the controls at the top or [Ctrl | Alt]+MouseWheel on the forms to move one step at a time.
 
 - Or you can click on the highlighted forms to position the debugger at that point in time.
+
+From left to right this are the controls you have available :
+
+- Jump to the first step of the recording.
+- Step over backwards, will make one step backwards always staying on the same frame.
+- Step backwards, will step backwards in time going into sub functions.
+- Step out, will position the debugger in the next step after this function was called.
+- Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.
+- Step forward, will step forward in time going into sub functions.
+- Step over forward, will make one step forwards always staying on the same frame.
+- Jump to the last step of the recording.
+- Follow value backwards. Will step to the previous expression (if any) that evaluates to the current value.
+- Follow value forward. Will step to the next expression (if any) that evaluates to the current value.
 
 Only the forms that were executed at least once for the flow and thread will be highlighted.
 
@@ -782,12 +796,15 @@ Use the value inspector to explore any data.
 
 image::user_guide_images/value_inspector.png[]
 
-Use it to lazily and recursively navigate your data. It will render collections with links that allows you
+Use it to lazily and recursively navigate your data. It will render collections with links you can use
 to dig deeper into the data.
 
 The top bar provides a way of navigating back.
 
-Use the `def` button to define the current value for the repl.
+- Use the `def` button to define the current value for the repl.
+- Use the `tap` button to tap the current value.
+- When inspecting any value from an execution flow, two more buttons will appear. They allow you to search
+forward and backwards in the execution the current selected value.
 
 [NOTE]
 .Datafy
@@ -799,7 +816,7 @@ Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore 
 
 image::user_guide_images/thread_breaks.png[]
 
-FlowStorm is a tracing debugger, wich means it can record what is happening without the need of stopping
+FlowStorm is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn't cover every possible situation. There are
 cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
 and you are probably not interested in all those frames details.
@@ -816,7 +833,7 @@ can remove the breakpoints and un-block every thread.
 You can define thread breakpoints in two ways :
 
 - Using the browser (like in the image below), you can navigate to any function and click on the `Break` button. This will block the calling
-  thread everytime the selected function gets called.
+  thread every time the selected function gets called.
 - Or you can also install a break by calling (flow-storm.api/break-at 'my-proj.core/some-fn)
 
 image::user_guide_images/browser_breakpoints.png[]
@@ -831,7 +848,7 @@ provide a predicate it will default to `(constantly true)`
 
 You can remove breakpoints by :
 
-- Clicking on the browser intrumentation list delete buttons
+- Clicking on the browser instrumentation list delete buttons
 - Calling `flow-storm.api/remove-break` to remove a single breakpoint
 - Calling `flow-storm.api/clear-breaks` to remove all breakpoints
 

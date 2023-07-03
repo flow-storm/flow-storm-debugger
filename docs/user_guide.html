@@ -1570,11 +1570,12 @@ You can use it to step over each expression, visualize values, locals and more.<
 </div>
 </div>
 <div class="paragraph">
-<p>The numbers at the end show <code>current_trace_index / total_traces</code>.</p>
+<p>The numbers at the end show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
+for this thread so far.</p>
 </div>
 <div class="paragraph">
-<p>Write any number (less than total_traces) on the text box to jump into that position in time. When jumping around you can write down any interesting
-positions you find and then use the text box to jump back to it if you need.</p>
+<p>Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
+positions you find and then use this text box to jump back to it if you need.</p>
 </div>
 <div class="paragraph">
 <p>The code tool allows you to step and "travel thought time" in two ways:</p>
@@ -1586,6 +1587,43 @@ positions you find and then use the text box to jump back to it if you need.</p>
 </li>
 <li>
 <p>Or you can click on the highlighted forms to position the debugger at that point in time.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>From left to right this are the controls you have available :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Jump to the first step of the recording.</p>
+</li>
+<li>
+<p>Step over backwards, will make one step backwards always staying on the same frame.</p>
+</li>
+<li>
+<p>Step backwards, will step backwards in time going into sub functions.</p>
+</li>
+<li>
+<p>Step out, will position the debugger in the next step after this function was called.</p>
+</li>
+<li>
+<p>Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.</p>
+</li>
+<li>
+<p>Step forward, will step forward in time going into sub functions.</p>
+</li>
+<li>
+<p>Step over forward, will make one step forwards always staying on the same frame.</p>
+</li>
+<li>
+<p>Jump to the last step of the recording.</p>
+</li>
+<li>
+<p>Follow value backwards. Will step to the previous expression (if any) that evaluates to the current value.</p>
+</li>
+<li>
+<p>Follow value forward. Will step to the next expression (if any) that evaluates to the current value.</p>
 </li>
 </ul>
 </div>
@@ -2004,14 +2042,25 @@ in the debugger.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Use it to lazily and recursively navigate your data. It will render collections with links that allows you
+<p>Use it to lazily and recursively navigate your data. It will render collections with links you can use
 to dig deeper into the data.</p>
 </div>
 <div class="paragraph">
 <p>The top bar provides a way of navigating back.</p>
 </div>
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
 <p>Use the <code>def</code> button to define the current value for the repl.</p>
+</li>
+<li>
+<p>Use the <code>tap</code> button to tap the current value.</p>
+</li>
+<li>
+<p>When inspecting any value from an execution flow, two more buttons will appear. They allow you to search
+forward and backwards in the execution the current selected value.</p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2037,7 +2086,7 @@ to dig deeper into the data.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>FlowStorm is a tracing debugger, wich means it can record what is happening without the need of stopping
+<p>FlowStorm is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn&#8217;t cover every possible situation. There are
 cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
 and you are probably not interested in all those frames details.</p>
@@ -2059,7 +2108,7 @@ can remove the breakpoints and un-block every thread.</p>
 <ul>
 <li>
 <p>Using the browser (like in the image below), you can navigate to any function and click on the <code>Break</code> button. This will block the calling
-thread everytime the selected function gets called.</p>
+thread every time the selected function gets called.</p>
 </li>
 <li>
 <p>Or you can also install a break by calling (flow-storm.api/break-at 'my-proj.core/some-fn)</p>
@@ -2094,7 +2143,7 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 <div class="ulist">
 <ul>
 <li>
-<p>Clicking on the browser intrumentation list delete buttons</p>
+<p>Clicking on the browser instrumentation list delete buttons</p>
 </li>
 <li>
 <p>Calling <code>flow-storm.api/remove-break</code> to remove a single breakpoint</p>
@@ -2648,7 +2697,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-06-22 15:55:16 -0300
+Last updated 2023-07-03 08:58:09 -0300
 </div>
 </div>
 </body>
