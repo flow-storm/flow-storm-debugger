@@ -6,6 +6,14 @@
          
 ### Changes
     
+### Bugs fixed 
+
+## 3.6.9 (06-07-2023)
+	
+### New Features
+         
+### Changes
+    
 ### Bugs fixed
 
     - Fix ability to capture what happens before the debugger connects on ClojureScript 

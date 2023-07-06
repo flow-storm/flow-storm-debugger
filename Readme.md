@@ -28,9 +28,9 @@ If you are looking for ClojureStorm sources here they are : https://github.com/j
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)
-  - `[com.github.jpmonettas/flow-storm-dbg "3.6.8"]`
+  - `[com.github.jpmonettas/flow-storm-dbg "3.6.9"]`
 - A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
-  - `[com.github.jpmonettas/flow-storm-inst "3.6.8"]`
+  - `[com.github.jpmonettas/flow-storm-inst "3.6.9"]`
 
 ClojureStorm latest stable releases : 
 
@@ -77,9 +77,10 @@ Flow storm debugger is packed with a ton of features, here is a non-comprehensiv
 I gave a talk recently for the London Clojurians, the first slide goes about my answer to this :
 https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
-## Some demo videos
+## Some demo videos (newers at the top)
 
 - [Debugging Clojure with FlowStorm 3.6](https://www.youtube.com/watch?v=Mmr1nO6uMzc)
+- [Searching and following values](https://www.youtube.com/watch?v=CwXhy-QsZHw)
 - [Show me your REPL episode](https://www.youtube.com/watch?v=2nH59edD5Uo)
 - [Debugging Clojure with FlowStorm](https://www.youtube.com/watch?v=PbGVTVs1yiU)
 - [Debugging ClojureScript with FlowStorm](https://www.youtube.com/watch?v=jMYl32lnMhI)
@@ -89,7 +90,6 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 - [Debugging the ClojureScript compiler](https://youtu.be/YnpQMrkj4v8?t=533)
 - [Browser](https://www.youtube.com/watch?v=cnLwRzxrKDk)
 - [Def button](https://youtu.be/cnLwRzxrKDk?t=103)
-- [Conditional tracing](https://youtu.be/cnLwRzxrKDk?t=133)
 
 ## FAQ
 
