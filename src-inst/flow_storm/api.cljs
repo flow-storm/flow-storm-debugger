@@ -26,18 +26,19 @@
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
-   (assoc config :api-call-fn dbg-api/call-by-name))
+   (assoc config
+          :api-call-fn dbg-api/call-by-name
+          :on-connected (fn []
+                          ;; push all events thru the websocket
+                          (rt-events/subscribe! (fn [ev]
+                                                  (-> [:event ev]
+                                                      serializer/serialize
+                                                      remote-websocket-client/send)))
 
-  ;; push all events thru the websocket
-  (rt-events/subscribe! (fn [ev]
-                          (-> [:event ev]
-                              serializer/serialize
-                              remote-websocket-client/send)))
+                          (rt-values/clear-vals-ref-registry)
 
-  (rt-values/clear-vals-ref-registry)
-
-  (rt-taps/setup-tap!)
-  (println "Remote ClojureScript runtime initialized"))
+                          (rt-taps/setup-tap!)
+                          (println "Remote ClojureScript runtime initialized")))))
 
 (defn stop []
   (rt-taps/remove-tap!)

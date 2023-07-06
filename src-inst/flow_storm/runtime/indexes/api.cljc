@@ -78,21 +78,22 @@
                                                 registry)))
      
      (alter-var-root #'forms-registry (fn [_]                                       
-                                       (index-protos/start-form-registry
-                                        (if (utils/storm-env?)
-                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
-                                          (form-registry/make-form-registry)))))
+                                        (index-protos/start-form-registry
+                                         (if (utils/storm-env?)
+                                           ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
+                                           (form-registry/make-form-registry)))))
      (utils/log "Runtime index system started"))
    :cljs
    (defn start []
-     (set! flow-thread-registry (index-protos/start-thread-registry
-                                 (thread-registry/make-thread-registry)
-                                 {:on-thread-created (fn [{:keys [flow-id]}]
-                                                       (events/publish-event!
-                                                        (events/make-threads-updated-event flow-id)))}))     
-     (set! forms-registry (index-protos/start-form-registry
-                           (form-registry/make-form-registry)))
-     (utils/log "Runtime index system started")))
+     (when-not flow-thread-registry
+       (set! flow-thread-registry (index-protos/start-thread-registry
+                                   (thread-registry/make-thread-registry)
+                                   {:on-thread-created (fn [{:keys [flow-id]}]
+                                                         (events/publish-event!
+                                                          (events/make-threads-updated-event flow-id)))}))     
+       (set! forms-registry (index-protos/start-form-registry
+                             (form-registry/make-form-registry)))
+       (utils/log (str "Runtime index system started")))))
 
 #?(:clj
    (defn stop []
@@ -147,6 +148,11 @@
   (create-flow trace))
 
 (defn add-form-init-trace [trace]
+  ;; On ClojureScript we want to start the system sometimes before
+  ;; the debugger gets connected, so we can capture what happens right after
+  ;; a page reload. The first thing that happens when tracing is form registration,
+  ;; so we hook that start path here.
+  #?(:cljs (when-not flow-thread-registry (start)))
   (register-form trace))
 
 (defn add-fn-call-trace [flow-id thread-id thread-name trace]

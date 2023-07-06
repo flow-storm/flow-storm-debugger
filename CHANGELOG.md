@@ -8,6 +8,8 @@
     
 ### Bugs fixed
 
+    - Fix ability to capture what happens before the debugger connects on ClojureScript 
+    
 ## 3.6.8 (03-07-2023)
 	
 ### New Features
