@@ -43,6 +43,7 @@ ClojureStorm latest stable releases :
 
   - jdk11+
   - clojure 1.11.0+
+  - clojure 1.10.* if only supported if you use it from source, like `{:git/url "https://github.com/jpmonettas/flow-storm-debugger" :git/sha "..."}`
 
 # QuickStart and Documentation
 
