@@ -231,7 +231,7 @@
 
   Arguments are the same as the Clojure version but `config` also accepts a `:build-id`"
 
-  ([var-symb] (instrument-var-clj var-symb {}))
+  ([var-symb] (instrument-var-cljs var-symb {}))
   ([var-symb config]
 
    (dbg-api/instrument-var :cljs var-symb config)))
