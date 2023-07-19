@@ -5,6 +5,8 @@
 ### New Features
          
 ### Changes
+
+    - Upgrade to hansel 0.1.74 for a couple of bug fixes. Check hansel changelog.
     
 ### Bugs fixed 
 
