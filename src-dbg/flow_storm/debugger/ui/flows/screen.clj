@@ -41,8 +41,11 @@
 (defn update-threads-list [flow-id]
   (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]
     (when lv-data
-      (clear)
-      (add-all (runtime-api/flow-threads-info rt-api flow-id)))))
+      (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)]
+        (doseq [tinfo threads-info]
+          (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
+        (clear)
+        (add-all threads-info)))))
 
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
@@ -222,6 +225,16 @@
           (let [list-selection (.getSelectionModel list-view)]
             (.requestFocus list-view)
             (.selectFirst list-selection)))))))
+
+(defn goto-location [{:keys [flow-id thread-id idx]}]
+  (ui-vars/select-main-tools-tab :flows)
+  (select-flow-tab flow-id)
+  (open-thread (assoc (dbg-state/get-thread-info thread-id)
+                      :flow/id flow-id))
+  (ui-general/select-thread-tool-tab flow-id thread-id :code)
+  (flow-code/jump-to-coord flow-id
+                           thread-id
+                           (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))
 
 (defn main-pane []
   (let [t-pane (tab-pane {:closing-policy :all-tabs

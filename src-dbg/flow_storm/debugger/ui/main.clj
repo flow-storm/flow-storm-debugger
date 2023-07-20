@@ -96,14 +96,6 @@
 
        (-> box .getChildren .clear)))))
 
-(defn select-main-tools-tab [tool]
-  (let [[main-tools-tab] (obj-lookup "main-tools-tab")
-        sel-model (.getSelectionModel main-tools-tab)]
-    (case tool
-      :flows (.select sel-model 0)
-      :browser (.select sel-model 1)
-      :taps (.select sel-model 2)
-      :docs (.select sel-model 3))))
 
 (defn- main-tabs-pane []
   (let [flows-tab (tab {:text "Flows"
@@ -253,7 +245,7 @@
   (dbg-state/create-flow flow-id form-ns form timestamp)
   (flows-screen/remove-flow flow-id)
   (flows-screen/create-empty-flow flow-id)
-  (select-main-tools-tab :flows)
+  (ui-vars/select-main-tools-tab :flows)
   (flows-screen/update-threads-list flow-id))
 
 (defn start-ui []
@@ -305,10 +297,10 @@
                                 (and ctrl? (= key-name "D"))
                                 (toggle-debug-mode)
 
-                                (and shift? (= key-name "F")) (select-main-tools-tab :flows)
-                                (and shift? (= key-name "B")) (select-main-tools-tab :browser)
-                                (and shift? (= key-name "T")) (select-main-tools-tab :taps)
-                                (and shift? (= key-name "D")) (select-main-tools-tab :docs)
+                                (and shift? (= key-name "F")) (ui-vars/select-main-tools-tab :flows)
+                                (and shift? (= key-name "B")) (ui-vars/select-main-tools-tab :browser)
+                                (and shift? (= key-name "T")) (ui-vars/select-main-tools-tab :taps)
+                                (and shift? (= key-name "D")) (ui-vars/select-main-tools-tab :docs)
                                 (= key-name "Esc") (flows-screen/select-flow-tab nil)
                                 (= key-name "0")   (flows-screen/select-flow-tab 0)
                                 ))))

@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+    
+    - Add "Search value on Flows" to taps
+    
+### Changes
+    
+### Bugs fixed 
+
+## 3.6.10 (19-07-2023)
+	
+### New Features
          
 ### Changes
 

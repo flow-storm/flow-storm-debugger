@@ -355,7 +355,7 @@
                                                                    from-idx
                                                                    backward?
                                                                    search-pred)]
-                  entry))))
+                  (assoc entry :flow-id fid :thread-id tid)))))
           (index-protos/all-threads flow-thread-registry))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

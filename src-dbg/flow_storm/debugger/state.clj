@@ -34,6 +34,12 @@
 (defn all-flows-ids []
   (keys (get @state :flows)))
 
+(defn update-thread-info [thread-id info]
+  (swap! state assoc-in [:threads-info thread-id] info))
+
+(defn get-thread-info [thread-id]
+  (get-in @state [:threads-info thread-id]))
+
 (defn get-flow [flow-id]
   (get-in @state [:flows flow-id]))
 

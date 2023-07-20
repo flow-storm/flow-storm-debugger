@@ -134,6 +134,8 @@
 (defn thread-callstack-tree-cell [idx]
   (format "callstack_tree_cell_%d" idx))
 
+;; TODO move this somewhere else
+
 (defn show-message [msg msg-type]
   (try
     (ui-utils/run-later
@@ -142,3 +144,12 @@
                                  :buttons [:close]})]
        (.show dialog)))
     (catch Exception _)))
+
+(defn select-main-tools-tab [tool]
+  (let [[main-tools-tab] (obj-lookup "main-tools-tab")
+        sel-model (.getSelectionModel main-tools-tab)]
+    (case tool
+      :flows (.select sel-model 0)
+      :browser (.select sel-model 1)
+      :taps (.select sel-model 2)
+      :docs (.select sel-model 3))))
