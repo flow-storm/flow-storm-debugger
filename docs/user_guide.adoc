@@ -1188,9 +1188,9 @@ Is useful when you have instrumented a big application and wish to see tracing p
 
 == Internals, diagrams and documentation
 
-- https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/high_level_diagram.pdf
-- https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/form_instrumentation.pdf
-- https://github.com/jpmonettas/flow-storm-debugger/tree/master/docs/data_structures.pdf
+- https://raw.githubusercontent.com/jpmonettas/flow-storm-debugger/master/docs/high_level_diagram.svg
+- https://raw.githubusercontent.com/jpmonettas/flow-storm-debugger/master/docs/timeline.svg
+- https://raw.githubusercontent.com/jpmonettas/flow-storm-debugger/master/docs/run_configs.svg
 									   
 ////
 Local Variables:

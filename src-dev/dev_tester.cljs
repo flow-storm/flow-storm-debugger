@@ -1,4 +1,5 @@
-(ns dev-tester)
+(ns dev-tester
+  (:require-macros [dev-tester :refer [dummy-sum-macro]]))
 
 (defn factorial [n]
   (if (zero? n)
@@ -46,7 +47,7 @@
   (sub [r] (+ 42 (* 2 32))))
 
 (defn boo [xs]
-  (let [a 25
+  (let [a (dummy-sum-macro 25 8)
         b (multi-arity a)
         c (+ a b 7)
         d (add (->ARecord 5))

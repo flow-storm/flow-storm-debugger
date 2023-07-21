@@ -21,7 +21,7 @@ ClojureStorm is a fork of the official Clojure compiler that adds automatic inst
 
 You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles. 
 
-If you are looking for ClojureStorm sources here they are : https://github.com/jpmonettas/clojure/commit/31783717ba6bbf67604179d36c8bf67afe3c53cd
+If you are looking for ClojureStorm sources here they are : https://github.com/jpmonettas/clojure
 	
 # Artifacts
 
@@ -80,6 +80,7 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 ## Some demo videos (newers at the top)
 
+- [Smashing a real ClojureScript bug with FlowStorm](https://www.youtube.com/watch?v=4VXT-RHHuvI)
 - [Debugging Clojure with FlowStorm 3.6](https://www.youtube.com/watch?v=Mmr1nO6uMzc)
 - [Searching and following values](https://www.youtube.com/watch?v=CwXhy-QsZHw)
 - [Show me your REPL episode](https://www.youtube.com/watch?v=2nH59edD5Uo)
