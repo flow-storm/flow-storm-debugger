@@ -1,0 +1,13 @@
+- [Debugging Backwards in Time, Bil Lewis Paper](https://arxiv.org/pdf/cs/0310016.pdf)
+- [Debugging Backwards in Time, Bil Lewis Debugger](https://github.com/OmniscientDebugger/LewisOmniscientDebugger)
+- [Scalable Omniscient Debugging, Pothier, TOD, paper](https://pleiad.cl/papers/2007/pothierAl-oopsla2007.pdf)
+- [Scalable Omniscient Debugging, Pothier, TOD, software](https://pleiad.cl/tod/)
+- [NOD4J: Near-omniscient debugging tool for Java using size-limited execution trace](https://sel.ist.osaka-u.ac.jp/lab-db/betuzuri/archive/1199/1199.pdf)
+- [Repeatedly-Executed-Method Viewer for Efficient Visualization of Execution Paths and States in Java](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=233a50cdc9ba4ce0b322053cebbc380ec93a728c)
+- [JIVE: Java Interactive Visualization Environment](https://cse.buffalo.edu/jive/tutorials.html)
+- [Undo debugger for Java](https://undo.io/solutions/products/java/)
+- [ChrononSystems debugger for Java](https://chrononsystems.com/products/chronon-time-travelling-debugger)
+- [Wallabyjs](https://wallabyjs.com/docs/intro/time-travel-debugger.html)
+- [ZStep common lisp, video](https://www.youtube.com/watch?v=VzGj59hg2io)
+- [ZStep common lisp, paper](https://www.lirmm.fr/%7Educour/Doc-objets/ECOOP/papers/0276/02760011.pdf)
+
