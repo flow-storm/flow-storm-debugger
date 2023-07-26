@@ -161,9 +161,10 @@
 
 (defn- unhighlight-form [flow-id thread-id form-id]
   (let [[form-pane] (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))]
-    (doto ^Node form-pane
-      (.setOnMouseClicked (event-handler [_])))
-    (ui-utils/rm-class form-pane "form-background-highlighted")))
+    (when form-pane
+      (doto ^Node form-pane
+        (.setOnMouseClicked (event-handler [_])))
+      (ui-utils/rm-class form-pane "form-background-highlighted"))))
 
 (defn highlight-form [flow-id thread-id form-id]
   (let [form (runtime-api/get-form rt-api form-id)

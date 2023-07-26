@@ -10,6 +10,8 @@
     
 ### Bugs fixed 
 
+    - Fix NPE after closing thread tab 
+
 ## 3.6.10 (19-07-2023)
 	
 ### New Features

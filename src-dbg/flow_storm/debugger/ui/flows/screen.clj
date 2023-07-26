@@ -123,7 +123,8 @@
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
-                                  (open-thread (first sel-items))))
+                                  (when-let [th (first sel-items)]
+                                    (open-thread th))))
                     :on-enter (fn [sel-items]
                                 (open-thread (first sel-items)))})]
 
