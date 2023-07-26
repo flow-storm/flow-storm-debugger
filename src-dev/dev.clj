@@ -211,4 +211,8 @@
 
   (flow-storm.api/continue)
 
+  (defn my-sum [a b] (+ a b))
+
+  (doall (pmap (fn my-sum [i] (+ i i)) (range 4)))
+
   )

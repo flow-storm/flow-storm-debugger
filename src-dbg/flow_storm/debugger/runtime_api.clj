@@ -44,6 +44,7 @@
   (fn-call-stats [_ flow-id thread-id])
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id])
   (find-timeline-entry [_ criteria])
+  (total-order-timeline [_])
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
@@ -73,7 +74,8 @@
   (remove-breakpoint [_ fq-fn-symb])
 
   (stack-for-frame [_ flow-id thread-id fn-call-idx])
-  (toggle-recording [_]))
+  (toggle-recording [_])
+  (set-total-order-recording [_ x]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -137,6 +139,7 @@
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (find-timeline-entry [_ criteria] (api-call :local "find-timeline-entry" [criteria]))
+  (total-order-timeline [_] (api-call :local "total-order-timeline" []))
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :local "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
@@ -225,7 +228,10 @@
     (api-call :local "stack-for-frame" [flow-id thread-id fn-call-idx]))
 
   (toggle-recording [_]
-    (api-call :local "toggle-recording" [])))
+    (api-call :local "toggle-recording" []))
+
+  (set-total-order-recording [_ x]
+    (api-call :local "set-total-order-recording" [x])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -249,6 +255,7 @@
   (fn-call-stats [_ flow-id thread-id] (api-call :remote "fn-call-stats" [flow-id thread-id]))
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :remote "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (find-timeline-entry [_ criteria] (api-call :remote "find-timeline-entry" [criteria]))
+  (total-order-timeline [_] (api-call :remote "total-order-timeline" []))
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :remote "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]
@@ -352,6 +359,9 @@
 
   (toggle-recording [_]
     (api-call :remote "toggle-recording" []))
+
+  (set-total-order-recording [_ x]
+    (api-call :remote "set-total-order-recording" [x]))
 
   Closeable
   (close [_] (stop-repl))

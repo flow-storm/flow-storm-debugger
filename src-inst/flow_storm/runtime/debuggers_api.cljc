@@ -43,6 +43,7 @@
 (defn runtime-config []
   {:clojure-storm-env? (utils/storm-env?)
    :recording? (tracer/recording?)
+   :total-order-recording? (tracer/total-order-recording?)
    :breakpoints (tracer/all-breakpoints)})
 
 (defn val-pprint [vref opts]
@@ -142,6 +143,9 @@
                    eq-val-ref (assoc :eq-val (deref-value eq-val-ref)))]
     (some-> (index-api/find-timeline-entry criteria)
             reference-timeline-entry!)))
+
+(defn total-order-timeline []
+  (index-api/total-order-timeline))
 
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
@@ -267,6 +271,9 @@
   (if (tracer/recording?)
     (set-recording false)
     (set-recording true)))
+
+(defn set-total-order-recording [x]
+  (tracer/set-total-order-recording x))
 
 (defn jump-to-last-exception []
   (let [last-ex-loc (index-api/get-last-exception-location)]
@@ -428,6 +435,7 @@
              :fn-call-stats fn-call-stats
              :find-fn-frames-light find-fn-frames-light
              :find-timeline-entry find-timeline-entry
+             :total-order-timeline total-order-timeline
              :async-search-next-timeline-entry async-search-next-timeline-entry
              :discard-flow discard-flow             
              :tap-value tap-value
@@ -438,6 +446,7 @@
              :all-flows-threads all-flows-threads
              :stack-for-frame stack-for-frame
              :toggle-recording toggle-recording
+             :set-total-order-recording set-total-order-recording
              :ping ping
              #?@(:clj
                  [:def-value def-value

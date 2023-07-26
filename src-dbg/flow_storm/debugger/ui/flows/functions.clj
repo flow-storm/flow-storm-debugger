@@ -12,7 +12,7 @@
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
-(defn- functions-cell-factory [x]
+(defn- functions-cell-factory [_ x]
   (if (number? x)
     (label (str x))
 

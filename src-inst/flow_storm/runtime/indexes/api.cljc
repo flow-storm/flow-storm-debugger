@@ -155,24 +155,30 @@
   #?(:cljs (when-not flow-thread-registry (start)))
   (register-form trace))
 
-(defn add-fn-call-trace [flow-id thread-id thread-name trace]
+(defn add-fn-call-trace [flow-id thread-id thread-name trace total-order-recording?]
   (let [{:keys [timeline-index fn-call-stats-index]} (get-or-create-thread-indexes flow-id thread-id thread-name (fn-call-trace/get-form-id trace))]
     
     (when timeline-index
-      (index-protos/add-fn-call timeline-index trace))
+      (let [tl-idx (index-protos/add-fn-call timeline-index trace)]
+        (when (and tl-idx total-order-recording?)
+          (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))
     
     (when fn-call-stats-index
       (index-protos/add-fn-call fn-call-stats-index trace))))
 
-(defn add-fn-return-trace [flow-id thread-id trace]
+(defn add-fn-return-trace [flow-id thread-id trace total-order-recording?]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]    
     (when timeline-index
-      (index-protos/add-fn-return timeline-index trace))))
+      (let [tl-idx (index-protos/add-fn-return timeline-index trace)]
+        (when (and tl-idx total-order-recording?)
+          (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))))
 
-(defn add-expr-exec-trace [flow-id thread-id trace]
+(defn add-expr-exec-trace [flow-id thread-id trace total-order-recording?]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (when timeline-index
-      (index-protos/add-expr-exec timeline-index trace))))
+    (when timeline-index      
+      (let [tl-idx (index-protos/add-expr-exec timeline-index trace)]
+        (when (and tl-idx total-order-recording?)
+          (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))))
 
 (defn add-bind-trace [flow-id thread-id trace]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
@@ -357,6 +363,9 @@
                                                                    search-pred)]
                   (assoc entry :flow-id fid :thread-id tid)))))
           (index-protos/all-threads flow-thread-registry))))
+
+(defn total-order-timeline []
+  (index-protos/total-order-timeline flow-thread-registry forms-registry))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

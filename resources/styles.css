@@ -282,3 +282,11 @@
 .docs-example-ret-symbol {
 	-fx-text-fill: -fx-theme-links;
 }
+
+/*****************/
+/* Timeline tool */
+/*****************/
+
+.timeline-tool .controls-box {
+    -fx-padding : 10;
+}

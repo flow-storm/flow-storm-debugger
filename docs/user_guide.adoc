@@ -785,6 +785,42 @@ If you are using the emacs integration you can do `C-c C-f d` (flow-storm-show-c
 in the debugger.
 
 
+== Timeline tool
+
+You can use this tool to record, display and navigate a total order of your recordings in a timeline, in the order they executed.
+This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.
+
+By default recording this total ordering is disabled, but you can enable it just by clicking the `Enable` checkbox at the top, like this :
+
+image::user_guide_images/timeline_enable.png[]
+
+Once it is enable FlowStorm will record everything as usual but also record the total order for your function calls and expressions,
+which you can then retrieve and update by clicking on the refresh button at the top.
+
+As an example, lets say you record this code :
+
+[,clojure]
+----
+(pmap (fn my-sum [i] (+ i i)) (range 4))
+----
+
+after hitting refresh you should see something like this :
+
+image::user_guide_images/timeline.png[]
+
+As you can see the timeline tool displays a linear representation of your expressions. Times flows from top to bottom and
+each thread gets assigned a different color. Every time a function is called or returns you will see it under the `Function`
+column, and for each expression executed you will see a row with its `Expression` and `Value`.
+
+Double clicking any row will take you to the `Flows tool` code at that point in time.
+
+[NOTE]
+.Big recordings timeline
+====
+Rendering the timeline needs some processing to render each sub-form and print each value so be aware it could be slow
+if you try it on big recordings.
+====
+
 == Value inspector
 
 Use the value inspector to explore any data.

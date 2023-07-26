@@ -6,6 +6,7 @@
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
+            [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
@@ -40,7 +41,9 @@
     (flows-screen/fully-remove-flow fid))
 
   (runtime-api/clear-recordings rt-api)
-  (runtime-api/clear-api-cache rt-api))
+  (runtime-api/clear-api-cache rt-api)
+
+  (timeline-screen/clear-timeline))
 
 (defn bottom-box []
   (let [progress-box (h-box [])
@@ -112,8 +115,12 @@
                        :class "vertical-tab"
                        :content (docs-screen/main-pane)
                        :on-selection-changed (event-handler [_])})
+        timeline-tab (tab {:text "Timeline"
+                           :class "vertical-tab"
+                           :content (timeline-screen/main-pane)
+                           :on-selection-changed (event-handler [_])})
 
-        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab]
+        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab]
                           :rotate? true
                           :closing-policy :unavailable
                           :side :left
@@ -253,7 +260,7 @@
 
   (ui-utils/run-now
    (try
-     (let [{:keys [recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
+     (let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
            ;; retrieve runtime configuration and configure before creating the UI
            ;; since some components creation depend on it
            _ (ui-vars/configure-environment runtime-config)
@@ -314,6 +321,7 @@
                                 (into #{}))]
 
          (set-recording-btn recording?)
+         (timeline-screen/set-recording-check total-order-recording?)
          (doseq [fid all-flows-ids]
            (create-flow {:flow-id fid})))
 

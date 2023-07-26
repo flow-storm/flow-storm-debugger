@@ -62,7 +62,7 @@
 (defn create-map-browser-pane [amap on-selected]
   (let [{:keys [table-view-pane table-view]}
         (table-view {:columns ["Key" "Value"]
-                     :cell-factory-fn (fn [item]
+                     :cell-factory-fn (fn [_ item]
                                         (:node-obj (make-node item on-selected)))
                      :search-predicate (fn [[k-item v-item] search-str]
                                          (boolean

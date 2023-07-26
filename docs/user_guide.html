@@ -732,43 +732,44 @@ pre.rouge {
 <li><a href="#_tips">7.4. TIPS</a></li>
 </ul>
 </li>
-<li><a href="#_value_inspector">8. Value inspector</a></li>
-<li><a href="#_thread_breakpoints">9. Thread breakpoints</a></li>
-<li><a href="#_the_tool_bar">10. The tool bar</a></li>
-<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">11. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
-<li><a href="#_programmable_debugging">12. Programmable debugging</a>
+<li><a href="#_timeline_tool">8. Timeline tool</a></li>
+<li><a href="#_value_inspector">9. Value inspector</a></li>
+<li><a href="#_thread_breakpoints">10. Thread breakpoints</a></li>
+<li><a href="#_the_tool_bar">11. The tool bar</a></li>
+<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">12. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
+<li><a href="#_programmable_debugging">13. Programmable debugging</a>
 <ul class="sectlevel3">
-<li><a href="#_example_1">12.1. Example 1</a></li>
-<li><a href="#_example_2">12.2. Example 2</a></li>
-<li><a href="#_example_3">12.3. Example 3</a></li>
+<li><a href="#_example_1">13.1. Example 1</a></li>
+<li><a href="#_example_2">13.2. Example 2</a></li>
+<li><a href="#_example_3">13.3. Example 3</a></li>
 </ul>
 </li>
-<li><a href="#_dealing_with_mutable_values">13. Dealing with mutable values</a></li>
-<li><a href="#_dealing_with_too_many_traces">14. Dealing with too many traces</a></li>
-<li><a href="#_styling_and_theming">15. Styling and theming</a></li>
-<li><a href="#_key_bindings">16. Key bindings</a>
+<li><a href="#_dealing_with_mutable_values">14. Dealing with mutable values</a></li>
+<li><a href="#_dealing_with_too_many_traces">15. Dealing with too many traces</a></li>
+<li><a href="#_styling_and_theming">16. Styling and theming</a></li>
+<li><a href="#_key_bindings">17. Key bindings</a>
 <ul class="sectlevel3">
-<li><a href="#_general">16.1. General</a></li>
-<li><a href="#_flows">16.2. Flows</a></li>
+<li><a href="#_general">17.1. General</a></li>
+<li><a href="#_flows">17.2. Flows</a></li>
 </ul>
 </li>
-<li><a href="#_debugging_react_native_applications">17. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></li>
-<li><a href="#_editorsides_integration">19. Editors/IDEs integration</a>
+<li><a href="#_debugging_react_native_applications">18. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">19. Working on Windows with WSL2</a></li>
+<li><a href="#_editorsides_integration">20. Editors/IDEs integration</a>
 <ul class="sectlevel3">
-<li><a href="#_emacs">19.1. Emacs</a></li>
-<li><a href="#_vscode">19.2. VSCode</a></li>
-<li><a href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></li>
+<li><a href="#_emacs">20.1. Emacs</a></li>
+<li><a href="#_vscode">20.2. VSCode</a></li>
+<li><a href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></li>
 </ul>
 </li>
-<li><a href="#_tutorials_and_demos">20. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">21. Troubleshooting</a>
+<li><a href="#_tutorials_and_demos">21. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">22. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">21.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">21.2. Run verbose</a></li>
+<li><a href="#_instrument_verbose">22.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">22.2. Run verbose</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">22. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -2020,7 +2021,66 @@ in the debugger.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">8. Value inspector</a></h3>
+<h3 id="_timeline_tool"><a class="anchor" href="#_timeline_tool"></a><a class="link" href="#_timeline_tool">8. Timeline tool</a></h3>
+<div class="paragraph">
+<p>You can use this tool to record, display and navigate a total order of your recordings in a timeline, in the order they executed.
+This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.</p>
+</div>
+<div class="paragraph">
+<p>By default recording this total ordering is disabled, but you can enable it just by clicking the <code>Enable</code> checkbox at the top, like this :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/timeline_enable.png" alt="timeline enable">
+</div>
+</div>
+<div class="paragraph">
+<p>Once it is enable FlowStorm will record everything as usual but also record the total order for your function calls and expressions,
+which you can then retrieve and update by clicking on the refresh button at the top.</p>
+</div>
+<div class="paragraph">
+<p>As an example, lets say you record this code :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">pmap</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="n">my-sum</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">4</span><span class="p">))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>after hitting refresh you should see something like this :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/timeline.png" alt="timeline">
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see the timeline tool displays a linear representation of your expressions. Times flows from top to bottom and
+each thread gets assigned a different color. Every time a function is called or returns you will see it under the <code>Function</code>
+column, and for each expression executed you will see a row with its <code>Expression</code> and <code>Value</code>.</p>
+</div>
+<div class="paragraph">
+<p>Double clicking any row will take you to the <code>Flows tool</code> code at that point in time.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Big recordings timeline</div>
+<div class="paragraph">
+<p>Rendering the timeline needs some processing to render each sub-form and print each value so be aware it could be slow
+if you try it on big recordings.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">9. Value inspector</a></h3>
 <div class="paragraph">
 <p>Use the value inspector to explore any data.</p>
 </div>
@@ -2067,7 +2127,7 @@ forward and backwards in the execution the current selected value.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_thread_breakpoints"><a class="anchor" href="#_thread_breakpoints"></a><a class="link" href="#_thread_breakpoints">9. Thread breakpoints</a></h3>
+<h3 id="_thread_breakpoints"><a class="anchor" href="#_thread_breakpoints"></a><a class="link" href="#_thread_breakpoints">10. Thread breakpoints</a></h3>
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/thread_breaks.png" alt="thread breaks">
@@ -2143,7 +2203,7 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">10. The tool bar</a></h3>
+<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">11. The tool bar</a></h3>
 <div class="paragraph">
 <p>The toolbar provides quick access to some general commands :</p>
 </div>
@@ -2170,7 +2230,7 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">11. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
+<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">12. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
 <div class="paragraph">
 <p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
 you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
@@ -2201,7 +2261,7 @@ run you original command.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">12. Programmable debugging</a></h3>
+<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">13. Programmable debugging</a></h3>
 <div class="paragraph">
 <p>FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
 enough.</p>
@@ -2218,7 +2278,7 @@ enough.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">12.1. Example 1</a></h4>
+<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">13.1. Example 1</a></h4>
 <div class="paragraph">
 <p>Collect all the types information for parameters that flow into a function</p>
 </div>
@@ -2240,7 +2300,7 @@ enough.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">12.2. Example 2</a></h4>
+<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">13.2. Example 2</a></h4>
 <div class="paragraph">
 <p>Visualization lenses over traces. Say I have a loop-recur process in which I am computing
 new versions of an accumulated data structure, but I want to see only some derived data
@@ -2269,7 +2329,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">12.3. Example 3</a></h4>
+<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">13.3. Example 3</a></h4>
 <div class="paragraph">
 <p>Create a small stepper for the repl</p>
 </div>
@@ -2312,7 +2372,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">13. Dealing with mutable values</a></h3>
+<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">14. Dealing with mutable values</a></h3>
 <div class="paragraph">
 <p>FlowStorm will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :</p>
@@ -2381,7 +2441,7 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_too_many_traces"><a class="anchor" href="#_dealing_with_too_many_traces"></a><a class="link" href="#_dealing_with_too_many_traces">14. Dealing with too many traces</a></h3>
+<h3 id="_dealing_with_too_many_traces"><a class="anchor" href="#_dealing_with_too_many_traces"></a><a class="link" href="#_dealing_with_too_many_traces">15. Dealing with too many traces</a></h3>
 <div class="paragraph">
 <p>If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
 too many traces, making everything slow and where your only option is to restart it.</p>
@@ -2407,7 +2467,7 @@ the debugger to figure out what went wrong.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">15. Styling and theming</a></h3>
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">16. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code>, <code>:title</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -2437,9 +2497,9 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">16. Key bindings</a></h3>
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">17. Key bindings</a></h3>
 <div class="sect3">
-<h4 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">16.1. General</a></h4>
+<h4 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">17.1. General</a></h4>
 <div class="ulist">
 <ul>
 <li>
@@ -2467,7 +2527,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">16.2. Flows</a></h4>
+<h4 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">17.2. Flows</a></h4>
 <div class="ulist">
 <ul>
 <li>
@@ -2511,7 +2571,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">17. Debugging react native applications</a></h3>
+<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">18. Debugging react native applications</a></h3>
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
 </div>
@@ -2542,7 +2602,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></h3>
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">19. Working on Windows with WSL2</a></h3>
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -2591,24 +2651,24 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">19. Editors/IDEs integration</a></h3>
+<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">20. Editors/IDEs integration</a></h3>
 <div class="sect3">
-<h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">19.1. Emacs</a></h4>
+<h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">20.1. Emacs</a></h4>
 <div class="paragraph">
 <p>Checkout <a href="https://github.com/jpmonettas/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">19.2. VSCode</a></h4>
+<h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">20.2. VSCode</a></h4>
 
 </div>
 <div class="sect3">
-<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></h4>
+<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></h4>
 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">20. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">21. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2645,16 +2705,16 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">21. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">22. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">21.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">22.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">21.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">22.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -2667,7 +2727,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">22. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2685,7 +2745,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-07-21 15:50:37 -0300
+Last updated 2023-07-27 07:32:25 -0300
 </div>
 </div>
 </body>

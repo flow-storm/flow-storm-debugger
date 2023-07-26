@@ -5,6 +5,7 @@
 ### New Features
     
     - Add "Search value on Flows" to taps
+    - Add "Timeline tool" implementation
     
 ### Changes
     

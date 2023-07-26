@@ -1,7 +1,11 @@
 (ns flow-storm.runtime.indexes.thread-registry
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :refer [int-map]]
-            [clojure.string :as str])
+            [flow-storm.runtime.indexes.utils :refer [int-map make-mutable-list ml-add ml-clear]]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace :refer [fn-call-trace?]]
+            [flow-storm.runtime.types.fn-return-trace :as fn-return-trace :refer [fn-return-trace?]]
+            [flow-storm.runtime.types.expr-trace :as expr-trace :refer [expr-trace?]]
+            [clojure.string :as str]
+            [hansel.utils :as hansel-utils])
   #?(:clj (:import [clojure.data.int_map PersistentIntMap])))
 
 (defn flow-id-key [fid]
@@ -11,7 +15,21 @@
   (when-not (= fk 10)
     fk))
 
+(defprotocol TotalOrderTimelineEntryP
+  (tote-flow-id [_])
+  (tote-thread-id [_])
+  (tote-thread-tl-idx [_])
+  (tote-entry [_]))
+
+(deftype TotalOrderTimelineEntry [flow-id thread-id thread-tl-idx entry]
+  TotalOrderTimelineEntryP
+  (tote-flow-id [_] flow-id)
+  (tote-thread-id [_] thread-id)
+  (tote-thread-tl-idx [_] thread-tl-idx)
+  (tote-entry [_] entry))
+
 (defrecord ThreadRegistry [registry
+                           total-order-timeline
                            *callbacks]
 
   index-protos/ThreadRegistryP
@@ -84,14 +102,77 @@
                                          efks))
                                      #{}
                                      @registry)]      
-      (swap! registry (fn [flows-map] (apply dissoc flows-map empty-flow-keys)))))
+      (swap! registry (fn [flows-map] (apply dissoc flows-map empty-flow-keys))))
+
+    ;; discard the entire total-order-timeline list if we
+    ;; discard any threads
+    (locking total-order-timeline
+      (ml-clear total-order-timeline)))
 
   (start-thread-registry [thread-reg callbacks]    
     (reset! *callbacks callbacks)
     thread-reg)
 
-  (stop-thread-registry [_]))
+  (stop-thread-registry [_])
+
+  (record-total-order-entry [_ flow-id thread-id thread-tl-idx entry]
+    (locking total-order-timeline
+      (ml-add total-order-timeline (TotalOrderTimelineEntry. flow-id thread-id thread-tl-idx entry))))
+
+  (total-order-timeline [_ forms-registry]
+    (locking total-order-timeline
+      (loop [[tote & r] total-order-timeline
+             threads-stacks {}
+             timeline-ret (transient [])]
+        (if-not tote
+          (persistent! timeline-ret)
+          
+          (let [entry (tote-entry tote)
+                fid   (tote-flow-id tote)
+                tid   (tote-thread-id tote)
+                tidx  (tote-thread-tl-idx tote)]
+            (cond
+              (fn-call-trace? entry)
+              (recur r
+                     (update threads-stacks tid conj entry)
+                     (conj! timeline-ret {:type                :fn-call
+                                          :flow-id             fid
+                                          :thread-id           tid
+                                          :thread-timeline-idx tidx
+                                          :fn-ns               (fn-call-trace/get-fn-ns entry)
+                                          :fn-name             (fn-call-trace/get-fn-name entry)}))
+              
+              (fn-return-trace? entry)
+              (recur r
+                     (update threads-stacks tid pop)
+                     (conj! timeline-ret {:type                :fn-return
+                                          :flow-id             fid
+                                          :thread-id           tid
+                                          :thread-timeline-idx tidx}))
+              
+              (expr-trace? entry)
+              (let [[curr-fn-call] (get threads-stacks tid)
+                    form-id (fn-call-trace/get-form-id curr-fn-call)
+                    form-data (index-protos/get-form forms-registry form-id)
+                    coord (expr-trace/get-coord entry)
+                    expr-val (expr-trace/get-expr-val entry)]
+                
+                (recur r
+                       threads-stacks
+                       (conj! timeline-ret {:type                :expr-exec
+                                            :flow-id             fid
+                                            :thread-id           tid
+                                            :thread-timeline-idx tidx
+                                            :expr-str            (binding [*print-length* 5
+                                                                           *print-level*  3]
+                                                                   (pr-str
+                                                                    (hansel-utils/get-form-at-coord (:form/form form-data)
+                                                                                                    coord)))
+                                            :expr-val-str  (binding [*print-length* 3
+                                                                     *print-level*  2]
+                                                             (pr-str expr-val))}))))))))))
 
 (defn make-thread-registry []
   (map->ThreadRegistry {:registry (atom (int-map))
+                        :total-order-timeline (make-mutable-list)
                         :*callbacks (atom {})}))

@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.utils
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
-            Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell
+            Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
@@ -377,10 +377,10 @@
 
   "Create a TableView component.
   `columns` should be a vector of strings with columns names.
-  `cell-factory-fn` a fn that gets called with each item (from `items`) and should return a Node for the cell.
+  `cell-factory-fn` a fn that gets called with each cell and item and should return a Node for the cell.
   `items` a collection of data items for the table. Each one should be a vector with the same amount "
 
-  [{:keys [columns cell-factory-fn items selection-mode search-predicate on-click on-enter resize-policy]
+  [{:keys [columns cell-factory-fn row-update-fn items selection-mode search-predicate on-click on-enter resize-policy]
     :or {selection-mode :multiple
          resize-policy :unconstrained}}]
 
@@ -408,10 +408,11 @@
                                                        (.setGraphic nil)
                                                        (.setText nil))
 
-                                                     (let [cell-graphic (cell-factory-fn item)]
+                                                     (let [cell-graphic (cell-factory-fn this item)]
                                                        (doto this
                                                          (.setText nil)
                                                          (.setGraphic cell-graphic))))))))))))
+
         columns (map-indexed make-column columns)
         table-selection (.getSelectionModel tv)
         selected-items (fn [] (.getSelectedItems table-selection))
@@ -430,6 +431,17 @@
                     :table-view-pane box
                     :clear clear
                     :add-all add-all}]
+
+    (when row-update-fn
+      (.setRowFactory
+       tv
+       (proxy [javafx.util.Callback] []
+         (call [tcol]
+           (proxy [TableRow] []
+             (updateItem [item empty?]
+               (let [^TableRow this this]
+                 (proxy-super updateItem item empty?)
+                 (row-update-fn this item))))))))
 
     (.clear (.getColumns tv))
     (.addAll (.getColumns tv) columns)

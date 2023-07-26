@@ -145,7 +145,8 @@
           (fn-call-trace/set-parent-idx fn-call (index-protos/entry-idx curr-fn-call)))
         (fn-call-trace/set-idx fn-call tl-idx)
         (ms-push build-stack fn-call)        
-        (ml-add timeline fn-call))))
+        (ml-add timeline fn-call)
+        tl-idx)))
 
   (add-fn-return [this fn-ret]
     (locking this
@@ -157,7 +158,8 @@
           (fn-return-trace/set-fn-call-idx fn-ret (index-protos/entry-idx curr-fn-call))
           (fn-call-trace/set-ret-idx curr-fn-call tl-idx)          
           (ml-add timeline fn-ret)
-          (ms-pop build-stack)))))
+          (ms-pop build-stack)
+          tl-idx))))
   
   (add-expr-exec [this expr]
     (locking this
@@ -167,7 +169,8 @@
               curr-fn-call (ms-peek build-stack)]
           (expr-trace/set-idx expr tl-idx)
           (expr-trace/set-fn-call-idx expr (index-protos/entry-idx curr-fn-call))
-          (ml-add timeline expr)))))
+          (ml-add timeline expr)
+          tl-idx))))
   
   (add-bind [this bind]
     ;; discard all expressions when no FnCall has been made yet

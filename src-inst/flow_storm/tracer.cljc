@@ -12,6 +12,7 @@
 (declare start-tracer)
 (declare stop-tracer)
 
+(def total-order-recording (atom false))
 (def recording (atom true))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
@@ -24,8 +25,13 @@
 
     (reset! recording false)))
 
-(defn recording? []
-  @recording)
+(defn recording? [] @recording)
+
+(defn set-total-order-recording [x]
+  (reset! total-order-recording (boolean x)))
+
+(defn total-order-recording? []
+  @total-order-recording)
 
 #?(:clj
    (defn- block-this-thread [flow-id breakpoint]
@@ -130,7 +136,8 @@
           flow-id
           thread-id
           thread-name
-          (make-fn-call-trace fn-ns fn-name form-id args)))))))
+          (make-fn-call-trace fn-ns fn-name form-id args)
+          @total-order-recording))))))
 
 (defn- stringify-coord [coord-vec]
   (str/join "," coord-vec))
@@ -151,7 +158,8 @@
        (indexes-api/add-fn-return-trace
         flow-id
         thread-id      
-        (make-fn-return-trace coord (snapshot-reference return)))))))
+        (make-fn-return-trace coord (snapshot-reference return))
+        @total-order-recording)))))
 
 (defn trace-expr-exec
   
@@ -175,7 +183,8 @@
        (indexes-api/add-expr-exec-trace      
         flow-id
         thread-id      
-        (make-expr-trace coord (snapshot-reference result)))))))
+        (make-expr-trace coord (snapshot-reference result))
+        @total-order-recording)))))
 
 (defn trace-bind
   

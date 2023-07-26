@@ -59,6 +59,11 @@
    :clj (defn ml-sub-list [^ArrayList mlist from to]
           (.subList mlist from to)))
 
+#?(:cljs (defn ml-clear [mlist]
+           (set! (.-length mlist) 0))
+   :clj (defn ml-clear [^ArrayList mlist]
+          (.clear mlist)))
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Mutable hashmap ;;
 ;;;;;;;;;;;;;;;;;;;;;

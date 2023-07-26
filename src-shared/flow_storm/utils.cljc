@@ -46,11 +46,11 @@
   (if (str/blank? str-coord)
     []
     (->> (str/split str-coord #",")
-         (map (fn [x]
-                (if (or (str/starts-with? x "K")
-                        (str/starts-with? x "V"))
-                  x
-                  (parse-int x)))))))
+         (mapv (fn [x]
+                 (if (or (str/starts-with? x "K")
+                         (str/starts-with? x "V"))
+                   x
+                   (parse-int x)))))))
 
 #?(:clj (defn map-like? [x] (instance? java.util.Map x)))
 #?(:cljs (defn map-like? [x] (map? x)))
