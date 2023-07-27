@@ -22,6 +22,7 @@
 
 (defn find-and-jump-tap-val [vref]
   (when-let [tentry (runtime-api/find-timeline-entry rt-api {:from-idx 0
+                                                             :comp-fn-key :identity
                                                              :eq-val-ref vref})]
     (ui-vars/select-main-tools-tab :flows)
     (flows-screen/goto-location tentry)))

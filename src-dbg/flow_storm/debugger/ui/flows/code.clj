@@ -390,6 +390,7 @@
                                                                                 (dec idx)
                                                                                 (inc idx))
                                                                     :backward? backward?
+                                                                    :comp-fn-key :identity
                                                                     :eq-val-ref vref})]
       (jump-to-coord flow-id thread-id next-tentry))))
 

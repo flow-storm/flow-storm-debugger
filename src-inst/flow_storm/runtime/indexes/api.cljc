@@ -346,11 +346,15 @@
                        :thread-id tid)))))
         (index-protos/all-threads flow-thread-registry)))
 
-(defn find-timeline-entry [{:keys [flow-id thread-id from-idx eq-val backward?] :as criteria
-                            :or {from-idx 0}}]
-  (let [search-pred (fn [tl-entry]
+(defn find-timeline-entry [{:keys [flow-id thread-id from-idx eq-val comp-fn-key backward?] :as criteria
+                            :or {from-idx 0
+                                 comp-fn-key :equality}}]
+  (let [comp-fn (case comp-fn-key
+                  :equality =
+                  :identity identical?)        
+        search-pred (fn [tl-entry]                      
                       (and (expr-trace/expr-trace? tl-entry)
-                           (identical? (expr-trace/get-expr-val tl-entry) eq-val)))]
+                           (comp-fn (expr-trace/get-expr-val tl-entry) eq-val)))]
     (some (fn [[fid tid]]
             (when (and (or (not (contains? criteria :flow-id))
                            (= flow-id fid))
