@@ -1877,11 +1877,35 @@ you can right click on any function to un instrument it. You will have to <a hre
 </div>
 </div>
 <div class="paragraph">
-<p>Every time you (local-connect) or (remote-connect) FlowStorm will add a tap, so whenever you <code>tap&gt;</code> something
-it show in the taps list.</p>
+<p>Everytime FlowStorm starts, it will add a tap, so whenever you <code>tap&gt;</code> something
+it will show on the taps list.</p>
 </div>
 <div class="paragraph">
-<p>Double click on any value to start the value inspector for it.</p>
+<p>Double click on any value to show it in the value inspector.</p>
+</div>
+<div class="paragraph">
+<p>If the tapped value has also been recorded as an expression in Flows, you can right click on it
+and run <code>Search value on Flows</code> to move the debugger to that point in time.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Search value on Flows</div>
+<div class="paragraph">
+<p>Be aware that if the code that taps your value is something like <code>(tap&gt; :a-key)</code> you won&#8217;t be able to jump
+to it using this, because <code>:a-key</code> isn&#8217;t a value recorded by FlowStorm, while if the tapping
+code is like <code>(tap&gt; some-bind)</code> or <code>(tap&gt; (+ 2 3))</code> or the tapping of any other expression
+you should be able to jump to it.
+So if you want to use this functionality as a "mark" so you can quickly jump to different parts of
+the recordings from the Taps tool, you can do it like <code>(tap&gt; (str :my-mark))</code></p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>A <code>#tap</code> tag will also be available, which will tap and return so you can use it like <code>(+ 1 2 #tap (* 3 4))</code>
@@ -2745,7 +2769,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-07-27 07:32:25 -0300
+Last updated 2023-07-27 08:15:04 -0300
 </div>
 </div>
 </body>

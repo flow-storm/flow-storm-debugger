@@ -683,10 +683,24 @@ Use the taps tool to visualize your `tap>`.
 
 image::user_guide_images/taps.png[]
 
-Every time you (local-connect) or (remote-connect) FlowStorm will add a tap, so whenever you `tap>` something
-it show in the taps list.
+Everytime FlowStorm starts, it will add a tap, so whenever you `tap>` something
+it will show on the taps list.
 
-Double click on any value to start the value inspector for it.
+Double click on any value to show it in the value inspector.
+
+If the tapped value has also been recorded as an expression in Flows, you can right click on it
+and run `Search value on Flows` to move the debugger to that point in time.
+
+[NOTE]
+.Search value on Flows
+====
+Be aware that if the code that taps your value is something like `(tap> :a-key)` you won't be able to jump
+to it using this, because `:a-key` isn't a value recorded by FlowStorm, while if the tapping
+code is like `(tap> some-bind)` or `(tap> (+ 2 3))` or the tapping of any other expression
+you should be able to jump to it.
+So if you want to use this functionality as a "mark" so you can quickly jump to different parts of
+the recordings from the Taps tool, you can do it like `(tap> (str :my-mark))`
+====
 
 A `#tap` tag will also be available, which will tap and return so you can use it like `(+ 1 2 #tap (* 3 4))`
 Use the `clear` button to clear the list.
