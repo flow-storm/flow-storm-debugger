@@ -26,7 +26,7 @@
 
 (defn main-pane []
   (let [{:keys [table-view-pane table-view add-all] :as table-data}
-        (table-view {:columns ["Thread Id" "Thread Name" "Function" "Expression" "Value"]
+        (table-view {:columns ["Thread Id" "Thread Name" "Function" "Expression" "Value" "Value type"]
                      :resize-policy :constrained
                      :cell-factory-fn (fn [_ cell-val]
                                         (doto (label (str cell-val))
@@ -43,11 +43,13 @@
                                               (flows-screen/goto-location {:flow-id flow-id
                                                                            :thread-id thread-id
                                                                            :idx thread-timeline-idx})))))))
-                     :search-predicate (fn [[_ thread-id function expression] search-str]
+                     :search-predicate (fn [[_ thread-id function expression expr-val expr-type] search-str]
                                          (boolean
                                           (or (str/includes? (str thread-id) search-str)
                                               (str/includes? function search-str)
-                                              (str/includes? expression search-str))))
+                                              (str/includes? expression search-str)
+                                              (and expr-val (str/includes? expr-val search-str))
+                                              (and expr-type (str/includes? expr-type search-str)))))
                      :items []})
         record-btn (doto (CheckBox.)
                      (.setSelected false))
@@ -61,13 +63,13 @@
                                                                    (into #{}))
                                                    thread-color (zipmap thread-ids thread-colors)]
                                                (->> timeline
-                                                    (mapv (fn [{:keys [type thread-id fn-ns fn-name expr-str expr-val-str] :as tl-entry}]
+                                                    (mapv (fn [{:keys [type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
                                                             (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)]
                                                               (with-meta
                                                                 (case type
-                                                                 :fn-call   [thread-id name  (format "%s/%s" fn-ns fn-name)  "" ""]
-                                                                 :fn-return [thread-id name "RETURN"                         "" ""]
-                                                                 :expr-exec [thread-id name ""                         expr-str expr-val-str])
+                                                                 :fn-call   [thread-id name  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
+                                                                 :fn-return [thread-id name "RETURN"                         ""       expr-val-str expr-type]
+                                                                 :expr-exec [thread-id name ""                               expr-str expr-val-str expr-type])
                                                                 (assoc tl-entry :color (thread-color thread-id))))))
                                                     add-all)))
                                  :tooltip "Refresh the content of the timeline")

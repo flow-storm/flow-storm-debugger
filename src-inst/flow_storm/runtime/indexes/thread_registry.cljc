@@ -168,6 +168,7 @@
                                                                    (pr-str
                                                                     (hansel-utils/get-form-at-coord (:form/form form-data)
                                                                                                     coord)))
+                                            :expr-type (pr-str (type expr-val))
                                             :expr-val-str  (binding [*print-length* 3
                                                                      *print-level*  2]
                                                              (pr-str expr-val))}))))))))))
