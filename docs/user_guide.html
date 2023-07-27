@@ -704,6 +704,7 @@ pre.rouge {
 <li><a href="#_code_tool">4.1. Code tool</a>
 <ul class="sectlevel4">
 <li><a href="#_code_stepping">Code stepping</a></li>
+<li><a href="#_power_stepping">Power stepping</a></li>
 <li><a href="#_searching">Searching</a></li>
 <li><a href="#_loops">Loops</a></li>
 <li><a href="#_exception_debugging">Exception debugging</a></li>
@@ -1569,7 +1570,7 @@ You can use it to step over each expression, visualize values, locals and more.<
 </div>
 </div>
 <div class="paragraph">
-<p>The numbers at the end show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
+<p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
 for this thread so far.</p>
 </div>
 <div class="paragraph">
@@ -1582,12 +1583,15 @@ positions you find and then use this text box to jump back to it if you need.</p
 <div class="ulist">
 <ul>
 <li>
-<p>You can use the controls at the top or [Ctrl | Alt]+MouseWheel on the forms to move one step at a time.</p>
+<p>You can use the controls at the top to step over your code in different ways.</p>
 </li>
 <li>
 <p>Or you can click on the highlighted forms to position the debugger at that point in time.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Only the forms that were executed at least once for the flow and thread will be highlighted.</p>
 </div>
 <div class="paragraph">
 <p>From left to right this are the controls you have available :</p>
@@ -1618,16 +1622,53 @@ positions you find and then use this text box to jump back to it if you need.</p
 <li>
 <p>Jump to the last step of the recording.</p>
 </li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_power_stepping"><a class="anchor" href="#_power_stepping"></a><a class="link" href="#_power_stepping">Power stepping</a></h5>
+<div class="paragraph">
+<p>The controls at the right are power stepping controls. They provide more powerfull ways of stepping through the code.</p>
+</div>
+<div class="paragraph">
+<p>There are currently 3 power stepping tools :</p>
+</div>
+<div class="ulist">
+<ul>
 <li>
-<p>Follow value backwards. Will step to the previous expression (if any) that evaluates to the current value.</p>
+<p>identity, will step to the next value which identity is the same as the current value</p>
 </li>
 <li>
-<p>Follow value forward. Will step to the next expression (if any) that evaluates to the current value.</p>
+<p>equality, will step to the next value which is equals (clojure equality) to the current value</p>
+</li>
+<li>
+<p>custom, allows you to provide a predicate, which will be used to find the next step.
+If you define it like <code>(fn [v] (map? v))</code> will make the power stepper step over all map values.</p>
 </li>
 </ul>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/controls_power_custom.png" alt="controls power custom">
+</div>
+</div>
 <div class="paragraph">
-<p>Only the forms that were executed at least once for the flow and thread will be highlighted.</p>
+<p>Clicking on the back and forward button will use the selected power stepping tool.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Custom stepping</div>
+<div class="paragraph">
+<p>Custom power stepping is only supported in Clojure now.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect4">
@@ -2769,7 +2810,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-07-27 08:15:04 -0300
+Last updated 2023-07-27 10:33:28 -0300
 </div>
 </div>
 </body>

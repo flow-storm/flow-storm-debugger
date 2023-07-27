@@ -6,6 +6,7 @@
     
     - Add "Search value on Flows" to taps
     - Add "Timeline tool" implementation
+    - Add power stepping to stepping controls
     
 ### Changes
     

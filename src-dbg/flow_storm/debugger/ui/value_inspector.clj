@@ -97,7 +97,7 @@
      :def-fn (fn [] (def-val vref))
      :tap-fn (fn [] (runtime-api/tap-value rt-api vref))
      :find-val-fn (when find-and-jump-same-val
-                    (fn [backward?] (find-and-jump-same-val vref backward?)))
+                    (fn [backward?] (find-and-jump-same-val vref {:comp-fn-key :identity} backward?)))
      :shallow-val shallow-val}))
 
 (defn make-item [stack-key v]

@@ -2,7 +2,7 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box border-pane]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
@@ -382,23 +382,51 @@
         last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
     (jump-to-coord flow-id thread-id last-tentry)))
 
-(defn find-and-jump-same-val [flow-id thread-id vref backward?]
+(defn find-and-jump-same-val [flow-id thread-id curr-vref search-params backward?]
   (let [{:keys [idx]} (state/current-timeline-entry flow-id thread-id)]
-    (when-let [next-tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
-                                                                    :thread-id thread-id
-                                                                    :from-idx (if backward?
-                                                                                (dec idx)
-                                                                                (inc idx))
-                                                                    :backward? backward?
-                                                                    :comp-fn-key :identity
-                                                                    :eq-val-ref vref})]
+    (when-let [next-tentry (runtime-api/find-timeline-entry rt-api (merge
+                                                                    {:flow-id flow-id
+                                                                     :thread-id thread-id
+                                                                     :from-idx (if backward?
+                                                                                 (dec idx)
+                                                                                 (inc idx))
+                                                                     :backward? backward?
+                                                                     :eq-val-ref curr-vref}
+                                                                    search-params))]
       (jump-to-coord flow-id thread-id next-tentry))))
 
-(defn step-same-val [flow-id thread-id backward?]
+(defn step-same-val [flow-id thread-id search-params backward?]
   (let [{:keys [type result]} (state/current-timeline-entry flow-id thread-id)]
     (when (#{:expr :fn-return} type)
-      (find-and-jump-same-val flow-id thread-id result backward?))))
+      (find-and-jump-same-val flow-id thread-id result search-params backward?))))
 
+
+(defn- power-stepping-pane [flow-id thread-id]
+  (let [custom-expression-txt (doto (text-field {:initial-text "(fn [v] v)"})
+                                (.setVisible false))
+        step-type-combo (combo-box {:items ["identity" "equality" "custom"]
+                                    :on-change-fn (fn [_ new-val]
+                                                    (case new-val
+                                                      "identity" (.setVisible custom-expression-txt false)
+                                                      "equality" (.setVisible custom-expression-txt false)
+                                                      "custom"   (.setVisible custom-expression-txt true)))})
+        search-params (fn []
+                        (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)]
+                          (case step-type-val
+                            "identity" {:comp-fn-key :identity}
+                            "equality" {:comp-fn-key :equality}
+                            "custom"   {:comp-fn-key :custom
+                                        :comp-fn-code (.getText custom-expression-txt)})))
+        val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
+                                           :on-click (fn [] (step-same-val flow-id thread-id (search-params) true))
+                                           :tooltip "Find the prev expression that contains this value")
+        val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
+                                           :on-click (fn [] (step-same-val flow-id thread-id (search-params) false))
+                                           :tooltip "Find the next expression that contains this value")
+
+        power-stepping-pane (doto (h-box [val-prev-btn val-next-btn step-type-combo custom-expression-txt])
+                              (.setSpacing 3))]
+    power-stepping-pane))
 
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
@@ -442,12 +470,7 @@
         last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
                                        :on-click (fn [] (step-last flow-id thread-id))
                                        :tooltip "Step to the last recorded expression")
-        val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
-                                           :on-click (fn [] (step-same-val flow-id thread-id true))
-                                           :tooltip "Find the prev expression that contains this value")
-        val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
-                                           :on-click (fn [] (step-same-val flow-id thread-id false))
-                                           :tooltip "Find the next expression that contains this value")
+
 
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
                                               :on-click (fn []
@@ -459,11 +482,14 @@
 
         trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
                         (.setSpacing 2.0))
-        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn val-prev-btn val-next-btn])
+        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn])
                        (.setSpacing 2.0))]
 
-    (doto (h-box [controls-box trace-pos-box] "thread-controls-pane")
-      (.setSpacing 2.0))))
+    (border-pane {:left controls-box
+                  :center trace-pos-box
+                  :right (power-stepping-pane flow-id thread-id)}
+                 "thread-controls-pane")
+    ))
 
 (defn- create-search-pane [flow-id thread-id]
   (let [search-txt (doto (TextField.)

@@ -2,7 +2,8 @@
   (:require [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
-            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip]
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
+            ComboBox]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
@@ -194,6 +195,22 @@
     (.setEditable ta editable?)
 
     ta))
+
+(defn combo-box [{:keys [items on-change-fn]}]
+  (let [observable-list (FXCollections/observableArrayList)
+        cb (doto (ComboBox.)
+             (.setItems observable-list))
+        sel-model (.getSelectionModel cb)]
+    (.addAll observable-list (into-array String items))
+    (.select sel-model (first items))
+
+    (when on-change-fn
+      (-> cb
+          .valueProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed [_ prev-val new-val]
+                            (on-change-fn prev-val new-val))))))
+    cb))
 
 (defn set-min-size-wrap-content [node]
   (doto node

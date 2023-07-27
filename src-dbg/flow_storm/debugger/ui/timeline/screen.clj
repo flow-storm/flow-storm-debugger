@@ -10,7 +10,7 @@
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.flows.screen :as flows-screen])
   (:import [javafx.scene.layout Priority VBox]
-           [javafx.scene.control TableCell TableRow CheckBox]
+           [javafx.scene.control TableRow CheckBox]
            [javafx.scene.input MouseButton]))
 
 (def thread-colors ["#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"])
