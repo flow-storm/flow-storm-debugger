@@ -147,6 +147,9 @@
 (defn total-order-timeline []
   (index-api/total-order-timeline))
 
+(defn thread-prints [print-cfg]
+  (index-api/thread-prints print-cfg))
+
 ;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
 ;;       so it can be AOT compiled without too many issues
 #?(:clj
@@ -168,9 +171,7 @@
                                              (if (or (expr-trace/expr-trace? tl-entry)
                                                      (fn-return-trace/fn-return-trace? tl-entry))
 
-                                               (let [result (if (expr-trace/expr-trace? tl-entry)
-                                                              (expr-trace/get-expr-val tl-entry)
-                                                              (fn-return-trace/get-ret-val tl-entry))]
+                                               (let [result (index-protos/get-expr-val tl-entry)]
                                                  (if (str/includes? (:val-str (runtime-values/val-pprint result {:print-length print-length
                                                                                                                  :print-level print-level
                                                                                                                  :pprint? false}))
@@ -213,9 +214,7 @@
                              (if (or (expr-trace/expr-trace? tl-entry)
                                      (fn-return-trace/fn-return-trace? tl-entry))
                                
-                               (let [result (if (expr-trace/expr-trace? tl-entry)
-                                              (expr-trace/get-expr-val tl-entry)
-                                              (fn-return-trace/get-ret-val tl-entry))]
+                               (let [result (index-protos/get-expr-val tl-entry)]
                                  
                                  (if (str/includes? (:val-str (runtime-values/val-pprint result {:print-length print-length
                                                                                                  :print-level print-level
@@ -436,6 +435,7 @@
              :find-fn-frames-light find-fn-frames-light
              :find-timeline-entry find-timeline-entry
              :total-order-timeline total-order-timeline
+             :thread-prints thread-prints
              :async-search-next-timeline-entry async-search-next-timeline-entry
              :discard-flow discard-flow             
              :tap-value tap-value

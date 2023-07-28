@@ -9,6 +9,7 @@
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]            
             [flow-storm.runtime.types.expr-trace :as expr-trace]            
             [clojure.pprint :as pp]
+            [clojure.string :as str]
             [flow-storm.utils :as utils]))
 
 (declare discard-flow)
@@ -361,12 +362,7 @@
                                       (utils/log "Custom stepping is not supported in ClojureScript yet")
                                       (constantly true))))
           search-pred (fn [tl-entry]
-                        (cond
-                          (expr-trace/expr-trace? tl-entry)
-                          (comp-fn (expr-trace/get-expr-val tl-entry) eq-val)
-
-                          (fn-return-trace/fn-return-trace? tl-entry)
-                          (comp-fn (fn-return-trace/get-ret-val tl-entry) eq-val)))]
+                        (comp-fn (index-protos/get-expr-val tl-entry) eq-val))]
      (some (fn [[fid tid]]
              (when (and (or (not (contains? criteria :flow-id))
                             (= flow-id fid))
@@ -384,6 +380,55 @@
 
 (defn total-order-timeline []
   (index-protos/total-order-timeline flow-thread-registry forms-registry))
+
+(defn thread-prints [{:keys [flow-id thread-id printers]}]
+  ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level}}}
+  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
+        printers (utils/update-values
+                  printers
+                  (fn [corrds-map]
+                    (utils/update-keys
+                     corrds-map
+                     (fn [coord-vec]
+                       (let [scoord (str/join "," coord-vec)]
+                         #?(:cljs scoord
+                            :clj (.intern scoord)))))))
+        tl-entries (index-protos/timeline-raw-entries timeline-index 0 (dec (index-protos/timeline-count timeline-index)))
+        maybe-print-entry (fn [prints-so-far curr-fn-call tl-entry]
+                            (let [form-id (fn-call-trace/get-form-id curr-fn-call)]
+                              (if (contains? printers form-id)
+                                (let [coords-map (get printers form-id)
+                                      coord (index-protos/get-coord-raw tl-entry)]
+                                  (if (contains? coords-map coord)
+                                    ;; we are interested in this coord so lets print it
+                                    (let [{:keys [print-length print-level format-str]} (get coords-map coord)
+                                          val (index-protos/get-expr-val tl-entry)]
+                                      (binding [*print-length* print-length
+                                                *print-level* print-level]
+                                        (conj! prints-so-far {:text (utils/format format-str (pr-str val))
+                                                              :idx (index-protos/entry-idx tl-entry)})))
+                                    
+                                    ;; else skip if we aren't interested in this coord))
+                                    prints-so-far))
+                                
+                                ;; else skip if we aren't interested in this form id
+                                prints-so-far)))]
+    (loop [[tl-entry & rest-entries] tl-entries
+           thread-stack ()
+           prints (transient [])]
+      (if-not tl-entry
+        
+        (persistent! prints)
+        
+        (cond
+          (fn-call-trace/fn-call-trace? tl-entry)
+          (recur rest-entries (conj thread-stack tl-entry) prints)
+
+          (fn-return-trace/fn-return-trace? tl-entry)
+          (recur rest-entries (pop thread-stack) (maybe-print-entry prints (first thread-stack) tl-entry))
+
+          (expr-trace/expr-trace? tl-entry)
+          (recur rest-entries thread-stack (maybe-print-entry prints (first thread-stack) tl-entry)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

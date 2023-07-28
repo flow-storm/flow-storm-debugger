@@ -3,7 +3,7 @@
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
-            ComboBox]
+            ComboBox CheckBox]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
@@ -196,12 +196,15 @@
 
     ta))
 
+(defn combo-box-set-items [^ComboBox cbox items]
+  (let [observable-list (FXCollections/observableArrayList)]
+    (.setItems cbox observable-list)
+    (.addAll observable-list (into-array String items))))
+
 (defn combo-box [{:keys [items on-change-fn]}]
-  (let [observable-list (FXCollections/observableArrayList)
-        cb (doto (ComboBox.)
-             (.setItems observable-list))
+  (let [cb (ComboBox.)
         sel-model (.getSelectionModel cb)]
-    (.addAll observable-list (into-array String items))
+    (combo-box-set-items cb items)
     (.select sel-model (first items))
 
     (when on-change-fn
@@ -212,6 +215,16 @@
                             (on-change-fn prev-val new-val))))))
     cb))
 
+(defn check-box [{:keys [on-change]}]
+  (let [cb (CheckBox.)]
+    (when on-change
+      (-> cb
+          .selectedProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed  [_ _ new-selected?]
+                            (on-change new-selected?))))))
+    cb))
+
 (defn set-min-size-wrap-content [node]
   (doto node
     (.setMinHeight (Region/USE_PREF_SIZE))))
@@ -219,7 +232,7 @@
 
 (defn text-field
   ([params] (text-field params nil))
-  ([{:keys [initial-text on-return-key align]} class]
+  ([{:keys [initial-text on-return-key on-change align]} class]
    (let [tf (TextField. "")]
      (when class
        (add-class tf class))
@@ -232,6 +245,12 @@
                                :right  Pos/CENTER_RIGHT
                                :center Pos/CENTER}
                               align)))
+     (when on-change
+      (-> tf
+          .textProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed  [_ _ new-text]
+                            (on-change new-text))))))
      tf)))
 
 (defn tab [{:keys [id text graphic class content on-selection-changed tooltip]}]

@@ -5,8 +5,6 @@
 (def nil-idx -1)
 
 (defprotocol FnReturnTraceP
-  (get-coord [_])
-  (get-ret-val [_])
   (set-fn-call-idx [_ idx])
   (set-idx [_ idx]))
 
@@ -16,15 +14,20 @@
      ^:unsynchronized-mutable ^int fnCallIdx
      ^:unsynchronized-mutable ^int thisIdx]
 
+  index-protos/ExpressionTimelineEntryP
+  (get-expr-val [_] retVal)
+  
   FnReturnTraceP
-
-  (get-coord [_] (utils/str-coord->vec coord))
-  (get-ret-val [_] retVal)
+    
   (set-fn-call-idx [_ idx]
     (set! fnCallIdx (int idx)))
   (set-idx [_ idx]
     (set! thisIdx (int idx)))
 
+  index-protos/CoordableTimelineEntryP
+  (get-coord-vec [_] (utils/str-coord->vec coord))
+  (get-coord-raw [_] coord)
+  
   index-protos/TimelineEntryP
 
   (entry-type [_] :fn-return)
@@ -40,8 +43,8 @@
   
   (as-immutable [this]
     {:type :fn-return
-     :coord (get-coord this)
-     :result (get-ret-val this)
+     :coord (index-protos/get-coord-vec this)
+     :result (index-protos/get-expr-val this)
      :fn-call-idx (index-protos/fn-call-idx this)
      :idx (index-protos/entry-idx this)})
   

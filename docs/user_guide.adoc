@@ -855,6 +855,39 @@ Rendering the timeline needs some processing to render each sub-form and print e
 if you try it on big recordings.
 ====
 
+== Printer tool
+
+FlowStorm has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
+inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
+of understanding your execution.
+
+For this cases FlowStorm has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
+of re running your code again. It will work on your recordings as everything else.
+
+You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
+recorded expression. It will ask you for an optional message, which you can use to identify this particular prints in the output console.
+
+image::user_guide_images/printer_add.png[]
+
+After you add them, the `Print tool` will show all your prints. You can use the panel at the top to manage them.
+Before printing anything you need to select the thread you would like to run the prints on. After selecting it, just click
+the `refresh` button and everything will be re-printed.
+
+image::user_guide_images/printer.png[]
+
+You can tweak your prints at any time, like changing the print-length, print-level, message or just temporarily disable any of them.
+When you are ok re-setting you prints, just click refresh and they will print again.
+
+Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.
+
+[NOTE]
+.Print messages
+====
+You can use `%s` in your print messages to place the printed representation of your value. If you provide a message without `%s` it will
+be added after a space at the end.
+====
+
+
 == Value inspector
 
 Use the value inspector to explore any data.

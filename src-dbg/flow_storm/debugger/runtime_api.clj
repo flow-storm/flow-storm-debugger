@@ -45,6 +45,7 @@
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id])
   (find-timeline-entry [_ criteria])
   (total-order-timeline [_])
+  (thread-prints [_ print-cfg])
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
@@ -140,6 +141,7 @@
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :local "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (find-timeline-entry [_ criteria] (api-call :local "find-timeline-entry" [criteria]))
   (total-order-timeline [_] (api-call :local "total-order-timeline" []))
+  (thread-prints [_ print-cfg] (api-call :local "thread-prints" [print-cfg]))
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :local "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
@@ -256,6 +258,7 @@
   (find-fn-frames-light [_ flow-id thread-id fn-ns fn-name form-id] (api-call :remote "find-fn-frames-light" [flow-id thread-id fn-ns fn-name form-id]))
   (find-timeline-entry [_ criteria] (api-call :remote "find-timeline-entry" [criteria]))
   (total-order-timeline [_] (api-call :remote "total-order-timeline" []))
+  (thread-prints [_ print-cfg] (api-call :remote "thread-prints" [print-cfg]))
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :remote "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]

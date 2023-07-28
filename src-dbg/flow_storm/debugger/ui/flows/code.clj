@@ -7,8 +7,9 @@
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.state :as state]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
-  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [hansel.utils :refer [get-form-at-coord]])
+  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField TextInputDialog]
            [javafx.scene Node]
            [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox]
@@ -206,34 +207,69 @@
   (ui-utils/rm-class token-text "executing")
   (.setOnMouseClicked token-text (event-handler [_])))
 
-(defn- arm-interesting [flow-id thread-id ^Text token-text traces]
-  (if (> (count traces) 1)
-    (let [last-idx (get-in traces [(dec (count traces)) :idx])
-          make-menu-item (fn [{:keys [idx result]}]
-                           (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
-                             {:text (format "%s" (utils/elide-string v-str 80))
-                              :on-click #(jump-to-coord flow-id
-                                                        thread-id
-                                                        (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
-          ctx-menu-options (->> traces
-                                (map make-menu-item)
-                                (into [{:text "Goto Last Iteration"
-                                        :on-click #(jump-to-coord flow-id
-                                                                  thread-id
-                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
-          ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
-      (.setOnMouseClicked token-text (event-handler
-                                      [^MouseEvent ev]
-                                      (.show ctx-menu
-                                             token-text
-                                             (.getScreenX ev)
-                                             (.getScreenY ev)))))
+(defn- add-to-print [flow-id thread-id {:keys [coord fn-call-idx]}]
+  (let [{:keys [form-id fn-ns fn-name]} (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)
+        form (runtime-api/get-form rt-api form-id)
+        expr (get-form-at-coord (:form/form form) coord)
+        tdiag (doto (TextInputDialog.)
+                (.setHeaderText "Printer message. %s will be replaced by the value.")
+                (.setContentText "Message : "))
+        _ (.showAndWait tdiag)
+        format-str (-> tdiag .getEditor .getText)]
+    (state/add-printer form-id coord (assoc (dissoc form :form/form)
+                                            :fn-ns fn-ns
+                                            :fn-name fn-name
+                                            :coord coord
+                                            :expr expr
+                                            :format-str format-str
+                                            :print-length 5
+                                            :print-level  3
+                                            :enable? true))))
 
-    (.setOnMouseClicked token-text (event-handler
-                                    [ev]
-                                    (jump-to-coord flow-id
-                                                   thread-id
-                                                   (runtime-api/timeline-entry rt-api flow-id thread-id (-> traces first :idx) :at))))))
+(defn- arm-interesting [flow-id thread-id ^Text token-text traces]
+  (let [token-right-click-menu (ui-utils/make-context-menu
+                                [{:text "Add to prints"
+                                  :on-click #(add-to-print flow-id thread-id (first traces))}])]
+    (if (> (count traces) 1)
+      ;; loop expression
+      (let [last-idx (get-in traces [(dec (count traces)) :idx])
+            make-menu-item (fn [{:keys [idx result]}]
+                             (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
+                               {:text (format "%s" (utils/elide-string v-str 80))
+                                :on-click #(jump-to-coord flow-id
+                                                          thread-id
+                                                          (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
+            ctx-menu-options (->> traces
+                                  (map make-menu-item)
+                                  (into [{:text "Goto Last Iteration"
+                                          :on-click #(jump-to-coord flow-id
+                                                                    thread-id
+                                                                    (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
+            loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
+        (.setOnMouseClicked token-text (event-handler
+                                        [^MouseEvent mev]
+                                        (if (= MouseButton/SECONDARY (.getButton mev))
+                                          (.show token-right-click-menu
+                                                 token-text
+                                                 (.getScreenX mev)
+                                                 (.getScreenY mev))
+                                          (.show loop-traces-menu
+                                                 token-text
+                                                 (.getScreenX mev)
+                                                 (.getScreenY mev))))))
+
+      ;; single expression
+      (.setOnMouseClicked token-text (event-handler
+                                      [mev]
+                                      (.consume mev)
+                                      (if (= MouseButton/SECONDARY (.getButton mev))
+                                        (.show token-right-click-menu
+                                                 token-text
+                                                 (.getScreenX mev)
+                                                 (.getScreenY mev))
+                                        (jump-to-coord flow-id
+                                                       thread-id
+                                                       (runtime-api/timeline-entry rt-api flow-id thread-id (-> traces first :idx) :at))))))))
 
 (defn un-highlight-form-tokens [flow-id thread-id form-id]
   (let [token-texts (ui-vars/form-tokens flow-id thread-id form-id)]

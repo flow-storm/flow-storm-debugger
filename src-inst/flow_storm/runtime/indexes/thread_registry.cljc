@@ -154,8 +154,8 @@
               (let [[curr-fn-call] (get threads-stacks tid)
                     form-id (fn-call-trace/get-form-id curr-fn-call)
                     form-data (index-protos/get-form forms-registry form-id)
-                    coord (expr-trace/get-coord entry)
-                    expr-val (expr-trace/get-expr-val entry)]
+                    coord (index-protos/get-coord-vec entry)
+                    expr-val (index-protos/get-expr-val entry)]
                 
                 (recur r
                        threads-stacks

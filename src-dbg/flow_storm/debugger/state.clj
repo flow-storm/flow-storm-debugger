@@ -2,7 +2,8 @@
   (:require [flow-storm.state-management :refer [defstate]]))
 
 (def initial-state {:flows {}
-                    :selected-flow-id nil})
+                    :selected-flow-id nil
+                    :printers {}})
 
 ;; so linter doesn't complain
 (declare state)
@@ -79,3 +80,15 @@
 
 (defn system-fully-started? []
   (get @state :system-fully-started?))
+
+(defn add-printer [form-id coord printer-data]
+  (swap! state assoc-in [:printers form-id coord] printer-data))
+
+(defn printers []
+  (get @state :printers))
+
+(defn remove-printer [form-id coord]
+  (swap! state update-in [:printers form-id] dissoc coord))
+
+(defn update-printer [form-id coord k new-val]
+  (swap! state assoc-in [:printers form-id coord k] new-val))

@@ -20,6 +20,13 @@
   (entry-idx [_])
   (fn-call-idx [_]))
 
+(defprotocol CoordableTimelineEntryP
+  (get-coord-vec [_])
+  (get-coord-raw [_]))
+
+(defprotocol ExpressionTimelineEntryP
+  (get-expr-val [_]))
+
 (defprotocol TreeP
   (tree-root-index [_])
   (tree-childs-indexes [_ fn-call-idx])

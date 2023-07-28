@@ -7,6 +7,7 @@
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
+            [flow-storm.debugger.ui.printer.screen :as printer-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.state-vars
              :as ui-vars
@@ -43,7 +44,8 @@
   (runtime-api/clear-recordings rt-api)
   (runtime-api/clear-api-cache rt-api)
 
-  (timeline-screen/clear-timeline))
+  (timeline-screen/clear-timeline)
+  (printer-screen/clear-prints))
 
 (defn bottom-box []
   (let [progress-box (h-box [])
@@ -119,14 +121,19 @@
                            :class "vertical-tab"
                            :content (timeline-screen/main-pane)
                            :on-selection-changed (event-handler [_])})
+        printer-tab (tab {:text "Printer"
+                          :class "vertical-tab"
+                          :content (printer-screen/main-pane)
+                          :on-selection-changed (event-handler [_])})
 
-        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab]
+        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab printer-tab]
                           :rotate? true
                           :closing-policy :unavailable
                           :side :left
                           :on-tab-change (fn [_ to-tab]
-                                           (when (= to-tab browser-tab)
-                                             (browser-screen/get-all-namespaces)))})
+                                           (cond
+                                             (= to-tab browser-tab) (browser-screen/get-all-namespaces)
+                                             (= to-tab printer-tab) (printer-screen/update-prints-controls)))})
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
