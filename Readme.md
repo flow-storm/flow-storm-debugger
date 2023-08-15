@@ -1,9 +1,8 @@
 # Flow-storm debugger
 
-A tracing debugger for Clojure and ClojureScript
+This is the central repository for [FlowStorm](http://www.flow-storm.org/) a omniscient time travel debugger for Clojure and ClojureScript.
 
 ![demo](./docs/images/screenshot-light.png)
-![demo](./docs/images/screenshot-dark.png)
 
 The idea behind FlowStorm is pretty simple :
 
