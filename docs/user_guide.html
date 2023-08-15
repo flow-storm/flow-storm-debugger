@@ -1709,8 +1709,12 @@ and clicking on them will make the debugger jump to that specific point in time.
 <div class="sect4">
 <h5 id="_exception_debugging"><a class="anchor" href="#_exception_debugging"></a><a class="link" href="#_exception_debugging">Exception debugging</a></h5>
 <div class="paragraph">
-<p>Lets say you just run a instrumented piece of code and an exception bubbled up. One thing you can do to locate the source of the exception
-is to click the last trace button, it will move the debugger to the last trace captured for the thread, which almost always point to the expression evaluated before the exception was thrown.</p>
+<p>If you are using ClojureStorm you can jump to the last captured exception by evaluating the <code>:ex</code> keyword on your repl. This
+will position the debugger right before the exception so you can step backwards and explore the cause.</p>
+</div>
+<div class="paragraph">
+<p>If you are using vanilla or using FlowStorm with ClojureScript, most of the time you can accomplish the same by clicking the <code>Step last</code> button
+right after the exception happens.</p>
 </div>
 </div>
 <div class="sect4">
@@ -2865,7 +2869,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-07-31 16:16:58 -0300
+Last updated 2023-08-15 09:25:59 -0300
 </div>
 </div>
 </body>

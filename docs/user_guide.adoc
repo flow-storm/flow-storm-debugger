@@ -584,8 +584,11 @@ image::user_guide_images/loops.png[]
 
 ==== Exception debugging
 
-Lets say you just run a instrumented piece of code and an exception bubbled up. One thing you can do to locate the source of the exception
-is to click the last trace button, it will move the debugger to the last trace captured for the thread, which almost always point to the expression evaluated before the exception was thrown.
+If you are using ClojureStorm you can jump to the last captured exception by evaluating the `:ex` keyword on your repl. This
+will position the debugger right before the exception so you can step backwards and explore the cause.
+
+If you are using vanilla or using FlowStorm with ClojureScript, most of the time you can accomplish the same by clicking the `Step last` button
+right after the exception happens.
 
 ==== Locals
 

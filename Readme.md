@@ -54,24 +54,30 @@ Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugge
 
 # Features
 
-Flow storm debugger is packed with a ton of features, here is a non-comprehensive list in no particular order :
+Flow storm debugger is packed with a ton of features :
 
 - Instrument any Clojure and ClojureScript form (single, namespace or entire codebases)
-- A time travel stepper allows you to jump around your execution
-- Execution call tree explorer
-- Functions calls explorer
-- Inspect any values with the value inspector
-- Define any value and take it to your repl
-- Multi-threaded execution support
-- Tap values to the inspector (via `tap>`, `#tap`, and `#tap-stack-trace`)
-- Loop debugging
-- Infinite loop fuse (via `:thread-trace-limit`)
-- Remote Clojure and ClojureScript debugging
-- A namespace browser
-- Mutable value debugging
-- Two instrumentation profiles (:light, :full)
-- Conditional tracing
-- Customizable mutable value snapshoting (via `flow-storm.runtime.values/snapshot-value` multi-method)
+- A [time travel stepper](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_code_tool) allows you to jump around your execution
+- Many [power stepping](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_power_stepping) tools
+- Value [searching](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_searching) capabilities
+- [Loops](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_loops) debugging
+- [Exception](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_exception_debugging) debugging
+- [Locals](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_locals) explorer
+- [Stack](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_stack) explorer
+- Execution [call tree explorer](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_call_stack_tree_tool)
+- Functions [calls explorer](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
+- [Inspect any values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
+- [Define any values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
+- [Multi-threadeding](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
+- [Thread blocking](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
+- [Println](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_printer_tool) debugging
+- [Tap](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_taps_tool) values inspection
+- [Remote](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_remote_debugging) Clojure and ClojureScript debugging
+- [Programmable](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging) debugging
+- A [namespace browser](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_browser_tool)
+- [Mutable values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_dealing_with_mutable_values) debugging
+- [Keyboard](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
+- [Themes and styling](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
 
 # Clojure has the repl, does it need a debugger?
 
@@ -97,9 +103,11 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 ### Why did you build this?
 
-In [this  talk](https://www.youtube.com/watch?v=A3AzlqNwUXc) I tried to argument that even as amazing as it is to have a repl to poke around when trying to understand a piece of code, there are some inconveniences, that I think can be greatly improved by a debugger.
+In [this  talk](https://www.youtube.com/watch?v=A3AzlqNwUXc) I tried to argument that even as amazing as it is to have a repl to poke around, there are some inconveniences that I think can be greatly improved by a debugger.
 
-   - Adding prints (or tap>) is inconvenient because you need to guess where the problem probably is first. Also need to type it (and then remove it), and exploring complex values is annoying in the console, that is why tools like portal, reveal, rebl, etc exist.
+   - Adding prints (or tap>) is inconvenient because you need to guess where the problem probably is first. 
+   - Debugging statements needs to be constatly typed and removed which gets repetitive and annoying 
+   - Exploring complex values at the console is tedious, that is why tools like portal, reveal, rebl, etc exist.
    - Defining function parameters and locals with def (for sub form execution) isn't easy for complex values
    - When functions contains loops, maps, filters, etc with anonymous functions is hard to capture every value for further inspection.
    - Being Clojure a dynamic lang, running the program in my head isn't easy if I'm not familiar with the code base
