@@ -432,9 +432,11 @@
       (jump-to-coord flow-id thread-id next-tentry))))
 
 (defn step-same-val [flow-id thread-id search-params backward?]
-  (let [{:keys [type result]} (state/current-timeline-entry flow-id thread-id)]
-    (when (#{:expr :fn-return} type)
-      (find-and-jump-same-val flow-id thread-id result search-params backward?))))
+  (let [{:keys [result]} (state/current-timeline-entry flow-id thread-id)]
+    ;; hmm if the current entry is a fn-call then result will be nil and we will be following nils
+    ;; not sure how to do about that, since custom stepping goes this path also
+    ;; and doesn't work with the current expr result
+    (find-and-jump-same-val flow-id thread-id result search-params backward?)))
 
 
 (defn- power-stepping-pane [flow-id thread-id]

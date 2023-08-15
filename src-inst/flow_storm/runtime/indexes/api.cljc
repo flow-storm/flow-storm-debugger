@@ -353,28 +353,30 @@
                                  comp-fn-key :equality}}]
   (try
     (let [comp-fn (case comp-fn-key
-                   :equality =
-                   :identity identical?
-                   :custom #?(:clj (let [custom-cmp-fn (eval (read-string (:comp-fn-code criteria)))]
-                                     (fn [v _]
-                                       (custom-cmp-fn v)))
-                              :cljs (do
-                                      (utils/log "Custom stepping is not supported in ClojureScript yet")
-                                      (constantly true))))
+                    :equality =
+                    :identity identical?
+                    :custom #?(:clj (let [custom-cmp-fn (eval (read-string (:comp-fn-code criteria)))]
+                                      (fn [v _]
+                                        (custom-cmp-fn v)))
+                               :cljs (do
+                                       (utils/log "Custom stepping is not supported in ClojureScript yet")
+                                       (constantly true))))
           search-pred (fn [tl-entry]
-                        (comp-fn (index-protos/get-expr-val tl-entry) eq-val))]
-     (some (fn [[fid tid]]
-             (when (and (or (not (contains? criteria :flow-id))
-                            (= flow-id fid))
-                        (or (not (contains? criteria :thread-id))
-                            (= thread-id tid)))
-               (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
-                 (when-let [entry (index-protos/timeline-find-entry timeline-index
-                                                                    from-idx
-                                                                    backward?
-                                                                    search-pred)]
-                   (assoc entry :flow-id fid :thread-id tid)))))
-           (index-protos/all-threads flow-thread-registry)))
+                        (when (or (fn-return-trace/fn-return-trace? tl-entry)
+                                  (expr-trace/expr-trace? tl-entry))
+                          (comp-fn (index-protos/get-expr-val tl-entry) eq-val)))]
+      (some (fn [[fid tid]]
+              (when (and (or (not (contains? criteria :flow-id))
+                             (= flow-id fid))
+                         (or (not (contains? criteria :thread-id))
+                             (= thread-id tid)))
+                (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
+                  (when-let [entry (index-protos/timeline-find-entry timeline-index
+                                                                     from-idx
+                                                                     backward?
+                                                                     search-pred)]
+                    (assoc entry :flow-id fid :thread-id tid)))))
+            (index-protos/all-threads flow-thread-registry)))
     #?(:clj (catch Exception e (utils/log "Exception searching for timeline entry" (.getMessage e)))
        :cljs (catch js/Error e (utils/log "Exception searching for timeline entry" (.-message e))))))
 
