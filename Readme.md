@@ -4,13 +4,6 @@ This is the central repository for [FlowStorm](http://www.flow-storm.org/) a omn
 
 ![demo](./docs/images/screenshot-light.png)
 
-The idea behind FlowStorm is pretty simple :
-
-  - Instrument Clojure code
-  - Run it
-  - Record everything that happens during execution
-  - Provide a GUI to explore your values and execution flow
-
 There are two ways of using it for Clojure :
 
   - [With ClojureStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
@@ -78,11 +71,6 @@ Flow storm debugger is packed with a ton of features :
 - [Keyboard](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
 - [Themes and styling](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
 
-# Clojure has the repl, does it need a debugger?
-
-I gave a talk recently for the London Clojurians, the first slide goes about my answer to this :
-https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
-
 ## Some demo videos (newers at the top)
 
 - [Smashing a real ClojureScript bug with FlowStorm](https://www.youtube.com/watch?v=4VXT-RHHuvI)
@@ -100,39 +88,148 @@ https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s
 
 ## FAQ
 
-### Why did you build this?
+### Clojure has the repl, why does it need a debugger?
 
-In [this  talk](https://www.youtube.com/watch?v=A3AzlqNwUXc) I tried to argument that even as amazing as it is to have a repl to poke around, there are some inconveniences that I think can be greatly improved by a debugger.
+In [this talk](https://www.youtube.com/watch?v=A3AzlqNwUXc&t=934s) I tried to argument that even as amazing as it is to have a repl to poke around,
+there are some inconveniences that I think can be greatly improved by a debugger.
 
-   - Adding prints (or tap>) is inconvenient because you need to guess where the problem probably is first. 
-   - Debugging statements needs to be constatly typed and removed which gets repetitive and annoying 
-   - Exploring complex values at the console is tedious, that is why tools like portal, reveal, rebl, etc exist.
    - Defining function parameters and locals with def (for sub form execution) isn't easy for complex values
    - When functions contains loops, maps, filters, etc with anonymous functions is hard to capture every value for further inspection.
    - Being Clojure a dynamic lang, running the program in my head isn't easy if I'm not familiar with the code base
+   - Adding prints (or tap>) is inconvenient because you need to guess where the problem probably is first. 
+   - Debugging statements needs to be constantly typed and removed which gets repetitive and annoying 
+   - Exploring complex values at the console is tedious, that is why tools like portal, reveal, rebl, etc exist.
+   
+Some of the issues there can be aleviated by adding libraries like scope capture, and portal but it isn't straight forward to integrate them
+and even if it was IMHO there is a lot to be gained from a proper integrated debugging system.
 
-So I want to stop guessing and want a tool that allows me to see what is happening when a program runs (small expression or entire code bases), for when I'm hunting a bug or when I just want to understand how something works.
+So I want to stop guessing and a tool that allows me to see what is happening when a Clojure program runs, being it a small expression or an entire codebase.
+I want it to be useful for cases when I'm chasing a bug or when I just want to understand how something works.
 
-But also I think some Clojure constraints (immutability and being expression based) allows us to go beyond steppers.
-We can trace everything that happened when a program run and then inspect the execution using multiple tools, being a stepper one of them.
+I also think some Clojure constraints, like immutability and being expression based, allows us to go beyond repl poking and steppers.
+
+We can record everything that happens when a program runs and then inspect the execution using multiple tools (being a stepper one of them) and fully
+integrating it with the repl which also enhance the repl poking experience. 
+
+### What's that magic? How does it work?
+
+The idea behind FlowStorm is pretty simple :
+
+  - Instrument Clojure code
+  - Run it
+  - Record everything that happens on each thread during execution into timelines
+  - Provide a GUI with multiple tools to explore the recorded values and execution flows
+  
+The interesting part here I guess are instrumentation and recording.
+
+FlowStorm can instrument your code in two ways :
+
+- The ClojureStorm way (recommended for Clojure) which swaps your official Clojure compiler with a patched one (only for dev) that emits extra JVM bytecode everytime you compile something
+  to record everything that is happening. This method provide automatic instrumentation everywhere, which is very practical. You still get to un-instrument things if you need to do
+  things like meassure preformance, which isn't going to be accurate with the extra bytecode.
+     
+- The vanilla way (can be used for Clojure and is the only option for ClojureScript), that just grabs the Clojure source epxressions you are interested in, walks the AST, instruments it, and re-evals the 
+  instrumented version through the repl. You do this by using reader tags (like `#trace (defn foo [...] ...)`) or by using the FlowStorm browser tab to instrument entire namespaces.
+      
+Doesn't matter which method instrumented the code, when it runs it will record every expression in a timeline. 
+
+Because Clojure is expression based and most data is immutable, recording is just retaining JVM references together with the source coordinate of each expression. This is pretty fast and a simple way of recording execution.
+
+The timeline is a structure that provides efficient insertion, and efficient access sequentially and as a functions call tree. 
+
+You can see some diagrams here : https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_internals_diagrams_and_documentation
+
+### Isn't recording everything too expensive? Like, does it work with something like a game loop?
+
+The answer here is it depends. First not everything needs to be recorded all the time. FlowStorm provides easy controls for start/stop recording, instrumenting/un-instrumenting stuff,
+freeing recordings, and for keeping an eye on the heap space which you can also control via JVM parameters.
+
+For a lot of applications it is probably fine even if you keep recording everything. For applications that generate a lot of recordings you can keep the recording off and just enable it 
+with one click right before executing the action you want to record, and then turn it off again.
+
+For things like game loops you can also use the thread breakpoints functionality which provides a way of pausing/resuming threads at specific points so you have more control on how they 
+execute. Combining that with start/stopping recording is probably enough to debug this kind of applications.
+
+### Aren't omniscient debuggers slow?
+
+Omniscient debuggers have a reputation of being slow, and I think a bunch of them are. IMHO a lot of the slowness comes from how things need to be recorded and replayed on mutable languages.
+
+For Clojure, just retaining references is enough, and looking into a value at any point in time is just looking at it. Since most references point to immutable values, they don't need to be
+reconstructed by applying state changes for each step.
+
+There are mutable language omniscient debuggers that implement stepping backwards fast enough to be useful, but trying to implement things like searching or following values is probably going to be
+much slower since everything needs to be reconstructed at each step.
 
 ### How does it compare to other Clojure debuggers?
 
-FlowStorm uses the same technique for instrumenting code that Cider uses, they both instrument by code rewriting, and they don't need source maps, they use a custom coordinates system instead.
+There are many comparison points with different Clojure debugging tools, I'll try to list some of them here. 
 
-Cursive is different since uses JDI (Java Debugging Interface) which is more limited for Clojure since it is line, statement and place oriented instead of expression oriented like FlowStorm and Cider.
+If you feel something here is unfair or need to be clarified please open a issue or submit a PR. Also if you would like to see here how it compares with any other debugging tool let me know.
 
-So how it compares with Cider debugger (which I used full time before FlowStorm) :
+The first big difference is that FlowStorm works for Clojure and ClojureScript while most debuggers like Cider/VSCode/Cursive only work for Clojure. So once you learn 
+to use FlowStorm you can use it with both languages.
 
-   - FlowStorm is a tracing debugger, while Cider is a blocking one
-   - FlowStorm supports Clojure and ClojureScript, while Cider only Clojure
-   - FlowStorm supports time travel, Cider just step forward
-   - FlowStorm provide multiple tools to understand execution, Cider provides forward stepping and some tracing
-   - FlowStorm is IDE independent, so if you switch editors/ide you can keep using it
-   - Both have data inspection capabilities
-   - Both are the same regarding macros, pretty good IMHO
-   - Cider is more integrated into the editor oc, while you need a separate window for FlowStorm
+The second imho big difference is that most debugging tools are designed to understand small pieces of execution you could be interested in, while FlowStorm
+is designed to look at a program execution as a whole, to be used not only while chasing bugs but also as a development companion to help you reason about whatever 
+system you are running.
 
+Most tools like Cider, Cursive or VScode debuggers are blocking steppers and require you to add breakpoints to specific places, which is ok if you have an idea
+already of where the bug could be located, but they fall short if you aren't sure, or you just want to use the tool to understand an entire codebase execution.
+
+#### FlowStorm VS Cursive (or Browser's for ClojureScript) debuggers
+
+I think the main difference here is FlowStorm being expression and value oriented while the Cursive and Browser's one being line and memory poking oriented,
+which I don't think is very useful in Clojure[Script]. If you want to experience what I mean, try to debug this exception using Cursive vs FlowStorm/Cider/VSCode :
+
+```
+(defn foo [n]
+  (->> (range n)
+       (filter odd?)
+       (partition-all 2)
+       (map second)
+       (drop 10)
+       (reduce +)))
+
+(foo 70)
+```
+
+On the other side, the nice thing about the Cursive debugger is that you can use it to step over Java code which is useful if you have a mixed lang codebase. But for those cases
+you can always use both.
+
+#### FlowStorm VS Cider/VSCode debuggers
+
+Cider and VSCode debuggers are steppers, so I'll only be comparing it against the stepping and value inspection capabilities of FlowStorm, but keep in mind that FlowStorm provindes
+many more features than stepping. Cider provide some tracing capabilities to trace entire namespaces but it relay on printing to the console which I haven't found useful outside of very specific situations, so
+I don't think it is useful to understand an entire codebase.
+
+For the steppers, the main difference is that Cider/VSCode are blocking debuggers, which are nice in some situations but only provide stepping forward, while FlowStorm allows you to
+step in many different ways.
+
+Another difference is that currently on Cider/VSCode you can't step into functions unless you have previously instrumented them, which for the most isn't a problem in FlowStorm if you are using ClojureStorm.
+
+A nice thing about Cider/VSCode steppers is that you get to step over your editor source code, which can also be done in FlowStorm if you use an integration like CiderStorm.
+
+There is also some code that currently can't be stepped with Cider/VSCode that can be with FlowStorm. This is code that happens to be inside literal sets of maps with more than 8 keys.
+
+If you want to compare it try stepping code like this in both debuggers :
+
+```
+(defn bla []
+  {(+ 1 2) (first #{3})
+   2       (+ 1 1)
+   4       (+ 2 2)
+   6       (+ 3 3)
+   8       (+ 4 4)
+   10      (+ 5 5)
+   12      (+ 6 6)
+   14      (+ 7 7)
+   16      (+ 8 8)})
+
+(bla)
+
+```
+
+   
 ## What to do when things don't work?
 
 Please create a [issue](https://github.com/jpmonettas/flow-storm-debugger/issues) if you think you found a bug.
