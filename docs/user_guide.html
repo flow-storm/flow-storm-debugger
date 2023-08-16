@@ -837,9 +837,12 @@ pre.rouge {
 <div class="sect4">
 <h5 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">ClojureStorm</a></h5>
 <div class="paragraph">
-<p>This is the newest and simplest way of using FlowStorm, and requires you to swap your official Clojure compiler by ClojureStorm.
-Swapping compilers sounds like a lot but don&#8217;t worry, ClojureStorm is just a patch applied over the official compiler with some
-extra stuff for automatic instrumentation, you shouldn&#8217;t encounter any differences.</p>
+<p>This is the newest and simplest way of using FlowStorm. It requires you to swap your official Clojure compiler by ClojureStorm only at dev time.</p>
+</div>
+<div class="paragraph">
+<p>Swapping compilers sounds like a lot, but don&#8217;t worry, ClojureStorm is just a patch applied over the official compiler with some
+extra stuff for automatic instrumentation, you shouldn&#8217;t encounter any differences, it is only for dev, and you can swap it back and forth by starting
+your repl with a different alias or lein profile.</p>
 </div>
 <div class="paragraph">
 <p>The easiest way to run and learn FlowStorm with ClojureStorm is by running the repl tutorial, like this :</p>
@@ -872,10 +875,10 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 </div>
 <div class="paragraph">
 <p>Pasting that command on your terminal will bring up a repl with FlowStorm and the compiler swapped by ClojureStorm. When the repl comes up just
-evaluate the <code>:tut/basics</code> keyword on it for a tour of what it can do.</p>
+evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
 </div>
 <div class="paragraph">
-<p>After the tutorial you would want to add it and configure it for your project, so here are the basics :</p>
+<p>After the tutorial you would want to add and configure it for your projects, so here are the basics :</p>
 </div>
 <div class="paragraph">
 <p>If your project is using deps.edn, your deps.edn file should look like this :</p>
@@ -2350,6 +2353,9 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 <li>
 <p>Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.</p>
 </li>
+<li>
+<p>Unblock all breakpoint blocked threads if any.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -2872,7 +2878,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-08-16 10:03:49 -0300
+Last updated 2023-08-16 15:39:21 -0300
 </div>
 </div>
 </body>

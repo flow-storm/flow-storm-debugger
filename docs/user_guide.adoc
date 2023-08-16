@@ -40,9 +40,11 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 
 ==== ClojureStorm
 
-This is the newest and simplest way of using FlowStorm, and requires you to swap your official Clojure compiler by ClojureStorm.
-Swapping compilers sounds like a lot but don't worry, ClojureStorm is just a patch applied over the official compiler with some
-extra stuff for automatic instrumentation, you shouldn't encounter any differences.
+This is the newest and simplest way of using FlowStorm. It requires you to swap your official Clojure compiler by ClojureStorm only at dev time.
+
+Swapping compilers sounds like a lot, but don't worry, ClojureStorm is just a patch applied over the official compiler with some
+extra stuff for automatic instrumentation, you shouldn't encounter any differences, it is only for dev, and you can swap it back and forth by starting
+your repl with a different alias or lein profile.
 
 The easiest way to run and learn FlowStorm with ClojureStorm is by running the repl tutorial, like this :
 
@@ -65,9 +67,9 @@ It is much safer to just write the latest versions. Check out  the https://githu
 
 
 Pasting that command on your terminal will bring up a repl with FlowStorm and the compiler swapped by ClojureStorm. When the repl comes up just
-evaluate the `:tut/basics` keyword on it for a tour of what it can do.
+evaluate the `:tut/basics` keyword on it for a tour of the basics.
 
-After the tutorial you would want to add it and configure it for your project, so here are the basics :
+After the tutorial you would want to add and configure it for your projects, so here are the basics :
 
 If your project is using deps.edn, your deps.edn file should look like this :
 [,clojure]
