@@ -302,15 +302,18 @@
 
 #?(:clj
    (defn add-breakpoint!
-     ([fq-fn-symb] (add-breakpoint! fq-fn-symb (constantly true)))
-     ([fq-fn-symb args-pred]
+     ([fq-fn-symb opts] (add-breakpoint! fq-fn-symb opts (constantly true)))
+     ([fq-fn-symb {:keys [disable-events?]} args-pred]
       (tracer/add-breakpoint! (namespace fq-fn-symb) (name fq-fn-symb) args-pred)
-      (rt-events/publish-event! (rt-events/make-break-installed-event fq-fn-symb)))))
+      (when-not disable-events?
+        (rt-events/publish-event! (rt-events/make-break-installed-event fq-fn-symb))))))
 
 #?(:clj
-   (defn remove-breakpoint! [fq-fn-symb]
+   (defn remove-breakpoint! [fq-fn-symb {:keys [disable-events?]}]
      (tracer/remove-breakpoint! (namespace fq-fn-symb) (name fq-fn-symb))
-     (rt-events/publish-event! (rt-events/make-break-removed-event fq-fn-symb))))
+
+     (when-not disable-events?
+       (rt-events/publish-event! (rt-events/make-break-removed-event fq-fn-symb)))))
 
 #?(:clj
    (defn clear-breakpoints! []

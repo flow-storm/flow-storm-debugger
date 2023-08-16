@@ -44,11 +44,11 @@
   (let [[{:keys [remove-all]}] (obj-lookup "browser-observable-instrumentations-list-data")]
     (remove-all [inst])))
 
-(defn- add-breakpoint [fq-fn-symb]
-  (runtime-api/add-breakpoint rt-api fq-fn-symb))
+(defn- add-breakpoint [fq-fn-symb opts]
+  (runtime-api/add-breakpoint rt-api fq-fn-symb opts))
 
-(defn- remove-breakpoint [fq-fn-symb]
-  (runtime-api/remove-breakpoint rt-api fq-fn-symb))
+(defn- remove-breakpoint [fq-fn-symb opts]
+  (runtime-api/remove-breakpoint rt-api fq-fn-symb opts))
 
 (defn- instrument-function
   ([var-ns var-name] (instrument-function var-ns var-name {}))
@@ -93,7 +93,7 @@
     (add-class browser-break-button "enable")
     (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
     (.setOnAction browser-instrument-rec-button (event-handler [_] (instrument-function ns name {:deep? true})))
-    (.setOnAction browser-break-button (event-handler [_] (add-breakpoint (symbol (str ns) (str name)))))
+    (.setOnAction browser-break-button (event-handler [_] (add-breakpoint (symbol (str ns) (str name)) {})))
 
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
@@ -252,7 +252,7 @@
                                              (.setSpacing 10))
                                   inst-del-btn (button :label "del"
                                                        :class "browser-instr-del-btn"
-                                                       :on-click (fn [] (remove-breakpoint (symbol var-ns var-name))))]
+                                                       :on-click (fn [] (remove-breakpoint (symbol var-ns var-name) {})))]
                               (doto (h-box [inst-lbl inst-del-btn])
                                 (.setSpacing 10)
                                 (.setAlignment Pos/CENTER_LEFT))))]
@@ -276,15 +276,16 @@
                                                (uninstrument-function (:var-ns v) (:var-name v)))
 
                                              (doseq [b del-brks]
-                                               (remove-breakpoint (symbol (:var-ns b) (:var-name b)))))))
+                                               (remove-breakpoint (symbol (:var-ns b) (:var-name b)) {})))))
         en-dis-chk (doto (CheckBox.)
                      (.setSelected true))
         _ (.setOnAction en-dis-chk
                         (event-handler
                          [_]
                          (let [type-groups (group-by :inst-type (get-all-items))
-                               change-namespaces   (:ns type-groups)
-                               change-vars (:var type-groups)]
+                               change-namespaces (:ns type-groups)
+                               change-vars (:var type-groups)
+                               breakpoints (:break type-groups)]
 
                            (when (seq change-namespaces)
                              (if (.isSelected en-dis-chk)
@@ -294,7 +295,12 @@
                            (doseq [v change-vars]
                              (if (.isSelected en-dis-chk)
                                (instrument-function (:var-ns v) (:var-name v) {:disable-events? true})
-                               (uninstrument-function (:var-ns v) (:var-name v) {:disable-events? true}))))))
+                               (uninstrument-function (:var-ns v) (:var-name v) {:disable-events? true})))
+
+                           (doseq [{:keys [var-ns var-name]} breakpoints]
+                             (if (.isSelected en-dis-chk)
+                               (add-breakpoint (symbol var-ns var-name) {:disable-events? true})
+                               (remove-breakpoint (symbol var-ns var-name) {:disable-events? true}))))))
         instrumentations-tools (doto (h-box [(label "Enable all")
                                              en-dis-chk
                                              delete-all-btn]

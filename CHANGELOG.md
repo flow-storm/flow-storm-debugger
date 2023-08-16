@@ -10,6 +10,8 @@
     
 ### Bugs fixed
 
+    - Fix enabling/disabling of thread breakpoints
+    
 ## 3.7.0 (15-08-2023)
 	
 ### New Features

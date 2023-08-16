@@ -497,11 +497,11 @@
        ~form))
 
 (defn break-at
-  ([fq-fn-symb] (dbg-api/add-breakpoint! fq-fn-symb))
-  ([fq-fn-symb args-pred] (dbg-api/add-breakpoint! fq-fn-symb args-pred)))
+  ([fq-fn-symb] (dbg-api/add-breakpoint! fq-fn-symb {}))
+  ([fq-fn-symb args-pred] (dbg-api/add-breakpoint! fq-fn-symb {} args-pred)))
 
 (defn remove-break [fq-fn-symb]
-  (dbg-api/remove-breakpoint! fq-fn-symb))
+  (dbg-api/remove-breakpoint! fq-fn-symb {}))
 
 (def unblock-thread dbg-api/unblock-thread)
 (def clear-breaks dbg-api/clear-breakpoints!)
