@@ -4,7 +4,7 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]))
 
-(def version "3.6.10")
+(def version "3.7.0")
 
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))

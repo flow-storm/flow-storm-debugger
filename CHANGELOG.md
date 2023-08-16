@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+
+### Changes
+    
+### Bugs fixed
+
+## 3.7.0 (15-08-2023)
+	
+### New Features
     
     - Add "Search value on Flows" to taps
     - Add "Timeline tool" implementation
