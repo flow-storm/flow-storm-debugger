@@ -36,6 +36,7 @@
   :stop  (fn [] (stop-ui)))
 
 (defn clear-all []
+  ;; CAREFULL the order here matters
   (taps-screen/clear-all-taps)
 
   (doseq [fid (dbg-state/all-flows-ids)]
@@ -144,14 +145,19 @@
                                 :on-click (fn [] (runtime-api/toggle-recording rt-api))
                                 :class "record-btn")
         task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
-                                     :tooltip "Cancel current running task (search, etc)"
+                                     :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                      :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
                                      :disable true)
-        tools [(icon-button :icon-name "mdi-delete-forever"
-                            :tooltip "Clean all debugger and runtime values references"
-                            :on-click (fn [] (clear-all)))
+        clear-btn (icon-button :icon-name  "mdi-delete-forever"
+                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
+                               :on-click (fn [] (clear-all)))
+        unblock-threads-btn (icon-button :icon-name "mdi-run"
+                                         :tooltip "Unblock all blocked threads if any (Ctrl-u)"
+                                         :on-click (fn [] (runtime-api/unblock-all-threads rt-api)))
+        tools [clear-btn
                task-cancel-btn
-               record-btn]]
+               record-btn
+               unblock-threads-btn]]
 
     (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "record-btn" record-btn)
@@ -310,6 +316,9 @@
 
                                 (and ctrl? (= key-name "D"))
                                 (toggle-debug-mode)
+
+                                (and ctrl? (= key-name "U"))
+                                (runtime-api/unblock-all-threads rt-api)
 
                                 (and shift? (= key-name "F")) (ui-vars/select-main-tools-tab :flows)
                                 (and shift? (= key-name "B")) (ui-vars/select-main-tools-tab :browser)

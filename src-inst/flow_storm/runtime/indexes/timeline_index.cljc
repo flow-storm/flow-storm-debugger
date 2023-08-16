@@ -195,36 +195,38 @@
       (ml-count timeline)))
   
   (timeline-entry [this idx drift]
-    (locking this      
-      (let [drift (or drift :at)
-            last-idx (dec (ml-count timeline))
-            idx (-> idx (max 0) (min last-idx)) ;; clamp the idx
-            target-idx (case drift
-                            :next-out  (timeline-next-out-idx timeline idx)
-                            :next-over (timeline-next-over-idx timeline idx)
-                            :prev-over (timeline-prev-over-idx timeline idx)
-                            :next      (timeline-next-idx timeline idx)
-                            :prev      (timeline-prev-idx timeline idx)
-                            :at   idx)            
-            tl-entry (ml-get timeline target-idx)]
-        (index-protos/as-immutable tl-entry))))
+    (locking this
+      (when (pos? (ml-count timeline))
+        (let [drift (or drift :at)
+              last-idx (dec (ml-count timeline))
+              idx (-> idx (max 0) (min last-idx)) ;; clamp the idx
+              target-idx (case drift
+                           :next-out  (timeline-next-out-idx timeline idx)
+                           :next-over (timeline-next-over-idx timeline idx)
+                           :prev-over (timeline-prev-over-idx timeline idx)
+                           :next      (timeline-next-idx timeline idx)
+                           :prev      (timeline-prev-idx timeline idx)
+                           :at   idx)
+              tl-entry (ml-get timeline target-idx)]
+          (index-protos/as-immutable tl-entry)))))
   
   (timeline-frames [this from-idx to-idx pred]
     (locking this
-      (let [from (or from-idx 0)
-            to (or to-idx (dec (ml-count timeline)))
-            sub-timeline (ml-sub-list timeline from to)]
-        (into []
-              (keep (fn [tl-entry]
-                      (when (and (fn-call-trace/fn-call-trace? tl-entry)
-                                 (pred (fn-call-trace/get-fn-ns tl-entry)
-                                       (fn-call-trace/get-fn-name tl-entry)
-                                       (fn-call-trace/get-form-id tl-entry)
-                                       (fn-call-trace/get-fn-args tl-entry)))
-                        (index-protos/tree-frame-data this
-                                                      (index-protos/entry-idx tl-entry)
-                                                      {}))))
-              sub-timeline))))
+      (when (pos? (ml-count timeline))
+        (let [from (or from-idx 0)
+              to (or to-idx (dec (ml-count timeline)))
+              sub-timeline (ml-sub-list timeline from to)]
+          (into []
+                (keep (fn [tl-entry]
+                        (when (and (fn-call-trace/fn-call-trace? tl-entry)
+                                   (pred (fn-call-trace/get-fn-ns tl-entry)
+                                         (fn-call-trace/get-fn-name tl-entry)
+                                         (fn-call-trace/get-form-id tl-entry)
+                                         (fn-call-trace/get-fn-args tl-entry)))
+                          (index-protos/tree-frame-data this
+                                                        (index-protos/entry-idx tl-entry)
+                                                        {}))))
+                sub-timeline)))))
 
   (timeline-find-entry [this from-idx backward? pred]
     (locking this
@@ -253,59 +255,61 @@
   
   (tree-childs-indexes [this fn-call-idx]
     (locking this
-      (let [tl-cnt (index-protos/timeline-count this)
-            start-idx (if (= fn-call-idx tree-root-idx)
-                        0
-                        (inc fn-call-idx))
-            end-idx (if (= fn-call-idx tree-root-idx)
-                      tl-cnt
-                      (let [fn-call (ml-get timeline fn-call-idx)]
-                        (or (fn-call-trace/get-ret-idx fn-call) tl-cnt)))]
-        (loop [i start-idx
-               ch-indexes []]
-          (if (= i end-idx)
-            ch-indexes
+      (when (pos? (ml-count timeline))
+        (let [tl-cnt (index-protos/timeline-count this)
+              start-idx (if (= fn-call-idx tree-root-idx)
+                          0
+                          (inc fn-call-idx))
+              end-idx (if (= fn-call-idx tree-root-idx)
+                        tl-cnt
+                        (let [fn-call (ml-get timeline fn-call-idx)]
+                          (or (fn-call-trace/get-ret-idx fn-call) tl-cnt)))]
+          (loop [i start-idx
+                 ch-indexes []]
+            (if (= i end-idx)
+              ch-indexes
 
-            (let [tle (ml-get timeline i)]
-              (if (fn-call-trace/fn-call-trace? tle)
-                (recur (if-let [ret-idx (fn-call-trace/get-ret-idx tle)]
-                         (inc ret-idx)
-                         ;; if we don't have a ret-idx it means this function didn't return yet
-                         ;; so we just recur with the end which will finish the loop
-                         tl-cnt)
-                       (conj ch-indexes i))
+              (let [tle (ml-get timeline i)]
+                (if (fn-call-trace/fn-call-trace? tle)
+                  (recur (if-let [ret-idx (fn-call-trace/get-ret-idx tle)]
+                           (inc ret-idx)
+                           ;; if we don't have a ret-idx it means this function didn't return yet
+                           ;; so we just recur with the end which will finish the loop
+                           tl-cnt)
+                         (conj ch-indexes i))
 
-                (recur (inc i) ch-indexes))))))))
+                  (recur (inc i) ch-indexes)))))))))
   
   (tree-frame-data [this fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
     (if (= fn-call-idx tree-root-idx)
       {:root? true}
       (locking this
-        (let [fn-call (ml-get timeline fn-call-idx)
-              _ (assert (fn-call-trace/fn-call-trace? fn-call) "Frame data should be called with a idx that correspond to a fn-call")
-              fn-ret-idx (fn-call-trace/get-ret-idx fn-call)
-              fn-return (when fn-ret-idx (ml-get timeline fn-ret-idx))
-              fr-data {:fn-ns (fn-call-trace/get-fn-ns fn-call)
-                       :fn-name (fn-call-trace/get-fn-name fn-call)
-                       :args-vec (fn-call-trace/get-fn-args fn-call)                 
-                       :ret (when fn-return
-                              (index-protos/get-expr-val fn-return))
-                       :form-id (fn-call-trace/get-form-id fn-call)
-                       :fn-call-idx fn-call-idx
-                       :parent-fn-call-idx (fn-call-trace/get-parent-idx fn-call)}
-              fr-data (if include-path?
-                        (assoc fr-data :fn-call-idx-path (get-fn-call-idx-path timeline fn-call-idx))
-                        fr-data)
-              fr-data (if include-exprs?
-                        (let [expressions (fn-call-exprs timeline fn-call-idx)]
-                          ;; expr-executions will contain also the fn-return at the end
-                          (assoc fr-data :expr-executions (cond-> (mapv index-protos/as-immutable expressions)
-                                                            fn-return (conj (index-protos/as-immutable fn-return)))))
-                        fr-data)
-              fr-data (if include-binds?
-                        (assoc fr-data :bindings (map index-protos/as-immutable (fn-call-trace/bindings fn-call)))
-                        fr-data)]        
-          fr-data)))))
+        (when (pos? (ml-count timeline))
+          (let [fn-call (ml-get timeline fn-call-idx)
+                _ (assert (fn-call-trace/fn-call-trace? fn-call) "Frame data should be called with a idx that correspond to a fn-call")
+                fn-ret-idx (fn-call-trace/get-ret-idx fn-call)
+                fn-return (when fn-ret-idx (ml-get timeline fn-ret-idx))
+                fr-data {:fn-ns (fn-call-trace/get-fn-ns fn-call)
+                         :fn-name (fn-call-trace/get-fn-name fn-call)
+                         :args-vec (fn-call-trace/get-fn-args fn-call)
+                         :ret (when fn-return
+                                (index-protos/get-expr-val fn-return))
+                         :form-id (fn-call-trace/get-form-id fn-call)
+                         :fn-call-idx fn-call-idx
+                         :parent-fn-call-idx (fn-call-trace/get-parent-idx fn-call)}
+                fr-data (if include-path?
+                          (assoc fr-data :fn-call-idx-path (get-fn-call-idx-path timeline fn-call-idx))
+                          fr-data)
+                fr-data (if include-exprs?
+                          (let [expressions (fn-call-exprs timeline fn-call-idx)]
+                            ;; expr-executions will contain also the fn-return at the end
+                            (assoc fr-data :expr-executions (cond-> (mapv index-protos/as-immutable expressions)
+                                                              fn-return (conj (index-protos/as-immutable fn-return)))))
+                          fr-data)
+                fr-data (if include-binds?
+                          (assoc fr-data :bindings (map index-protos/as-immutable (fn-call-trace/bindings fn-call)))
+                          fr-data)]
+            fr-data))))))
 
 (defn make-index []
   (let [build-stack (make-mutable-stack)

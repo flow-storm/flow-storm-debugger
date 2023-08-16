@@ -964,6 +964,7 @@ From left to right :
 - Clean all. Will clean all flows, taps and every value the debugger is retaining.
 - Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
 - Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
+- Unblock all breakpoint blocked threads if any.
 
 == Debug cmd line programs (clj -X, clj -m, etc)
 
@@ -1187,7 +1188,8 @@ You can overwrite all the styles defined here https://github.com/jpmonettas/flow
 
 - `Ctrl-g` Cancel any long running task (only search supported yet)
 - `Ctrl-l` Clean all debugger state
-- `Ctrl-d` Toggle debug-mode. Will log useful debugging information to the console.
+- `Ctrl-d` Toggle debug-mode. Will log useful debugging information to the console
+- `Ctrl-u` Unblock all breakpoint blocked threads if any
 - `F`      "Select the Flows tool"
 - `B`      "Select the Browser tool"
 - `T`      "Select the Taps tool"

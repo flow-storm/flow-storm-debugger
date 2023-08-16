@@ -74,7 +74,10 @@
       (dbg-state/create-thread flow-id thread-id))
 
     (create-or-focus-thread-tab flow-id thread-id thread-name)
-    (flow-code/jump-to-coord flow-id thread-id (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at))
+
+    (when-let [tl-entry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
+      (flow-code/jump-to-coord flow-id thread-id tl-entry))
+
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
 
 (defn create-empty-flow [flow-id]

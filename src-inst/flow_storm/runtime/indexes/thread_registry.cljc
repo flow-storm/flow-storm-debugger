@@ -85,9 +85,10 @@
             :thread-name thread-name
             :form-id form-id})))
 
-  (set-thread-blocked [_ flow-id thread-id breakpoint]    
-    (let [flow-int-key (flow-id-key flow-id)]
-      (swap! registry assoc-in [flow-int-key thread-id :thread/blocked]  breakpoint)))
+  (set-thread-blocked [this flow-id thread-id breakpoint]
+    (when (index-protos/get-thread-indexes this flow-id thread-id)
+      (let [flow-int-key (flow-id-key flow-id)]
+        (swap! registry assoc-in [flow-int-key thread-id :thread/blocked]  breakpoint))))
 
   (discard-threads [_ flow-threads-ids]
     (doseq [[fid tid] flow-threads-ids]

@@ -3,7 +3,9 @@
 ## master (unreleased)
 	
 ### New Features
-
+    
+    - Unblock all breakpoint blocked threads with toolbar and keyboard
+    
 ### Changes
     
 ### Bugs fixed
