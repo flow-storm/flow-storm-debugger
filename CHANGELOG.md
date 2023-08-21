@@ -4,6 +4,14 @@
 	
 ### New Features
 
+### Changes
+    
+### Bugs fixed
+
+## 3.7.1 (21-08-2023)
+	
+### New Features
+
     - Implement quickjump
     - Unblock all breakpoint blocked threads with toolbar and keyboard
     
