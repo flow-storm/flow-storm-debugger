@@ -76,7 +76,9 @@
 
   (stack-for-frame [_ flow-id thread-id fn-call-idx])
   (toggle-recording [_])
-  (set-total-order-recording [_ x]))
+  (set-total-order-recording [_ x])
+  (all-fn-call-stats [_])
+  (find-fn-call [_ fq-fn-call-symb from-idx opts]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -233,7 +235,13 @@
     (api-call :local "toggle-recording" []))
 
   (set-total-order-recording [_ x]
-    (api-call :local "set-total-order-recording" [x])))
+    (api-call :local "set-total-order-recording" [x]))
+
+  (all-fn-call-stats [_]
+    (api-call :local "all-fn-call-stats" []))
+
+  (find-fn-call [_ fq-fn-call-symb from-idx opts]
+    (api-call :local "find-fn-call" [fq-fn-call-symb from-idx opts])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -365,6 +373,12 @@
 
   (set-total-order-recording [_ x]
     (api-call :remote "set-total-order-recording" [x]))
+
+  (all-fn-call-stats [_]
+    (api-call :remote "all-fn-call-stats" []))
+
+  (find-fn-call [_ fq-fn-call-symb from-idx opts]
+    (api-call :remote "find-fn-call" [fq-fn-call-symb from-idx opts]))
 
   Closeable
   (close [_] (stop-repl))

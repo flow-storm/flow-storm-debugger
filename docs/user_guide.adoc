@@ -967,6 +967,7 @@ From left to right :
 - Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
 - Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
 - Unblock all breakpoint blocked threads if any.
+- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
 
 == Debug cmd line programs (clj -X, clj -m, etc)
 

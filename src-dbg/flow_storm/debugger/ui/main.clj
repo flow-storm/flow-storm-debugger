@@ -154,10 +154,22 @@
         unblock-threads-btn (icon-button :icon-name "mdi-run"
                                          :tooltip "Unblock all blocked threads if any (Ctrl-u)"
                                          :on-click (fn [] (runtime-api/unblock-all-threads rt-api)))
+        quick-jump-textfield (doto (h-box [(label "Quick jump:")
+                                           (ui-utils/autocomplete-textfield
+                                            (fn []
+                                              (into []
+                                                    (map (fn [[fq-fn-name cnt]]
+                                                           {:text (format "%s (%d)" fq-fn-name cnt)
+                                                            :on-select (fn []
+                                                                         (let [fn-call (runtime-api/find-fn-call rt-api (symbol fq-fn-name) 0 {})]
+                                                                           (flows-screen/goto-location fn-call)))}))
+                                                    (runtime-api/all-fn-call-stats rt-api))))])
+                               (.setAlignment Pos/CENTER_LEFT))
         tools [clear-btn
                task-cancel-btn
                record-btn
-               unblock-threads-btn]]
+               unblock-threads-btn
+               quick-jump-textfield]]
 
     (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "record-btn" record-btn)

@@ -3,7 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
-    
+
+    - Implement quickjump
     - Unblock all breakpoint blocked threads with toolbar and keyboard
     
 ### Changes

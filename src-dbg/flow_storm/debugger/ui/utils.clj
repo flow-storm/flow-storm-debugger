@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.utils
-  (:require [flow-storm.utils :refer [log-error]])
+  (:require [flow-storm.utils :refer [log-error]]
+            [clojure.string :as str])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
@@ -13,7 +14,7 @@
            [javafx.scene.layout HBox Priority VBox Region]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
-           [javafx.collections FXCollections]))
+           [javafx.collections FXCollections ObservableList]))
 
 (defn run-later*
   [f]
@@ -56,7 +57,7 @@
                                (.setOnAction (event-handler [_] (on-click)))))))]
     (-> cm
         .getItems
-        (.addAll (into-array MenuItem cm-items)))
+        (.addAll ^objects (into-array Object cm-items)))
     cm))
 
 (defn enusure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
@@ -199,7 +200,7 @@
 (defn combo-box-set-items [^ComboBox cbox items]
   (let [observable-list (FXCollections/observableArrayList)]
     (.setItems cbox observable-list)
-    (.addAll observable-list (into-array String items))))
+    (.addAll observable-list ^objects (into-array Object items))))
 
 (defn combo-box [{:keys [items on-change-fn]}]
   (let [cb (ComboBox.)
@@ -329,7 +330,7 @@
                           (changed [_ old-tab new-tab]
                             (on-tab-change old-tab new-tab))))))
     (when tabs
-      (.addAll tabs-list tabs))
+      (.addAll tabs-list ^objects (into-array Object tabs)))
 
     tp))
 
@@ -349,8 +350,8 @@
         observable-filtered-list (FilteredList. observable-list)
         lv (ListView. observable-filtered-list)
         list-selection (.getSelectionModel lv)
-        add-all (fn [elems] (.addAll observable-list (into-array Object elems)))
-        remove-all (fn [elems] (.removeAll observable-list (into-array Object elems)))
+        add-all (fn [elems] (.addAll observable-list ^objects (into-array Object elems)))
+        remove-all (fn [elems] (.removeAll observable-list ^objects (into-array Object elems)))
         clear (fn [] (.clear observable-list))
         get-all-items (fn [] (seq observable-list))
         selected-items (fn [] (.getSelectedItems list-selection))
@@ -459,9 +460,9 @@
                      search-predicate (conj search-bar)
                      true (conj tv)))
 
-        items-array-list (FXCollections/observableArrayList (into-array Object items))
+        ^ObservableList items-array-list (FXCollections/observableArrayList ^objects (into-array Object items))
         filtered-items-array (FilteredList. items-array-list)
-        add-all (fn [elems] (.addAll items-array-list (into-array Object elems)))
+        add-all (fn [elems] (.addAll items-array-list ^objects (into-array Object elems)))
         clear (fn [] (.clear items-array-list))
         table-data {:table-view tv
                     :table-view-pane box
@@ -480,7 +481,7 @@
                  (row-update-fn this item))))))))
 
     (.clear (.getColumns tv))
-    (.addAll (.getColumns tv) columns)
+    (.addAll (.getColumns tv) ^objects (into-array Object columns))
 
     (.setItems tv filtered-items-array)
     (.setColumnResizePolicy tv (case resize-policy
@@ -519,71 +520,49 @@
 
     table-data))
 
+(defn autocomplete-textfield
+  "Creates a textfield with autocompletion.
+  `completions-fn` should be a fn that will be called with no args when the text length
+  changes from 0 to 1 which should to retrieve the autocompletion list as a collection of
+  {:text \"...\" :on-select (fn [] ..)} objects. A max of 25 items is displayed.
+  Returns a TextField."
+  [completions-fn]
+  (let [^TextField tf (TextField.)
+        ^ContextMenu options-menu (ContextMenu.)
+        options (atom nil)]
+    (.addListener (.textProperty tf)
+                  (proxy [ChangeListener] []
+                    (changed [_ old-val new-val]
+
+                      (when (= 0 (count new-val))
+                        (reset! options nil))
+
+                      (when (and (= 0 (count old-val))
+                                 (= 1 (count new-val)))
+                        (reset! options (completions-fn)))
+
+                      (let [new-items (reduce (fn [r {:keys [text on-select]}]
+                                                (if (< (count r) 25)
+                                                  (if (str/includes? text new-val)
+                                                    (conj r (doto (MenuItem. text)
+                                                              (.setOnAction (event-handler
+                                                                             [_]
+                                                                             (.setText tf "")
+                                                                             (on-select)))))
+                                                    r)
+                                                  (reduced r)))
+                                              []
+                                              @options)
+                            ^ObservableList menu-items (.getItems options-menu)]
+                        (.clear menu-items)
+                        (if (seq new-items)
+                          (do
+                            (.addAll menu-items ^objects (into-array Object new-items))
+                            (.show options-menu tf Side/BOTTOM 0 0))
+                          (.hide options-menu))))))
+    tf))
+
 (defn remove-newlines [s]
-  (-> s
+  (-> ^String s
       (.replaceAll "\\n" "")
       (.replaceAll "\\r" "")))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOT USING ALL THIS NOW !!! just experiments
-
-;;-------------------------------------------------------------------------
-;; Some experiments on reflective FX object creation
-;;-------------------------------------------------------------------------
-
-;; (def class-map {:Button "javafx.scene.control.Button"
-;;                 :Label  "javafx.scene.control.Label"})
-
-;; (defn- class* [obj]
-;;   (let [clazz (class obj)]
-;;     (cond
-;;       (= clazz java.lang.Long) java.lang.Long/TYPE
-;;       (= clazz java.lang.Integer) java.lang.Integer/TYPE
-;;       (= clazz java.lang.Double) java.lang.Double/TYPE
-;;       :else clazz)))
-
-;; ;; TODO: memoize this
-;; (defn- get-constructor [class-name ctor-vec]
-;;   (let [clazz (clojure.lang.RT/classForName class-name
-;;                                             false
-;;                                             (.getContextClassLoader (Thread/currentThread)))]
-;;     (.getConstructor clazz (into-array Class (mapv class* ctor-vec)))))
-
-;; (defn- class-methods [clazz methods-sigs]
-;;   (reduce-kv (fn [r mkey args-vec]
-;;             (assoc r mkey (.getMethod clazz (name mkey) (into-array Class args-vec))))
-;;    {}
-;;    methods-sigs))
-
-;; (defn- set-instance-props [obj props-map]
-;;   (let [clazz (class obj)
-;;         methods-sigs (reduce-kv
-;;                       (fn [r mk args-vec]
-;;                         (assoc r mk (mapv class* args-vec)))
-;;                       {}
-;;                       props-map)
-;;         methods-map (class-methods clazz methods-sigs)]
-;;     (doseq [mkey (keys props-map)]
-;;       (let [method (get methods-map mkey)
-;;             args-vec (get props-map mkey)]
-;;         (.invoke method obj (into-array Object args-vec))))
-;;     obj))
-
-;; (defn ->fx [{:keys [type ctor] :as obj-desc}]
-;;   (let [class-name (class-map type)
-;;         ctor-obj (get-constructor class-name ctor)
-;;         obj-instance (.newInstance ctor-obj (into-array Object ctor))]
-;;     (set-instance-props obj-instance (dissoc obj-desc :type :ctor))))
-
-;; (comment
-
-;;   (def l (->fx {:type :Label
-;;                 :ctor ["Hello"]
-;;                 :setPrefWidth [(double 10)]}))
-
-;;   ;; Meh, it works but it is worse than
-
-;;   (def l (doto (Label. "Hello")
-;;            (.setPrefWidth 10)))
-
-;;   )

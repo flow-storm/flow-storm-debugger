@@ -53,8 +53,8 @@
 (defn make-heap-info-update-event [heap-info]
   [:heap-info-update heap-info])
 
-(defn make-goto-location-event [flow-id thread-id thread-name idx]
-  [:goto-location {:flow-id flow-id :thread-id thread-id :thread-name thread-name :idx idx}])
+(defn make-goto-location-event [flow-id thread-id idx]
+  [:goto-location {:flow-id flow-id :thread-id thread-id :idx idx}])
 
 (defn make-break-installed-event [fq-fn-symb]
   [:break-installed {:fq-fn-symb fq-fn-symb}])

@@ -256,8 +256,8 @@
 
 (def flow-threads-info index-api/flow-threads-info)
 
-(defn goto-location [flow-id {:keys [thread/id thread/name thread/idx]}]
-  (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id name idx)))
+(defn goto-location [flow-id {:keys [thread/id thread/idx]}]
+  (rt-events/publish-event! (rt-events/make-goto-location-event flow-id id idx)))
 
 (defn stack-for-frame [flow-id thread-id fn-call-idx]
   (index-api/stack-for-frame flow-id thread-id fn-call-idx))
@@ -450,6 +450,8 @@
              :stack-for-frame stack-for-frame
              :toggle-recording toggle-recording
              :set-total-order-recording set-total-order-recording
+             :all-fn-call-stats all-fn-call-stats
+             :find-fn-call find-fn-call
              :ping ping
              #?@(:clj
                  [:def-value def-value
