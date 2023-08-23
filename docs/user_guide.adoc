@@ -397,7 +397,7 @@ Second, when you want to run a form with a certain flow id (see <<#_flows_tool,f
 
 ==== Instrument namespaces
 
-FlowStorm allows you to instrument entire namespaces by providing `flow-strom.api/instrument-namespaces-clj`.
+FlowStorm allows you to instrument entire namespaces by providing `flow-storm.api/instrument-namespaces-clj`.
 
 You call it like this :
 
