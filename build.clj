@@ -4,7 +4,8 @@
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]))
 
-(def version "3.7.1")
+(def version (or (System/getenv "VERSION")
+                 "3.7.1"))
 
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))
@@ -35,8 +36,14 @@
    'flow-storm.runtime.types.expr-trace
    'flow-storm.runtime.indexes.utils])
 
+(def aot? (if-let [aot (System/getenv "AOT")]
+            (read-string aot)
+            ;; if no AOT value provided we default to true
+            true))
+
 (defn jar-dbg [_]
   (clean nil)
+  (println "AOT compiling dbg : " aot?)
   (let [lib 'com.github.jpmonettas/flow-storm-dbg
         basis (b/create-basis {:project "deps.edn"})
         jar-file (format "%s/%s.jar" target-dir (name lib))
@@ -46,11 +53,12 @@
                   :version version
                   :basis basis
                   :src-dirs src-dirs})
-    (b/compile-clj {:basis basis
-                    :src-dirs src-dirs
-                    :class-dir class-dir
-                    :compile-opts {:direct-linking false}
-                    :ns-compile aot-compile-nses})
+    (when aot?
+      (b/compile-clj {:basis basis
+                      :src-dirs src-dirs
+                      :class-dir class-dir
+                      :compile-opts {:direct-linking false}
+                      :ns-compile aot-compile-nses}))
     (b/copy-dir {:src-dirs (into src-dirs ["resources"])
                  :target-dir class-dir})
     (b/jar {:class-dir class-dir
@@ -58,6 +66,7 @@
 
 (defn jar-inst [_]
   (clean nil)
+  (println "AOT compiling inst : " aot?)
   (let [lib 'com.github.jpmonettas/flow-storm-inst
         src-dirs ["src-inst" "src-shared"]
         basis (b/create-basis {:project nil
@@ -75,11 +84,12 @@
                   :version version
                   :basis basis
                   :src-dirs src-dirs})
-    (b/compile-clj {:basis basis
-                    :src-dirs src-dirs
-                    :class-dir class-dir
-                    :compile-opts {:direct-linking false}
-                    :ns-compile aot-compile-nses})
+    (when aot?
+      (b/compile-clj {:basis basis
+                      :src-dirs src-dirs
+                      :class-dir class-dir
+                      :compile-opts {:direct-linking false}
+                      :ns-compile aot-compile-nses}))
     (b/copy-dir {:src-dirs src-dirs
                  :target-dir class-dir})
     (b/jar {:class-dir class-dir
