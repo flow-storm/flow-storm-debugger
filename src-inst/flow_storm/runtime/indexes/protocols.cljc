@@ -53,7 +53,7 @@
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
   (record-total-order-entry [_ flow-id thread-id thread-tl-idx entry])
-  (total-order-timeline [_ forms-registry])
+  (build-total-order-timeline [_ forms-registry])
   (discard-threads [_ flow-threads-ids])
   (start-thread-registry [_ callbacks])
   (stop-thread-registry [_]))

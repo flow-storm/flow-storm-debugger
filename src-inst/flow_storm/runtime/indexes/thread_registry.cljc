@@ -8,6 +8,8 @@
             [hansel.utils :as hansel-utils])
   #?(:clj (:import [clojure.data.int_map PersistentIntMap])))
 
+(def ^:dynamic *printing-expr-val* false)
+
 (defn flow-id-key [fid]
   (or fid 10))
 
@@ -118,9 +120,14 @@
 
   (record-total-order-entry [_ flow-id thread-id thread-tl-idx entry]
     (locking total-order-timeline
-      (ml-add total-order-timeline (TotalOrderTimelineEntry. flow-id thread-id thread-tl-idx entry))))
+      ;; `build-total-order-timeline` will print expr-vals which because of laziness can fire
+      ;; instrumented code that will try to add to the timeline under the same thread, which will end
+      ;; in a java.util.ConcurrentModificationException
+      ;; The *printing-expr-val* flag is to prevent this
+      (when-not *printing-expr-val*
+        (ml-add total-order-timeline (TotalOrderTimelineEntry. flow-id thread-id thread-tl-idx entry)))))
 
-  (total-order-timeline [_ forms-registry]
+  (build-total-order-timeline [_ forms-registry]
     (locking total-order-timeline
       (loop [[tote & r] total-order-timeline
              threads-stacks {}
@@ -171,7 +178,8 @@
                                                                                                     coord)))
                                             :expr-type (pr-str (type expr-val))
                                             :expr-val-str  (binding [*print-length* 3
-                                                                     *print-level*  2]
+                                                                     *print-level*  2
+                                                                     *printing-expr-val* true]
                                                              (pr-str expr-val))}))))))))))
 
 (defn make-thread-registry []

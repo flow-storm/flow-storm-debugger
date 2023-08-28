@@ -381,7 +381,7 @@
        :cljs (catch js/Error e (utils/log "Exception searching for timeline entry" (.-message e))))))
 
 (defn total-order-timeline []
-  (index-protos/total-order-timeline flow-thread-registry forms-registry))
+  (index-protos/build-total-order-timeline flow-thread-registry forms-registry))
 
 (defn thread-prints [{:keys [flow-id thread-id printers]}]
   ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level}}}

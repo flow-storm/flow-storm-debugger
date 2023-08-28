@@ -5,8 +5,10 @@
 ### New Features
 
 ### Changes
-    
+
 ### Bugs fixed
+
+    - Fix java.util.ConcurrentModificationException when building timeline
 
 ## 3.7.1 (21-08-2023)
 	
