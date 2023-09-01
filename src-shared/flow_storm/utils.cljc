@@ -1,9 +1,10 @@
 (ns flow-storm.utils
-  (:require [clojure.string :as str])
   #?(:cljs (:require [goog.string :as gstr]
+                     [clojure.string :as str]
                      [goog.string.format]
                      [goog :as g])
-     :clj (:require [clojure.java.io :as io]))
+     :clj (:require [clojure.java.io :as io]
+                    [clojure.string :as str]))
   (:refer-clojure :exclude [format update-values update-keys])
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
                    [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
