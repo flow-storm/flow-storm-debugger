@@ -8,6 +8,7 @@
 
 ### Bugs fixed
 
+    - Fix ClojureScript double require issue
     - Fix java.util.ConcurrentModificationException when building timeline
 
 ## 3.7.1 (21-08-2023)
