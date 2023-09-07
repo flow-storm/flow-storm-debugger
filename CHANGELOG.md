@@ -8,6 +8,16 @@
 
 ### Bugs fixed
 
+    - Fix printer goto location without thread selection
+
+## 3.7.1 (06-09-2023)
+	
+### New Features
+
+### Changes
+
+### Bugs fixed
+
     - Fix ClojureScript double require issue
     - Fix java.util.ConcurrentModificationException when building timeline
 

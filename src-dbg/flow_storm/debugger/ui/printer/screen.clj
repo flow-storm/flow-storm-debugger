@@ -115,8 +115,7 @@
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
-                                  (let [[flow-id thread-id] (selected-fid-tid)
-                                        idx (-> sel-items first :idx)]
+                                  (let [{:keys [idx flow-id thread-id]}  (first sel-items)]
                                     (flows-screen/goto-location {:flow-id flow-id
                                                                  :thread-id thread-id
                                                                  :idx idx}))))
@@ -131,7 +130,9 @@
                                                                                                    :thread-id thread-id
                                                                                                    :printers  (prepare-printers (dbg-state/printers))})]
                                                  (clear)
-                                                 (add-all print-outs))
+                                                 (add-all (into []
+                                                                (map (fn [po] (assoc po :flow-id flow-id :thread-id thread-id)))
+                                                                print-outs)))
 
                                                (show-message "You need to select a thread first" :error)))
                                  :tooltip "Re print everything")
