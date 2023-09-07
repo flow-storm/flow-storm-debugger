@@ -125,8 +125,11 @@
     (add-all bindings)))
 
 (defn- create-stack-pane [flow-id thread-id]
-  (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name]}]
-                       (.setGraphic list-cell (label (str fn-ns "/" fn-name) "link-lbl")))
+  (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name form-def-kind dispatch-val]}]
+                       (.setGraphic list-cell (label (if (= :defmethod form-def-kind)
+                                                       (str fn-ns "/" fn-name " " dispatch-val)
+                                                       (str fn-ns "/" fn-name))
+                                                     "link-lbl")))
         item-click (fn [mev selected-items _]
                      (let [{:keys [fn-call-idx]} (first selected-items)]
                        (when (= MouseButton/PRIMARY (.getButton mev))

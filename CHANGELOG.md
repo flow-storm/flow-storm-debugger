@@ -4,6 +4,8 @@
 	
 ### New Features
 
+    - Add multimethod dispatch-val to stack pane
+    
 ### Changes
 
 ### Bugs fixed

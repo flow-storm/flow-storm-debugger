@@ -247,8 +247,13 @@
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
         {:keys [fn-call-idx-path]} (index-protos/tree-frame-data timeline-index fn-call-idx {:include-path? true})]
     (reduce (fn [stack fidx]
-              (conj stack (select-keys (index-protos/tree-frame-data timeline-index fidx {})
-                                       [:fn-ns :fn-name :fn-call-idx])))
+              (let [{:keys [fn-name fn-ns fn-call-idx form-id]} (index-protos/tree-frame-data timeline-index fidx {})
+                    {:keys [form/def-kind multimethod/dispatch-val]} (get-form form-id)]
+                (conj stack (cond-> {:fn-name fn-name
+                                     :fn-ns fn-ns
+                                     :fn-call-idx fn-call-idx
+                                     :form-def-kind def-kind}
+                              (= def-kind :defmethod) (assoc :dispatch-val dispatch-val)))))
             []
             fn-call-idx-path)))
 
