@@ -8,6 +8,8 @@
     
 ### Changes
 
+    - Upgrade hansel to 0.1.78
+
 ### Bugs fixed
 
     - Fix printer goto location without thread selection
