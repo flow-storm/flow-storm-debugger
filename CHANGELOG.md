@@ -2,6 +2,14 @@
 
 ## master (unreleased)
 	
+### New Features 
+    
+### Changes 
+
+### Bugs fixed
+
+## 3.7.3 (10-09-2023)
+	
 ### New Features
 
     - Add multimethod dispatch-val to stack pane
