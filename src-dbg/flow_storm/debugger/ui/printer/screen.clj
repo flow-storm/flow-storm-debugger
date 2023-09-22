@@ -155,7 +155,7 @@
 
     (store-obj "printer-thread-id-combo" thread-id-combo)
     (store-obj "printer-print-outs-list" list-data)
-    (update-prints-controls)
+
     (VBox/setVgrow list-view Priority/ALWAYS)
 
     main-pane))

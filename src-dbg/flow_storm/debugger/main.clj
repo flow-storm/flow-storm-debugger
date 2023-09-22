@@ -59,16 +59,23 @@
   (if local?
 
     ;; start components for local debugging
-    (state-management/start {:only local-debugger-state-vars
-                             :config config})
+    (do
+      (state-management/start {:only local-debugger-state-vars
+                               :config config})
+      (dbg-state/set-sytem-fully-started)
+      (ui-main/setup-ui-from-runtime-config))
 
     ;; else, start components for remote debugging
-    (state-management/start {:only remote-debugger-state-vars
-                             :config (assoc config
-                                            :env-kind (if (#{:shadow} (:repl-type config))
-                                                        :cljs
-                                                        :clj)
-                                            :connect-to-repl? (boolean (:port config))
-                                            :repl-kind :nrepl
-                                            :dispatch-event events-queue/enqueue-event!)}))
-  (dbg-state/set-sytem-fully-started))
+    (let [runtime-connected? (promise)]
+      (state-management/start {:only remote-debugger-state-vars
+                              :config (assoc config
+                                             :env-kind (if (#{:shadow} (:repl-type config))
+                                                         :cljs
+                                                         :clj)
+                                             :connect-to-repl? (boolean (:port config))
+                                             :repl-kind :nrepl
+                                             :dispatch-event events-queue/enqueue-event!
+                                             :on-connection-open (fn [_] (deliver runtime-connected? true)))})
+      (when @runtime-connected?
+        (dbg-state/set-sytem-fully-started)
+        (ui-main/setup-ui-from-runtime-config)))))

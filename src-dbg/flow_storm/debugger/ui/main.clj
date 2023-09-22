@@ -280,16 +280,30 @@
   (ui-vars/select-main-tools-tab :flows)
   (flows-screen/update-threads-list flow-id))
 
+(defn setup-ui-from-runtime-config
+  "This function is meant to be called after all the system has started,
+  to configure the part of UI that depends on runtime state."
+  []
+  (let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
+        all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                           (map first)
+                           (into #{}))]
+
+    (ui-vars/configure-environment runtime-config)
+    (set-recording-btn recording?)
+    (timeline-screen/set-recording-check total-order-recording?)
+    (printer-screen/update-prints-controls)
+
+
+    (doseq [fid all-flows-ids]
+      (create-flow {:flow-id fid}))))
+
 (defn start-ui []
   (Platform/setImplicitExit false)
 
   (ui-utils/run-now
    (try
-     (let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
-           ;; retrieve runtime configuration and configure before creating the UI
-           ;; since some components creation depend on it
-           _ (ui-vars/configure-environment runtime-config)
-           scene (Scene. (build-main-pane) 1024 768)
+     (let [scene (Scene. (build-main-pane) 1024 768)
            stage (doto (Stage.)
                    (.setTitle (or (:title config) "Flowstorm debugger"))
                    (.setScene scene)
@@ -342,16 +356,6 @@
          (.setRoot (build-main-pane)))
 
        (-> stage .show)
-
-       ;; initialize the UI with the server state
-       (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                                (map first)
-                                (into #{}))]
-
-         (set-recording-btn recording?)
-         (timeline-screen/set-recording-check total-order-recording?)
-         (doseq [fid all-flows-ids]
-           (create-flow {:flow-id fid})))
 
        {:stages stages
         :theme-listener theme-listener})
