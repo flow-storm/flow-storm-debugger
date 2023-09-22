@@ -27,14 +27,20 @@
    (let [ns (or ns (default-repl-ns config))]
      (if-let [repl-eval (:repl-eval repl)]
       (repl-eval code-str ns)
-      (utils/log-error "No repl available")))))
+      (utils/log-error "No repl available. You need a repl connection to use this functionality. Checkout the user guide.")))))
 
-(defn safe-eval-code-str [& args]
+(defn safe-eval-code-str
+  "Eval code directly into the connected repl.
+  It is the same as `eval-code-str` but will will catch and log
+  any exceptions."
+  [& args]
   (try
     (apply eval-code-str args)
     (catch Exception e (utils/log-error (.getMessage e) e))))
 
 (defn safe-cljs-eval-code-str
+  "Eval code in the clojurescript repl through the connected
+  clojure repl."
   ([code-str] (safe-cljs-eval-code-str code-str nil))
   ([code-str ns]
    (try
