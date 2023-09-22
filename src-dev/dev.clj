@@ -13,7 +13,8 @@
             [dev-tester]
             [flow-storm.fn-sampler.core :as sampler]
             [flow-storm.utils :as utils]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (javafx.embed.swing.JFXPanel.)
 
@@ -216,3 +217,24 @@
   (doall (pmap (fn my-sum [i] (+ i i)) (range 4)))
 
   )
+
+(defn cljs-repl []
+  (cljs.main/-main "--repl"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Steps to debug the ClojureScriptStorm compiler ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; - cider-jackin to start a clj repl and load this dev namespace
+;; - on other term run a dbg : clj -X:dev flow-storm.debugger.main/start-debugger
+;; - on term run ./repl-conn to connect another repl to the jackin process
+;;     - eval (dev/cljs-repl) to start a Cljs repl, this will open the browser
+;;     - on cljs repl :  (require 'flow-storm.preload)
+;;     - on cljs repl :  (ns dev)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Compile and run ClojureScriptStorm cljs.main repl ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; clj -J-Dcljs.storm.instrumentOnlyPrefixes=dev -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "1.11.124"} com.github.jpmonettas/flow-storm-inst {:local/root "/home/jmonetta/my-projects/flow-storm-debugger"}}}' -M -m cljs.main -co '{:preloads [cljs.storm.tracer flow-storm.preload] :main org.foo.dev-tester}' --compile
+;; clj -J-Dcljs.storm.instrumentOnlyPrefixes=dev -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "1.11.124"} com.github.jpmonettas/flow-storm-inst {:local/root "/home/jmonetta/my-projects/flow-storm-debugger"}}}' -M -m cljs.main -co '{:preloads [cljs.storm.tracer flow-storm.preload] :main org.foo.dev-tester}' --repl

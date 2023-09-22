@@ -24,24 +24,29 @@
                                thheller/shadow-cljs {:mvn/version "2.23.3"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}}
-                   :jvm-opts ["-Dproject-name=StormTest"
-                              "-Dflowstorm.startRecording=true"
+                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-alpha4_3"}}
+                   :jvm-opts [
+                              ;; "-Xmx20500m"
+
+                              "-Dflowstorm.startRecording=false"
                               "-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
-                              "-Dclojure.storm.instrumentSkipPrefixes=clojure.,flow-storm.,cider.,nrepl.,hansel.,refactor-nrepl."]}
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev"
+
+                              "-Dcljs.storm.instrumentOnlyPrefixes=dev"
+                              "-Dcljs.storm.instrumentEnable=true"
+                              ]}
 
            :dev {:extra-paths ["src-dev" "classes"]
 
-                 :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.60"}
-                              ;; cljs-docs/cljs-docs {:local/root "/home/jmonetta/other-sources/clojurescript/clojurescript-flow-docs-1.11.60.jar"}
-                              ;; spread-docs/spread-docs {:local/root "/home/jmonetta/my-projects/SPREAD/spread-flow-docs.jar"}
-                              ;; clindex-docs/clindex-docs {:local/root "/home/jmonetta/my-projects/clindex/clindex-flow-docs-0.4.94.jar"}
+                 :extra-deps {;; to debug ClojureScript storm
+                              ;; org.clojure/clojurescript {:local/root "/home/jmonetta/my-projects/clojurescript"}
                               }
-                 :jvm-opts [
-                            "-Dproject-name=FlowStorm" "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
-                            ;; "-Xmx10500m" ;; for instrumenting big codebases
-                            ;;"-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
+                 :jvm-opts ["-Dvisualvm.display.name=FlowStorm"
+                            "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
+
+                            ;; for debugging java code
+                            ;; "-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}
