@@ -669,7 +669,13 @@ pre.rouge {
 <li><a href="#_vanilla_flowstorm">Vanilla FlowStorm</a></li>
 </ul>
 </li>
-<li><a href="#_clojurescript">1.2. ClojureScript</a></li>
+<li><a href="#_clojurescript">1.2. ClojureScript</a>
+<ul class="sectlevel4">
+<li><a href="#_clojurescriptstorm_with_shadow_cljs">ClojureScriptStorm with shadow-cljs</a></li>
+<li><a href="#_clojurescriptstorm_with_cljs_main">ClojureScriptStorm with cljs.main</a></li>
+<li><a href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_remote_debugging">2. Remote debugging</a>
@@ -779,7 +785,7 @@ pre.rouge {
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>FlowStorm is a tracing debugger for Clojure and ClojureScript.</p>
+<p><em>FlowStorm</em> is a tracing debugger for Clojure and ClojureScript.</p>
 </div>
 <div class="paragraph">
 <p>It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.</p>
@@ -789,7 +795,7 @@ pre.rouge {
 <div class="sect2">
 <h3 id="_quick_start"><a class="anchor" href="#_quick_start"></a><a class="link" href="#_quick_start">1. Quick start</a></h3>
 <div class="paragraph">
-<p>Before you start check FlowStorm minimum requirements.</p>
+<p>Before you start check <em>FlowStorm</em> minimum requirements.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -816,7 +822,7 @@ pre.rouge {
 <div class="sect3">
 <h4 id="_clojure"><a class="anchor" href="#_clojure"></a><a class="link" href="#_clojure">1.1. Clojure</a></h4>
 <div class="paragraph">
-<p>There are two ways of using FlowStorm for Clojure :</p>
+<p>There are two ways of using <em>FlowStorm</em> for Clojure :</p>
 </div>
 <div class="ulist">
 <ul>
@@ -824,28 +830,28 @@ pre.rouge {
 <p>With <a href="#_clojurestorm">ClojureStorm</a> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically</p>
 </li>
 <li>
-<p><a href="#_vanilla_flowstorm">Vanilla FlowStorm</a> : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms</p>
+<p><a href="#_vanilla_flowstorm">Vanilla FlowStorm</a> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
+<p><em>ClojureStorm</em> is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
 </div>
 <div class="paragraph">
-<p>You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.</p>
+<p>You use it by swapping the official Clojure compiler by <em>ClojureStorm</em> at dev time, using dev aliases or profiles.</p>
 </div>
 <div class="sect4">
 <h5 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">ClojureStorm</a></h5>
 <div class="paragraph">
-<p>This is the newest and simplest way of using FlowStorm. It requires you to swap your official Clojure compiler by ClojureStorm only at dev time.</p>
+<p>This is the newest and simplest way of using <em>FlowStorm</em>. It requires you to swap your official Clojure compiler by <em>ClojureStorm</em> only at dev time.</p>
 </div>
 <div class="paragraph">
-<p>Swapping compilers sounds like a lot, but don&#8217;t worry, ClojureStorm is just a patch applied over the official compiler with some
+<p>Swapping compilers sounds like a lot, but don&#8217;t worry, <em>ClojureStorm</em> is just a patch applied over the official compiler with some
 extra stuff for automatic instrumentation, you shouldn&#8217;t encounter any differences, it is only for dev, and you can swap it back and forth by starting
 your repl with a different alias or lein profile.</p>
 </div>
 <div class="paragraph">
-<p>The easiest way to run and learn FlowStorm with ClojureStorm is by running the repl tutorial, like this :</p>
+<p>The easiest way to run and learn <em>FlowStorm</em> with <em>ClojureStorm</em> is by running the repl tutorial, like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -874,7 +880,7 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 </table>
 </div>
 <div class="paragraph">
-<p>Pasting that command on your terminal will bring up a repl with FlowStorm and the compiler swapped by ClojureStorm. When the repl comes up just
+<p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up just
 evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
 </div>
 <div class="paragraph">
@@ -935,7 +941,7 @@ although you can still do it if you need it. There are also other options you ca
 <td class="content">
 <div class="title">#rtrace and #trace</div>
 <div class="paragraph">
-<p>When using FlowStorm with ClojureStorm it is a error to use #trace or #rtrace. They aren&#8217;t needed since
+<p>When using <em>FlowStorm</em> with <em>ClojureStorm</em> it is a error to use #trace or #rtrace. They aren&#8217;t needed since
 everything you declared in <code>clojure.storm.instrumentOnlyPrefixes</code> will be automatically instrumented.</p>
 </div>
 </td>
@@ -946,7 +952,7 @@ everything you declared in <code>clojure.storm.instrumentOnlyPrefixes</code> wil
 <div class="sect4">
 <h5 id="_vanilla_flowstorm"><a class="anchor" href="#_vanilla_flowstorm"></a><a class="link" href="#_vanilla_flowstorm">Vanilla FlowStorm</a></h5>
 <div class="paragraph">
-<p>If you use <a href="https://clojure.org/guides/deps_and_cli">clojure cli</a> you can start a repl with the FlowStorm dependency loaded like this :</p>
+<p>If you use <a href="https://clojure.org/guides/deps_and_cli">clojure cli</a> you can start a repl with the <em>FlowStorm</em> dependency loaded like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1017,7 +1023,7 @@ Clicking on it will show you something like the picture above.</p>
 <p>Go ahead and use the stepping controls to step over the code.</p>
 </div>
 <div class="paragraph">
-<p>Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+<p>Now that everything seems to be working move on and explore the many features <em>FlowStorm</em> provides. There are many ways of instrumenting
 your code, and many ways to explore its executions.</p>
 </div>
 </div>
@@ -1025,12 +1031,28 @@ your code, and many ways to explore its executions.</p>
 <div class="sect3">
 <h4 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h4>
 <div class="paragraph">
-<p>Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
-will run in a separate process and connect to the debuggee by connecting to a repl.</p>
+<p>Debugging ClojureScript is a case of remote debugging in <em>FlowStorm</em>. This means the debugger
+will run in a separate process and connect to the debuggee (your browser or nodejs runtime) via a websocket and optionally
+an nrepl server.</p>
 </div>
 <div class="paragraph">
-<p>For enabling every debugger feature, remote connections needs a repl. If you don&#8217;t connect to a repl you
-can still use the debugger but you will have to call <code>flow-storm.api/remote-connect</code> by hand on your app.</p>
+<p>There are two ways of using <em>FlowStorm</em> with ClojureScript :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>With <a href="#_clojurescriptstorm_with_shadow_cljs">ClojureScriptStorm</a> (recommended) : Swap your ClojureScript compiler by ClojureScriptStorm at dev and get everything instrumented automatically</p>
+</li>
+<li>
+<p><a href="#_clojurescript_vanilla_flowstorm">Vanilla FlowStorm</a> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><em>ClojureScriptStorm</em> is a fork of the official ClojureScript compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
+</div>
+<div class="paragraph">
+<p>You use it by swapping the official ClojureScript compiler by <em>ClojureScriptStorm</em> at dev time, using dev aliases or profiles.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1039,19 +1061,183 @@ can still use the debugger but you will have to call <code>flow-storm.api/remote
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">Repl connection limitations</div>
+<div class="title">Repl connection</div>
 <div class="paragraph">
-<p>Currently only shadow-cljs repl over nrepl is supported.</p>
+<p>For enabling every debugger feature, <em>FlowStorm</em> needs to connect to a cljs repl.
+Currently only shadow-cljs repl over nrepl is supported.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_clojurescriptstorm_with_shadow_cljs"><a class="anchor" href="#_clojurescriptstorm_with_shadow_cljs"></a><a class="link" href="#_clojurescriptstorm_with_shadow_cljs">ClojureScriptStorm with shadow-cljs</a></h5>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Minimum requirements</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Shadow Cljs &gt;= 2.25.4</p>
+</li>
+</ul>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
+<p>For setting up <em>FlowStorm</em> with shadow-cljs you need to modify two files, your <code>shadow-cljs.edn</code> and your <code>deps.edn</code>.
+This is setup once and forget, so once you have configured <em>FlowStorm</em> you can do everything from the UI, without
+any other sources modifications.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">shadow-cljs</div>
+<div class="paragraph">
+<p>Currently you can only use <em>ClojureScriptStorm</em> with shadow-cljs if you are resolving your
+dependencies with deps.edn. This means having <code>:deps true</code> or similar in your shadow-cljs.edn.
+If you have your dependecies directly in your shadow-cljs.edn you will have to use <a href="#_clojurescript_vanilla_flowstorm">Vanilla FlowStorm</a>
+for now.
+This is because there is currently no way to swap the ClojureScript compiler in shadow-cljs.edn.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>First, make your shadow-cljs.edn looks something like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:deps</span><span class="w"> </span><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">[</span><span class="no">:dev</span><span class="p">]}</span><span class="w">
+ </span><span class="no">:nrepl</span><span class="w"> </span><span class="p">{</span><span class="no">:port</span><span class="w"> </span><span class="mi">9000</span><span class="p">}</span><span class="w">
+ </span><span class="n">...</span><span class="w">
+ </span><span class="no">:builds</span><span class="w">
+ </span><span class="p">{</span><span class="no">:my-app</span><span class="w"> </span><span class="p">{</span><span class="n">...</span><span class="w">
+           </span><span class="no">:devtools</span><span class="w"> </span><span class="p">{</span><span class="no">:preloads</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.storm-preload</span><span class="p">]</span><span class="w">
+                      </span><span class="no">:http-port</span><span class="w"> </span><span class="mi">8021</span><span class="p">}}}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+and also add <code>flow-storm.storm-preload</code> to your preloads.</p>
+</div>
+<div class="paragraph">
+<p>Then, modify your <code>deps.edn</code> dev profile to look like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
+ </span><span class="no">:aliases</span><span class="w">
+ </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojurescript</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; disable the official compiler</span><span class="w">
+        </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"2.25.6"</span><span class="w"> </span><span class="c1">;; &gt;= 2.25.4</span><span class="w">
+                                           </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
+                     </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
+                     </span><span class="n">com.github.jpmonettas/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
+                     </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
+                     </span><span class="n">com.github.jpmonettas/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
+       </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"</span><span class="w">
+                   </span><span class="s">"-Dcljs.storm.instrumentEnable=true"</span><span class="w">
+                   </span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="p">]}}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are lots of things going on there, but the main ones are: disabling the official compiler, adding
+<em>ClojureScriptStorm</em> and <em>FlowStorm</em> dependencies, and then configuring what you want <em>ClojureScriptStorm</em> to automatically
+instrument.</p>
+</div>
+<div class="paragraph">
+<p>It is important to configure what namespaces you want to instrument, and you do this by setting the
+<code>cljs.storm.instrumentOnlyPrefixes</code> jvm property.</p>
+</div>
+<div class="paragraph">
+<p>This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
+<code>cljs.storm.instrumentOnlyPrefixes=org.my-app,org.my-lib,hiccup</code></p>
+</div>
+<div class="paragraph">
+<p>And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs) and
+when your need it, run the debugger ui with your shadow-cljs.edn data :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now since we started the app with <code>flowstorm.startRecording=false</code> you will have to click on the record button once to start recording.
+Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger
+under the main thread.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">recording expressions typed on the repl</div>
+<div class="paragraph">
+<p>If you type at the repl something like <code>(defn foo [a b] (+ a b))</code> under an instrumented ns, the <code>foo</code> funciton will get instrumented
+automatically and you will able to explore the recordings after the function is called.
+On the other side, typing a simple expression like <code>(+ 1 2)</code> will not show anything, this is currently a limitation but you can
+still make that work by wrapping the expression on a fn and immediately calling it, like <code>fn [] (+ 1 2)</code></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_clojurescriptstorm_with_cljs_main"><a class="anchor" href="#_clojurescriptstorm_with_cljs_main"></a><a class="link" href="#_clojurescriptstorm_with_cljs_main">ClojureScriptStorm with cljs.main</a></h5>
+<div class="paragraph">
+<p>You can use <em>FlowStorm</em> and <em>ClojureScriptStorm</em> with cljs.main.</p>
+</div>
+<div class="paragraph">
+<p>To compile instrumented files :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To run a repl that instrument everything under org.foo :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then run the <em>FlowStorm</em> UI :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And now refresh your browser page so your browser app connects to the UI.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_clojurescript_vanilla_flowstorm"><a class="anchor" href="#_clojurescript_vanilla_flowstorm"></a><a class="link" href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></h5>
+<div class="paragraph">
 <p>Lets say you are using <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> to start a ClojureScript repl.</p>
 </div>
 <div class="paragraph">
-<p>First you need to add FlowStorm dependency to your project dependencies, like this :</p>
+<p>First you need to add <em>FlowStorm</em> dependency to your project dependencies, like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1102,7 +1288,7 @@ cljs.user<span class="o">=&gt;</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port FlowStorm needs to connect to,
+<p>As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port <em>FlowStorm</em> needs to connect to,
 so to start the debugger and connect to it you run :</p>
 </div>
 <div class="listingblock">
@@ -1141,11 +1327,11 @@ it in the <code>code stepping tool</code> at the bottom left corner of the threa
 <p>Click on it and use the stepping controls to step over the code.</p>
 </div>
 <div class="paragraph">
-<p>Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+<p>Now that everything seems to be working move on and explore the many features <em>FlowStorm</em> provides. There are many ways of instrumenting
 your code, and many ways to explore its executions.</p>
 </div>
 <div class="paragraph">
-<p>If you are not using a repl or the repl you are using isn&#8217;t supported by FlowStorm yet you can still use the debugger
+<p>If you are not using a repl or the repl you are using isn&#8217;t supported by <em>FlowStorm</em> yet you can still use the debugger
 but not all features will be supported (mainly the browser features).</p>
 </div>
 <div class="paragraph">
@@ -1169,7 +1355,7 @@ will automatically connect to the repl.</p>
 <td class="content">
 <div class="title">ClojureScript environments</div>
 <div class="paragraph">
-<p>FlowStorm is supported for ClojureScript in :</p>
+<p><em>FlowStorm</em> is supported for ClojureScript in :</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1227,7 +1413,8 @@ once it is connected.</p>
 </table>
 </div>
 <div class="paragraph">
-<p>Here is a repo you can use if you want to try FlowStorm with shadow-cljs <a href="https://github.com/jpmonettas/shadow-flow-storm-basic" class="bare">https://github.com/jpmonettas/shadow-flow-storm-basic</a></p>
+<p>Here is a repo you can use if you want to try <em>FlowStorm</em> with shadow-cljs <a href="https://github.com/jpmonettas/shadow-flow-storm-basic" class="bare">https://github.com/jpmonettas/shadow-flow-storm-basic</a></p>
+</div>
 </div>
 </div>
 </div>
@@ -1235,7 +1422,7 @@ once it is connected.</p>
 <h3 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">2. Remote debugging</a></h3>
 <div class="paragraph">
 <p>You can remotely debug any Clojure application the exposes a nrepl server.
-You can do remote Clojure debugging in two ways (the same as local debugging), with and without ClojureStorm.</p>
+You can do remote Clojure debugging in two ways (the same as local debugging), with and without <em>ClojureStorm</em>.</p>
 </div>
 <div class="paragraph">
 <p>The debuggee side should be setup the same as a normal local setup with the optional change that you can use
@@ -1283,7 +1470,7 @@ doesn&#8217;t contain some libraries used only by the UI, but using the full <co
 <div class="sect3">
 <h4 id="_docker"><a class="anchor" href="#_docker"></a><a class="link" href="#_docker">2.2. Docker</a></h4>
 <div class="paragraph">
-<p>If you run you process inside a docker container, here is a basic template for using FlowStorm with it
+<p>If you run you process inside a docker container, here is a basic template for using <em>FlowStorm</em> with it
 <a href="https://github.com/jpmonettas/docker-flow-storm-basic" class="bare">https://github.com/jpmonettas/docker-flow-storm-basic</a></p>
 </div>
 </div>
@@ -1299,7 +1486,7 @@ doesn&#8217;t contain some libraries used only by the UI, but using the full <co
 <td class="content">
 <div class="title">ClojureStorm</div>
 <div class="paragraph">
-<p>Instructions here only apply to vanilla FlowStorm and ClojureScript debugging. If you are using ClojureStorm
+<p>Instructions here only apply to vanilla <em>FlowStorm</em> and ClojureScript debugging. If you are using <em>ClojureStorm</em>
 this is done automatically for you, so just skip this section.</p>
 </div>
 </td>
@@ -1307,7 +1494,7 @@ this is done automatically for you, so just skip this section.</p>
 </table>
 </div>
 <div class="paragraph">
-<p>Code instrumentation in FlowStorm is done by rewriting your code, in a way that doesn&#8217;t change its behavior
+<p>Code instrumentation in <em>FlowStorm</em> is done by rewriting your code, in a way that doesn&#8217;t change its behavior
 but when executed will trace everything the code is doing.</p>
 </div>
 <div class="paragraph">
@@ -1364,7 +1551,7 @@ Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (r
 <div class="sect4">
 <h5 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">Instrument namespaces</a></h5>
 <div class="paragraph">
-<p>FlowStorm allows you to instrument entire namespaces by providing <code>flow-strom.api/instrument-namespaces-clj</code>.</p>
+<p><em>FlowStorm</em> allows you to instrument entire namespaces by providing <code>flow-storm.api/instrument-namespaces-clj</code>.</p>
 </div>
 <div class="paragraph">
 <p>You call it like this :</p>
@@ -1405,7 +1592,7 @@ instrument all namespaces starting with <code>org.my-app.core</code>, and all st
 <li>
 <p>Very big forms can&#8217;t be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
 When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying <code>Instrumented expression is too large for the Clojure compiler</code>
-and FlowStorm automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
+and <em>FlowStorm</em> automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
 </li>
 <li>
 <p>Functions that call recur without a loop</p>
@@ -1712,11 +1899,11 @@ and clicking on them will make the debugger jump to that specific point in time.
 <div class="sect4">
 <h5 id="_exception_debugging"><a class="anchor" href="#_exception_debugging"></a><a class="link" href="#_exception_debugging">Exception debugging</a></h5>
 <div class="paragraph">
-<p>If you are using ClojureStorm you can jump to the last captured exception by evaluating the <code>:ex</code> keyword on your repl. This
+<p>If you are using <em>ClojureStorm</em> you can jump to the last captured exception by evaluating the <code>:ex</code> keyword on your repl. This
 will position the debugger right before the exception so you can step backwards and explore the cause.</p>
 </div>
 <div class="paragraph">
-<p>If you are using vanilla or using FlowStorm with ClojureScript, most of the time you can accomplish the same by clicking the <code>Step last</code> button
+<p>If you are using vanilla or using <em>FlowStorm</em> with ClojureScript, most of the time you can accomplish the same by clicking the <code>Step last</code> button
 right after the exception happens.</p>
 </div>
 </div>
@@ -1773,7 +1960,7 @@ there will be gaps.</p>
 <div class="sect4">
 <h5 id="_value_panels"><a class="anchor" href="#_value_panels"></a><a class="link" href="#_value_panels">Value panels</a></h5>
 <div class="paragraph">
-<p>Value panels show in many places in FlowStorm.</p>
+<p>Value panels show in many places in <em>FlowStorm</em>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1799,7 +1986,7 @@ there will be gaps.</p>
 <div class="sect4">
 <h5 id="_re_running_a_flow"><a class="anchor" href="#_re_running_a_flow"></a><a class="link" href="#_re_running_a_flow">Re running a flow</a></h5>
 <div class="paragraph">
-<p>Every time you run a form with #rtrace FlowStorm keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
+<p>Every time you run a form with #rtrace <em>FlowStorm</em> keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
 since it allows you to re run the form with a single click.</p>
 </div>
 </div>
@@ -1834,7 +2021,7 @@ since it allows you to re run the form with a single click.</p>
 <td class="content">
 <div class="title">Tree refreshing</div>
 <div class="paragraph">
-<p>If FlowStorm keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
+<p>If <em>FlowStorm</em> keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
 You can use the refresh button at the root to update it.</p>
 </div>
 </td>
@@ -1926,7 +2113,7 @@ you can right click on any function to un instrument it. You will have to <a hre
 </div>
 </div>
 <div class="paragraph">
-<p>Everytime FlowStorm starts, it will add a tap, so whenever you <code>tap&gt;</code> something
+<p>Everytime <em>FlowStorm</em> starts, it will add a tap, so whenever you <code>tap&gt;</code> something
 it will show on the taps list.</p>
 </div>
 <div class="paragraph">
@@ -1946,7 +2133,7 @@ and run <code>Search value on Flows</code> to move the debugger to that point in
 <div class="title">Search value on Flows</div>
 <div class="paragraph">
 <p>Be aware that if the code that taps your value is something like <code>(tap&gt; :a-key)</code> you won&#8217;t be able to jump
-to it using this, because <code>:a-key</code> isn&#8217;t a value recorded by FlowStorm, while if the tapping
+to it using this, because <code>:a-key</code> isn&#8217;t a value recorded by <em>FlowStorm</em>, while if the tapping
 code is like <code>(tap&gt; some-bind)</code> or <code>(tap&gt; (+ 2 3))</code> or the tapping of any other expression
 you should be able to jump to it.
 So if you want to use this functionality as a "mark" so you can quickly jump to different parts of
@@ -2042,10 +2229,10 @@ with the usual mvn utilities.</p>
 <div class="sect3">
 <h4 id="_consuming_docs"><a class="anchor" href="#_consuming_docs"></a><a class="link" href="#_consuming_docs">7.3. Consuming docs</a></h4>
 <div class="paragraph">
-<p>FlowStorm debugger provides a way of visualizing whatever docs you have on your classpath.</p>
+<p><em>FlowStorm</em> debugger provides a way of visualizing whatever docs you have on your classpath.</p>
 </div>
 <div class="paragraph">
-<p>For this you can add the docs and FlowStorm to your classpaths as usual, like :</p>
+<p>For this you can add the docs and <em>FlowStorm</em> to your classpaths as usual, like :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2108,7 +2295,7 @@ This can be used, for example, to visualize how multiple threads expressions int
 </div>
 </div>
 <div class="paragraph">
-<p>Once it is enable FlowStorm will record everything as usual but also record the total order for your function calls and expressions,
+<p>Once it is enable <em>FlowStorm</em> will record everything as usual but also record the total order for your function calls and expressions,
 which you can then retrieve and update by clicking on the refresh button at the top.</p>
 </div>
 <div class="paragraph">
@@ -2155,12 +2342,12 @@ if you try it on big recordings.</p>
 <div class="sect2">
 <h3 id="_printer_tool"><a class="anchor" href="#_printer_tool"></a><a class="link" href="#_printer_tool">9. Printer tool</a></h3>
 <div class="paragraph">
-<p>FlowStorm has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
+<p><em>FlowStorm</em> has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
 inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
 of understanding your execution.</p>
 </div>
 <div class="paragraph">
-<p>For this cases FlowStorm has the <code>Printer tool</code>, which allows you to define, manage and visualize print points, without the need
+<p>For this cases <em>FlowStorm</em> has the <code>Printer tool</code>, which allows you to define, manage and visualize print points, without the need
 of re running your code again. It will work on your recordings as everything else.</p>
 </div>
 <div class="paragraph">
@@ -2261,13 +2448,13 @@ forward and backwards in the execution the current selected value.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>FlowStorm is a tracing debugger, which means it can record what is happening without the need of stopping
+<p><em>FlowStorm</em> is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn&#8217;t cover every possible situation. There are
 cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
 and you are probably not interested in all those frames details.</p>
 </div>
 <div class="paragraph">
-<p>For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define points
+<p>For situations like the previous one, <em>FlowStorm</em> has the ability to set thread breakpoints, which means to define points
 in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn&#8217;t enough you can
 click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
@@ -2357,7 +2544,7 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 <p>Unblock all breakpoint blocked threads if any.</p>
 </li>
 <li>
-<p>Quick jump. Use it for quickly jump to the first recording of a function. Will autocomplete the first 25 matches.</p>
+<p>Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.</p>
 </li>
 </ul>
 </div>
@@ -2396,7 +2583,7 @@ run you original command.</p>
 <div class="sect2">
 <h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">14. Programmable debugging</a></h3>
 <div class="paragraph">
-<p>FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
+<p><em>FlowStorm</em> gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
 enough.</p>
 </div>
 <div class="paragraph">
@@ -2507,7 +2694,7 @@ and we want to work with all the values for that coordinate from the repl, then 
 <div class="sect2">
 <h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">15. Dealing with mutable values</a></h3>
 <div class="paragraph">
-<p>FlowStorm will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
+<p><em>FlowStorm</em> will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :</p>
 </div>
 <div class="listingblock">
@@ -2535,7 +2722,7 @@ when your code uses mutable values like this :</p>
 </div>
 </div>
 <div class="paragraph">
-<p>to provide FlowStorm a way of creating a snapshot of the mutable value.</p>
+<p>to provide <em>FlowStorm</em> a way of creating a snapshot of the mutable value.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2546,7 +2733,7 @@ when your code uses mutable values like this :</p>
 <td class="content">
 <div class="title">ClojureStorm</div>
 <div class="paragraph">
-<p>If you are using ClojureStorm evaluate the previous defmethod in a ns that is not being
+<p>If you are using <em>ClojureStorm</em> evaluate the previous defmethod in a ns that is not being
 instrumented to avoid an infinite recursion.</p>
 </div>
 </td>
@@ -2580,7 +2767,7 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 too many traces, making everything slow and where your only option is to restart it.</p>
 </div>
 <div class="paragraph">
-<p>For preventing this FlowStorm provides a couple of tools :</p>
+<p>For preventing this <em>FlowStorm</em> provides a couple of tools :</p>
 </div>
 <div class="paragraph">
 <p><strong>If you are using vanilla FlowStorm</strong> there is <code>:thread-trace-limit</code>, you can use it like this :</p>
@@ -2616,7 +2803,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you are using ClojureStorm you can also provide them with :</p>
+<p>If you are using <em>ClojureStorm</em> you can also provide them with :</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2855,7 +3042,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
 <div class="paragraph">
-<p>The first argument is a options map, which accepts <code>:verbose? :true</code>, in which case FlowStorm will print to the console tracing stats.</p>
+<p>The first argument is a options map, which accepts <code>:verbose? :true</code>, in which case <em>FlowStorm</em> will print to the console tracing stats.</p>
 </div>
 <div class="paragraph">
 <p>Is useful when you have instrumented a big application and wish to see tracing progress while running.</p>
@@ -2881,7 +3068,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-08-21 11:38:49 -0300
+Last updated 2023-09-27 10:38:48 -0300
 </div>
 </div>
 </body>

@@ -12,13 +12,13 @@
 :sectnums:
 
 
-FlowStorm is a tracing debugger for Clojure and ClojureScript.
+_FlowStorm_ is a tracing debugger for Clojure and ClojureScript.
 
 It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.
 
 == Quick start
 
-Before you start check FlowStorm minimum requirements.
+Before you start check _FlowStorm_ minimum requirements.
 
 [IMPORTANT]
 .Minimum requirements
@@ -29,24 +29,24 @@ Before you start check FlowStorm minimum requirements.
 
 === Clojure
 
-There are two ways of using FlowStorm for Clojure :
+There are two ways of using _FlowStorm_ for Clojure :
 
 	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
-	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
+	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms
     
-ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
+_ClojureStorm_ is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
-You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles.
+You use it by swapping the official Clojure compiler by _ClojureStorm_ at dev time, using dev aliases or profiles.
 
 ==== ClojureStorm
 
-This is the newest and simplest way of using FlowStorm. It requires you to swap your official Clojure compiler by ClojureStorm only at dev time.
+This is the newest and simplest way of using _FlowStorm_. It requires you to swap your official Clojure compiler by _ClojureStorm_ only at dev time.
 
-Swapping compilers sounds like a lot, but don't worry, ClojureStorm is just a patch applied over the official compiler with some
+Swapping compilers sounds like a lot, but don't worry, _ClojureStorm_ is just a patch applied over the official compiler with some
 extra stuff for automatic instrumentation, you shouldn't encounter any differences, it is only for dev, and you can swap it back and forth by starting
 your repl with a different alias or lein profile.
 
-The easiest way to run and learn FlowStorm with ClojureStorm is by running the repl tutorial, like this :
+The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial, like this :
 
 [,bash]
 ----
@@ -66,7 +66,7 @@ It is much safer to just write the latest versions. Check out  the https://githu
 ====
 
 
-Pasting that command on your terminal will bring up a repl with FlowStorm and the compiler swapped by ClojureStorm. When the repl comes up just
+Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
 
 After the tutorial you would want to add and configure it for your projects, so here are the basics :
@@ -110,14 +110,14 @@ with `YOUR_INSTRUMENTATION_STRING` as described above.
 [NOTE]
 .#rtrace and #trace
 ====
-When using FlowStorm with ClojureStorm it is a error to use #trace or #rtrace. They aren't needed since
+When using _FlowStorm_ with _ClojureStorm_ it is a error to use #trace or #rtrace. They aren't needed since
 everything you declared in `clojure.storm.instrumentOnlyPrefixes` will be automatically instrumented.
 ====
 
 
 ==== Vanilla FlowStorm
 
-If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the FlowStorm dependency loaded like this :
+If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the _FlowStorm_ dependency loaded like this :
 
 [,bash]
 ----
@@ -168,26 +168,150 @@ Clicking on it will show you something like the picture above.
 
 Go ahead and use the stepping controls to step over the code.
 
-Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+Now that everything seems to be working move on and explore the many features _FlowStorm_ provides. There are many ways of instrumenting
 your code, and many ways to explore its executions.
 	
 === ClojureScript
 
-Debugging ClojureScript is a case of remote debugging in FlowStorm. This means the debugger
-will run in a separate process and connect to the debuggee by connecting to a repl.
+Debugging ClojureScript is a case of remote debugging in _FlowStorm_. This means the debugger
+will run in a separate process and connect to the debuggee (your browser or nodejs runtime) via a websocket and optionally
+an nrepl server.
 
-For enabling every debugger feature, remote connections needs a repl. If you don't connect to a repl you
-can still use the debugger but you will have to call `flow-storm.api/remote-connect` by hand on your app.
+There are two ways of using _FlowStorm_ with ClojureScript :
+
+    - With <<#_clojurescriptstorm_with_shadow_cljs,ClojureScriptStorm>> (recommended) : Swap your ClojureScript compiler by ClojureScriptStorm at dev and get everything instrumented automatically
+	- <<#_clojurescript_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms
+    
+_ClojureScriptStorm_ is a fork of the official ClojureScript compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
+
+You use it by swapping the official ClojureScript compiler by _ClojureScriptStorm_ at dev time, using dev aliases or profiles.
 
 [NOTE]
-.Repl connection limitations
+.Repl connection
 ====
+For enabling every debugger feature, _FlowStorm_ needs to connect to a cljs repl.
 Currently only shadow-cljs repl over nrepl is supported.
 ====
 
+==== ClojureScriptStorm with shadow-cljs
+
+[IMPORTANT]
+.Minimum requirements
+====
+    - Shadow Cljs >= 2.25.4    
+====
+
+For setting up _FlowStorm_ with shadow-cljs you need to modify two files, your `shadow-cljs.edn` and your `deps.edn`.
+This is setup once and forget, so once you have configured _FlowStorm_ you can do everything from the UI, without
+any other sources modifications.
+
+[NOTE]
+.shadow-cljs
+====
+Currently you can only use _ClojureScriptStorm_ with shadow-cljs if you are resolving your
+dependencies with deps.edn. This means having `:deps true` or similar in your shadow-cljs.edn.
+If you have your dependecies directly in your shadow-cljs.edn you will have to use <<#_clojurescript_vanilla_flowstorm,Vanilla FlowStorm>>
+for now.
+This is because there is currently no way to swap the ClojureScript compiler in shadow-cljs.edn.
+====
+
+First, make your shadow-cljs.edn looks something like this :
+
+[,clojure]
+----
+{:deps {:aliases [:dev]}
+ :nrepl {:port 9000}
+ ... 
+ :builds
+ {:my-app {...
+           :devtools {:preloads [flow-storm.storm-preload]
+                      :http-port 8021}}}}
+----
+
+So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+and also add `flow-storm.storm-preload` to your preloads.
+
+Then, modify your `deps.edn` dev profile to look like this :
+
+[,clojure]
+----
+{...
+ :aliases
+ {:dev {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
+        :extra-deps {thheller/shadow-cljs {:mvn/version "2.25.6" ;; >= 2.25.4
+                                           :exclusions [org.clojure/clojurescript]}
+                     ;; bring ClojureScriptStorm
+                     com.github.jpmonettas/clojurescript {:mvn/version "RELEASE"}
+                     ;; add FlowStorm runtime dep
+                     com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}
+       :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"
+                   "-Dcljs.storm.instrumentEnable=true"
+                   "-Dflowstorm.startRecording=false"]}}}
+----
+
+There are lots of things going on there, but the main ones are: disabling the official compiler, adding
+_ClojureScriptStorm_ and _FlowStorm_ dependencies, and then configuring what you want _ClojureScriptStorm_ to automatically
+instrument.
+
+It is important to configure what namespaces you want to instrument, and you do this by setting the
+`cljs.storm.instrumentOnlyPrefixes` jvm property.
+
+This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
+`cljs.storm.instrumentOnlyPrefixes=org.my-app,org.my-lib,hiccup`
+
+And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs) and
+when your need it, run the debugger ui with your shadow-cljs.edn data :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
+----
+
+Now since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
+Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger
+under the main thread.
+
+[NOTE]
+.recording expressions typed on the repl
+====
+If you type at the repl something like `(defn foo [a b] (+ a b))` under an instrumented ns, the `foo` funciton will get instrumented
+automatically and you will able to explore the recordings after the function is called.
+On the other side, typing a simple expression like `(+ 1 2)` will not show anything, this is currently a limitation but you can
+still make that work by wrapping the expression on a fn and immediately calling it, like `((fn [] (+ 1 2)))`
+====
+
+==== ClojureScriptStorm with cljs.main
+
+You can use _FlowStorm_ and _ClojureScriptStorm_ with cljs.main.
+
+To compile instrumented files :
+
+[,bash]
+----
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
+----
+
+To run a repl that instrument everything under org.foo :
+
+[,bash]
+----
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "RELEASE"} com.github.jpmonettas/flow-storm-inst {:mvn/version "RELEASE"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
+----
+
+Then run the _FlowStorm_ UI :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.jpmonettas/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
+----
+
+And now refresh your browser page so your browser app connects to the UI.
+
+==== ClojureScript vanilla FlowStorm
+
 Lets say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
 
-First you need to add FlowStorm dependency to your project dependencies, like this :
+First you need to add _FlowStorm_ dependency to your project dependencies, like this :
 
 [,clojure]
 ----
@@ -228,7 +352,7 @@ shadow-cljs - watching build :my-build-id
 cljs.user=> 
 ----
 
-As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port FlowStorm needs to connect to,
+As you can see from the output log shadow-cljs started a nrepl server on port 9000, this is the port _FlowStorm_ needs to connect to,
 so to start the debugger and connect to it you run :
 
 [,bash]
@@ -260,10 +384,10 @@ it in the `code stepping tool` at the bottom left corner of the thread tab, the 
 
 Click on it and use the stepping controls to step over the code.
 
-Now that everything seems to be working move on and explore the many features FlowStorm provides. There are many ways of instrumenting
+Now that everything seems to be working move on and explore the many features _FlowStorm_ provides. There are many ways of instrumenting
 your code, and many ways to explore its executions.
 
-If you are not using a repl or the repl you are using isn't supported by FlowStorm yet you can still use the debugger
+If you are not using a repl or the repl you are using isn't supported by _FlowStorm_ yet you can still use the debugger
 but not all features will be supported (mainly the browser features).
 
 For this you can start the debugger like before but without any parameters, like this :
@@ -280,7 +404,7 @@ will automatically connect to the repl.
 .ClojureScript environments
 ====
 
-FlowStorm is supported for ClojureScript in :
+_FlowStorm_ is supported for ClojureScript in :
 
 		  - Browsers
 		  - NodeJS
@@ -306,12 +430,12 @@ will have to require flow-storm.api yourself, probably in your main. All the tra
 once it is connected.
 ====
 
-Here is a repo you can use if you want to try FlowStorm with shadow-cljs https://github.com/jpmonettas/shadow-flow-storm-basic
+Here is a repo you can use if you want to try _FlowStorm_ with shadow-cljs https://github.com/jpmonettas/shadow-flow-storm-basic
 
 == Remote debugging
 
 You can remotely debug any Clojure application the exposes a nrepl server.
-You can do remote Clojure debugging in two ways (the same as local debugging), with and without ClojureStorm.
+You can do remote Clojure debugging in two ways (the same as local debugging), with and without _ClojureStorm_.
 
 The debuggee side should be setup the same as a normal local setup with the optional change that you can use
 `flow-storm-inst` instead of `flow-storm-dbg` being the former a slimmed down version of the later one that
@@ -344,7 +468,7 @@ assuming your remote process at my-debuggee-box.com has started a nrepl server l
 
 === Docker
 
-If you run you process inside a docker container, here is a basic template for using FlowStorm with it
+If you run you process inside a docker container, here is a basic template for using _FlowStorm_ with it
 https://github.com/jpmonettas/docker-flow-storm-basic
 
 == Instrument code
@@ -352,11 +476,11 @@ https://github.com/jpmonettas/docker-flow-storm-basic
 [NOTE]
 .ClojureStorm
 ====
-Instructions here only apply to vanilla FlowStorm and ClojureScript debugging. If you are using ClojureStorm
+Instructions here only apply to vanilla _FlowStorm_ and ClojureScript debugging. If you are using _ClojureStorm_
 this is done automatically for you, so just skip this section.
 ====
 
-Code instrumentation in FlowStorm is done by rewriting your code, in a way that doesn't change its behavior
+Code instrumentation in _FlowStorm_ is done by rewriting your code, in a way that doesn't change its behavior
 but when executed will trace everything the code is doing.
 
 You can instrument code from the <<#_browser_tool,browser tool>> or the repl.
@@ -397,7 +521,7 @@ Second, when you want to run a form with a certain flow id (see <<#_flows_tool,f
 
 ==== Instrument namespaces
 
-FlowStorm allows you to instrument entire namespaces by providing `flow-storm.api/instrument-namespaces-clj`.
+_FlowStorm_ allows you to instrument entire namespaces by providing `flow-storm.api/instrument-namespaces-clj`.
 
 You call it like this :
 
@@ -421,7 +545,7 @@ This are some limitations when instrumenting forms :
 
 1. Very big forms can't be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
 When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying `Instrumented expression is too large for the Clojure compiler`
-and FlowStorm automatically tries to instrument it with a lighter profile, by disabling some instrumentation.
+and _FlowStorm_ automatically tries to instrument it with a lighter profile, by disabling some instrumentation.
 
 2. Functions that call recur without a loop
 
@@ -586,10 +710,10 @@ image::user_guide_images/loops.png[]
 
 ==== Exception debugging
 
-If you are using ClojureStorm you can jump to the last captured exception by evaluating the `:ex` keyword on your repl. This
+If you are using _ClojureStorm_ you can jump to the last captured exception by evaluating the `:ex` keyword on your repl. This
 will position the debugger right before the exception so you can step backwards and explore the cause.
 
-If you are using vanilla or using FlowStorm with ClojureScript, most of the time you can accomplish the same by clicking the `Step last` button
+If you are using vanilla or using _FlowStorm_ with ClojureScript, most of the time you can accomplish the same by clicking the `Step last` button
 right after the exception happens.
 
 ==== Locals
@@ -620,7 +744,7 @@ Clicking on any of the stack entries will make the debugger jump to that point i
 
 ==== Value panels
 
-Value panels show in many places in FlowStorm.
+Value panels show in many places in _FlowStorm_.
 
 image::user_guide_images/value_panels.png[]
 
@@ -636,7 +760,7 @@ You can use / to provide a namespace, otherwise will be defined under [cljs.]use
 
 ==== Re running a flow
 
-Every time you run a form with #rtrace FlowStorm keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
+Every time you run a form with #rtrace _FlowStorm_ keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
 since it allows you to re run the form with a single click.
 
 === Call Stack tree tool
@@ -654,7 +778,7 @@ image::user_guide_images/callstack_tree.png[]
 [NOTE]
 .Tree refreshing
 ====
-If FlowStorm keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
+If _FlowStorm_ keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
 You can use the refresh button at the root to update it.
 ====
 
@@ -708,7 +832,7 @@ Use the taps tool to visualize your `tap>`.
 
 image::user_guide_images/taps.png[]
 
-Everytime FlowStorm starts, it will add a tap, so whenever you `tap>` something
+Everytime _FlowStorm_ starts, it will add a tap, so whenever you `tap>` something
 it will show on the taps list.
 
 Double click on any value to show it in the value inspector.
@@ -720,7 +844,7 @@ and run `Search value on Flows` to move the debugger to that point in time.
 .Search value on Flows
 ====
 Be aware that if the code that taps your value is something like `(tap> :a-key)` you won't be able to jump
-to it using this, because `:a-key` isn't a value recorded by FlowStorm, while if the tapping
+to it using this, because `:a-key` isn't a value recorded by _FlowStorm_, while if the tapping
 code is like `(tap> some-bind)` or `(tap> (+ 2 3))` or the tapping of any other expression
 you should be able to jump to it.
 So if you want to use this functionality as a "mark" so you can quickly jump to different parts of
@@ -785,9 +909,9 @@ with the usual mvn utilities.
 
 === Consuming docs
 
-FlowStorm debugger provides a way of visualizing whatever docs you have on your classpath.
+_FlowStorm_ debugger provides a way of visualizing whatever docs you have on your classpath.
 
-For this you can add the docs and FlowStorm to your classpaths as usual, like :
+For this you can add the docs and _FlowStorm_ to your classpaths as usual, like :
 
 [,bash]
 ----
@@ -833,7 +957,7 @@ By default recording this total ordering is disabled, but you can enable it just
 
 image::user_guide_images/timeline_enable.png[]
 
-Once it is enable FlowStorm will record everything as usual but also record the total order for your function calls and expressions,
+Once it is enable _FlowStorm_ will record everything as usual but also record the total order for your function calls and expressions,
 which you can then retrieve and update by clicking on the refresh button at the top.
 
 As an example, lets say you record this code :
@@ -862,11 +986,11 @@ if you try it on big recordings.
 
 == Printer tool
 
-FlowStorm has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
+_FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
 inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
 of understanding your execution.
 
-For this cases FlowStorm has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
+For this cases _FlowStorm_ has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
 of re running your code again. It will work on your recordings as everything else.
 
 You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
@@ -919,12 +1043,12 @@ Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore 
 
 image::user_guide_images/thread_breaks.png[]
 
-FlowStorm is a tracing debugger, which means it can record what is happening without the need of stopping
+_FlowStorm_ is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn't cover every possible situation. There are
 cases where recording everything is impractical, like in a game loop, since it will consume a lot of heap
 and you are probably not interested in all those frames details.
 
-For situations like the previous one, FlowStorm has the ability to set thread breakpoints, which means to define points
+For situations like the previous one, _FlowStorm_ has the ability to set thread breakpoints, which means to define points
 in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
 click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
@@ -998,7 +1122,7 @@ clj -Sforce -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} c
 
 == Programmable debugging
 
-FlowStorm gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
+_FlowStorm_ gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
 enough.
 
 Lets say you have traced some code and now you want to analyze the traces from the repl, this are some examples :
@@ -1099,7 +1223,7 @@ Create a small stepper for the repl
 
 == Dealing with mutable values
 
-FlowStorm will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
+_FlowStorm_ will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :
 
 [,clojure]
@@ -1124,12 +1248,12 @@ You can fix this situation by extending the flow-storm.runtime.values/SnapshotP 
   (snapshot-value [a] (into [] a)))
 ----
 
-to provide FlowStorm a way of creating a snapshot of the mutable value.
+to provide _FlowStorm_ a way of creating a snapshot of the mutable value.
 
 [NOTE]
 .ClojureStorm
 ====
-If you are using ClojureStorm evaluate the previous defmethod in a ns that is not being
+If you are using _ClojureStorm_ evaluate the previous defmethod in a ns that is not being
 instrumented to avoid an infinite recursion.
 ====
 
@@ -1147,7 +1271,7 @@ so no need to implement `flow-storm.runtime.values/snapshot-value`
 If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
 too many traces, making everything slow and where your only option is to restart it.
 
-For preventing this FlowStorm provides a couple of tools :
+For preventing this _FlowStorm_ provides a couple of tools :
 
 *If you are using vanilla FlowStorm* there is `:thread-trace-limit`, you can use it like this :
 
@@ -1177,7 +1301,7 @@ Like this :
 user> (local-connect {:styles "~/.flow-storm/big-fonts.css", :theme :dark, :title "FlowStormMainDebugger"})
 ----
 
-If you are using ClojureStorm you can also provide them with :
+If you are using _ClojureStorm_ you can also provide them with :
 
    -Dflowstorm.title=FlowStormMainDebugger
    -Dflowstorm.theme=dark
@@ -1293,7 +1417,7 @@ by providing `:verbose? true` to the options map.
 
 `#rtrace form` just expands to `(flow-storm.api/runi {} form)`.
 
-The first argument is a options map, which accepts `:verbose? :true`, in which case FlowStorm will print to the console tracing stats.
+The first argument is a options map, which accepts `:verbose? :true`, in which case _FlowStorm_ will print to the console tracing stats.
 
 Is useful when you have instrumented a big application and wish to see tracing progress while running.
 

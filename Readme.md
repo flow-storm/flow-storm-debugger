@@ -4,16 +4,16 @@ This is the central repository for [FlowStorm](http://www.flow-storm.org/) a omn
 
 ![demo](./docs/images/screenshot-light.png)
 
-There are two ways of using it for Clojure :
+There are two ways of using it :
 
-  - [With ClojureStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
+  - [With ClojureStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : For dev, swap your Clojure compiler by ClojureStorm and get everything instrumented automatically
   - [Vanilla FlowStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_vanilla_flowstorm) : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
 	
 ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
 You use it by swapping the official Clojure compiler by ClojureStorm at dev time, using dev aliases or profiles. 
 
-If you are looking for ClojureStorm sources here they are : https://github.com/jpmonettas/clojure
+
 	
 # Artifacts
 
@@ -40,9 +40,22 @@ ClojureStorm latest stable releases :
 # QuickStart and Documentation
 
 If you want to use it with Clojure checkout the [Clojure QuickStart guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojure)
+
 or the [ClojureScript QuickStart Guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
 Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
+
+# ClojureStorm and ClojureScriptStorm
+
+*ClojureStorm* is a dev compiler. It is a fork of the official Clojure compiler enhanced with automatic instrumentation.
+
+For using it, you just swap it by your normal Clojure compiler at dev time (by using deps cli aliases or lein profiles) to improve 
+your development experience, while making sure you use your normal compiler for everything else (tests and production).
+
+*ClojureScriptStorm* is the same as ClojureStorm but for ClojureScript, so a fork of the official ClojureScript compiler enhanced with automatic instrumentation.
+
+ClojureStorm sources are here : https://github.com/jpmonettas/clojure
+ClojureScriptStorm sources are here : https://github.com/jpmonettas/clojurescript
 
 # Features
 
