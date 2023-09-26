@@ -20,7 +20,6 @@
 (defn print-flow-storm-help []
   (println "Flow Storm settings: \n")
   (println (format "  Recording : %s" (tracer/recording?)))
-  (println (format "  Fn expressions limit : %d" timeline-index/fn-expr-limit))
   (println)
   (println "ClojureStorm Commands: \n")
   (println "  :dbg        - Show the FlowStorm debugger UI, you can dispose it by closing the window.")
