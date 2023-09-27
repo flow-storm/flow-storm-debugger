@@ -96,18 +96,17 @@
   
   [{:keys [form-id ns def-kind dispatch-val form file line]}]
 
-  (when @recording  
-    (when-not (indexes-api/get-form form-id)
-      (let [trace (cond-> {:trace/type :form-init
-                           :form/id form-id
-                           :form/form form
-                           :form/ns ns
-                           :form/def-kind def-kind
-                           :form/file file
-                           :form/line line}
-                    (= def-kind :defmethod) (assoc :multimethod/dispatch-val dispatch-val))]
+  (when-not (indexes-api/get-form form-id)
+    (let [trace (cond-> {:trace/type :form-init
+                         :form/id form-id
+                         :form/form form
+                         :form/ns ns
+                         :form/def-kind def-kind
+                         :form/file file
+                         :form/line line}
+                  (= def-kind :defmethod) (assoc :multimethod/dispatch-val dispatch-val))]
 
-        (indexes-api/add-form-init-trace trace)))))
+      (indexes-api/add-form-init-trace trace))))
 
 (defn trace-fn-call
 
