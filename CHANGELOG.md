@@ -3,9 +3,14 @@
 ## master (unreleased)
 	
 ### New Features 
+
+    - Add flow-storm.storm-preload for ClojureScriptStorm
     
 ### Changes 
 
+    - Improved initialization system for remote debugging
+    - Reuduce callstack tree nodes args print level and depth for perf (specially on remotes)
+    
 ### Bugs fixed
 
 ## 3.7.3 (10-09-2023)
