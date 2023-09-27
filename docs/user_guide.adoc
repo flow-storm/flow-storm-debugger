@@ -198,7 +198,8 @@ Currently only shadow-cljs repl over nrepl is supported.
 [IMPORTANT]
 .Minimum requirements
 ====
-    - Shadow Cljs >= 2.25.4    
+    - Shadow Cljs >= 2.25.4
+    - FlowStorm >= 3.7.4
 ====
 
 For setting up _FlowStorm_ with shadow-cljs you need to modify two files, your `shadow-cljs.edn` and your `deps.edn`.
