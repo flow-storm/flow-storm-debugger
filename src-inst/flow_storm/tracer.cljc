@@ -1,5 +1,6 @@
 (ns flow-storm.tracer
-  (:require [flow-storm.utils :as utils]
+  (:require #?(:clj [flow-storm.utils :as utils :refer [env-prop]]
+               :cljs [flow-storm.utils :as utils :refer-macros [env-prop]] )
             [hansel.instrument.runtime :refer [*runtime-ctx*]]
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
@@ -13,7 +14,7 @@
 (declare stop-tracer)
 
 (def total-order-recording (atom false))
-(def recording (atom true))
+(def recording (atom (if (= (env-prop "flowstorm.startRecording") "false") false true)))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
 

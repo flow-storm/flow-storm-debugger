@@ -70,20 +70,13 @@
   "Setup runtime based on jvm properties. Returns a config map."
 
   []
-  (let [recording-prop (System/getProperty "flowstorm.startRecording")
-        old-recording-prop (System/getProperty "clojure.storm.traceEnable")
-        theme-prop (System/getProperty "flowstorm.theme")
+  (let [theme-prop (System/getProperty "flowstorm.theme")
         title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
         config (cond-> {}
                  theme-prop  (assoc :theme (keyword theme-prop))
                  styles-prop (assoc :styles styles-prop)
                  title-prop  (assoc :title  title-prop))]
-
-    (when-let [tep (or recording-prop old-recording-prop)]
-      (when old-recording-prop (log "WARNING: clojure.storm.traceEnable is deprecated, use flowstorm.startRecording instead !"))
-      (tracer/set-recording (Boolean/parseBoolean tep)))
-
     config))
 
 (defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]

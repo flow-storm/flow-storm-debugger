@@ -299,3 +299,7 @@
      (-> s
          (.replaceAll "\\r\\n" "\n")
          (.replaceAll "\\r" "\n"))))
+
+#?(:clj
+   (defmacro env-prop [prop-name]
+     (System/getProperty prop-name)))
