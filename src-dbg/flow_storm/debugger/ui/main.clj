@@ -288,15 +288,15 @@
         all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                            (map first)
                            (into #{}))]
+    (ui-utils/run-later
+     (ui-vars/configure-environment runtime-config)
+     (set-recording-btn recording?)
+     (timeline-screen/set-recording-check total-order-recording?)
+     (printer-screen/update-prints-controls)
 
-    (ui-vars/configure-environment runtime-config)
-    (set-recording-btn recording?)
-    (timeline-screen/set-recording-check total-order-recording?)
-    (printer-screen/update-prints-controls)
 
-
-    (doseq [fid all-flows-ids]
-      (create-flow {:flow-id fid}))))
+     (doseq [fid all-flows-ids]
+       (create-flow {:flow-id fid})))))
 
 (defn start-ui []
   (Platform/setImplicitExit false)
