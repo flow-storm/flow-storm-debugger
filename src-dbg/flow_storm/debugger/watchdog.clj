@@ -94,8 +94,8 @@
                        (state-management/stop {:only [#'flow-storm.debugger.repl.core/repl]})
                        (try
                          (state-management/start {:only [#'flow-storm.debugger.repl.core/repl]})
-                         (catch Exception _
-                           (utils/log (format "Couldn't restart repl, retrying in %d ms" repl-watchdog-interval))))))
+                         (catch Exception e
+                           (utils/log (format "Couldn't restart repl (%s), retrying in %d ms" (.getMessage e) repl-watchdog-interval))))))
                    (Thread/sleep repl-watchdog-interval))
                  (recur))
                (catch java.lang.InterruptedException _
