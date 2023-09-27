@@ -6,8 +6,8 @@
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.values :as rt-values]
-            [flow-storm.utils :refer [log] :as utils]
-            [flow-storm.tracer]
+            [flow-storm.utils :refer [log] :as utils :refer-macros [env-prop]]
+            [flow-storm.tracer :as tracer]
             [hansel.instrument.runtime])
   (:require-macros [flow-storm.api]))
 
@@ -23,6 +23,8 @@
   ;; better component state management
 
   (indexes-api/start)
+
+  (tracer/set-recording (if (= (env-prop "flowstorm.startRecording") "false") false true))
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client

@@ -16,9 +16,8 @@
 (def thread-colors ["#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"])
 
 (defn set-recording-check [recording?]
-  (ui-utils/run-later
-   (let [[record-btn] (obj-lookup "total-order-record-btn")]
-     (.setSelected record-btn recording?))))
+  (let [[record-btn] (obj-lookup "total-order-record-btn")]
+    (.setSelected record-btn recording?)))
 
 (defn clear-timeline []
   (let [[{:keys [clear]}] (obj-lookup "total-order-table-data")]

@@ -2,8 +2,7 @@
   (:require [flow-storm.api :as fs-api]
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as debuggers-api]
-            [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.indexes.timeline-index :as timeline-index]))
+            [flow-storm.runtime.indexes.api :as indexes-api]))
 
 (defn start-recorder []
   (fs-api/setup-runtime)

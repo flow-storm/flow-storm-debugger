@@ -77,6 +77,9 @@
                  theme-prop  (assoc :theme (keyword theme-prop))
                  styles-prop (assoc :styles styles-prop)
                  title-prop  (assoc :title  title-prop))]
+
+    (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "false") false true))
+
     config))
 
 (defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]
