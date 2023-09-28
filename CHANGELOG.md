@@ -7,6 +7,8 @@
     - Add function call limits
     
 ### Changes 
+
+    - Disable functionality that doesn't make sense under storm when working under ClojureStorm or ClojureScriptStorm
         
 ### Bugs fixed
 

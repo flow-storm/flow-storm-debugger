@@ -75,6 +75,11 @@
   ([namespaces config]
    (runtime-api/uninstrument-namespaces rt-api (map :ns-name namespaces) config)))
 
+(defmacro disabled-with-storm [& forms]
+  `(if-not ui-vars/clojure-storm-env?
+     (do ~@forms)
+     (show-message "This functionality is disabled when running with ClojureStorm or ClojureScriptStorm" :warning)))
+
 (defn- update-selected-fn-detail-pane [{:keys [added ns name file static line arglists doc]}]
   (let [[browser-instrument-button]       (obj-lookup "browser-instrument-button")
         [browser-instrument-rec-button]   (obj-lookup "browser-instrument-rec-button")
@@ -91,8 +96,8 @@
     (add-class browser-instrument-button "enable")
     (add-class browser-instrument-rec-button "enable")
     (add-class browser-break-button "enable")
-    (.setOnAction browser-instrument-button (event-handler [_] (instrument-function ns name)))
-    (.setOnAction browser-instrument-rec-button (event-handler [_] (instrument-function ns name {:deep? true})))
+    (.setOnAction browser-instrument-button (event-handler [_] (disabled-with-storm (instrument-function ns name))))
+    (.setOnAction browser-instrument-rec-button (event-handler [_] (disabled-with-storm (instrument-function ns name {:deep? true}))))
     (.setOnAction browser-break-button (event-handler [_] (add-breakpoint (symbol (str ns) (str name)) {})))
 
     (.setText selected-fn-fq-name-label (format "%s" #_ns name))
@@ -190,9 +195,7 @@
                              :class "browser-break-btn"
                              :tooltip "Add a breakpoint to this function. Threads hitting this function will be paused")
         inst-rec-button (button :label "Instrument recursively" :class "browser-instrument-btn")
-        btns-box (doto (h-box (if ui-vars/clojure-storm-env?
-                                [break-button]
-                                [inst-button inst-rec-button break-button])
+        btns-box (doto (h-box [inst-button inst-rec-button break-button]
                               "browser-var-buttons")
                    (.setSpacing 5))
         name-box (doto (h-box [selected-fn-fq-name-label])

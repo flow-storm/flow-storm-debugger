@@ -152,7 +152,8 @@
             (Class/forName "clojure.storm.Tracer")
             true
             (catch Exception _ false))
-     :cljs false))
+     :cljs (boolean (js* "cljs.storm.tracer.trace_fn_call"))))
+
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))
 
