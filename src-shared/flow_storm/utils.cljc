@@ -303,3 +303,11 @@
 #?(:clj
    (defmacro env-prop [prop-name]
      (System/getProperty prop-name)))
+
+(defn parse-thread-fn-call-limits [s]
+  (when s
+    (->> (str/split s #",")
+         (mapv (fn [fn-desc]
+                 (let [[fqfn cnt] (str/split fn-desc #":")
+                       [fn-ns fn-name] (str/split fqfn #"/")]
+                   [fn-ns fn-name (parse-int cnt)]))))))

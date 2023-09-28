@@ -73,12 +73,16 @@
   (let [theme-prop (System/getProperty "flowstorm.theme")
         title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
+        fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
         config (cond-> {}
-                 theme-prop  (assoc :theme (keyword theme-prop))
-                 styles-prop (assoc :styles styles-prop)
-                 title-prop  (assoc :title  title-prop))]
+                 theme-prop            (assoc :theme (keyword theme-prop))
+                 styles-prop           (assoc :styles styles-prop)
+                 title-prop            (assoc :title  title-prop))]
 
     (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "false") false true))
+
+    (doseq [[fn-ns fn-name l] fn-call-limits]
+      (index-api/add-fn-call-limit fn-ns fn-name l))
 
     config))
 

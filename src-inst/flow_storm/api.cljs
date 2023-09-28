@@ -26,6 +26,10 @@
 
   (tracer/set-recording (if (= (env-prop "flowstorm.startRecording") "false") false true))
 
+  (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
+    (doseq [[fn-ns fn-name l] fn-call-limits]
+      (indexes-api/add-fn-call-limit fn-ns fn-name l)))
+
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
    (assoc config

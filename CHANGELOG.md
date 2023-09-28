@@ -4,6 +4,16 @@
 	
 ### New Features 
 
+    - Add function call limits
+    
+### Changes 
+        
+### Bugs fixed
+
+## 3.7.4 (27-09-2023)
+	
+### New Features 
+
     - Add flow-storm.storm-preload for ClojureScriptStorm
     
 ### Changes 

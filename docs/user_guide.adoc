@@ -1080,6 +1080,32 @@ You can remove breakpoints by :
 - Calling `flow-storm.api/remove-break` to remove a single breakpoint
 - Calling `flow-storm.api/clear-breaks` to remove all breakpoints
 
+== Limiting recording
+
+When recording an application execution (specially when using _ClojureStorm_ or _ClojureScriptStorm_) is common to find some
+high frequency functions adding a lot of noise to your recordings. For example a mouse-move event processing will generate a lot of
+recordings while you use your app.
+
+Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
+when it isn't, you can try functions call limiting.
+
+There are a couple of ways to limit your functions calls by thread.
+
+The first one is by adding the `flowstorm.threadFnCallLimits` JVM prop.
+
+For example, you can add `"-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4"` so every time the system starts, limits will be set for
+`org.my-app/fn1` and `org.my-app/fn2`. The number next to them is the limit. When a function reaches the limit _FlowStorm_ will stop recording calls
+to it and all the functions down its callstack.
+
+You can also modify the limits from your repl, by calling `flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]`.
+In ClojureScript you need to call them via your cljs repl.
+
+All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
+the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.
+
+When you clear your threads you are also crearing its limit counters, so next time you record something new counters will be initialized from your
+global limits definitions.
+
 == The tool bar
 
 The toolbar provides quick access to some general commands :
