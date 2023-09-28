@@ -33,6 +33,12 @@
   (println "  -Dflowstorm.startRecording              [true|false]")
   (println "  -Dflowstorm.theme                       [dark|light|auto] (defaults to auto)")
   (println "  -Dflowstorm.styles                      [STRING] Ex: /home/user/my-styles.css")
+  (println "  -Dflowstorm.threadFnCallLimits          Ex: org.my-app/fn1:2,org.my-app/fn2:4")
+  (println)
+  (println "Modify limits : \n")
+  (println "  (flow-storm.runtime.indexes.api/add-fn-call-limit \"org.my-app\" \"fn1\" 10)")
+  (println "  (flow-storm.runtime.indexes.api/rm-fn-call-limit \"org.my-app\" \"fn1\")")
+  (println "  (flow-storm.runtime.indexes.api/get-fn-call-limits)")
   (println))
 
 (defn maybe-execute-flow-storm-specials [input]
