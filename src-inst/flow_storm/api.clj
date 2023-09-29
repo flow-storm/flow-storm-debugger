@@ -47,7 +47,7 @@
        (stop-debugger))
 
 
-     (rt-events/clear-subscription!)
+     (rt-events/clear-dispatch-fn!)
      (rt-events/clear-pending-events!)
 
      (rt-taps/remove-tap!)
@@ -100,7 +100,7 @@
       (let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
         (start-debugger config)))
 
-    (rt-events/subscribe! events-dispatch-fn)
+    (rt-events/set-dispatch-fn events-dispatch-fn)
 
     (rt-values/clear-vals-ref-registry)
 

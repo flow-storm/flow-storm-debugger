@@ -43,7 +43,10 @@
 
                  (if ws-ok?
 
-                   (ui-main/set-conn-status-lbl :runtime :ok)
+                   (do
+                     (ui-main/set-conn-status-lbl :runtime :ok)
+                     (when-let [on-reconnect (:on-websocket-reconnect config)]
+                       (on-reconnect)))
 
                    (do
                      (try

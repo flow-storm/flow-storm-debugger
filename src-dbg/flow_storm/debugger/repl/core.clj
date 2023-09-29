@@ -53,11 +53,8 @@
 (defn make-cljs-repl-init-sequence [config]
   (let [remote-opts (select-keys config [:port :debugger-host])]
 
-    [{:code "(do (in-ns 'shadow.user) nil)"                                                  :ns nil           :repl :clj}
-     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api])"                      :ns "shadow.user" :repl :clj}
-     {:code "(require '[flow-storm.api :as fsa :include-macros true])"                       :ns "cljs.user"   :repl :cljs}
-     {:code (format "(flow-storm.api/remote-connect %s)" (pr-str remote-opts))               :ns "cljs.user"   :repl :cljs}
-     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "cljs.user"   :repl :cljs}]))
+    [{:code "(do (in-ns 'shadow.user) nil)"                                    :ns nil         :repl :clj}
+     {:code (format "(flow-storm.api/remote-connect %s)" (pr-str remote-opts)) :ns "cljs.user" :repl :cljs}]))
 
 (defn make-clj-repl-init-sequence [config]
   (let [remote-opts (select-keys config [:port :debugger-host])]

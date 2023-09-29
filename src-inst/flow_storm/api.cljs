@@ -15,40 +15,54 @@
   "Used for remote connections to check this ns has been loaded"
   true)
 
-(defn remote-connect [config]
+(defn setup-runtime
 
-  (println "About to remote-connect ClojureScript with " config)
+  "This is meant to be called by preloads to initialize the runtime side of things"
 
-  ;; NOTE: The order here is important until we replace this code with
-  ;; better component state management
+  []
+  (println "Setting up runtime")
 
   (indexes-api/start)
 
-  (tracer/set-recording (if (= (env-prop "flowstorm.startRecording") "false") false true))
+  (println "Index started")
+
+  (let [recording? (if (= (env-prop "flowstorm.startRecording") "false") false true)]
+    (tracer/set-recording recording?)
+    (println "Recording set to " recording?))
 
   (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
     (doseq [[fn-ns fn-name l] fn-call-limits]
-      (indexes-api/add-fn-call-limit fn-ns fn-name l)))
+      (indexes-api/add-fn-call-limit fn-ns fn-name l)
+      (println "Added function limit " fn-ns fn-name l)))
+
+  (rt-values/clear-vals-ref-registry)
+  (println "Value references cleared")
+
+  (rt-taps/setup-tap!)
+  (println "Runtime setup ready"))
+
+(defn remote-connect [config]
+
+  (println "Connecting with the debugger with config : " config)
 
   ;; connect to the remote websocket
   (remote-websocket-client/start-remote-websocket-client
    (assoc config
           :api-call-fn dbg-api/call-by-name
           :on-connected (fn []
-                          ;; push all events thru the websocket
-                          (rt-events/subscribe! (fn [ev]
-                                                  (-> [:event ev]
-                                                      serializer/serialize
-                                                      remote-websocket-client/send)))
+                          ;; subscribe and automatically push all events thru the websocket
+                          ;; if there were any events waiting to be dispatched
+                          (rt-events/set-dispatch-fn
+                           (fn [ev]
+                             (-> [:event ev]
+                                 serializer/serialize
+                                 remote-websocket-client/send)))
 
-                          (rt-values/clear-vals-ref-registry)
-
-                          (rt-taps/setup-tap!)
-                          (println "Remote ClojureScript runtime initialized")))))
+                          (println "Debugger connection ready. Events dispatch function set and pending events pushed.")))))
 
 (defn stop []
   (rt-taps/remove-tap!)
-  (rt-events/clear-subscription!)
+  (rt-events/clear-dispatch-fn!)
   (rt-events/clear-pending-events!)
   (rt-values/clear-vals-ref-registry)
   (indexes-api/stop)

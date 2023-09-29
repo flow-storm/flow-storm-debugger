@@ -285,6 +285,7 @@
   to configure the part of UI that depends on runtime state."
   []
   (let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
+        _ (log (str "Runtime config retrieved :" runtime-config))
         all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                            (map first)
                            (into #{}))]

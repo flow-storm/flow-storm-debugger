@@ -183,52 +183,52 @@
 
 (defn add-fn-call-trace [flow-id thread-id thread-name trace total-order-recording?]
   (let [{:keys [timeline-index fn-call-stats-index fn-call-limits thread-limited]} (get-or-create-thread-indexes flow-id thread-id thread-name (fn-call-trace/get-form-id trace))]
-    (if-not @thread-limited
-      
-      (if-not (check-fn-limit! fn-call-limits (fn-call-trace/get-fn-ns trace) (fn-call-trace/get-fn-name trace))
-        ;; if we are not limited, go ahead and record fn-call
-        (do
-          (when timeline-index
+    (when timeline-index
+      (if-not @thread-limited
+        
+        (if-not (check-fn-limit! fn-call-limits (fn-call-trace/get-fn-ns trace) (fn-call-trace/get-fn-name trace))
+          ;; if we are not limited, go ahead and record fn-call
+          (do
             (let [tl-idx (index-protos/add-fn-call timeline-index trace)]
               (when (and tl-idx total-order-recording?)
-                (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))
-          
-          (when fn-call-stats-index
-            (index-protos/add-fn-call fn-call-stats-index trace)))
+                (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace)))
+            
+            (when fn-call-stats-index
+              (index-protos/add-fn-call fn-call-stats-index trace)))
 
-        ;; we hitted the limit, limit the thread with depth 1
-        (reset! thread-limited 1))
+          ;; we hitted the limit, limit the thread with depth 1
+          (reset! thread-limited 1))
 
-      ;; if this thread is already limited, just increment the depth
-      (swap! thread-limited inc))))
+        ;; if this thread is already limited, just increment the depth
+        (swap! thread-limited inc)))))
 
 (defn add-fn-return-trace [flow-id thread-id trace total-order-recording?]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    (if-not @thread-limited
-      ;; when not limited, go ahead
-      (when timeline-index
+    (when timeline-index
+      (if-not @thread-limited
+        ;; when not limited, go ahead
         (let [tl-idx (index-protos/add-fn-return timeline-index trace)]
           (when (and tl-idx total-order-recording?)
-            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))
+            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace)))
 
-      ;; if we are limited decrease the limit depth or remove it when it reaches to 0
-      (do
-        (swap! thread-limited (fn [l]
-                                (when (> l 1)
-                                  (dec l))))
-        nil))))
+        ;; if we are limited decrease the limit depth or remove it when it reaches to 0
+        (do
+          (swap! thread-limited (fn [l]
+                                  (when (> l 1)
+                                    (dec l))))
+          nil)))))
 
 (defn add-expr-exec-trace [flow-id thread-id trace total-order-recording?]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
     
-    (when (and (not @thread-limited) timeline-index)      
+    (when (and timeline-index (not @thread-limited))      
       (let [tl-idx (index-protos/add-expr-exec timeline-index trace)]
         (when (and tl-idx total-order-recording?)
           (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))))))
 
 (defn add-bind-trace [flow-id thread-id trace]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    (when (and (not @thread-limited) timeline-index)
+    (when (and timeline-index (not @thread-limited))
       (index-protos/add-bind timeline-index trace))))
 
 ;;;;;;;;;;;;;;;;;

@@ -75,7 +75,12 @@
                                              :connect-to-repl? (boolean (:port config))
                                              :repl-kind :nrepl
                                              :dispatch-event events-queue/enqueue-event!
-                                             :on-connection-open (fn [_] (deliver runtime-connected? true)))})
+                                             :on-connection-open (fn [_] (deliver runtime-connected? true))
+                                             :on-websocket-reconnect (fn []
+                                                                       (println "Websocket reconnected, setting up UI from runtime")
+                                                                       (ui-main/setup-ui-from-runtime-config)))})
       (when @runtime-connected?
         (dbg-state/set-sytem-fully-started)
+        ;; After everything is ready (UI, connection, etc) everything is ready
+        ;; setup the UI with the updated runtime information
         (ui-main/setup-ui-from-runtime-config)))))

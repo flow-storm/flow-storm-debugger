@@ -1,19 +1,19 @@
 (ns flow-storm.runtime.events)
 
-(def callback (atom nil))
+(def *dispatch (atom nil))
 (def pending-events (atom []))
 
-(defn clear-subscription! []
-  (reset! callback nil))
+(defn clear-dispatch-fn! []
+  (reset! *dispatch nil))
 
 (defn clear-pending-events! []
   (reset! pending-events []))
 
-(defn subscribe! [callback-fn]
-  (reset! callback callback-fn)  
+(defn set-dispatch-fn [dispatch-fn]
+  (reset! *dispatch dispatch-fn)  
   (locking pending-events
     (doseq [pe @pending-events]
-      (callback-fn pe))))
+      (dispatch-fn pe))))
 
 (defn make-flow-created-event [flow-id form-ns form timestamp]
   [:flow-created {:flow-id flow-id
@@ -69,9 +69,9 @@
   [:show-doc {:var-symbol vsymb}])
 
 (defn publish-event! [[ev-key :as ev]]
-  (if-let [cb @callback]
+  (if-let [dispatch @*dispatch]
 
-    (cb ev)
+    (dispatch ev)
 
     (when (not= ev-key :heap-info-update)
       (locking pending-events
