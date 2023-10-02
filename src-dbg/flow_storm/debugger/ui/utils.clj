@@ -202,7 +202,7 @@
     (.setItems cbox observable-list)
     (.addAll observable-list ^objects (into-array Object items))))
 
-(defn combo-box [{:keys [items on-change-fn]}]
+(defn combo-box [{:keys [items on-change-fn on-showing-fn]}]
   (let [cb (ComboBox.)
         sel-model (.getSelectionModel cb)]
     (combo-box-set-items cb items)
@@ -214,6 +214,11 @@
           (.addListener (proxy [ChangeListener] []
                           (changed [_ prev-val new-val]
                             (on-change-fn prev-val new-val))))))
+
+    (when on-showing-fn
+      (.setOnShowing
+       cb
+       (event-handler [_] (on-showing-fn cb))))
     cb))
 
 (defn check-box [{:keys [on-change]}]

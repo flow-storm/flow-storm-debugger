@@ -9,6 +9,7 @@
 ### Changes 
 
     - Disable functionality that doesn't make sense under storm when working under ClojureStorm or ClojureScriptStorm
+    - Improve Printer thread selection so you don't need to constantly re-select thread
         
 ### Bugs fixed
 

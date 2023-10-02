@@ -22,8 +22,6 @@
 
 (defn update-prints-controls []
   (let [[{:keys [clear add-all]}] (obj-lookup "printer-prints-controls-table")
-        [thread-id-combo] (obj-lookup "printer-thread-id-combo")
-        flows-threads (runtime-api/all-flows-threads rt-api)
         printers-rows (->> (dbg-state/printers)
                            (reduce-kv (fn [r _ frm-printers]
                                         (reduce-kv (fn [rr _ p]
@@ -39,16 +37,6 @@
                                     (assoc printer :cell-type :format)
                                     (assoc printer :cell-type :enable?)
                                     (assoc printer :cell-type :action)])))]
-
-    (let [thread-ids (->> flows-threads
-                          (mapv (fn [[fid tid]]
-                                  (let [th-name (:thread/name (dbg-state/get-thread-info tid))]
-                                    (format "%s ~ %s [%d]"
-                                            (if fid fid "")
-                                            th-name
-                                            tid)))))]
-      (when (seq thread-ids)
-        (combo-box-set-items thread-id-combo thread-ids)))
 
     (clear)
     (add-all printers-rows)))
@@ -99,7 +87,17 @@
       form-printers))))
 
 (defn main-pane []
-  (let [thread-id-combo (combo-box {:items []})
+  (let [thread-id-combo (combo-box {:items []
+                                    :on-showing-fn (fn [cb]
+                                                     (let [flows-threads (runtime-api/all-flows-threads rt-api)
+                                                           thread-ids (->> flows-threads
+                                                                           (mapv (fn [[fid tid]]
+                                                                                   (let [th-name (:thread/name (dbg-state/get-thread-info tid))]
+                                                                                     (format "%s ~ %s [%d]"
+                                                                                             (if fid fid "")
+                                                                                             th-name
+                                                                                             tid)))))]
+                                                       (combo-box-set-items cb thread-ids)))})
         selected-fid-tid (fn []
                                   (when-let [sel-thread-str (->> thread-id-combo
                                                                  .getSelectionModel
