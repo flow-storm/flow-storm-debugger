@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features 
+    
+### Changes
+        
+### Bugs fixed
+
+## 3.7.5 (02-10-2023)
+	
+### New Features 
 
     - Add function call limits
     

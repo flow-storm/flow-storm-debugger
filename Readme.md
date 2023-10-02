@@ -20,9 +20,9 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)
-  - `[com.github.jpmonettas/flow-storm-dbg "3.7.4"]`
+  - `[com.github.jpmonettas/flow-storm-dbg "3.7.5"]`
 - A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
-  - `[com.github.jpmonettas/flow-storm-inst "3.7.4"]`
+  - `[com.github.jpmonettas/flow-storm-inst "3.7.5"]`
 
 ClojureStorm latest stable releases : 
 
@@ -34,7 +34,7 @@ ClojureStorm latest stable releases :
 ClojureScriptStorm latest stable releases : 
 
 - ClojureScript 1.11.60
-  - `[com.github.jpmonettas/clojurescript "1.11.60-1"]`
+  - `[com.github.jpmonettas/clojurescript "1.11.60-2"]`
 
 # Prerequisites
 
