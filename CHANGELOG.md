@@ -5,9 +5,6 @@
 ### New Features 
     
 ### Changes
-
-    - Improve UI performance when stepping on big forms. The hack that fixed this unfortunately removes the ability to customize
-      the color of the executing token via CSS. So this will have to be revisited in the future.
         
 ### Bugs fixed
 

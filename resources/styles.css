@@ -125,7 +125,9 @@
 }
 .code-token.executing {
     -fx-stroke: -fx-theme-flow-code-executing-text;
-    -fx-fill: -fx-theme-flow-code-executing-text;    
+	-fx-font-size: 15;
+	-fx-fill: -fx-theme-flow-code-executing-text;
+	-fx-stroke-width: 1;
 }
 
 .code-token.interesting {
