@@ -14,6 +14,7 @@
            [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox]
            [javafx.scene.text TextFlow Text Font]
+           [javafx.scene.paint Paint]
            [javafx.scene.input KeyCode MouseEvent MouseButton]))
 
 (declare jump-to-coord)
@@ -156,8 +157,14 @@
     (.setText lbl (str cnt))))
 
 (defn- highlight-executing [^Text token-text]
-  (ui-utils/rm-class token-text "interesting")
-  (ui-utils/add-class token-text "executing"))
+  ;; This is hacky and now we can't customize the executing token color
+  ;; with css but it is this way for performance reasons.
+  ;; Marking the executing token by adding a .executing class (as it was being done before)
+  ;; works ok but it is very slow because on each step looks like the TokenFlow recalculates layout
+  ;; and styling of everything.
+  ;; If people is interested in customizing this color we can probably parse the stylesheets with
+  ;; javafx.css.CssParser, and search for -fx-theme-flow-code-executing-text there, but meh
+  (.setFill token-text (Paint/valueOf "#60d61b")))
 
 (defn- highlight-interesting [^Text token-text]
   (ui-utils/rm-class token-text "executing")
