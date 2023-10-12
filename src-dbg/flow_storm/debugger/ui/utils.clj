@@ -14,7 +14,9 @@
            [javafx.scene.layout HBox Priority VBox Region]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
-           [javafx.collections FXCollections ObservableList]))
+           [javafx.collections FXCollections ObservableList]
+           [org.fxmisc.richtext CodeArea]
+           [org.fxmisc.flowless VirtualizedScrollPane]))
 
 (defn run-later*
   [f]
@@ -60,7 +62,7 @@
         (.addAll ^objects (into-array Object cm-items)))
     cm))
 
-(defn enusure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
+(defn ensure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
   (let [scroll-pane-content (.getContent scroll-pane)
 
         ;; first take the top left corner of the `node` and the `scroll-pane` into scene coordinates
@@ -571,3 +573,28 @@
   (-> ^String s
       (.replaceAll "\\n" "")
       (.replaceAll "\\r" "")))
+
+(defn code-area [{:keys [editable? text]}]
+  (let [ca (proxy [CodeArea] []
+             (computePrefHeight [w]
+               (let [^CodeArea this this
+                     ih (+ (-> this .getInsets .getTop)
+                           (-> this .getInsets .getBottom))
+                     childs (.getChildren this)
+                     p-cnt (.size (.getParagraphs this))]
+                 (if (and (pos? (.size childs))
+                          (pos? p-cnt))
+                   (let [c (.get childs 0)]
+                     (+ ih (->> (range p-cnt)
+                                (map (fn [i] (-> c (.getCell i) .getNode (.prefHeight w))))
+                                (reduce + 0))))
+
+                   ;; else
+                   (+ ih (.getTotalHeightEstimate this))))))]
+    (doto ca
+      (.setEditable editable?)
+      (.replaceText 0 0 text))))
+
+(defn virtualized-scroll-pane [node {:keys [max-height]}]
+  (doto (VirtualizedScrollPane. node)
+    (.setMaxHeight max-height)))

@@ -8,15 +8,16 @@
         io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions [com.google.guava/guava org.slf4j/slf4j-nop]}
         com.github.jpmonettas/hansel {:mvn/version "0.1.78"}
 
-        org.openjfx/javafx-controls {:mvn/version "19.0.2.1"}
-        org.openjfx/javafx-base {:mvn/version "19.0.2.1"}
-        org.openjfx/javafx-graphics {:mvn/version "19.0.2.1"}
-        org.openjfx/javafx-swing {:mvn/version "19.0.2.1"}
+        org.openjfx/javafx-controls {:mvn/version "22-ea+11"}
+        org.openjfx/javafx-base {:mvn/version "22-ea+11"}
+        org.openjfx/javafx-graphics {:mvn/version "22-ea+11"}
+        org.openjfx/javafx-swing {:mvn/version "22-ea+11"}
         org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
         org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8"}
         nrepl/nrepl {:mvn/version "1.0.0"}
-        org.clojure/data.int-map {:mvn/version "1.2.1"}}
+        org.clojure/data.int-map {:mvn/version "1.2.1"}
+        org.fxmisc.richtext/richtextfx  {:mvn/version "0.11.1"}}
 
  :aliases {:cljs {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
@@ -24,14 +25,13 @@
                                thheller/shadow-cljs {:mvn/version "2.23.3"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.12.0-alpha4_3"}}
+                   :extra-deps {com.github.jpmonettas/clojure {:mvn/version "1.11.1-11"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"
-
-                              "-Dflowstorm.startRecording=false"
+                              ;;"-Dflowstorm.startRecording=false"
                               "-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
-                              "-Dclojure.storm.instrumentOnlyPrefixes=dev"
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev,cljs"
 
                               "-Dcljs.storm.instrumentOnlyPrefixes=dev"
                               "-Dcljs.storm.instrumentEnable=true"
@@ -40,13 +40,15 @@
            :dev {:extra-paths ["src-dev" "classes"]
 
                  :extra-deps {;; to debug ClojureScript storm
-                              ;; org.clojure/clojurescript {:local/root "/home/jmonetta/my-projects/clojurescript"}
+                              org.clojure/clojurescript {:local/root "/home/jmonetta/my-projects/clojurescript"}
+                              org.clojure/core.async {:mvn/version "1.6.681"}
+                              dorothy/dorothy {:mvn/version "0.0.7"}
                               }
                  :jvm-opts ["-Dvisualvm.display.name=FlowStorm"
                             "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints" ;; for the profilers
 
                             ;; for debugging java code
-                            ;; "-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
+                            ;;"-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
                             ]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:mvn/version "0.9.4"}}

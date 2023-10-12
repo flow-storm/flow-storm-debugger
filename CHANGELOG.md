@@ -5,9 +5,13 @@
 ### New Features 
     
 ### Changes
-        
+
+    - Improved code highlighter. Replaces JavaFX standard TextFlow with RichTextFx CodeArea for improved performance.
+    
 ### Bugs fixed
 
+    - Fix #98 Stepping over big forms is very slow
+    
 ## 3.7.5 (02-10-2023)
 	
 ### New Features 

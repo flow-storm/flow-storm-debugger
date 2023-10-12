@@ -110,6 +110,9 @@
 (defn thread-form-box-id [form-id]
   (format "form_box_%d" form-id))
 
+(defn thread-form-paint-fn [form-id]
+  (format "form_paint_fn_%d" form-id))
+
 (defn thread-pprint-area-id [pane-id]
   (format "pprint_area_%s" pane-id))
 

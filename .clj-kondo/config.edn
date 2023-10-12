@@ -1,6 +1,6 @@
 {:linters
  {:unresolved-symbol
-  {:exclude [(flow-storm.debugger.ui.utils/event-handler [_ ev mev kev])
+  {:exclude [(flow-storm.debugger.ui.utils/event-handler [_ ev mev kev sev])
              (flow-storm.instrument.forms/definstrumenter)
              ]}}
  :output {:exclude-files ["src-inst/data_readers.clj"]}}

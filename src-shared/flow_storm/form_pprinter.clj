@@ -3,38 +3,75 @@
             [flow-storm.utils :as utils]
             [hansel.utils :as hansel-utils]))
 
-(defn- seq-delims [form]
+(defn- seq-delims
+
+  "Given a seq? map? or set? form returns a vector
+  with the open and closing delimiters."
+
+  [form]
   (let [delims (pr-str (empty form))]
     (if (= (count delims) 2)
       [(str (first delims)) (str (second delims))]
       ["#{" "}"])))
 
-(defn- form-tokens [form]
-  (let [curr-coord (::coord (meta form))]
+(defn- form-tokens
+
+  "Given a form returns a collection of tokens.
+  If the form contains ::coord meta it will be attached to the
+  tokens.
+  Eg for the form (with-meta '(+ 1 2) {::coord [1]}) it will return :
+
+  [{:coord [1], :kind :text, :text \"(\"}
+   {:kind :text, :text \"+\"}
+   {:kind :text, :text \"1\"}
+   {:kind :text, :text \"2\"}
+   {:coord [1], :kind :text, :text \")\"}]"
+
+  [form]
+  (let [curr-coord (::coord (meta form))
+        tok (if curr-coord
+              {:coord curr-coord}
+              {})]
     (cond
       (or (seq? form) (vector? form) (set? form))
       (let [[db de] (seq-delims form)]
-        (-> [[db curr-coord]]
+        (-> [(assoc tok
+                    :kind :text
+                    :text db)]
             (into (mapcat (fn [f] (form-tokens f)) form))
-            (into [[de curr-coord]])))
+            (into [(assoc tok
+                          :kind :text
+                          :text de)])))
 
       (map? form)
       (let [keys-vals (mapcat identity form)
             keys-vals-tokens (mapcat (fn [f] (form-tokens f))
                                      keys-vals)]
-        (-> [["{" curr-coord]]
+        (-> [(assoc tok
+                    :kind :text
+                    :text "{")]
             (into keys-vals-tokens)
-            (into [["}" curr-coord]])))
+            (into [(assoc tok
+                          :kind :text
+                          :text "}")])))
 
       :else
-      [[(pr-str form) curr-coord]])))
+      [(assoc tok
+              :kind :text
+              :text (pr-str form))])))
 
-(defn- consecutive-inv-chars [inv-chars-map idx]
+(defn- consecutive-layout-tokens
+
+  "Given a map of {positions -> tokens} and a idx
+  return a vector of all the consecutive tokens by incrementing
+  idx. Will stop at the first gap.   "
+
+  [pos->layout-token idx]
   (loop [i (inc idx)
-         inv-chars [(inv-chars-map idx)]]
-    (if-let [inv-char (inv-chars-map i)]
-      (recur (inc i) (conj inv-chars inv-char))
-      inv-chars)))
+         layout-tokens [(pos->layout-token idx)]]
+    (if-let [ltok (pos->layout-token i)]
+      (recur (inc i) (conj layout-tokens ltok))
+      layout-tokens)))
 
 (def hacked-code-table
   (#'pp/two-forms
@@ -77,51 +114,143 @@
 
       pprinted-form-str)))
 
-(defn pprint-tokens [form]
+(defn pprint-tokens
+
+  "Given a form, returns a vector of tokens to pretty print it.
+  Tokens can be any of :
+  - {:kind :text, :text STRING, :idx-from INT, :len INT :coord COORD}
+  - {:kind :sp}
+  - {:kind :nl}"
+
+  [form]
   (let [form (hansel-utils/tag-form-recursively form ::coord)
         pprinted-str (code-pprint form)
-        pos->layout-char (->> pprinted-str
-                              (keep-indexed (fn [i c]
-                                              (cond
-                                                (= c \newline) [i :nl]
-                                                (= c \space)   [i :sp]
-                                                (= c \,)       [i :sp]
-                                                :else nil)))
-                              (into {}))
+        ;; a map of positions of the form pprinted string that contains spaces or new-lines
+        pos->layout-token (->> pprinted-str
+                               (keep-indexed (fn [i c]
+                                               (cond
+                                                 (= c \newline) [i {:kind :nl}]
+                                                 (= c \space)   [i {:kind :sp}]
+                                                 (= c \,)       [i {:kind :sp}]
+                                                 :else nil)))
+                               (into {}))
+        ;; all the tokens for form, whithout any newline or indentation info
         pre-tokens (form-tokens form)
-        final-tokens (loop [[[tname :as tok] & next-tokens] pre-tokens
+
+        ;; interleave in pre-tokens newlines and space tokens found by the pprinter
+
+        final-tokens (loop [[{:keys [text] :as text-tok} & next-tokens] pre-tokens
                             i 0
                             final-toks []]
-                       (if-not tok
+                       (if-not text-tok
                          final-toks
-                         (if (pos->layout-char i)
-                           (let [consec-inv-chars (consecutive-inv-chars pos->layout-char i)]
+                         (if (pos->layout-token i)
+                           ;; if there are layout tokens for the current position
+                           ;; insert them before the current text-tok
+                           (let [consecutive-lay-toks (consecutive-layout-tokens pos->layout-token i)]
                              (recur next-tokens
-                                    (+ i (count tname) (count consec-inv-chars))
+                                    (+ i  (count consecutive-lay-toks) (count text))
                                     (-> final-toks
-                                        (into consec-inv-chars)
-                                        (into  [tok]))))
-                           (recur next-tokens (+ i (count tname)) (into final-toks [tok])))))]
+                                        (into consecutive-lay-toks)
+                                        (into  [(assoc text-tok
+                                                       :idx-from (+ i (count consecutive-lay-toks))
+                                                       :len (count text))]))))
+
+                           ;; else just add the text-tok
+                           (recur next-tokens
+                                  (+ i (count text))
+                                  (into final-toks [(assoc text-tok
+                                                           :idx-from i
+                                                           :len (count text))])))))]
     final-tokens))
 
+(defn to-string
+
+  "Given ptokens as generated by `pprint-tokens` render them into a string."
+
+  [ptokens]
+  (with-out-str
+    (doseq [{:keys [kind text]} ptokens]
+     (case kind
+       :sp   (print " ")
+       :nl   (println)
+       :text (print text)))))
+
+(defn coord-spans
+
+  "Given ptokens as generated by `pprint-tokens` return a collection of spans.
+  Spans are of two kinds :
+  - contiguous text that contains a :coord
+  - contiguous text that does NOT contains a :coord
+
+  All spans are in the form of {:idx-from INT :len INT} but the ones that spans over
+  :coord text will contain the :coord key.
+  "
+
+  [ptokens]
+
+  (let [;; create spans for all the tokens that has coords
+        coord-spans (->> (filterv :coord ptokens)
+                         (map #(select-keys % [:idx-from :len :coord])))
+        total-print-length (->> ptokens
+                                (map (fn [{:keys [kind len]}]
+                                       (case kind
+                                         :text len
+                                         :sp   1
+                                         :nl   1)))
+                                (reduce +))]
+    (if (seq coord-spans)
+      ;; calculate and fill the holes with non coord spans
+      (let [[first-span :as spans] (->> coord-spans
+                                   (partition-all 2 1)
+                                   (mapcat (fn [[cs next-cs]]
+                                             (if-not next-cs
+                                               [cs]
+                                               (let [cs-idx-to (+ (:idx-from cs) (:len cs))]
+                                                 (if (= cs-idx-to
+                                                        (:idx-from next-cs))
+                                                   [cs]
+                                                   [cs {:idx-from cs-idx-to
+                                                        :len (- (:idx-from next-cs) cs-idx-to)}])))))
+                                   (into []))
+            ;; after filling the holes with non coord spans we need to also deal with
+            ;; the beginning and the end in case our ptokens doesn't start or end with a coord
+            spans' (if-not (zero? (:idx-from first-span))
+                     ;; first make a span for the beginning if needed
+                     (into [{:idx-from 0
+                             :len (:idx-from first-span)}]
+                           spans)
+                     spans)
+            last-span (nth spans' (dec (count spans')))
+            last-span-end (+ (:idx-from last-span) (:len last-span))
+            final-spans (if (> total-print-length last-span-end)
+                          ;; then we need to add a tail
+                          (conj spans' {:idx-from (inc last-span-end)
+                                        :len (- total-print-length last-span-end)})
+                          spans')]
+        final-spans)
+
+      ;; else, if there are no tokens with coords, make a big span
+      ;; from 0 to the length of the whole text
+      [{:idx-from 0
+        :len total-print-length}])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities for the repl ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn- debug-print-tokens [ptokens]
-  (doseq [t ptokens]
-    (cond
-      (= :sp t) (print " ")
-      (= :nl t) (println)
-      :else     (print (first t))))
-  (println))
+  (-> ptokens to-string println))
 
 (defn pprint-form-hl-coord [form c]
   (let [tokens (pprint-tokens form)]
-    (doseq [tok tokens]
-      (let [txt (case tok
+    (doseq [{:keys [kind text coord]} tokens]
+      (let [txt (case kind
                   :sp " "
                   :nl "\n"
-                  (let [[txt coord] tok]
-                    (if (= coord c)
-                      (utils/colored-string txt :red)
-                      txt)))]
+                  :text (if (= coord c)
+                          (utils/colored-string text :red)
+                          text))]
         (print txt)))))
 
 (comment
@@ -136,7 +265,7 @@
          (-> test-form
              pp/pprint
              with-out-str))))
-
+  (form-tokens (with-meta '(+ 1 2) {::coord [1]}))
   (def test-form '(defn clojurescript-version
                     "Returns clojurescript version as a printable string."
                     []
@@ -156,8 +285,8 @@
 
   (binding [pp/*print-right-margin* 80
               pp/*print-pprint-dispatch* pp/code-dispatch]
-      (-> test-form
-          (pprint-tokens)
-          debug-print-tokens))
+    (->> test-form
+         (pprint-tokens)
+         #_debug-print-tokens))
 
   )

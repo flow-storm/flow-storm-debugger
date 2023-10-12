@@ -29,6 +29,7 @@
 	-fx-theme-field-label:                        #9c0084;
 	-fx-theme-breakpoint:                         #ff0000;
 	-fx-theme-breakpoint-continue:                #369658;
+    -fx-theme-form-highlight:                     #BBBBBB;
 }
 
 .root {

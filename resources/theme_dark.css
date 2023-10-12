@@ -29,6 +29,7 @@
 	-fx-theme-field-label:                        #de00c0;
 	-fx-theme-breakpoint:                         #ff0000;
 	-fx-theme-breakpoint-continue:                #60d61b;
+    -fx-theme-form-highlight:                     #636363;
 }
 
 .root {
@@ -36,4 +37,5 @@
         -fx-background: -fx-theme-base1;
         -fx-control-inner-background:  -fx-theme-base1;
 }
+
 
