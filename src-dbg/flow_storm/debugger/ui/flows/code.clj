@@ -15,7 +15,10 @@
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
            [javafx.scene.input KeyCode MouseButton ScrollEvent]
-           [org.fxmisc.richtext.model StyleSpansBuilder]))
+           [org.fxmisc.richtext CodeArea]
+           [org.fxmisc.richtext.model StyleSpansBuilder]
+           [javafx.scene.input MouseEvent]
+           [org.fxmisc.flowless VirtualizedScrollPane]))
 
 (declare jump-to-coord)
 (declare find-and-jump-same-val)
@@ -85,7 +88,7 @@
   will repaint and arm the form-code-area with the interesting and currently executing tokens.
   All interesting tokens will be clickable."
 
-  [flow-id thread-id form-code-area print-tokens]
+  [flow-id thread-id ^CodeArea form-code-area print-tokens]
   (fn [expr-executions curr-coord]
                         (let [interesting-coords (group-by :coord expr-executions)
                               spans (->> print-tokens
@@ -108,7 +111,7 @@
 
                           (.setOnMouseClicked form-code-area
                                               (event-handler
-                                               [mev]
+                                               [^MouseEvent mev]
                                                (let [char-hit (-> mev .getSource (.hit (.getX mev) (.getY mev)))
                                                      opt-char-idx (.getCharacterIndex char-hit)]
                                                  (when (.isPresent opt-char-idx)
@@ -167,12 +170,12 @@
         form-header (doto (h-box [ns-label])
                           (.setAlignment (Pos/TOP_RIGHT)))
 
-        form-code-area (ui-utils/code-area {:editable? false
+        ^CodeArea form-code-area (ui-utils/code-area {:editable? false
                                             :text code-text})
 
-        form-scroll (ui-utils/virtualized-scroll-pane
-                     form-code-area
-                     {:max-height 800})
+        ^VirtualizedScrollPane form-scroll (ui-utils/virtualized-scroll-pane
+                                            form-code-area
+                                            {:max-height 800})
 
         form-pane (v-box [form-header form-scroll] "form-pane")
 
@@ -185,7 +188,7 @@
     (.addEventFilter form-code-area
                      ScrollEvent/ANY
                      (event-handler
-                      [sev]
+                      [^ScrollEvent sev]
                       (let [current-absolute-pos (.getEstimatedScrollY form-code-area)
                             view-port-height (.getHeight form-scroll)
                             total-estimated-height (or (-> form-scroll .totalHeightEstimateProperty .getValue) 1.0)
@@ -196,7 +199,7 @@
                                   (and at-bottom? (neg? (.getDeltaY sev)))
                                   (<= total-estimated-height view-port-height)
                                   (or (.isAltDown sev) (.isControlDown sev)))
-                          (.fireEvent forms-box (.copyFor sev form-code-area forms-box))
+                          (.fireEvent ^Node forms-box (.copyFor sev form-code-area ^Node forms-box))
                           (.consume sev)))))
 
     (ui-utils/add-class form-code-area "form-pane")

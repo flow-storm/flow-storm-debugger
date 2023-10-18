@@ -16,7 +16,7 @@
            [org.kordamp.ikonli.javafx FontIcon]
            [javafx.collections FXCollections ObservableList]
            [org.fxmisc.richtext CodeArea]
-           [org.fxmisc.flowless VirtualizedScrollPane]))
+           [org.fxmisc.flowless VirtualFlow VirtualizedScrollPane]))
 
 (defn run-later*
   [f]
@@ -580,13 +580,16 @@
                (let [^CodeArea this this
                      ih (+ (-> this .getInsets .getTop)
                            (-> this .getInsets .getBottom))
-                     childs (.getChildren this)
+                     ^ObservableList childs (.getChildren this)
                      p-cnt (.size (.getParagraphs this))]
                  (if (and (pos? (.size childs))
                           (pos? p-cnt))
-                   (let [c (.get childs 0)]
+                   (let [^VirtualFlow c (.get childs 0)]
                      (+ ih (->> (range p-cnt)
-                                (map (fn [i] (-> c (.getCell i) .getNode (.prefHeight w))))
+                                (map (fn [i] (-> c
+                                                 (.getCell i)
+                                                 .getNode
+                                                 (.prefHeight w))))
                                 (reduce + 0))))
 
                    ;; else
