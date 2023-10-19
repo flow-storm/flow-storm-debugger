@@ -255,7 +255,7 @@ you want to send it to a different value explorer like portal, rebl, reveal, etc
    "
 For the last feature, let's see jumping to exceptions.
 
-First get rid of the state (Ctrl-L) and then let's eval this forms :
+First get rid of the state (Ctrl-L) and then let's eval these forms :
 
 --------------------------------------
 (defn foo [n]
