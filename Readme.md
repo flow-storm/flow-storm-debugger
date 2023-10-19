@@ -78,7 +78,7 @@ Flow storm debugger is packed with a ton of features :
 - Functions [calls explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
 - [Inspect any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
 - [Define any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
-- [Multi-threadeding](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
+- [Multi-threading](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
 - [Thread blocking](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
 - [Println](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer_tool) debugging
 - [Tap](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_taps_tool) values inspection
@@ -118,7 +118,7 @@ there are some inconveniences that I think can be greatly improved by a debugger
    - Debugging statements needs to be constantly typed and removed which gets repetitive and annoying 
    - Exploring complex values at the console is tedious, that is why tools like portal, reveal, rebl, etc exist.
    
-Some of the issues there can be aleviated by adding libraries like scope capture, and portal but it isn't straight forward to integrate them
+Some of the issues there can be alleviated by adding libraries like scope capture, and portal but it isn't straight forward to integrate them
 and even if it was IMHO there is a lot to be gained from a proper integrated debugging system.
 
 So I want to stop guessing and a tool that allows me to see what is happening when a Clojure program runs, being it a small expression or an entire codebase.
@@ -144,9 +144,9 @@ FlowStorm can instrument your code in two ways :
 
 - The ClojureStorm way (recommended for Clojure) which swaps your official Clojure compiler with a patched one (only for dev) that emits extra JVM bytecode everytime you compile something
   to record everything that is happening. This method provide automatic instrumentation everywhere, which is very practical. You still get to un-instrument things if you need to do
-  things like meassure preformance, which isn't going to be accurate with the extra bytecode.
+  things like measure performance, which isn't going to be accurate with the extra bytecode.
      
-- The vanilla way (can be used for Clojure and is the only option for ClojureScript), that just grabs the Clojure source epxressions you are interested in, walks the AST, instruments it, and re-evals the 
+- The vanilla way (can be used for Clojure and is the only option for ClojureScript), that just grabs the Clojure source expressions you are interested in, walks the AST, instruments it, and re-evals the 
   instrumented version through the repl. You do this by using reader tags (like `#trace (defn foo [...] ...)`) or by using the FlowStorm browser tab to instrument entire namespaces.
       
 Doesn't matter which method instrumented the code, when it runs it will record every expression in a timeline. 
@@ -216,7 +216,7 @@ you can always use both.
 
 #### FlowStorm VS Cider/VSCode debuggers
 
-Cider and VSCode debuggers are steppers, so I'll only be comparing it against the stepping and value inspection capabilities of FlowStorm, but keep in mind that FlowStorm provindes
+Cider and VSCode debuggers are steppers, so I'll only be comparing it against the stepping and value inspection capabilities of FlowStorm, but keep in mind that FlowStorm provides
 many more features than stepping. Cider provide some tracing capabilities to trace entire namespaces but it relay on printing to the console which I haven't found useful outside of very specific situations, so
 I don't think it is useful to understand an entire codebase.
 
