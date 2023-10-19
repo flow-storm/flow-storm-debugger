@@ -6,8 +6,8 @@ This is the central repository for [FlowStorm](http://www.flow-storm.org/) a omn
 
 There are two ways of using it :
 
-  - [With ClojureStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : For dev, swap your Clojure compiler by ClojureStorm and get everything instrumented automatically
-  - [Vanilla FlowStorm](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_vanilla_flowstorm) : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
+  - [With ClojureStorm](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojurestorm) (recommended) : For dev, swap your Clojure compiler by ClojureStorm and get everything instrumented automatically
+  - [Vanilla FlowStorm](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_vanilla_flowstorm) : Just add FlowStorm to your dev classpath and instrument by re-evaluating forms
 	
 ClojureStorm is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
@@ -20,35 +20,35 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)
-  - `[com.github.jpmonettas/flow-storm-dbg "3.7.5"]`
+  - `[com.github.flow-storm/flow-storm-dbg "3.8.0"]`
 - A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
-  - `[com.github.jpmonettas/flow-storm-inst "3.7.5"]`
+  - `[com.github.flow-storm/flow-storm-inst "3.8.0"]`
 
 ClojureStorm latest stable releases : 
 
 - Clojure 1.12.0
-  - `[com.github.jpmonettas/clojure "1.12.0-alpha4_5"]`
+  - `[com.github.flow-storm/clojure "1.12.0-alpha4_5"]`
 - Clojure 1.11.1
-  - `[com.github.jpmonettas/clojure "1.11.1-11"]`
+  - `[com.github.flow-storm/clojure "1.11.1-11"]`
 
 ClojureScriptStorm latest stable releases : 
 
 - ClojureScript 1.11.60
-  - `[com.github.jpmonettas/clojurescript "1.11.60-4"]`
+  - `[com.github.flow-storm/clojurescript "1.11.60-4"]`
 
 # Prerequisites
 
   - jdk11+
   - clojure 1.11.0+
-  - clojure 1.10.* only supported if you use it from source, like `{:git/url "https://github.com/jpmonettas/flow-storm-debugger" :git/sha "..."}`
+  - clojure 1.10.* only supported if you use it from source, like `{:git/url "https://github.com/flow-storm/flow-storm-debugger" :git/sha "..."}`
 
 # QuickStart and Documentation
 
-If you want to use it with Clojure checkout the [Clojure QuickStart guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojure)
+If you want to use it with Clojure checkout the [Clojure QuickStart guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojure)
 
-or the [ClojureScript QuickStart Guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
+or the [ClojureScript QuickStart Guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
-Please refer to the [user guide](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
+Please refer to the [user guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
 
 # ClojureStorm and ClojureScriptStorm
 
@@ -59,35 +59,35 @@ your development experience, while making sure you use your normal compiler for 
 
 *ClojureScriptStorm* is the same as ClojureStorm but for ClojureScript, so a fork of the official ClojureScript compiler enhanced with automatic instrumentation.
 
-ClojureStorm sources are here : https://github.com/jpmonettas/clojure
-ClojureScriptStorm sources are here : https://github.com/jpmonettas/clojurescript
+ClojureStorm sources are here : https://github.com/flow-storm/clojure
+ClojureScriptStorm sources are here : https://github.com/flow-storm/clojurescript
 
 # Features
 
 Flow storm debugger is packed with a ton of features :
 
 - Instrument any Clojure and ClojureScript form (single, namespace or entire codebases)
-- A [time travel stepper](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_code_tool) allows you to jump around your execution
-- Many [power stepping](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_power_stepping) tools
-- Value [searching](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_searching) capabilities
-- [Loops](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_loops) debugging
-- [Exception](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_exception_debugging) debugging
-- [Locals](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_locals) explorer
-- [Stack](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_stack) explorer
-- Execution [call tree explorer](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_call_stack_tree_tool)
-- Functions [calls explorer](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
-- [Inspect any values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
-- [Define any values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
-- [Multi-threadeding](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
-- [Thread blocking](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
-- [Println](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_printer_tool) debugging
-- [Tap](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_taps_tool) values inspection
-- [Remote](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_remote_debugging) Clojure and ClojureScript debugging
-- [Programmable](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging) debugging
-- A [namespace browser](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_browser_tool)
-- [Mutable values](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_dealing_with_mutable_values) debugging
-- [Keyboard](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
-- [Themes and styling](https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
+- A [time travel stepper](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_code_tool) allows you to jump around your execution
+- Many [power stepping](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_power_stepping) tools
+- Value [searching](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_searching) capabilities
+- [Loops](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_loops) debugging
+- [Exception](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_exception_debugging) debugging
+- [Locals](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_locals) explorer
+- [Stack](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_stack) explorer
+- Execution [call tree explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_call_stack_tree_tool)
+- Functions [calls explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
+- [Inspect any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
+- [Define any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
+- [Multi-threadeding](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
+- [Thread blocking](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
+- [Println](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer_tool) debugging
+- [Tap](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_taps_tool) values inspection
+- [Remote](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_remote_debugging) Clojure and ClojureScript debugging
+- [Programmable](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging) debugging
+- A [namespace browser](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_browser_tool)
+- [Mutable values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_dealing_with_mutable_values) debugging
+- [Keyboard](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
+- [Themes and styling](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
 
 ## Some demo videos (newers at the top)
 
@@ -155,7 +155,7 @@ Because Clojure is expression based and most data is immutable, recording is jus
 
 The timeline is a structure that provides efficient insertion, and efficient access sequentially and as a functions call tree. 
 
-You can see some diagrams here : https://jpmonettas.github.io/flow-storm-debugger/user_guide.html#_internals_diagrams_and_documentation
+You can see some diagrams here : https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_internals_diagrams_and_documentation
 
 ### Isn't recording everything too expensive? Like, does it work with something like a game loop?
 
@@ -250,11 +250,11 @@ If you want to compare it try stepping code like this in both debuggers :
    
 ## What to do when things don't work?
 
-Please create a [issue](https://github.com/jpmonettas/flow-storm-debugger/issues) if you think you found a bug.
+Please create a [issue](https://github.com/flow-storm/flow-storm-debugger/issues) if you think you found a bug.
 
 If you are not sure you can ask in :
  - [#flow-storm slack channel](https://clojurians.slack.com/archives/C03KZ3XT0CF)
- - [github discussions](https://github.com/jpmonettas/flow-storm-debugger/discussions)
+ - [github discussions](https://github.com/flow-storm/flow-storm-debugger/discussions)
 
 ## Acknowledgements
 
