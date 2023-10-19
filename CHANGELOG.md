@@ -5,6 +5,14 @@
 ### New Features 
     
 ### Changes
+    
+### Bugs fixed
+
+## 3.8.1 (19-10-2023)
+	
+### New Features 
+    
+### Changes
 
     - Improved code highlighter. Replaces JavaFX standard TextFlow with RichTextFx CodeArea for improved performance.
     - Change hansel to com.github.flow-storm/hansel 0.1.79 for the organization move
