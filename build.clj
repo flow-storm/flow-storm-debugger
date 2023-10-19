@@ -5,7 +5,7 @@
             [clojure.spec.alpha :as s]))
 
 (def version (or (System/getenv "VERSION")
-                 "3.7.5"))
+                 "3.8.0"))
 
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))
@@ -44,7 +44,7 @@
 (defn jar-dbg [_]
   (clean nil)
   (println "AOT compiling dbg : " aot?)
-  (let [lib 'com.github.jpmonettas/flow-storm-dbg
+  (let [lib 'com.github.flow-storm/flow-storm-dbg
         basis (b/create-basis {:project "deps.edn"})
         jar-file (format "%s/%s.jar" target-dir (name lib))
         src-dirs ["src-dbg" "src-shared" "src-inst"]]
@@ -52,7 +52,11 @@
                   :lib lib
                   :version version
                   :basis basis
-                  :src-dirs src-dirs})
+                  :src-dirs src-dirs
+                  :pom-data [[:licenses
+                              [:license
+                               [:name "Unlicense"]
+                               [:url "http://unlicense.org/"]]]]})
     (when aot?
       (b/compile-clj {:basis basis
                       :src-dirs src-dirs
@@ -67,14 +71,14 @@
 (defn jar-inst [_]
   (clean nil)
   (println "AOT compiling inst : " aot?)
-  (let [lib 'com.github.jpmonettas/flow-storm-inst
+  (let [lib 'com.github.flow-storm/flow-storm-inst
         src-dirs ["src-inst" "src-shared"]
         basis (b/create-basis {:project nil
                                :extra {:deps {'org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
                                               'com.cognitect/transit-clj {:mvn/version "1.0.333"}
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions ['com.google.guava/guava 'org.slf4j/slf4j-nop]}
-                                              'com.github.jpmonettas/hansel {:mvn/version "0.1.78"}
+                                              'com.github.flow-storm/hansel {:mvn/version "0.1.79"}
                                               'org.clojure/data.int-map {:mvn/version "1.2.1"}}
 
                                        :paths src-dirs}})
@@ -83,7 +87,11 @@
                   :lib lib
                   :version version
                   :basis basis
-                  :src-dirs src-dirs})
+                  :src-dirs src-dirs
+                  :pom-data [[:licenses
+                              [:license
+                               [:name "Unlicense"]
+                               [:url "http://unlicense.org/"]]]]})
     (when aot?
       (b/compile-clj {:basis basis
                       :src-dirs src-dirs

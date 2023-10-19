@@ -7,6 +7,7 @@
 ### Changes
 
     - Improved code highlighter. Replaces JavaFX standard TextFlow with RichTextFx CodeArea for improved performance.
+    - Change hansel to com.github.flow-storm/hansel 0.1.79 for the organization move
     
 ### Bugs fixed
 

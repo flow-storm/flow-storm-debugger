@@ -36,13 +36,13 @@ flow-storm-inst.jar:
 	clj -T:build jar-inst
 
 install-dbg: flow-storm-dbg.jar
-	mvn install:install-file -Dfile=target/flow-storm-dbg.jar -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-dbg/pom.xml
+	mvn install:install-file -Dfile=target/flow-storm-dbg.jar -DpomFile=target/classes/META-INF/maven/com.github.flow-storm/flow-storm-dbg/pom.xml
 
 install-inst: flow-storm-inst.jar
-	mvn install:install-file -Dfile=target/flow-storm-inst.jar -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-inst/pom.xml
+	mvn install:install-file -Dfile=target/flow-storm-inst.jar -DpomFile=target/classes/META-INF/maven/com.github.flow-storm/flow-storm-inst/pom.xml
 
 deploy-dbg:
-	mvn deploy:deploy-file -Dfile=target/flow-storm-dbg.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-dbg/pom.xml -Durl=https://clojars.org/repo
+	mvn deploy:deploy-file -Dfile=target/flow-storm-dbg.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.flow-storm/flow-storm-dbg/pom.xml -Durl=https://clojars.org/repo
 
 deploy-inst:
-	mvn deploy:deploy-file -Dfile=target/flow-storm-inst.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.jpmonettas/flow-storm-inst/pom.xml -Durl=https://clojars.org/repo
+	mvn deploy:deploy-file -Dfile=target/flow-storm-inst.jar -DrepositoryId=clojars -DpomFile=target/classes/META-INF/maven/com.github.flow-storm/flow-storm-inst/pom.xml -Durl=https://clojars.org/repo
