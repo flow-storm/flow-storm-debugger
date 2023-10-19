@@ -31,15 +31,27 @@
 
   [print-tokens]
 
+  ;; This is as hacky as it gets but it is also for the vanilla non fn expressions
+  ;; typed at the repl, like (+ 1 2)
   (if-let [runi-token-idx (some (fn [[i {:keys [text]}]]
                                   (when (= text "flowstorm-runi")
                                     i))
                                 (map vector (range) (take 10 print-tokens)))]
-    (let [wrap-beg (case runi-token-idx
-                     3 9 ;; when it fits in one line
-                     5 13) ;; when it render in multiple lines
-          wrap-end (- (count print-tokens) 2)]
-      (subvec print-tokens wrap-beg wrap-end))
+    (let [expands-into-multiple-lines? (= runi-token-idx 5)
+          wrap-beg (if expands-into-multiple-lines? 13 9)
+          wrap-end (- (count print-tokens) 2)
+          sub-tokens (subvec print-tokens wrap-beg wrap-end)
+          nl-count (count (filter #(= (:kind %) :nl) sub-tokens))
+          expr-offset (+ (count "(fn* flowstorm-runi ([] ")
+                         (if expands-into-multiple-lines?
+                           4
+                           0))]
+      (->> sub-tokens
+           ;; since we removed some tokens we need to move all idx-from back
+           (map (fn [{:keys [idx-from] :as tok}]
+                  (if idx-from
+                    (update tok :idx-from #(- % expr-offset))
+                    tok)))))
 
     print-tokens))
 
