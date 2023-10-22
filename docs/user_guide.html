@@ -940,6 +940,22 @@ although you can still do it if you need it. There are also other options you ca
 <div class="title">Note</div>
 </td>
 <td class="content">
+<div class="title">lein dependencies</div>
+<div class="paragraph">
+<p>Make sure your global :dependencies don&#8217;t include the official org.clojure/clojure dependency.
+For some reason lein will add the dependency to the classpath even if you have it on exclusions.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
 <div class="title">#rtrace and #trace</div>
 <div class="paragraph">
 <p>When using <em>FlowStorm</em> with <em>ClojureStorm</em> it is a error to use #trace or #rtrace. They aren&#8217;t needed since
@@ -3107,7 +3123,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-10-19 09:56:49 -0300
+Last updated 2023-10-22 16:51:29 -0300
 </div>
 </div>
 </body>
