@@ -17,7 +17,7 @@
                          (let [heap-info (utils/get-memory-info)
                                ev (rt-events/make-heap-info-update-event heap-info)]
                            (rt-events/publish-event! ev)
-                           (try (Thread/sleep 1000) (catch InterruptedException e (println "Flowstorm Closed")))
+                           (try (Thread/sleep reporter-interval) (catch InterruptedException _ (println "Flowstorm Closed")))
                            (recur)))))
                    "FlowStorm Memory Reporter")
            interrupt-fn (fn [] (.interrupt thread))]
