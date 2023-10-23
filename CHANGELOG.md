@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features 
+
+    - Add dynamic font inc/dec and theme rotation
     
 ### Changes
 

@@ -16,7 +16,8 @@
            [org.kordamp.ikonli.javafx FontIcon]
            [javafx.collections FXCollections ObservableList]
            [org.fxmisc.richtext CodeArea]
-           [org.fxmisc.flowless VirtualFlow VirtualizedScrollPane]))
+           [org.fxmisc.flowless VirtualFlow VirtualizedScrollPane]
+           [com.jthemedetecor OsThemeDetector]))
 
 (defn run-later*
   [f]
@@ -115,14 +116,15 @@
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
 
-(defn button [& {:keys [label class on-click disable tooltip]}]
+(defn button [& {:keys [label classes on-click disable tooltip]}]
   (let [b (Button. label)]
 
     (when on-click
       (.setOnAction b (event-handler [_] (on-click))))
 
-    (when class
-      (.add (.getStyleClass b) class))
+    (when classes
+      (doseq [c classes]
+        (.add (.getStyleClass b) c)))
 
     (when disable
       (.setDisable b true))
@@ -131,7 +133,7 @@
 
     b))
 
-(defn icon-button [& {:keys [icon-name class on-click disable tooltip]}]
+(defn icon-button [& {:keys [icon-name classes on-click disable tooltip]}]
   (let [b (doto (Button.)
             (.setGraphic (FontIcon. icon-name)))]
 
@@ -139,8 +141,9 @@
     (when on-click
       (.setOnAction b (event-handler [_] (on-click))))
 
-    (when class
-      (.add (.getStyleClass b) class))
+    (when classes
+      (doseq [c classes]
+        (.add (.getStyleClass b) c)))
 
     (when disable
       (.setDisable b true))
@@ -601,3 +604,12 @@
 (defn virtualized-scroll-pane [node {:keys [max-height]}]
   (doto (VirtualizedScrollPane. node)
     (.setMaxHeight max-height)))
+
+(defn get-current-os-theme []
+  (try
+    (if (.isDark (OsThemeDetector/getDetector))
+      :dark
+      :light)
+    (catch Exception e
+      (log-error "Couldn't retrieve os theme, setting :light by default" e)
+      :light)))

@@ -14,7 +14,6 @@
              :refer [obj-lookup store-obj]]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.utils :as utils :refer [log log-error]]
-            [clojure.java.io :as io]
             [flow-storm.debugger.config :refer [config] :as config]
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs])
@@ -23,7 +22,8 @@
            [javafx.stage Stage]
            [javafx.geometry Pos]
            [javafx.scene.control ToolBar]
-           [javafx.application Platform]))
+           [javafx.application Platform]
+           [javafx.scene.input KeyCode]))
 
 (declare start-ui)
 (declare stop-ui)
@@ -143,7 +143,7 @@
   (let [record-btn (icon-button :icon-name "mdi-record"
                                 :tooltip "Start/Stop recording"
                                 :on-click (fn [] (runtime-api/toggle-recording rt-api))
-                                :class "record-btn")
+                                :classes ["record-btn"])
         task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
                                      :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                      :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
@@ -196,34 +196,38 @@
     (ui-utils/add-class mp "main-pane")
     mp))
 
-(defn- calculate-styles [dark? styles]
-  (let [theme-base-styles (str (io/resource (if dark?
-                                              "theme_dark.css"
-                                              "theme_light.css")))
+(defn- start-theme-listener [on-theme-change]
+  (try
+    (let [detector (OsThemeDetector/getDetector)
+          listener (reify java.util.function.Consumer
+                     (accept [_ dark?]
+                       (ui-utils/run-later
+                        (on-theme-change dark?))))]
+      (log "Registering os theme-listener")
+      (.registerListener detector listener)
+      listener)
+    (catch Exception e
+      (log-error "Couldn't start theme listener" e))))
 
-        default-styles (str (io/resource "styles.css"))
-        extra-styles (when styles
-                       (str (io/as-url (io/file styles))))]
-    (cond-> [theme-base-styles
-             default-styles]
-      extra-styles (conj extra-styles))))
+(defn reset-theming [stages]
+  (let [new-stylesheets (dbg-state/current-stylesheets)]
+    (doseq [stage stages]
+      (let [scene (.getScene stage)
+            scene-stylesheets (.getStylesheets scene)]
+        (.clear scene-stylesheets)
+        (.addAll scene-stylesheets (into-array String new-stylesheets))))))
 
-(defn- update-scene-styles [scene styles]
-  (let [stylesheets (.getStylesheets scene)]
-    (.clear stylesheets)
-    (.addAll stylesheets (into-array String styles))
-    nil))
+;; all of this should change the state and then fire a reset-theming
+(defn rotate-theme []
+  )
 
-(defn- start-theme-listener [update-scenes-theme]
-  (let [detector (OsThemeDetector/getDetector)
-        listener (reify java.util.function.Consumer
-                   (accept [_ dark?]
-                     (ui-utils/run-later
-                      (update-scenes-theme dark?))))]
-    (.registerListener detector listener)
-    listener))
+(defn inc-font-size []
+  )
 
-(defn- start-theming-system [{:keys [theme styles] :or {theme :auto}} stages]
+(defn dec-font-size []
+  )
+
+#_(defn- start-theming-system [{:keys [theme styles] :or {theme :auto}} stages]
   (let [update-scene-with-current-theme (fn [scn dark?]
                                           (let [new-styles (calculate-styles dark? styles)]
                                             (update-scene-styles scn new-styles)))
@@ -261,6 +265,7 @@
 
     ;; remove the OS theme listener
     (when theme-listener
+      (log "Removing os theme-listener")
       (.removeListener (OsThemeDetector/getDetector) theme-listener))
 
     ;; close all stages
@@ -299,6 +304,7 @@
      (doseq [fid all-flows-ids]
        (create-flow {:flow-id fid})))))
 
+
 (defn start-ui []
   (Platform/setImplicitExit false)
 
@@ -325,7 +331,19 @@
                            ((resolve 'flow-storm.debugger.main/stop-debugger))))))))
 
            stages (atom #{stage})
-           theme-listener (start-theming-system config stages)]
+           theme-listener (when (= :auto (:theme config))
+                            (start-theme-listener
+                             (fn [dark?]
+                               (dbg-state/set-theme (if dark? :dark :light))
+                               (reset-theming @stages))))]
+
+       (alter-var-root #'ui-vars/register-and-init-stage!
+                       (constantly
+                        (fn [stg]
+                          (swap! stages conj stg)
+                          (reset-theming [stg]))))
+
+       (reset-theming @stages)
 
        (doto scene
          (.setOnKeyPressed (event-handler
@@ -333,6 +351,7 @@
                             (let [key-name (.getName (.getCode kev))
                                   shift? (.isShiftDown kev)
                                   ctrl? (.isControlDown kev)]
+
                               (cond
 
                                 (and ctrl? (= key-name "G"))
@@ -343,6 +362,22 @@
 
                                 (and ctrl? (= key-name "D"))
                                 (toggle-debug-mode)
+
+                                (and ctrl? (= key-name "T"))
+                                (do
+                                  (dbg-state/rotate-theme)
+                                  (reset-theming @stages))
+
+                                (or (= (.getCode kev) KeyCode/ADD)
+                                    (and shift? (= (.getCode kev) KeyCode/EQUALS)))
+                                (do
+                                  (dbg-state/inc-font-size)
+                                  (reset-theming @stages))
+
+                                (= KeyCode/MINUS (.getCode kev))
+                                (do
+                                  (dbg-state/dec-font-size)
+                                  (reset-theming @stages))
 
                                 (and ctrl? (= key-name "U"))
                                 (runtime-api/unblock-all-threads rt-api)

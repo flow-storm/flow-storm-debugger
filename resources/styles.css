@@ -1,3 +1,4 @@
+
 @font-face {
     src: url('fonts/Roboto-Light.ttf');
 }
@@ -7,8 +8,7 @@
 }
 
 .main-pane {
-	-fx-font-family: 'Roboto Medium';
-	-fx-font-size: 12;
+	-fx-font-family: 'Roboto Medium';    
 }
 
 .separator-label {
@@ -16,8 +16,7 @@
 }
 
 .tab .ikonli-font-icon {
-	-fx-font-size: 15;
-	-fx-icon-color: -fx-theme-button2-text;
+    -fx-icon-color: -fx-theme-button2-text;
 	-fx-background-color: linear-gradient(to top, -fx-base, derive(-fx-base,30%));
 }
 
@@ -35,8 +34,7 @@
 }
 
 .button.thread-continue-btn {
-	-fx-font-size: 8;
-	-fx-background-color: -fx-theme-breakpoint-continue;
+    -fx-background-color: -fx-theme-breakpoint-continue;
 }
 
 .thread-blocked {
@@ -120,13 +118,11 @@
 
 .code-token {
 	-fx-font-family: 'monospaced';
-	-fx-font-size: 13;
-	-fx-fill: -fx-theme-flow-code-text;
+    -fx-fill: -fx-theme-flow-code-text;
 }
 .code-token.executing {
     -fx-stroke: -fx-theme-flow-code-executing-text;
-	-fx-font-size: 15;
-	-fx-fill: -fx-theme-flow-code-executing-text;
+    -fx-fill: -fx-theme-flow-code-executing-text;
 	-fx-stroke-width: 1;
 }
 
@@ -153,18 +149,13 @@
 	-fx-alignment: center;
 }
 
-.button.def-btn {
-	-fx-font-size: 10;
-}
-
 /*****************/
 /* Browser stuff */
 /*****************/
 
 .label.browser-fn-fq-name {
 	-fx-font-weight: bold;
-	-fx-font-size: 15;
-	-fx-text-fill: -fx-theme-button1-background;
+    -fx-text-fill: -fx-theme-button1-background;
 	-fx-padding: 10;
 }
 
@@ -177,14 +168,12 @@
 }
 
 .button.browser-instrument-btn {
-    -fx-font-size: 10;
-	-fx-display: none;
+    -fx-display: none;
 	visibility: hidden;
 }
 
 .button.browser-break-btn {    
 	visibility: hidden;
-    -fx-font-size: 10;    
     -fx-background-color: -fx-theme-breakpoint;
 }
 
@@ -198,10 +187,6 @@
 
 .browser-var-buttons {
 	-fx-padding: 10;
-}
-
-.browser-instr-del-btn {
-    -fx-font-size: 10;
 }
 
 .browser-instr-type-lbl {
@@ -247,8 +232,7 @@
 
 .docs-fn-name {
 	-fx-font-weight: bold;
-	-fx-font-size: 15;
-	-fx-text-fill: -fx-theme-title-label;
+    -fx-text-fill: -fx-theme-title-label;
 	-fx-padding: 5;
 }
 

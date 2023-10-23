@@ -1,9 +1,24 @@
 (ns flow-storm.debugger.state
-  (:require [flow-storm.state-management :refer [defstate]]))
+  (:require [flow-storm.state-management :refer [defstate]]
+            [flow-storm.debugger.ui.utils :as ui-utils]
+            [clojure.java.io :as io]))
 
-(def initial-state {:flows {}
-                    :selected-flow-id nil
-                    :printers {}})
+(def font-size-styles ["font-size-sm.css"
+                       "font-size-md.css"
+                       "font-size-lg.css"
+                       "font-size-xl.css"])
+
+(defn initial-state [{:keys [theme styles]}]
+  {:flows {}
+   :selected-flow-id nil
+   :printers {}
+   :selected-font-size-style-idx 0
+   :selected-theme (case theme
+                     :light :light
+                     :dark  :dark
+                     :auto  (ui-utils/get-current-os-theme)
+                     :light)
+   :extra-styles styles})
 
 ;; so linter doesn't complain
 (declare state)
@@ -11,8 +26,8 @@
 (declare flow-thread-indexers)
 
 (defstate state
-  :start (fn [_] (atom initial-state))
-  :stop (fn [] (atom initial-state)))
+  :start (fn [config] (atom (initial-state config)))
+  :stop (fn [] nil))
 
 ;;;;;;;;;;;
 ;; Utils ;;
@@ -92,3 +107,38 @@
 
 (defn update-printer [form-id coord k new-val]
   (swap! state assoc-in [:printers form-id coord k] new-val))
+
+(defn inc-font-size []
+  (-> (swap! state update :selected-font-size-style-idx
+             (fn [idx] (min (dec (count font-size-styles))
+                            (inc idx))))
+      :selected-font-size-style-idx))
+
+(defn dec-font-size []
+  (-> (swap! state update :selected-font-size-style-idx
+             (fn [idx] (max 0 (dec idx))))
+      :selected-font-size-style-idx))
+
+(defn set-theme [theme]
+  (swap! state assoc :selected-theme theme))
+
+(defn rotate-theme []
+  (swap! state update :selected-theme {:light :dark
+                                       :dark :light}))
+
+
+(defn current-stylesheets []
+  (let [{:keys [selected-theme extra-styles selected-font-size-style-idx]} @state
+        default-styles (str (io/resource "styles.css"))
+        theme-base-styles (str (io/resource (case selected-theme
+                                              :dark  "theme_dark.css"
+                                              :light "theme_light.css")))
+        font-size-style (-> (get font-size-styles selected-font-size-style-idx)
+                            io/resource
+                            str)
+        extra-styles (when extra-styles
+                       (str (io/as-url (io/file extra-styles))))]
+    (cond-> [theme-base-styles
+             default-styles
+             font-size-style]
+      extra-styles (conj extra-styles))))

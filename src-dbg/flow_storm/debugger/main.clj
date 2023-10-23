@@ -68,17 +68,17 @@
     ;; else, start components for remote debugging
     (let [runtime-connected? (promise)]
       (state-management/start {:only remote-debugger-state-vars
-                              :config (assoc config
-                                             :env-kind (if (#{:shadow} (:repl-type config))
-                                                         :cljs
-                                                         :clj)
-                                             :connect-to-repl? (boolean (:port config))
-                                             :repl-kind :nrepl
-                                             :dispatch-event events-queue/enqueue-event!
-                                             :on-connection-open (fn [_] (deliver runtime-connected? true))
-                                             :on-websocket-reconnect (fn []
-                                                                       (println "Websocket reconnected, setting up UI from runtime")
-                                                                       (ui-main/setup-ui-from-runtime-config)))})
+                               :config (assoc config
+                                              :env-kind (if (#{:shadow} (:repl-type config))
+                                                          :cljs
+                                                          :clj)
+                                              :connect-to-repl? (boolean (:port config))
+                                              :repl-kind :nrepl
+                                              :dispatch-event events-queue/enqueue-event!
+                                              :on-connection-open (fn [_] (deliver runtime-connected? true))
+                                              :on-websocket-reconnect (fn []
+                                                                        (println "Websocket reconnected, setting up UI from runtime")
+                                                                        (ui-main/setup-ui-from-runtime-config)))})
       (when @runtime-connected?
         (dbg-state/set-sytem-fully-started)
         ;; After everything is ready (UI, connection, etc) everything is ready

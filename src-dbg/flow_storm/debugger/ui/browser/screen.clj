@@ -190,11 +190,11 @@
 
 (defn create-fn-details-pane []
   (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
-        inst-button (button :label "Instrument" :class "browser-instrument-btn")
+        inst-button (button :label "Instrument" :classes ["browser-instrument-btn" "btn-sm"])
         break-button (button :label "Break"
-                             :class "browser-break-btn"
+                             :classes ["browser-break-btn" "btn-sm"]
                              :tooltip "Add a breakpoint to this function. Threads hitting this function will be paused")
-        inst-rec-button (button :label "Instrument recursively" :class "browser-instrument-btn")
+        inst-rec-button (button :label "Instrument recursively" :classes ["browser-instrument-btn" "btn-sm"])
         btns-box (doto (h-box [inst-button inst-rec-button break-button]
                               "browser-var-buttons")
                    (.setSpacing 5))
@@ -234,7 +234,7 @@
                                                        (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
                                            (.setSpacing 10))
                                 inst-del-btn (button :label "del"
-                                                     :class "browser-instr-del-btn"
+                                                     :classes ["browser-instr-del-btn" "btn-sm"]
                                                      :on-click (fn [] (uninstrument-function var-ns var-name)))]
                             (doto (h-box [inst-lbl inst-del-btn])
                               (.setSpacing 10)
@@ -244,7 +244,7 @@
                                                       (label ns-name "browser-instr-label")])
                                           (.setSpacing 10))
                                inst-del-btn (button :label "del"
-                                                    :class "browser-instr-del-btn"
+                                                    :classes ["browser-instr-del-btn" "btn-sm"]
                                                     :on-click (fn [] (uninstrument-namespaces [inst-ns])))]
                            (doto (h-box [inst-lbl inst-del-btn])
                              (.setSpacing 10)
@@ -254,7 +254,7 @@
                                                          (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
                                              (.setSpacing 10))
                                   inst-del-btn (button :label "del"
-                                                       :class "browser-instr-del-btn"
+                                                       :classes ["browser-instr-del-btn" "btn-sm"]
                                                        :on-click (fn [] (remove-breakpoint (symbol var-ns var-name) {})))]
                               (doto (h-box [inst-lbl inst-del-btn])
                                 (.setSpacing 10)

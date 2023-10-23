@@ -23,13 +23,13 @@
                           (.setPrefWidth 50)
                           (.setAlignment Pos/CENTER))
         def-btn (button :label "def"
-                        :class "def-btn"
+                        :classes ["def-btn" "btn-sm"]
                         :tooltip "Define a reference to this value so it can be used from the repl.")
         inspect-btn (button :label "ins"
-                            :class "def-btn"
+                            :classes ["def-btn" "btn-sm"]
                             :tooltip "Open this value in the value inspector.")
         tap-btn (button :label "tap"
-                        :class "def-btn"
+                        :classes ["def-btn" "btn-sm"]
                         :tooltip "Tap this value as with tap>. Useful to send it to other inspectors like portal, REBL, Reveal, etc")
         tools-box (doto (h-box [(label "*print-level*") print-level-txt
                                 (label "*print-meta*") print-meta-chk

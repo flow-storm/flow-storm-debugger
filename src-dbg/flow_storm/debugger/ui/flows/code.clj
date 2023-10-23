@@ -41,7 +41,6 @@
           wrap-beg (if expands-into-multiple-lines? 13 9)
           wrap-end (- (count print-tokens) 2)
           sub-tokens (subvec print-tokens wrap-beg wrap-end)
-          nl-count (count (filter #(= (:kind %) :nl) sub-tokens))
           expr-offset (+ (count "(fn* flowstorm-runi ([] ")
                          (if expands-into-multiple-lines?
                            4

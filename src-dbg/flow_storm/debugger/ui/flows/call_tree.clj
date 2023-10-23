@@ -108,7 +108,7 @@
                   frame (runtime-api/callstack-node-frame rt-api tree-node)
                   fn-call-idx (:fn-call-idx frame)
                   update-tree-btn (icon-button :icon-name "mdi-reload"
-                                               :class "reload-tree-btn"
+                                               :classes ["reload-tree-btn"]
                                                :on-click (fn []
                                                            (binding [runtime-api/*cache-disabled?* true]
                                                              (update-call-stack-tree-pane flow-id thread-id)))

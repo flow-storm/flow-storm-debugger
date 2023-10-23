@@ -1351,6 +1351,9 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 - `Ctrl-l` Clean all debugger state
 - `Ctrl-d` Toggle debug-mode. Will log useful debugging information to the console
 - `Ctrl-u` Unblock all breakpoint blocked threads if any
+- `Ctrl-t` Rotate themes
+- `Ctrl-plus` Increment font size
+- `Ctrl-minus` Decrement font size
 - `F`      "Select the Flows tool"
 - `B`      "Select the Browser tool"
 - `T`      "Select the Taps tool"

@@ -80,7 +80,7 @@
   (.clear (.getChildren stack-bar-pane))
   (.addAll (.getChildren stack-bar-pane)
            (mapv (fn [{:keys [stack-txt] :as val-frame}]
-                   (doto (button :label stack-txt :class "stack-bar-btn")
+                   (doto (button :label stack-txt :classes ["stack-bar-btn"])
                      (.setOnAction
                       (event-handler
                        [_]

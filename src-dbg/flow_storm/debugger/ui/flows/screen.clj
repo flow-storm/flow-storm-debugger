@@ -103,7 +103,8 @@
                                                 thread-unblock-btn (icon-button :icon-name "mdi-play"
                                                                                 :on-click (fn []
                                                                                             (runtime-api/unblock-thread rt-api id))
-                                                                                :class "thread-continue-btn")
+                                                                                :classes ["thread-continue-btn"
+                                                                                          "btn-xs"])
                                                 ctx-menu-unblock-all-threads {:text "Unblock all threads"
                                                                               :on-click (fn []
                                                                                           (runtime-api/unblock-all-threads rt-api))}
