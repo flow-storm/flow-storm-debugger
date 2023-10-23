@@ -5,6 +5,9 @@
 ### New Features 
     
 ### Changes
+
+    - Upgrading j-system-theme-detector to 3.8.1 to fix a NPE
+    - Downgrading JavaFX to 19.0.2 since >20 needs JDK>=17 and we still want JDK11 
     
 ### Bugs fixed
 
