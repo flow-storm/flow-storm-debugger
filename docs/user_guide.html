@@ -676,6 +676,7 @@ pre.rouge {
 <li><a href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></li>
 </ul>
 </li>
+<li><a href="#_babashka">1.3. Babashka</a></li>
 </ul>
 </li>
 <li><a href="#_remote_debugging">2. Remote debugging</a>
@@ -1435,6 +1436,56 @@ once it is connected.</p>
 <div class="paragraph">
 <p>Here is a repo you can use if you want to try <em>FlowStorm</em> with shadow-cljs <a href="https://github.com/flow-storm/shadow-flow-storm-basic" class="bare">https://github.com/flow-storm/shadow-flow-storm-basic</a></p>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_babashka"><a class="anchor" href="#_babashka"></a><a class="link" href="#_babashka">1.3. Babashka</a></h4>
+<div class="paragraph">
+<p>You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say we want to debug this example script <a href="https://raw.githubusercontent.com/babashka/babashka/master/examples/htmx_todoapp.clj" class="bare">https://raw.githubusercontent.com/babashka/babashka/master/examples/htmx_todoapp.clj</a>
+which runs a webserver with a basic todo app.</p>
+</div>
+<div class="paragraph">
+<p>First we need to generate a deps.edn by running <code>bb print-deps &gt; deps.edn</code></p>
+</div>
+<div class="paragraph">
+<p>Then modify the resulting deps.edn to add the FlowStorm alias like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
+ </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; for disabling the official compiler</span><span class="w">
+                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
+                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
+                 </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
+                            </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=user"</span><span class="p">]}}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With <code>clojure.storm.instrumentOnlyPrefixes=user</code> we are telling ClojureStorm to instrument everything inside
+the <code>user</code> namespace since the script doesn&#8217;t contain any namespace declaration.</p>
+</div>
+<div class="paragraph">
+<p>And that is it, you can now start your clojure repl as usual, with <code>clj -A:dev</code> and then eval the <code>:dbg</code> keyword to
+start the debugger UI.</p>
+</div>
+<div class="paragraph">
+<p>Then eval the entire file to compile everything.To start the server in this example you will have to remove the wrapping
+that is basically only allowing the server to run if we are running from babashka, like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nb">when</span><span class="w"> </span><span class="n">true</span><span class="w"> </span><span class="o">#</span><span class="n">_</span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">*file*</span><span class="w"> </span><span class="p">(</span><span class="nf">System/getProperty</span><span class="w"> </span><span class="s">"babashka.file"</span><span class="p">))</span><span class="w">
+  </span><span class="n">...</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>so we can also start it from Clojure.</p>
+</div>
+<div class="paragraph">
+<p>After the server has started, you can use the app from the browser and everything will get recorded as usual.</p>
 </div>
 </div>
 </div>
@@ -3132,7 +3183,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-10-25 09:17:12 -0300
+Last updated 2023-10-25 11:26:48 -0300
 </div>
 </div>
 </body>

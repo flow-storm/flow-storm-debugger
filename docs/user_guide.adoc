@@ -440,6 +440,46 @@ once it is connected.
 
 Here is a repo you can use if you want to try _FlowStorm_ with shadow-cljs https://github.com/flow-storm/shadow-flow-storm-basic
 
+=== Babashka
+
+You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.
+
+Let's say we want to debug this example script https://raw.githubusercontent.com/babashka/babashka/master/examples/htmx_todoapp.clj
+which runs a webserver with a basic todo app.
+
+First we need to generate a deps.edn by running `bb print-deps > deps.edn`
+
+Then modify the resulting deps.edn to add the FlowStorm alias like this :
+
+[,clojure]
+----
+{...
+ :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
+                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"}
+                              com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}
+                 :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
+                            "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}
+----
+
+With `clojure.storm.instrumentOnlyPrefixes=user` we are telling ClojureStorm to instrument everything inside
+the `user` namespace since the script doesn't contain any namespace declaration.
+
+And that is it, you can now start your clojure repl as usual, with `clj -A:dev` and then eval the `:dbg` keyword to
+start the debugger UI.
+
+Then eval the entire file to compile everything.To start the server in this example you will have to remove the wrapping
+that is basically only allowing the server to run if we are running from babashka, like this :
+
+[,clojure]
+----
+(when true #_(= *file* (System/getProperty "babashka.file"))
+  ...)
+----
+
+so we can also start it from Clojure.
+
+After the server has started, you can use the app from the browser and everything will get recorded as usual.
+
 == Remote debugging
 
 You can remotely debug any Clojure application the exposes a nrepl server.
