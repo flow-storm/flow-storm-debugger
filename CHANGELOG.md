@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features 
+        
+### Changes
+
+### Bugs fixed
+
+## 3.8.3 (25-10-2023)
+	
+### New Features 
 
     - Add dynamic font inc/dec and theme rotation
     
