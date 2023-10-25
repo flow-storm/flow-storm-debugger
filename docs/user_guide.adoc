@@ -1498,6 +1498,47 @@ The first argument is a options map, which accepts `:verbose? :true`, in which c
 
 Is useful when you have instrumented a big application and wish to see tracing progress while running.
 
+=== UI doesn't work on MacOs
+
+There are reports of people running into issues when trying to start the FlowStorm UI on Mac OS, that looks like this :
+
+----
+user=> :dbg
+
+2023-10-25 12:45:42.828 java[20967:14795350] WARNING: Secure coding is automatically enabled for restorable state! However, not on all supported macOS versions of this application.
+Opt-in to secure coding explicitly by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState:.
+
+Oct 25, 2023 12:45:42 PM com.sun.javafx.application.PlatformImpl startup
+
+WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @5b2c883c'
+
+Waiting for full system start before dispatching events
+
+2023-10-25 12:45:43.526 java[20967:14795350] Assertion failure in -[_NSTrackingAreaAKViewHelper removeTrackingRect:], _NSTrackingAreaAKManager.m:1713
+
+Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: '0x0 is an invalid NSTrackingRectTag.
+Common possible reasons for this are: 1. already removed this trackingRectTag, 2. Truncated the NSTrackingRectTag to 32bit at some point.'
+ ....
+----
+
+This is because of an incompatibility between some versions of Mac OS, JavaFX and openJDK.
+
+Luckily there are a couple of solutions :
+
+- moving to https://adoptium.net/installation/[temurin] seems to solve it
+- or if you are on Jdk >= 17 you can add the following dependencies to your alias
+
+[,clojure]
+----
+org.openjfx/javafx-controls {:mvn/version "22-ea+11"}
+org.openjfx/javafx-base {:mvn/version "22-ea+11"}
+org.openjfx/javafx-graphics {:mvn/version "22-ea+11"}
+org.openjfx/javafx-swing {:mvn/version "22-ea+11"}
+----
+
+So the issue seams to be fixed in the latest version of openjfx, the problem is that the latest version only
+works with jdk >= 17, and I think we still have a bunch of people on jdk 11.
+
 == Internals, diagrams and documentation
 
 - https://raw.githubusercontent.com/flow-storm/flow-storm-debugger/master/docs/high_level_diagram.svg

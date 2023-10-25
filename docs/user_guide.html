@@ -777,6 +777,7 @@ pre.rouge {
 <ul class="sectlevel3">
 <li><a href="#_instrument_verbose">24.1. Instrument verbose</a></li>
 <li><a href="#_run_verbose">24.2. Run verbose</a></li>
+<li><a href="#_ui_doesnt_work_on_macos">24.3. UI doesn&#8217;t work on MacOs</a></li>
 </ul>
 </li>
 <li><a href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></li>
@@ -3163,6 +3164,60 @@ by providing <code>:verbose? true</code> to the options map.</p>
 <p>Is useful when you have instrumented a big application and wish to see tracing progress while running.</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_ui_doesnt_work_on_macos"><a class="anchor" href="#_ui_doesnt_work_on_macos"></a><a class="link" href="#_ui_doesnt_work_on_macos">24.3. UI doesn&#8217;t work on MacOs</a></h4>
+<div class="paragraph">
+<p>There are reports of people running into issues when trying to start the FlowStorm UI on Mac OS, that looks like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>user=&gt; :dbg
+
+2023-10-25 12:45:42.828 java[20967:14795350] WARNING: Secure coding is automatically enabled for restorable state! However, not on all supported macOS versions of this application.
+Opt-in to secure coding explicitly by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState:.
+
+Oct 25, 2023 12:45:42 PM com.sun.javafx.application.PlatformImpl startup
+
+WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @5b2c883c'
+
+Waiting for full system start before dispatching events
+
+2023-10-25 12:45:43.526 java[20967:14795350] Assertion failure in -[_NSTrackingAreaAKViewHelper removeTrackingRect:], _NSTrackingAreaAKManager.m:1713
+
+Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: '0x0 is an invalid NSTrackingRectTag.
+Common possible reasons for this are: 1. already removed this trackingRectTag, 2. Truncated the NSTrackingRectTag to 32bit at some point.'
+ ....</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is because of an incompatibility between some versions of Mac OS, JavaFX and openJDK.</p>
+</div>
+<div class="paragraph">
+<p>Luckily there are a couple of solutions :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>moving to <a href="https://adoptium.net/installation/">temurin</a> seems to solve it</p>
+</li>
+<li>
+<p>or if you are on Jdk &gt;= 17 you can add the following dependencies to your alias</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">org.openjfx/javafx-controls</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-base</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-graphics</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-swing</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So the issue seams to be fixed in the latest version of openjfx, the problem is that the latest version only
+works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></h3>
@@ -3183,7 +3238,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-10-25 11:26:48 -0300
+Last updated 2023-10-25 15:19:13 -0300
 </div>
 </div>
 </body>
