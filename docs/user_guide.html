@@ -1153,7 +1153,8 @@ This is because there is currently no way to swap the ClojureScript compiler in 
 </div>
 <div class="paragraph">
 <p>So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
-and also add <code>flow-storm.storm-preload</code> to your preloads.</p>
+and also add <code>flow-storm.storm-preload</code> to your preloads. If you have other preloads make sure <code>flow-storm.storm-preload</code>
+is the first one.</p>
 </div>
 <div class="paragraph">
 <p>Then, modify your <code>deps.edn</code> dev profile to look like this :</p>
@@ -3238,7 +3239,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-10-25 15:19:13 -0300
+Last updated 2023-10-26 08:28:07 -0300
 </div>
 </div>
 </body>

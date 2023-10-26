@@ -237,7 +237,8 @@ First, make your shadow-cljs.edn looks something like this :
 ----
 
 So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
-and also add `flow-storm.storm-preload` to your preloads.
+and also add `flow-storm.storm-preload` to your preloads. If you have other preloads make sure `flow-storm.storm-preload`
+is the first one.
 
 Then, modify your `deps.edn` dev profile to look like this :
 
