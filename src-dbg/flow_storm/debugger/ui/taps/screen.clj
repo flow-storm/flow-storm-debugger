@@ -2,10 +2,11 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [button label list-view h-box v-box]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
+            [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.value-inspector :as value-inspector])
+            [flow-storm.debugger.ui.value-inspector :as value-inspector]
+            [flow-storm.debugger.ui.flows.general :as ui-general])
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.input MouseButton]
            [javafx.geometry Pos]))
@@ -24,7 +25,7 @@
   (when-let [tentry (runtime-api/find-timeline-entry rt-api {:from-idx 0
                                                              :comp-fn-key :identity
                                                              :eq-val-ref vref})]
-    (ui-vars/select-main-tools-tab :flows)
+    (ui-general/select-main-tools-tab :flows)
     (flows-screen/goto-location tentry)))
 
 (defn main-pane []

@@ -5,8 +5,7 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box border-pane]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.state :as state]
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup subscribe-to-task-event]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [hansel.utils :refer [get-form-at-coord]])
   (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField TextInputDialog]
@@ -68,7 +67,7 @@
                 (.setContentText "Message : "))
         _ (.showAndWait tdiag)
         format-str (-> tdiag .getEditor .getText)]
-    (state/add-printer form-id coord (assoc (dissoc form :form/form)
+    (dbg-state/add-printer form-id coord (assoc (dissoc form :form/form)
                                             :fn-ns fn-ns
                                             :fn-name fn-name
                                             :coord coord
@@ -215,8 +214,8 @@
 
     (ui-utils/add-class form-code-area "form-pane")
 
-    (store-obj flow-id thread-id (ui-vars/thread-form-box-id form-id) form-pane)
-    (store-obj flow-id thread-id (ui-vars/thread-form-paint-fn form-id) form-paint-fn)
+    (store-obj flow-id thread-id (ui-utils/thread-form-box-id form-id) form-pane)
+    (store-obj flow-id thread-id (ui-utils/thread-form-paint-fn form-id) form-paint-fn)
 
     (-> forms-box
         .getChildren
@@ -240,8 +239,8 @@
     (let [[_ val] (first selected-items)
           ctx-menu (ui-utils/make-context-menu [{:text "Define all frame vars"
                                                  :on-click (fn []
-                                                             (let [curr-idx (state/current-idx flow-id thread-id)
-                                                                   {:keys [fn-ns]} (state/current-frame flow-id thread-id)
+                                                             (let [curr-idx (dbg-state/current-idx flow-id thread-id)
+                                                                   {:keys [fn-ns]} (dbg-state/current-frame flow-id thread-id)
                                                                    all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {:all-frame? true})]
                                                                (doseq [[symb-name vref] all-bindings]
                                                                  (let [symb (symbol fn-ns symb-name)]
@@ -307,13 +306,13 @@
     (.setText lbl (str cnt))))
 
 (defn- unhighlight-form [flow-id thread-id form-id]
-  (let [[form-pane] (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))]
+  (let [[form-pane] (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))]
     (when form-pane
       (ui-utils/rm-class form-pane "form-background-highlighted"))))
 
 (defn add-or-highlight-form [flow-id thread-id form-id]
   (let [form (runtime-api/get-form rt-api form-id)
-        [form-pane]          (obj-lookup flow-id thread-id (ui-vars/thread-form-box-id form-id))
+        [form-pane]          (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))
         [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
         ;; if the form we are about to highlight doesn't exist in the view add it first
@@ -337,7 +336,7 @@
                         (event-handler
                          [mev]
                          (when (and (= MouseButton/SECONDARY (.getButton mev))
-                                    (not ui-vars/clojure-storm-env?))
+                                    (not (dbg-state/clojure-storm-env?)))
                            (.show ctx-menu
                                   form-pane
                                   (.getScreenX mev)
@@ -347,30 +346,30 @@
     (ui-utils/add-class form-pane "form-background-highlighted")))
 
 (defn un-highlight-form-tokens [flow-id thread-id form-id]
-  (let [[form-paint-fn] (obj-lookup flow-id thread-id (ui-vars/thread-form-paint-fn form-id))]
+  (let [[form-paint-fn] (obj-lookup flow-id thread-id (ui-utils/thread-form-paint-fn form-id))]
     (when form-paint-fn
       (form-paint-fn [] nil))))
 
 (defn highlight-interesting-form-tokens [flow-id thread-id form-id frame-data entry]
   (let [{:keys [expr-executions]} frame-data
-        [form-paint-fn] (obj-lookup flow-id thread-id (ui-vars/thread-form-paint-fn form-id))]
+        [form-paint-fn] (obj-lookup flow-id thread-id (ui-utils/thread-form-paint-fn form-id))]
     (when form-paint-fn
       (form-paint-fn expr-executions (:coord entry)))))
 
 (defn jump-to-coord [flow-id thread-id next-tentry]
   (try
     (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)
-          curr-frame (if-let [cfr (state/current-frame flow-id thread-id)]
+          curr-frame (if-let [cfr (dbg-state/current-frame flow-id thread-id)]
                        cfr
                        ;; if we don't have a current frame it means it is the first
                        ;; jump so, initialize the debugger thread state
                        (let [first-frame (runtime-api/frame-data rt-api flow-id thread-id 0 {:include-exprs? true})
                              first-tentry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
-                         (state/set-current-frame flow-id thread-id first-frame)
-                         (state/set-current-timeline-entry flow-id thread-id first-tentry)
+                         (dbg-state/set-current-frame flow-id thread-id first-frame)
+                         (dbg-state/set-current-timeline-entry flow-id thread-id first-tentry)
                          first-frame))
 
-          curr-tentry (state/current-timeline-entry flow-id thread-id)
+          curr-tentry (dbg-state/current-timeline-entry flow-id thread-id)
           curr-idx (:idx curr-tentry)
           next-idx (:idx next-tentry)
 
@@ -415,34 +414,34 @@
       (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx {}))
 
       (when changing-frame?
-        (state/set-current-frame flow-id thread-id next-frame))
+        (dbg-state/set-current-frame flow-id thread-id next-frame))
 
-      (state/set-current-timeline-entry flow-id thread-id next-tentry))
+      (dbg-state/set-current-timeline-entry flow-id thread-id next-tentry))
     (catch Throwable e
       (utils/log-error (str "Error jumping into " flow-id " " thread-id " " next-tentry) e))))
 
 (defn step-prev [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
+  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
         prev-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :prev)]
     (jump-to-coord flow-id thread-id prev-tentry)))
 
 (defn step-next [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
+  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
         next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next)]
     (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn step-next-over [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
+  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
         next-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next-over)]
     (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn step-prev-over [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
+  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
         prev-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :prev-over)]
     (jump-to-coord flow-id thread-id prev-tentry)))
 
 (defn step-out [flow-id thread-id]
-  (let [curr-idx (state/current-idx flow-id thread-id)
+  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
         out-tentry (runtime-api/timeline-entry rt-api flow-id thread-id curr-idx :next-out)]
     (jump-to-coord flow-id thread-id out-tentry)))
 
@@ -456,7 +455,7 @@
     (jump-to-coord flow-id thread-id last-tentry)))
 
 (defn find-and-jump-same-val [flow-id thread-id curr-vref search-params backward?]
-  (let [{:keys [idx]} (state/current-timeline-entry flow-id thread-id)]
+  (let [{:keys [idx]} (dbg-state/current-timeline-entry flow-id thread-id)]
     (when-let [next-tentry (runtime-api/find-timeline-entry rt-api (merge
                                                                     {:flow-id flow-id
                                                                      :thread-id thread-id
@@ -469,7 +468,7 @@
       (jump-to-coord flow-id thread-id next-tentry))))
 
 (defn step-same-val [flow-id thread-id search-params backward?]
-  (let [{:keys [result]} (state/current-timeline-entry flow-id thread-id)]
+  (let [{:keys [result]} (dbg-state/current-timeline-entry flow-id thread-id)]
     ;; hmm if the current entry is a fn-call then result will be nil and we will be following nils
     ;; not sure how to do about that, since custom stepping goes this path also
     ;; and doesn't work with the current expr result
@@ -531,7 +530,7 @@
         thread-trace-count-lbl (label "?")
         _ (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
         _ (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
-        {:keys [flow/execution-expr]} (state/get-flow flow-id)
+        {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
         next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
@@ -587,29 +586,29 @@
                                 flow-id
                                 thread-id
                                 (.getText search-txt)
-                                (inc (state/current-idx flow-id thread-id))
+                                (inc (dbg-state/current-idx flow-id thread-id))
                                 {:print-level (Integer/parseInt (.getText search-lvl-txt))
                                  :print-length (Integer/parseInt (.getText search-len-txt))})]
 
-                   (ui-vars/subscribe-to-task-event :progress
-                                                    task-id
-                                                    (fn [progress-perc]
-                                                      (ui-utils/run-later
-                                                       (.setText search-progress-lbl (format "%.2f %%" (double progress-perc))))))
+                   (subscribe-to-task-event :progress
+                                            task-id
+                                            (fn [progress-perc]
+                                              (ui-utils/run-later
+                                                (.setText search-progress-lbl (format "%.2f %%" (double progress-perc))))))
 
-                   (ui-vars/subscribe-to-task-event :result
-                                                    task-id
-                                                    (fn [tl-entry]
+                   (subscribe-to-task-event :result
+                                            task-id
+                                            (fn [tl-entry]
 
-                                                      (if tl-entry
+                                              (if tl-entry
 
-                                                        (ui-utils/run-later
-                                                         (.setText search-progress-lbl "")
-                                                         (jump-to-coord flow-id thread-id tl-entry))
+                                                (ui-utils/run-later
+                                                  (.setText search-progress-lbl "")
+                                                  (jump-to-coord flow-id thread-id tl-entry))
 
-                                                        (ui-utils/run-later (.setText search-progress-lbl "No match found")))
+                                                (ui-utils/run-later (.setText search-progress-lbl "No match found")))
 
-                                                      (ui-utils/run-later (.setDisable search-btn false))))))]
+                                              (ui-utils/run-later (.setDisable search-btn false))))))]
 
     (.setOnAction search-btn (event-handler [_] (search)))
 

@@ -4,12 +4,10 @@
              :refer [label list-view check-box text-field table-view h-box border-pane
                      icon-button combo-box combo-box-set-items]]
             [flow-storm.utils :as utils]
-            [flow-storm.debugger.ui.state-vars
-             :as ui-vars
-             :refer [obj-lookup store-obj show-message]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
-            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.debugger.ui.flows.general :refer [show-message]]
+            [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen])
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.input MouseButton]

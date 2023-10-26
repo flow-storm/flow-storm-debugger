@@ -1,6 +1,7 @@
 (ns dev
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.main :as main]
+            [flow-storm.debugger.state :as dbg-state]
             [cljs.main :as cljs-main]
             [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
@@ -14,11 +15,18 @@
             [flow-storm.fn-sampler.core :as sampler]
             [flow-storm.utils :as utils]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.spec.alpha :as s]))
 
 (javafx.embed.swing.JFXPanel.)
 
 (comment (add-tap (bound-fn* println)) )
+
+(comment
+
+
+  (remove-watch state :spec-validator)
+  )
 
 #_(Thread/setDefaultUncaughtExceptionHandler
    (reify
@@ -31,7 +39,19 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn start-local [] (fs-api/local-connect {:theme :ligth}))
+(defn instrument-state []
+  (add-watch
+   dbg-state/state
+   :spec-validator
+   (fn [_ _ _ s]
+     (when-not (s/valid? ::dbg-state/state s)
+       (s/explain ::dbg-state/state s))))
+  nil)
+
+(defn start-local []
+  (fs-api/local-connect {:theme :ligth})
+  (instrument-state))
+
 
 (defn start-remote []
 

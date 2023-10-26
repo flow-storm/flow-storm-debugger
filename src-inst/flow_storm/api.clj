@@ -1,6 +1,8 @@
 (ns flow-storm.api
-  "This is the only namespace intended for users.
-  Provides functionality to connect to the debugger and instrument forms."
+
+  "API intended for users.
+  Provides functionality to start the debugger and instrument forms."
+
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log] :as utils]
@@ -11,29 +13,21 @@
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
             [flow-storm.mem-reporter :as mem-reporter]
-            [flow-storm.json-serializer :as serializer]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.fn-sampler.core :as fn-sampler]
             [clojure.string :as str]
             [clojure.stacktrace :as stacktrace]))
 
-;; TODO: build script
-;; Maybe we can figure out this ns names by scanning (all-ns) so
-;; we don't need to list them here
-;; Also maybe just finding main is enough, we can add to it a fn
-;; that returns the rest of the functions we need
-(def debugger-main-ns 'flow-storm.debugger.main)
-
-(def api-loaded?
-  "Used for remote connections to check this ns has been loaded"
-  true)
-
 (defn stop
+
+  "Stop the flow-storm runtime part gracefully.
+  If working in local mode will also stop the UI."
+
   ([] (stop {}))
   ([{:keys [skip-index-stop?]}]
    (let [stop-debugger (try
-                         (resolve (symbol (name debugger-main-ns) "stop-debugger"))
+                         (resolve (symbol (name dbg-api/debugger-main-ns) "stop-debugger"))
                          (catch Exception _ nil))]
 
      ;; NOTE: The order here is important until we replace this code with
@@ -65,49 +59,6 @@
 
      (log "System stopped"))))
 
-(defn setup-runtime
-
-  "Setup runtime based on jvm properties. Returns a config map."
-
-  []
-  (let [theme-prop (System/getProperty "flowstorm.theme")
-        title-prop (System/getProperty "flowstorm.title")
-        styles-prop (System/getProperty "flowstorm.styles")
-        fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
-        config (cond-> {}
-                 theme-prop            (assoc :theme (keyword theme-prop))
-                 styles-prop           (assoc :styles styles-prop)
-                 title-prop            (assoc :title  title-prop))]
-
-    (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "false") false true))
-
-    (doseq [[fn-ns fn-name l] fn-call-limits]
-      (index-api/add-fn-call-limit fn-ns fn-name l))
-
-    config))
-
-(defn- start-runtime [{:keys [skip-index-start? skip-debugger-start? events-dispatch-fn] :as config}]
-  (let [config (merge config (setup-runtime))]
-
-    ;; NOTE: The order here is important until we replace this code with
-    ;; better component state management
-
-    (when-not skip-index-start?
-      (index-api/start))
-
-    ;; start the debugger UI
-    (when-not skip-debugger-start?
-      (let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
-        (start-debugger config)))
-
-    (rt-events/set-dispatch-fn events-dispatch-fn)
-
-    (rt-values/clear-vals-ref-registry)
-
-    (rt-taps/setup-tap!)
-
-    (mem-reporter/run-mem-reporter)))
-
 (defn local-connect
 
   "Start a debugger under this same JVM process and connect to it.
@@ -130,29 +81,11 @@
 
    (let [enqueue-event! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!)
          config (assoc config
-                       :local? true
-                       :events-dispatch-fn enqueue-event!)]
+                       :local? true)]
 
-     (start-runtime config))))
+     (dbg-api/start-runtime enqueue-event! false config))))
 
-(defn remote-connect [config]
 
-  ;; connect to the remote websocket
-  (remote-websocket-client/start-remote-websocket-client
-   (assoc config
-          :api-call-fn dbg-api/call-by-name
-          :on-connected (fn []
-                          (let [config (assoc config
-                                              :skip-debugger-start? true
-                                              :events-dispatch-fn (fn [ev]
-                                                                    (-> [:event ev]
-                                                                        serializer/serialize
-                                                                        remote-websocket-client/send)))]
-                            (log "Connected to remote websocket")
-
-                            (start-runtime config)
-
-                            (log "Remote Clojure runtime initialized"))))))
 
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
 

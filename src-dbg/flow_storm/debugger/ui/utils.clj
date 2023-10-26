@@ -1,4 +1,7 @@
 (ns flow-storm.debugger.ui.utils
+
+  "Mostly javaFx Utilities for building the UI"
+
   (:require [flow-storm.utils :refer [log-error]]
             [clojure.string :as str])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
@@ -112,6 +115,9 @@
 
 (defn rm-class [^Node node class]
   (.remove (.getStyleClass node) class))
+
+(defn clear-classes [^Node node]
+  (.clear (.getStyleClass node)))
 
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
@@ -613,3 +619,43 @@
     (catch Exception e
       (log-error "Couldn't retrieve os theme, setting :light by default" e)
       :light)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Node index ids builders ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn form-token-id [form-id coord]
+  (format "form_token_%d_%s" form-id (hash coord)))
+
+(defn flow-tab-id [flow-id]
+  (format "flow_tab_%d" flow-id))
+
+(defn thread-form-box-id [form-id]
+  (format "form_box_%d" form-id))
+
+(defn thread-form-paint-fn [form-id]
+  (format "form_paint_fn_%d" form-id))
+
+(defn thread-pprint-area-id [pane-id]
+  (format "pprint_area_%s" pane-id))
+
+(defn thread-pprint-type-lbl-id [pane-id]
+  (format "pprint_type_lbl_%s" pane-id))
+
+(defn thread-pprint-def-btn-id [pane-id]
+  (format "pprint_def_btn_id_%s" pane-id))
+
+(defn thread-pprint-inspect-btn-id [pane-id]
+  (format "pprint_inspect_btn_id_%s" pane-id))
+
+(defn thread-pprint-tap-btn-id [pane-id]
+  (format "pprint_tap_btn_id_%s" pane-id))
+
+(defn thread-pprint-level-txt-id [pane-id]
+  (format "pprint_level_txt_id_%s" pane-id))
+
+(defn thread-pprint-meta-chk-id [pane-id]
+  (format "pprint_meta_chk_id_%s" pane-id))
+
+(defn thread-callstack-tree-cell [idx]
+  (format "callstack_tree_cell_%d" idx))

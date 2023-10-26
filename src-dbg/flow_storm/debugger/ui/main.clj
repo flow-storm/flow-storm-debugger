@@ -1,20 +1,36 @@
 (ns flow-storm.debugger.ui.main
+
+  "Main UI sub-component which renders the GUI using JavaFX.
+
+  Defines a pretty standard JavaFX application which uses
+  `flow-storm.debugger.state` for mem state storage.
+
+  The main entry point is `start-ui` and `stop-ui` can be used for
+  stopping the component gracefully.
+
+  One peculiarity of this JavaFX application is that it use a custom
+  index (defined in `flow-storm.debugger.state`) for storing references
+  to differet javafx Nodes instead of javafx own component ID system.
+  Reference are stored and retrieved using `store-obj` and `obj-lookup`
+  respectively.
+
+  This namespace defines the outer window with the top bar and tools tabs.
+  All tools screens are defined inside flow-storm.debugger.ui.*.screen.clj
+  "
+
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
             [flow-storm.debugger.ui.printer.screen :as printer-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.state-vars
-             :as ui-vars
-             :refer [obj-lookup store-obj]]
-            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
-            [flow-storm.debugger.config :refer [config] :as config]
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs])
   (:import [com.jthemedetecor OsThemeDetector]
@@ -32,8 +48,20 @@
 (def ^:dynamic *killing-ui-from-window-close?* false)
 
 (defstate ui
-  :start (fn [_] (start-ui))
+  :start (fn [config] (start-ui config))
   :stop  (fn [] (stop-ui)))
+
+(defn clear-ui []
+  (taps-screen/clear-all-taps)
+
+  (doseq [fid (dbg-state/all-flows-ids)]
+    (dbg-state/remove-flow fid)
+    (ui-utils/run-later (flows-screen/remove-flow fid)))
+
+  (ui-utils/run-later
+    (browser-screen/clear-instrumentation-list)
+    (timeline-screen/clear-timeline)
+    (printer-screen/clear-prints)))
 
 (defn clear-all []
   ;; CAREFULL the order here matters
@@ -54,8 +82,8 @@
                    (.setProgress 0))
         heap-max-lbl (label "")
         heap-box (h-box [heap-bar heap-max-lbl])
-        repl-status-lbl (label "REPL" "conn-status-lbl")
-        runtime-status-lbl (label "RUNTIME" "conn-status-lbl")
+        repl-status-lbl (label "REPL")
+        runtime-status-lbl (label "RUNTIME")
         box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl heap-box] "main-bottom-bar-box")
               (.setSpacing 5)
               (.setAlignment Pos/CENTER_RIGHT)
@@ -78,18 +106,19 @@
      (.setText heap-max-lbl (format "%.2f Gb" max-gb)))))
 
 (defn set-conn-status-lbl [lbl-key status]
-  (try
-    (let [[status-lbl] (obj-lookup (case lbl-key
-                                     :runtime "runtime-status-lbl"
-                                     :repl    "repl-status-lbl"))]
-      (case status
-        :ok (do
-              (ui-utils/rm-class status-lbl "fail")
-              (ui-utils/add-class status-lbl "ok"))
-        :fail (do
-                (ui-utils/rm-class status-lbl "ok")
-                (ui-utils/add-class status-lbl "fail"))))
-    (catch Exception _))) ;; silently discarded because sometimes it is called one extra time when stopping the system
+  (ui-utils/run-later
+    (try
+      (let [[status-lbl] (obj-lookup (case lbl-key
+                                       :ws "runtime-status-lbl"
+                                       :repl    "repl-status-lbl"))]
+        (when status-lbl
+          (ui-utils/clear-classes status-lbl)
+          (ui-utils/add-class status-lbl "conn-status-lbl")
+          (if status
+            (ui-utils/add-class status-lbl "ok")
+            (ui-utils/add-class status-lbl "fail"))))
+      (catch Exception e
+        (.printStackTrace e)))))
 
 (defn set-in-progress [in-progress?]
   (ui-utils/run-later
@@ -217,48 +246,9 @@
         (.clear scene-stylesheets)
         (.addAll scene-stylesheets (into-array String new-stylesheets))))))
 
-;; all of this should change the state and then fire a reset-theming
-(defn rotate-theme []
-  )
-
-(defn inc-font-size []
-  )
-
-(defn dec-font-size []
-  )
-
-#_(defn- start-theming-system [{:keys [theme styles] :or {theme :auto}} stages]
-  (let [update-scene-with-current-theme (fn [scn dark?]
-                                          (let [new-styles (calculate-styles dark? styles)]
-                                            (update-scene-styles scn new-styles)))
-
-        theme-listener (when (= :auto theme)
-                         (start-theme-listener (fn [dark?]
-                                                 (doseq [stg @stages]
-                                                   (update-scene-with-current-theme (.getScene stg) dark?)))))]
-
-    (update-scene-with-current-theme (-> @stages first (.getScene))
-                                     (or (= :dark theme)
-                                         (.isDark (OsThemeDetector/getDetector))))
-
-    (alter-var-root #'ui-vars/register-and-init-stage!
-                    (constantly
-                     (fn [stg]
-                       (update-scene-with-current-theme (.getScene stg)
-                                                        (or (= :dark theme)
-
-                                                            (try
-                                                              (.isDark (OsThemeDetector/getDetector))
-                                                              (catch Exception e
-                                                                (log-error "Couldn't query OS theme" e)
-                                                                false))))
-                       (swap! stages conj stg))))
-
-    theme-listener))
-
 (defn- toggle-debug-mode []
-  (alter-var-root #'config/debug-mode not)
-  (log (format "DEBUG MODE %s" (if config/debug-mode "ENABLED" "DISABLED"))))
+  (dbg-state/toggle-debug-mode)
+  (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
 (defn stop-ui []
   (let [{:keys [stages theme-listener]} ui]
@@ -282,30 +272,30 @@
   (dbg-state/create-flow flow-id form-ns form timestamp)
   (flows-screen/remove-flow flow-id)
   (flows-screen/create-empty-flow flow-id)
-  (ui-vars/select-main-tools-tab :flows)
+  (ui-general/select-main-tools-tab :flows)
   (flows-screen/update-threads-list flow-id))
 
 (defn setup-ui-from-runtime-config
   "This function is meant to be called after all the system has started,
   to configure the part of UI that depends on runtime state."
   []
-  (let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)
-        _ (log (str "Runtime config retrieved :" runtime-config))
-        all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                           (map first)
-                           (into #{}))]
-    (ui-utils/run-later
-     (ui-vars/configure-environment runtime-config)
-     (set-recording-btn recording?)
-     (timeline-screen/set-recording-check total-order-recording?)
-     (printer-screen/update-prints-controls)
+  (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+    (log (str "Runtime config retrieved :" runtime-config))
+    (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                             (map first)
+                             (into #{}))]
+      (ui-utils/run-later
+        (dbg-state/set-runtime-config runtime-config)
+        (set-recording-btn recording?)
+        (timeline-screen/set-recording-check total-order-recording?)
+        (printer-screen/update-prints-controls)
 
 
-     (doseq [fid all-flows-ids]
-       (create-flow {:flow-id fid})))))
+        (doseq [fid all-flows-ids]
+          (create-flow {:flow-id fid}))))))
 
 
-(defn start-ui []
+(defn start-ui [config]
   (Platform/setImplicitExit false)
 
   (ui-utils/run-now
@@ -337,7 +327,7 @@
                                (dbg-state/set-theme (if dark? :dark :light))
                                (reset-theming @stages))))]
 
-       (alter-var-root #'ui-vars/register-and-init-stage!
+       (alter-var-root #'dbg-state/register-and-init-stage!
                        (constantly
                         (fn [stg]
                           (swap! stages conj stg)
@@ -382,10 +372,10 @@
                                 (and ctrl? (= key-name "U"))
                                 (runtime-api/unblock-all-threads rt-api)
 
-                                (and shift? (= key-name "F")) (ui-vars/select-main-tools-tab :flows)
-                                (and shift? (= key-name "B")) (ui-vars/select-main-tools-tab :browser)
-                                (and shift? (= key-name "T")) (ui-vars/select-main-tools-tab :taps)
-                                (and shift? (= key-name "D")) (ui-vars/select-main-tools-tab :docs)
+                                (and shift? (= key-name "F")) (ui-general/select-main-tools-tab :flows)
+                                (and shift? (= key-name "B")) (ui-general/select-main-tools-tab :browser)
+                                (and shift? (= key-name "T")) (ui-general/select-main-tools-tab :taps)
+                                (and shift? (= key-name "D")) (ui-general/select-main-tools-tab :docs)
                                 (= key-name "Esc") (flows-screen/select-flow-tab nil)
                                 (= key-name "0")   (flows-screen/select-flow-tab 0)
                                 ))))

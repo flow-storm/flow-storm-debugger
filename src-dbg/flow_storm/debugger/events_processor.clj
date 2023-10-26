@@ -7,35 +7,35 @@
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
-            [flow-storm.debugger.config :refer [debug-mode]]
+            [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.utils :refer [log]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]))
+            [flow-storm.debugger.state :as dbg-state :refer [dispatch-task-event]]))
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
-   (ui-vars/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab :browser)))
 
 (defn- var-uninstrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
-   (ui-vars/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab :browser)))
 
 (defn- namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-ns ns-name))
-   (ui-vars/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab :browser)))
 
 (defn- namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-ns ns-name))
-   (ui-vars/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab :browser)))
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
    (taps-screen/add-tap-value value)
-   (ui-vars/select-main-tools-tab :taps)))
+   (ui-general/select-main-tools-tab :taps)))
 
 (defn- flow-created-event [flow-info]
   (ui-utils/run-now
@@ -49,11 +49,11 @@
   (ui-main/set-task-cancel-btn-enable true))
 
 (defn- task-result-event [{:keys [task-id result]}]
-  (ui-vars/dispatch-task-event :result task-id result)
+  (dispatch-task-event :result task-id result)
   (ui-main/set-task-cancel-btn-enable false))
 
 (defn- task-progress-event [{:keys [task-id progress]}]
-  (ui-vars/dispatch-task-event :progress task-id progress))
+  (dispatch-task-event :progress task-id progress))
 
 (defn- heap-info-update-event [ev-args-map]
   (ui-main/update-heap-indicator ev-args-map))
@@ -64,7 +64,7 @@
 
 (defn- show-doc-event [{:keys [var-symbol]}]
   (ui-utils/run-now
-   (ui-vars/select-main-tools-tab :docs)
+   (ui-general/select-main-tools-tab :docs)
    (docs-screen/show-doc var-symbol)))
 
 (defn- break-installed-event [{:keys [fq-fn-symb]}]
@@ -79,7 +79,7 @@
   (ui-main/set-recording-btn recording?))
 
 (defn process-event [[ev-type ev-args-map]]
-  (when (and debug-mode
+  (when (and (:debug-mode? (dbg-state/debugger-config))
              (not (= ev-type :heap-info-update)))
     (log (format "Processing event: %s" [ev-type ev-args-map])))
   (case ev-type

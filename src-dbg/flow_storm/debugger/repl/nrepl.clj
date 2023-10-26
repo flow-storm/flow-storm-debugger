@@ -1,16 +1,24 @@
 (ns flow-storm.debugger.repl.nrepl
+
+  "Utilities to connect to nRepl servers"
+
   (:require [nrepl.core :as nrepl]
             [nrepl.transport :as transport]))
 
-(defn connect [{:keys [runtime-host port] :or {runtime-host "localhost"}}]
-  (let [transport (nrepl/connect :host runtime-host
+(defn connect
+
+  "Given `host` and `port` connects to a nRepl server.
+  Returns a map with two functions {:repl-eval , :close-connection}.
+  :repl-eval is a function of code and ns, both strings"
+
+  [host port]
+  (let [transport (nrepl/connect :host host
                                  :port port
                                  :transport-fn #'transport/bencode)
         ;; non of our commands should take longer than 10secs to execute
         ;; if more, we consider it a repl timeout and give up
         client (nrepl/client transport 10000)
         session (nrepl/client-session client)]
-
     {:repl-eval (fn repl-eval [code-str ns]
                   (try
                     (let [msg (cond-> {:op "eval" :code code-str}

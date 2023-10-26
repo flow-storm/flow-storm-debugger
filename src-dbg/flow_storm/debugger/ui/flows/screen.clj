@@ -4,9 +4,8 @@
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box]]
-            [flow-storm.debugger.state :as dbg-state])
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
            [javafx.geometry Orientation]
@@ -25,8 +24,8 @@
           .getTabs
           (.remove flow-tab)))
 
-    ;; clean ui state vars
-    (ui-vars/clean-objs flow-id)))
+    ;; clean ui state objects
+    (clean-objs flow-id)))
 
 (defn fully-remove-flow [flow-id]
   ;; remove it from our state
@@ -207,7 +206,7 @@
         (.setOnCloseRequest thread-tab
                             (event-handler
                              [ev]
-                             (ui-vars/clean-objs flow-id thread-id)))
+                              (clean-objs flow-id thread-id)))
         (-> all-tabs
             (.addAll [thread-tab]))))))
 
@@ -232,7 +231,7 @@
             (.selectFirst list-selection)))))))
 
 (defn goto-location [{:keys [flow-id thread-id idx]}]
-  (ui-vars/select-main-tools-tab :flows)
+  (ui-general/select-main-tools-tab :flows)
   (select-flow-tab flow-id)
   (open-thread (assoc (dbg-state/get-thread-info thread-id)
                       :flow/id flow-id))

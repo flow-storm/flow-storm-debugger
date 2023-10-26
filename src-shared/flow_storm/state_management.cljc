@@ -1,7 +1,7 @@
 (ns flow-storm.state-management
+
   "Like a smaller simplified version of mount so
-  we don't bring that dependency with us.
-  Since it is a tool lets aim for no libs.")
+  we don't bring that dependency with us. ")
 
 ;; state-name -> {:order :status :start :stop :var}
 ;; :status [:started | :stopped]

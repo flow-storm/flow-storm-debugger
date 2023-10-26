@@ -5,8 +5,8 @@
             [clojure.string :as str]
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.state-vars :as ui-vars]
             [flow-storm.types :as types]
+            [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.value-renderers :as renderers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
@@ -177,7 +177,7 @@
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]
 
-      (ui-vars/register-and-init-stage! stage)
+      (dbg-state/register-and-init-stage! stage)
 
       (-> stage .show))
 

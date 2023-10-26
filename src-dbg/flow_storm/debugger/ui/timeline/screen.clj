@@ -2,12 +2,9 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label table-view h-box border-pane icon-button event-handler]]
-            [flow-storm.debugger.ui.state-vars
-             :as ui-vars
-             :refer [obj-lookup store-obj]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
-            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen])
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.control TableRow CheckBox]

@@ -31,7 +31,7 @@
                               ;;"-Dflowstorm.startRecording=false"
                               "-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
-                              "-Dclojure.storm.instrumentOnlyPrefixes=dev,cljs"
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
 
                               "-Dcljs.storm.instrumentOnlyPrefixes=dev"
                               "-Dcljs.storm.instrumentEnable=true"

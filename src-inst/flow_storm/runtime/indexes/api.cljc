@@ -240,7 +240,8 @@
     (index-protos/get-form forms-registry form-id)))
 
 (defn all-threads []
-  (index-protos/all-threads flow-thread-registry))
+  (when flow-thread-registry
+    (index-protos/all-threads flow-thread-registry)))
 
 (defn all-forms [_ _]
   (index-protos/all-forms forms-registry))

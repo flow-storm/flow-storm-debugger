@@ -3,9 +3,9 @@
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.debugger.repl.core :refer [safe-eval-code-str safe-cljs-eval-code-str stop-repl]]
             [flow-storm.debugger.websocket :as websocket]
-            [flow-storm.debugger.ui.state-vars :refer [show-message]]
-            [clojure.string :as str]
-            [flow-storm.debugger.config :refer [config debug-mode]])
+            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.debugger.ui.flows.general :refer [show-message]]
+            [clojure.string :as str])
   (:import [java.io Closeable]))
 
 (declare ->LocalRuntimeApi)
@@ -16,14 +16,13 @@
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
-  :start (fn [_]
-           (let [{:keys [local? env-kind]} config
-                 api-cache (atom {})]
+  :start (fn [{:keys [local?]}]
+           (let [api-cache (atom {})]
              (if local?
 
                (->LocalRuntimeApi api-cache)
 
-               (->RemoteRuntimeApi env-kind api-cache))))
+               (->RemoteRuntimeApi api-cache))))
 
   :stop (fn []
           (when-let [cc (:close-connection rt-api)]
@@ -87,13 +86,13 @@
 
       ;; miss or disabled, we need to call
       (let [new-res (apply f args)]
-        (when debug-mode (log (utils/colored-string "CALLED" :red)))
+        (when (:debug-mode? (dbg-state/debugger-config)) (log (utils/colored-string "CALLED" :red)))
         (swap! cache assoc cache-key new-res)
         new-res)
 
       ;; hit, return cached
       (do
-        (when debug-mode (log "CACHED"))
+        (when (:debug-mode? (dbg-state/debugger-config)) (log "CACHED"))
         res))))
 
 (defn api-call
@@ -101,9 +100,10 @@
   ([call-type fname args {:keys [cache timeout]}]
    (let [f (case call-type
              :local (requiring-resolve (symbol "flow-storm.runtime.debuggers-api" fname))
-             :remote (fn [& args] (websocket/sync-remote-api-request (keyword fname) args)))]
+             :remote (fn [& args] (websocket/sync-remote-api-request (keyword fname) args)))
+         debug-mode? (:debug-mode? (dbg-state/debugger-config))]
 
-     (when debug-mode (log (format "%s API-CALL %s %s" call-type fname (pr-str args))))
+     (when debug-mode? (log (format "%s API-CALL %s %s" call-type fname (pr-str args))))
 
      ;; make the calls in a different thread so we don't block the UI thread
      (let [call-resp-fut (future
@@ -113,7 +113,7 @@
                                (cached-apply cache cache-key f args))
 
                              (do
-                               (when debug-mode (log (utils/colored-string "CALLED" :red)))
+                               (when debug-mode? (log (utils/colored-string "CALLED" :red)))
                                (apply f args))))
            call-resp (if timeout
                        (deref call-resp-fut timeout :flow-storm/call-time-out)
@@ -247,7 +247,7 @@
 ;; For Clojure repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defrecord RemoteRuntimeApi [env-kind api-cache]
+(defrecord RemoteRuntimeApi [api-cache]
 
   RuntimeApiP
 
@@ -270,7 +270,7 @@
   (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :remote "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj (api-call :remote "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref])
       :cljs (safe-cljs-eval-code-str (format "(def %s (flow-storm.runtime.values/deref-value (flow-storm.types/make-value-ref %d)))"
                                              (name var-symb)
@@ -279,44 +279,44 @@
   (tap-value [_ vref] (api-call :remote "tap-value" [vref]))
 
   (get-all-namespaces [_]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj  (api-call :remote "all-namespaces" [:clj])
-      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-namespaces :cljs %s)" (:build-id config)))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-namespaces :cljs %s)" (:repl.cljs/build-id (dbg-state/repl-config))))))
 
   (get-all-vars-for-ns [_ nsname]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj  (api-call :remote "all-vars-for-namespace" [:clj (symbol nsname)])
-      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-vars-for-namespace :cljs '%s %s)" nsname (:build-id config)))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/all-vars-for-namespace :cljs '%s %s)" nsname (:repl.cljs/build-id (dbg-state/repl-config))))))
 
   (get-var-meta [_ var-ns var-name]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj  (api-call :remote "get-var-meta" [:clj (symbol var-ns var-name)])
-      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name (select-keys config [:build-id])))))
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name {:build-id (:repl.cljs/build-id (dbg-state/repl-config))}))))
 
   (instrument-var [_ var-ns var-name opts]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj (api-call :remote "instrument-var" [:clj (symbol var-ns var-name) opts])
-      :cljs (let [opts (assoc opts :build-id (:build-id config))]
+      :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (show-message "FlowStorm ClojureScript single var instrumentation is pretty limited. You can instrument them only once, and the only way of uninstrumenting them is by reloading your page or restarting your node process. Also deep instrumentation is missing some cases. So for most cases you are going to be better with [un]instrumenting entire namespaces." :warning)
               (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (uninstrument-var [_ var-ns var-name opts]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj (api-call :remote "uninstrument-var" [:clj (symbol var-ns var-name) opts])
-      :cljs (let [_opts (assoc opts :build-id (:build-id config))]
+      :cljs (let [_opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (show-message "FlowStorm currently can't uninstrument single vars in ClojureScript. You can only [un]instrument entire namespaces. If you want to get rid of the current vars instrumentation please reload your browser page, or restart your node process." :warning)
               #_(safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
     (let [opts (assoc opts :disable (utils/disable-from-profile profile))]
-      (case env-kind
-        :cljs (let [opts (assoc opts :build-id (:build-id config))]
+      (case (dbg-state/env-kind)
+        :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
                 (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
         :clj (api-call :remote "instrument-namespaces" [:clj nsnames opts]))))
 
   (uninstrument-namespaces [_ nsnames opts]
-    (case env-kind
-      :cljs (let [opts (assoc opts :build-id (:build-id config))]
+    (case (dbg-state/env-kind)
+      :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
 
       ;; for Clojure just call the api
@@ -327,10 +327,10 @@
           form-expr (if instrument?
                       (format "(flow-storm.api/instrument* %s %s)" (pr-str instrument-options) form-str)
                       form-str)
-          expr-res (case env-kind
+          expr-res (case (dbg-state/env-kind)
                      :clj  (safe-eval-code-str form-expr ns)
                      :cljs (safe-cljs-eval-code-str form-expr ns) )]
-      (when (and (= :clj env-kind)
+      (when (and (= :clj (dbg-state/env-kind))
                  var-meta)
         ;; for vars restore the meta attributes that get lost when we re eval from the repl
         (safe-eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
@@ -355,7 +355,7 @@
     (api-call :remote "unblock-all-threads" []))
 
   (add-breakpoint [_ fq-fn-symb opts]
-    (case env-kind
+    (case (dbg-state/env-kind)
       :clj (api-call :remote "add-breakpoint!" [fq-fn-symb opts])
       :cljs (show-message "Operation not supported for ClojureScript" :warning)))
 

@@ -4,8 +4,7 @@
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
-            [flow-storm.debugger.state :as state]
+            [flow-storm.debugger.state :as state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button border-pane]])
   (:import [javafx.collections ObservableList]
            [javafx.scene.control SelectionModel SplitPane TreeCell TreeView TreeItem]
@@ -66,7 +65,7 @@
 
 (defn- select-call-stack-tree-node [flow-id thread-id match-idx]
   (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
-        [^TreeCell tree-cell] (obj-lookup flow-id thread-id (ui-vars/thread-callstack-tree-cell match-idx))]
+        [^TreeCell tree-cell] (obj-lookup flow-id thread-id (ui-utils/thread-callstack-tree-cell match-idx))]
     (when tree-cell
       (let [tree-cell-idx (.getIndex tree-cell)
             tree-item (.getTreeItem tree-cell)
@@ -126,7 +125,7 @@
                   (.setGraphic (create-call-stack-tree-graphic-node frame item-level))
                   (.setText nil)))
 
-              (store-obj flow-id thread-id (ui-vars/thread-callstack-tree-cell fn-call-idx) this))))))))
+              (store-obj flow-id thread-id (ui-utils/thread-callstack-tree-cell fn-call-idx) this))))))))
 
 (defn highlight-current-frame [flow-id thread-id]
   (let [curr-idx (:fn-call-idx (state/current-timeline-entry flow-id thread-id))

@@ -1,7 +1,8 @@
 (ns flow-storm.debugger.ui.browser.screen
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
             [flow-storm.utils :refer [log-error] :as utils]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup show-message] :as ui-vars]
+            [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
+            [flow-storm.debugger.ui.flows.general :refer [show-message]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str])
   (:import [javafx.scene.control CheckBox SplitPane]
@@ -76,7 +77,7 @@
    (runtime-api/uninstrument-namespaces rt-api (map :ns-name namespaces) config)))
 
 (defmacro disabled-with-storm [& forms]
-  `(if-not ui-vars/clojure-storm-env?
+  `(if-not (dbg-state/clojure-storm-env?)
      (do ~@forms)
      (show-message "This functionality is disabled when running with ClojureStorm or ClojureScriptStorm" :warning)))
 
@@ -148,7 +149,7 @@
                                           (get-all-vars-for-ns (first sel-items))))
 
                                       (and (= MouseButton/SECONDARY (.getButton mev))
-                                           (not ui-vars/clojure-storm-env?))
+                                           (not (dbg-state/clojure-storm-env?)))
                                       (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
                                                                           :on-click (fn []
                                                                                       (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}

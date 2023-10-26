@@ -408,7 +408,7 @@ For this you can start the debugger like before but without any parameters, like
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
 ----
 
-And then go to your app code and call `(flow-storm.api/remote-connect)` maybe on your main, so every time your program starts
+And then go to your app code and call `(flow-storm.runtime.debuggers-api/remote-connect)` maybe on your main, so every time your program starts
 will automatically connect to the repl.
 
 [NOTE]

@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.ui.flows.functions
-  (:require [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
+  (:require [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
@@ -72,7 +72,7 @@
       (show-function-calls flow-id thread-id selected-items)
 
       (and (= MouseButton/SECONDARY (.getButton mev))
-           (not ui-vars/clojure-storm-env?))
+           (not (dbg-state/clojure-storm-env?)))
       (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
             ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
         (.show ctx-menu

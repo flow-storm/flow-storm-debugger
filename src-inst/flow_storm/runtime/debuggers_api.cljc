@@ -1,15 +1,27 @@
 (ns flow-storm.runtime.debuggers-api
   (:require [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.utils :as utils :refer [log]]            
-            [flow-storm.runtime.events :as rt-events]                        
-            [flow-storm.runtime.values :as runtime-values :refer [reference-value! deref-value]]
+            [flow-storm.json-serializer :as serializer]
+            #?@(:clj  [[flow-storm.utils :as utils :refer [log]]]
+                :cljs [[flow-storm.utils :as utils :refer [log] :refer-macros [env-prop]]])
+            [flow-storm.runtime.events :as rt-events]            
+            [flow-storm.runtime.values :as rt-values :refer [reference-value! deref-value]]
+            [flow-storm.runtime.taps :as rt-taps]
+            [flow-storm.remote-websocket-client :as remote-websocket-client]
+            #?@(:clj [[flow-storm.mem-reporter :as mem-reporter]])
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
             #?@(:clj [[hansel.api :as hansel]                      
                       [hansel.instrument.utils :as hansel-inst-utils]])
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]))
+
+;; TODO: build script
+;; Maybe we can figure out this ns names by scanning (all-ns) so
+;; we don't need to list them here
+;; Also maybe just finding main is enough, we can add to it a fn
+;; that returns the rest of the functions we need
+(def debugger-main-ns 'flow-storm.debugger.main)
 
 ;; Utilities for long interruptible tasks
 
@@ -41,20 +53,21 @@
     (int-fn)))
 
 (defn runtime-config []
-  {:clojure-storm-env? (utils/storm-env?)
+  {:env-kind #?(:clj :clj :cljs :cljs)
+   :storm? (utils/storm-env?)
    :recording? (tracer/recording?)
    :total-order-recording? (tracer/total-order-recording?)
    :breakpoints (tracer/all-breakpoints)})
 
 (defn val-pprint [vref opts]
-  (runtime-values/val-pprint vref opts))
+  (rt-values/val-pprint vref opts))
 
 (defn shallow-val [vref]
-  (runtime-values/shallow-val vref))
+  (rt-values/shallow-val vref))
 
-#?(:clj (def def-value runtime-values/def-value))
+#?(:clj (def def-value rt-values/def-value))
 
-(def tap-value runtime-values/tap-value)
+(def tap-value rt-values/tap-value)
 
 (defn get-form [form-id]
   (let [form (index-api/get-form form-id)]
@@ -172,7 +185,7 @@
                                                      (fn-return-trace/fn-return-trace? tl-entry))
 
                                                (let [result (index-protos/get-expr-val tl-entry)]
-                                                 (if (str/includes? (:val-str (runtime-values/val-pprint result {:print-length print-length
+                                                 (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
                                                                                                                  :print-level print-level
                                                                                                                  :pprint? false}))
                                                                     query-str)
@@ -216,7 +229,7 @@
                                
                                (let [result (index-protos/get-expr-val tl-entry)]
                                  
-                                 (if (str/includes? (:val-str (runtime-values/val-pprint result {:print-length print-length
+                                 (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
                                                                                                  :print-level print-level
                                                                                                  :pprint? false}))
                                                     query-str)
@@ -252,7 +265,7 @@
     (doseq [fid flows-ids]
       (discard-flow fid))
     
-    (runtime-values/clear-vals-ref-registry)))
+    (rt-values/clear-vals-ref-registry)))
 
 (def flow-threads-info index-api/flow-threads-info)
 
@@ -470,3 +483,114 @@
 (defn call-by-name [fun-key args]  
   (let [f (get api-fn fun-key)]
     (apply f args)))
+
+#?(:clj
+   (defn setup-runtime
+
+     "Setup runtime based on jvm properties. Returns a config map."
+
+     []
+     (let [theme-prop (System/getProperty "flowstorm.theme")
+           title-prop (System/getProperty "flowstorm.title")
+           styles-prop (System/getProperty "flowstorm.styles")
+           fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
+           config (cond-> {}
+                    theme-prop            (assoc :theme (keyword theme-prop))
+                    styles-prop           (assoc :styles styles-prop)
+                    title-prop            (assoc :title  title-prop))]
+
+       (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "false") false true))
+
+       (doseq [[fn-ns fn-name l] fn-call-limits]
+         (index-api/add-fn-call-limit fn-ns fn-name l))
+
+       config))
+
+   :cljs ;; ------------------------------------------------------------------------------------------------------------
+   (defn setup-runtime
+
+     "This is meant to be called by preloads to initialize the runtime side of things"
+
+     []
+     (println "Setting up runtime")
+
+     (index-api/start)
+
+     (println "Index started")
+
+     (let [recording? (if (= (env-prop "flowstorm.startRecording") "false") false true)]
+       (tracer/set-recording recording?)
+       (println "Recording set to " recording?))
+
+     (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
+       (doseq [[fn-ns fn-name l] fn-call-limits]
+         (index-api/add-fn-call-limit fn-ns fn-name l)
+         (println "Added function limit " fn-ns fn-name l)))
+
+     (rt-values/clear-vals-ref-registry)
+     (println "Value references cleared")
+
+     (rt-taps/setup-tap!)
+     (println "Runtime setup ready")))
+
+#?(:clj
+   (defn start-runtime [events-dispatch-fn skip-debugger-start? {:keys [skip-index-start?] :as config}]
+     (let [config (merge config (setup-runtime))]
+
+       ;; NOTE: The order here is important until we replace this code with
+       ;; better component state management
+
+       (when-not skip-index-start?
+         (index-api/start))
+
+       ;; start the debugger UI
+       (when-not skip-debugger-start?
+         (let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
+           (start-debugger config)))
+
+       (rt-events/set-dispatch-fn events-dispatch-fn)
+
+       (rt-values/clear-vals-ref-registry)
+
+       (rt-taps/setup-tap!)
+
+       (mem-reporter/run-mem-reporter))))
+
+#?(:clj
+   (defn remote-connect [config]
+
+     ;; connect to the remote websocket
+     (remote-websocket-client/start-remote-websocket-client
+      (assoc config
+             :api-call-fn call-by-name
+             :on-connected (fn []
+                             (let [enqueue-event! (fn [ev]
+                                                    (-> [:event ev]
+                                                        serializer/serialize
+                                                        remote-websocket-client/send))]
+                               (log "Connected to remote websocket")
+
+                               (start-runtime enqueue-event! true config)
+
+                               (log "Remote Clojure runtime initialized"))))))
+
+   :cljs ;;----------------------------------------------------------------------------------------------
+   (defn remote-connect [config]
+
+     (println "Connecting with the debugger with config : " config)
+
+     ;; connect to the remote websocket
+     (remote-websocket-client/start-remote-websocket-client
+      (assoc config
+             :api-call-fn call-by-name
+             :on-connected (fn []
+                             ;; subscribe and automatically push all events thru the websocket
+                             ;; if there were any events waiting to be dispatched
+                             (rt-events/set-dispatch-fn
+                              (fn [ev]
+                                (-> [:event ev]
+                                    serializer/serialize
+                                    remote-websocket-client/send)))
+
+                             (println "Debugger connection ready. Events dispatch function set and pending events pushed.")))))
+   )

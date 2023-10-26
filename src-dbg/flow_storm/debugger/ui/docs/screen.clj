@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label list-view h-box v-box]]
-            [flow-storm.debugger.ui.state-vars :refer [store-obj obj-lookup] :as ui-vars]
+            [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.docs :as dbg-docs]
             [clojure.string :as str])
   (:import [javafx.scene.input MouseButton]
