@@ -10,10 +10,10 @@ Generate projects functions documentation by sampling their executions.
 
 There are a bunch of trade offs when it comes to choosing dynamic languages like Clojure instead of static typed ones. 
 
-One downside is the lack of documentation on the shape of functions arguments and return values. Because of it, when reading code 
+One downside is the lack of documentation on the shape of functions arguments and return values. Because of this, when reading code 
 you are left with hoping the author (or you) wrote good doc strings, specs, the parents functions have some info or plain guessing from names.
 
-But it doesn't need to be that bad. Some of this shapes can be derived from execution pretty cheaply. How? By instrumenting the entire code base, 
+But it doesn't need to be that bad. Some of these shapes can be derived from execution pretty cheaply. How? By instrumenting the entire code base, 
 running the tests (or any functions that exercise the code base) and sample every fn call and return.
 
 The result is data that contains a bunch of information about your functions only known at runtime, over which you can build tooling like a 
@@ -29,13 +29,13 @@ If you want to use this, there are 3 tasks you are probably interested in :
 	- Publishing your docs
 	- Consuming docs from yours or other people projects
 
-Next there are some details on how to accomplish each of this tasks.
+Next, there are some details on how to accomplish each of these tasks.
 
 ### Generating docs
 
-Lets say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
+Let's say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
 
-First we clone the repo. Then we can generate it by calling `flow-storm.api/cli-doc`. 
+First, we clone the repo. Then we can generate it by calling `flow-storm.api/cli-doc`. 
 
 For convenience we are going to create a script `document.sh` like this :
 
