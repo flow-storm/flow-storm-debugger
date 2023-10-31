@@ -325,15 +325,15 @@ Before closing this are some tips I've found for using FlowStorm efficiently :
 - Use the jvm options described in :help to configure it so you don't record unnecessary stuff.
 
 And that is all for the basics. If you find any issues or suggestions feel free
-to open a issue in https://github.com/jpmonettas/flow-storm-debugger
+to open a issue in https://github.com/flow-storm/flow-storm-debugger
 
 Now let's go add it to your current project and give it a try.
 All you have to do is to edit your deps.edn file and add a :dev alias with a config like:
 
 ----------------------------------
 {:classpath-overrides {org.clojure/clojure nil}
- :extra-deps {com.github.jpmonettas/clojure {:mvn/version \"LATEST-AVAILABLE-VERSION\"}
-              com.github.jpmonettas/flow-storm-dbg {:mvn/version \"LATEST-AVAILABLE-VERSION\"}}
+ :extra-deps {com.github.flow-storm/clojure {:mvn/version \"LATEST-AVAILABLE-VERSION\"}
+              com.github.flow-storm/flow-storm-dbg {:mvn/version \"LATEST-AVAILABLE-VERSION\"}}
  :jvm-opts [\"-Dflowstorm.startRecording=true\"
             \"-Dclojure.storm.instrumentEnable=true\"
             \"-Dclojure.storm.instrumentOnlyPrefixes=YOUR-PROJECT-TOP-NS\"]}

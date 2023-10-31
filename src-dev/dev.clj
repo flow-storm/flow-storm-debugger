@@ -1,8 +1,17 @@
 (ns dev
+
+  "A bunch of utilities to help with development.
+
+  After loading this ns you can :
+
+  - `start-local` to start the UI and runtime
+  - `start-remote` to run only the UI and connect it to a remote process. Looks at the body for config.
+  - `stop` for gracefully stopping the system
+  - `refresh` to make tools.namespace unmap and reload all the modified files"
+
   (:require [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.main :as main]
             [flow-storm.debugger.state :as dbg-state]
-            [cljs.main :as cljs-main]
             [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
@@ -20,12 +29,8 @@
 
 (javafx.embed.swing.JFXPanel.)
 
-(comment (add-tap (bound-fn* println)) )
-
 (comment
-
-
-  (remove-watch state :spec-validator)
+  (add-tap (bound-fn* println))
   )
 
 #_(Thread/setDefaultUncaughtExceptionHandler
@@ -39,7 +44,7 @@
 ;; Utilities for reloading everything ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn instrument-state []
+(defn spec-instrument-state []
   (add-watch
    dbg-state/state
    :spec-validator
@@ -48,60 +53,46 @@
        (s/explain ::dbg-state/state s))))
   nil)
 
+(comment
+  (remove-watch state :spec-validator)
+  )
+
 (defn start-local []
   (fs-api/local-connect {:theme :ligth})
-  (instrument-state))
+  (spec-instrument-state))
 
 
 (defn start-remote []
 
-  (comment
-
-    (main/start-debugger {:port 9000
-                          :repl-type :shadow
-                          :build-id :browser-repl})
-
-    (main/start-debugger {:port 9000
-                          :repl-type :shadow
-                          :build-id :app})
-
-    (main/start-debugger {})
-    (main/start-debugger {:port 9000})
-
-    (main/start-debugger {:port 46000
-                          :repl-type :shadow
-                          :build-id :analysis-viewer})
-    (main/stop-debugger)
-
-    )
-
   (main/start-debugger {:port 9000
                         :repl-type :shadow
-                        :build-id :browser-repl}))
+                        :build-id :browser-repl})
+  (spec-instrument-state))
+
+(defn stop []
+  (fs-api/stop))
 
 (defn after-refresh []
   (alter-var-root #'utils/out-print-writer (constantly *out*))
   (log "Refresh done"))
 
-(defn stop []
-  (fs-api/stop))
-
 (defn refresh []
-  (tools-namespace-repl/refresh :after 'dev/after-refresh))
+  (let [running? dbg-state/state]
+    (when running?
+      (log "System is running, stopping first ...")
+      (stop))
+    (tools-namespace-repl/refresh :after 'dev/after-refresh )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Playing at the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (comment
 
-  (local-restart-everything)
-
-  )
-
-
-;; instrument and run dev-tester namespaces
-(comment
+  ;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Vanilla FlowStorm ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;
 
   (fs-api/instrument-namespaces-clj
    #{"dev-tester"}
@@ -111,18 +102,39 @@
 
   #rtrace (dev-tester/boo [2 "hello" 6])
 
+  ;;;;;;;;;;
+  ;; Docs ;;
+  ;;;;;;;;;;
+
+  (def r (sampler/sample
+             {:result-name "dev-tester-flow-docs-0.1.0"
+              :inst-ns-prefixes #{"dev-tester"}
+              :verbose? true
+              :print-unsampled? true}
+           (dev-tester/boo [1 "hello" 6])))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;; Example expressions to generate trace data ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (defn bar [a b] (+ a b))
+  (defn foo [a b] (let [c (+ a b)] (bar c c)))
+
+  (doall (pmap (fn [i] (foo i (inc i))) (range 4)))
+
+  (dev-tester/boo [1 "hello" 4])
+
+  (flow-storm.api/continue)
+
+  (defn my-sum [a b] (+ a b))
+
+  (doall (pmap (fn my-sum [i] (+ i i)) (range 4)))
   )
 
-;; local start with different themes
-(comment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Querying indexes programatically ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (fs-api/local-connect {:theme :light})
-  (fs-api/stop)
-  (fs-api/local-connect {:theme :dark})
-
-  )
-
-;; ideas for accessing the indexes programmatically
 (comment
 
   (index-api/print-threads)
@@ -191,70 +203,9 @@
 
   ;; use the debugger
   (index-api/print-threads)
-  (index-api/select-thread 0 16)
+  (index-api/select-thread nil 18)
 
   (step-next)
   (step-prev)
 
-  ;; ---------------------------------------------------------------------------------------------
-
-
   )
-
-;; forms instrumentation
-(comment
-
-  (inst-forms/instrument {:disable #{}} '(defn foo [a b] ^{:meta true} (conj [] b)))
-
-  )
-
-
-;; Function sampler
-
-(comment
-
-  (def r (sampler/sample
-          {:result-name "dev-tester-flow-docs-0.1.0"
-           :inst-ns-prefixes #{"dev-tester"}
-           :verbose? true
-           :print-unsampled? true}
-          (dev-tester/boo [1 "hello" 6])))
-
-  (io/copy (io/file "/tmp/1670878691457-36075814-1/samples.edn")
-           (io/file "samples.edn"))
-
-  (defn bar [a b] (+ a b))
-  (defn foo [a b] (let [c (+ a b)] (bar c c)))
-
-  (doall (pmap (fn [i] (foo i (inc i))) (range 4)))
-
-  (dev-tester/boo [1 "hello" 4])
-
-  (flow-storm.api/continue)
-
-  (defn my-sum [a b] (+ a b))
-
-  (doall (pmap (fn my-sum [i] (+ i i)) (range 4)))
-
-  )
-
-(defn cljs-repl []
-  (cljs.main/-main "--repl"))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Steps to debug the ClojureScriptStorm compiler ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; - cider-jackin to start a clj repl and load this dev namespace
-;; - on other term run a dbg : clj -X:dev flow-storm.debugger.main/start-debugger
-;; - on term run ./repl-conn to connect another repl to the jackin process
-;;     - eval (dev/cljs-repl) to start a Cljs repl, this will open the browser
-;;     - on cljs repl :  (require 'flow-storm.preload)
-;;     - on cljs repl :  (ns dev)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Compile and run ClojureScriptStorm cljs.main repl ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; clj -J-Dcljs.storm.instrumentOnlyPrefixes=dev -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "1.11.124"} com.github.jpmonettas/flow-storm-inst {:local/root "/home/jmonetta/my-projects/flow-storm-debugger"}}}' -M -m cljs.main -co '{:preloads [cljs.storm.tracer flow-storm.preload] :main org.foo.dev-tester}' --compile
-;; clj -J-Dcljs.storm.instrumentOnlyPrefixes=dev -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.jpmonettas/clojurescript {:mvn/version "1.11.124"} com.github.jpmonettas/flow-storm-inst {:local/root "/home/jmonetta/my-projects/flow-storm-debugger"}}}' -M -m cljs.main -co '{:preloads [cljs.storm.tracer flow-storm.preload] :main org.foo.dev-tester}' --repl
