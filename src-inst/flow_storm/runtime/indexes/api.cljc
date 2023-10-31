@@ -15,10 +15,34 @@
 (declare discard-flow)
 (declare get-thread-indexes)
 
-(def flow-thread-registry nil)
-(def forms-registry nil)
-(def last-exception-location (atom nil))
-(def fn-call-limits (atom nil))
+(def flow-thread-registry
+  
+  "Registry that contains all flows and threads timelines.
+  It is an instance of `flow-storm.runtime.indexes.thread-registry/ThreadRegistry`."
+
+  nil)
+
+(def forms-registry
+  
+  "Registry that contains all registered forms.
+  It could be anything that implements `flow-storm.runtime.indexes.protocols/FormRegistryP`
+  
+  Currently it can be an instance of `flow-storm.runtime.indexes.thread-registry/FormRegistry`
+  or `clojure.storm/FormRegistry` when working with ClojureStorm."
+  
+  nil)
+
+(def last-exception-location
+  
+  "Stores the location of the last captured exception."
+  
+  (atom nil))
+
+(def fn-call-limits
+
+  "Stores the function calls limits for different functions."
+  
+  (atom nil))
 
 (defn get-last-exception-location []
   @last-exception-location)
@@ -33,8 +57,10 @@
   @fn-call-limits)
 
 (defn check-fn-limit!
+  
   "Automatically decrease the limit for the function if it exists.
-  Returns true when there is a limit and it is reached, false otherwise"
+  Returns true when there is a limit and it is reached, false otherwise."
+  
   [thread-fn-call-limits fn-ns fn-name]
   (when-let [fcl @thread-fn-call-limits]
     (when-let [l (get-in fcl [fn-ns fn-name])]
@@ -166,9 +192,10 @@
     ti
     (create-thread-indexes! flow-id thread-id thread-name form-id)))
 
-;;;;;;;;;;;;;;;;;;;;;;;
-;; Indexes Build API ;;
-;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Indexes build api, this functions are meant to be called by  ;;
+;; Hansel, ClojureStorm or ClojureScriptStorm instrumented code ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn add-flow-init-trace [trace]
   (create-flow trace))
@@ -231,9 +258,11 @@
     (when (and timeline-index (not @thread-limited))
       (index-protos/add-bind timeline-index trace))))
 
-;;;;;;;;;;;;;;;;;
-;; Indexes API ;;
-;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Indexes API. This are functions meant to be called by            ;;
+;; debugger-api to expose indexes to debuggers or directly by users ;;
+;; to query indexes from the repl.                                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-form [form-id]
   (when forms-registry

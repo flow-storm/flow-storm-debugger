@@ -1,4 +1,18 @@
 (ns flow-storm.debugger.runtime-api
+
+  "Component that implements the api that the debugger
+  uses to call the runtime.
+
+  All debugger functionality is implemented agains this API.
+
+  The api is declared as a protocol `RuntimeApiP` and has two possible
+  instantiations :
+  - `LocalRuntimeApi` directly call functions, since we are on the same process
+  - `RemoteRuntimeApi` call funcitons through a websocket and a repl
+
+  All this is implemented runtime part in `flow-storm.runtime.debuggers-api` which is
+  the interface exposed by the runtime to debuggers."
+
   (:require [flow-storm.state-management :refer [defstate]]
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.debugger.repl.core :refer [safe-eval-code-str safe-cljs-eval-code-str stop-repl]]
