@@ -216,3 +216,40 @@
     (disable :expr-exec)    (dissoc :trace-expr-exec)
     (disable :bind)         (dissoc :trace-expr-exec)
     (disable :anonymous-fn) (assoc :disable #{:anonymous-fn})))
+
+#?(:clj
+   (defn- set-clojure-storm [callbacks]
+     ;; Set ClojureStorm callbacks by reflection so FlowStorm can be used
+     ;; without ClojureStorm on the classpath.
+     (let [tracer-class (Class/forName "clojure.storm.Tracer")
+           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))]       
+       (.invoke setTraceFnsCallbacks nil (into-array [callbacks])))))
+
+#?(:clj
+   (defn hook-clojure-storm [handle-exception-fn]  
+     (set-clojure-storm
+      {:trace-fn-call-fn-key    trace-fn-call
+	   :trace-fn-return-fn-key  trace-fn-return
+	   :trace-expr-fn-key       trace-expr-exec
+	   :trace-bind-fn-key       trace-bind
+	   :handle-exception-fn-key handle-exception-fn})))
+
+#?(:clj
+   (defn unhook-clojure-storm []  
+     (set-clojure-storm
+      {:trace-fn-call-fn-key    nil
+	   :trace-fn-return-fn-key  nil
+	   :trace-expr-fn-key       nil
+	   :trace-bind-fn-key       nil
+	   :handle-exception-fn-key nil})))
+
+#?(:cljs
+   (defn hook-clojurescript-storm []
+     (js* "try {
+         cljs.storm.tracer.trace_expr_fn=flow_storm.tracer.trace_expr_exec;
+         cljs.storm.tracer.trace_fn_call_fn=flow_storm.tracer.trace_fn_call;
+         cljs.storm.tracer.trace_fn_return_fn=flow_storm.tracer.trace_fn_return;
+         cljs.storm.tracer.trace_bind_fn=flow_storm.tracer.trace_bind;
+         cljs.storm.tracer.trace_form_init_fn=flow_storm.tracer.trace_form_init;
+         console.log(\"ClojureScriptStorm functions plugged in.\");
+       } catch (error) {console.log(\"ClojureScriptStorm not detected.\")}")))

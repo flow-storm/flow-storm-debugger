@@ -89,6 +89,11 @@ Flow storm debugger is packed with a ton of features :
 - [Keyboard](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
 - [Themes and styling](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
 
+## Information for developers 
+
+If you want to enhance, fix, debug, or just learn about the internals of FlowStorm take a look at
+[here](./docs/dev_notes.md)
+
 ## Some demo videos (newers at the top)
 
 - [Smashing a real ClojureScript bug with FlowStorm](https://www.youtube.com/watch?v=4VXT-RHHuvI)
