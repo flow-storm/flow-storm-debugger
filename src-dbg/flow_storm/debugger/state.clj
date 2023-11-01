@@ -332,9 +332,9 @@
         extra-styles (when extra-styles
                        (str (io/as-url (io/file extra-styles))))]
     (cond-> [theme-base-styles
-             default-styles
-             font-size-style]
-      extra-styles (conj extra-styles))))
+             default-styles]
+      extra-styles (conj extra-styles)
+      true (conj font-size-style))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; JFX objects index ;;
