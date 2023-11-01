@@ -1544,6 +1544,12 @@ works with jdk >= 17, and I think we still have a bunch of people on jdk 11.
 
 == Internals, diagrams and documentation
 
+For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :
+
+https://github.com/flow-storm/flow-storm-debugger/blob/master/docs/dev_notes.md
+
+Some useful diagrams :
+
 - https://raw.githubusercontent.com/flow-storm/flow-storm-debugger/master/docs/high_level_diagram.svg
 - https://raw.githubusercontent.com/flow-storm/flow-storm-debugger/master/docs/timeline.svg
 - https://raw.githubusercontent.com/flow-storm/flow-storm-debugger/master/docs/run_configs.svg
