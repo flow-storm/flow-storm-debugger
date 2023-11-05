@@ -1,5 +1,6 @@
 (ns flow-storm.storm-preload
-  (:require [cljs.storm.tracer :as tracer]
+  (:require [cljs.storm.tracer]
+            [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as dbg-api]))
 
 ;; setup storm callback functions

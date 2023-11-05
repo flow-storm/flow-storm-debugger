@@ -243,8 +243,10 @@
 	   :trace-bind-fn-key       nil
 	   :handle-exception-fn-key nil})))
 
-#?(:cljs
+#?(:cljs        
    (defn hook-clojurescript-storm []
+     ;; We do it like this so FlowStorm can be used without ClojureScript storm,
+     ;; which we can't if we require cljs.storm at the top.
      (js* "try {
          cljs.storm.tracer.trace_expr_fn=flow_storm.tracer.trace_expr_exec;
          cljs.storm.tracer.trace_fn_call_fn=flow_storm.tracer.trace_fn_call;
@@ -252,4 +254,7 @@
          cljs.storm.tracer.trace_bind_fn=flow_storm.tracer.trace_bind;
          cljs.storm.tracer.trace_form_init_fn=flow_storm.tracer.trace_form_init;
          console.log(\"ClojureScriptStorm functions plugged in.\");
-       } catch (error) {console.log(\"ClojureScriptStorm not detected.\")}")))
+       } catch (error) {console.log(\"ClojureScriptStorm not detected.\")}")
+     ;; we need to return nil here, the js* can't be the last statement or it will
+     ;; generate "return try {...}" which isn't valid JS 
+     nil))
