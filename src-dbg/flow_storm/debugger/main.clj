@@ -129,7 +129,9 @@
 
       (reset! fully-started true)
 
-      (when @repl-connected?
+      ;; if there is a repl config wait for the connection before moving on
+      (when (and (dbg-state/repl-config)
+                 @repl-connected?)
         (signal-repl-connected true))
 
       ;; once we have both the UI started and the runtime-connected
