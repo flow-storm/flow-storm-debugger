@@ -7,6 +7,7 @@
 ### Changes
     
     - Big codebase refactor for make it cleaner
+    - Improved search functionality (faster and with better UX)
     
 ### Bugs fixed
 

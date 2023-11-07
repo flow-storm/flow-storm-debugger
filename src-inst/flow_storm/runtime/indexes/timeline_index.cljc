@@ -242,11 +242,13 @@
                 (recur (next-idx i)))))))))
 
   (timeline-raw-entries [this from-idx to-idx]
+    ;; this function will let the imeline mutable collection
+    ;; scape, so the caller should lock on the timeline to use it
     (locking this
       (let [from (or from-idx 0)
             to (or to-idx (dec (ml-count timeline)))
-            sub-timeline (ml-sub-list timeline from to)]
-        (into [] sub-timeline))))
+            sub-timeline (ml-sub-list timeline from to)]        
+        sub-timeline)))
 
   index-protos/TreeP
 

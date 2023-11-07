@@ -171,33 +171,34 @@
                    (fn []
                      (try
                        (let [{:keys [timeline-index]} (index-api/get-thread-indexes flow-id thread-id)                             
-                             tl-entries (index-protos/timeline-raw-entries timeline-index from-idx nil)
-                             total-entries (count tl-entries)                             
-                             found-entry (loop [i 0
-                                                [tl-entry & tl-rest] tl-entries]
-                                           (when (and tl-entry
-                                                      (not (.isInterrupted (Thread/currentThread))))                        
+                             found-entry (locking timeline-index
+                                           (let [tl-entries (index-protos/timeline-raw-entries timeline-index from-idx nil)
+                                                 total-entries (count tl-entries)]
+                                             (loop [i 0
+                                                    [tl-entry & tl-rest] tl-entries]
+                                               (when (and tl-entry
+                                                          (not (.isInterrupted (Thread/currentThread))))                        
 
-                                             (when (and on-progress (zero? (mod i 10000)))
-                                               (on-progress (* 100 (/ i total-entries))))
+                                                 (when (and on-progress (zero? (mod i 10000)))
+                                                   (on-progress (* 100 (/ i total-entries))))
 
-                                             (if (or (expr-trace/expr-trace? tl-entry)
-                                                     (fn-return-trace/fn-return-trace? tl-entry))
+                                                 (if (or (expr-trace/expr-trace? tl-entry)
+                                                         (fn-return-trace/fn-return-trace? tl-entry))
 
-                                               (let [result (index-protos/get-expr-val tl-entry)]
-                                                 (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
-                                                                                                                 :print-level print-level
-                                                                                                                 :pprint? false}))
-                                                                    query-str)
+                                                   (let [result (index-protos/get-expr-val tl-entry)]
+                                                     (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
+                                                                                                                :print-level print-level
+                                                                                                                :pprint? false}))
+                                                                        query-str)
 
-                                                   ;; if matches, finish the loop the found idx
-                                                   tl-entry
+                                                       ;; if matches, finish the loop the found idx
+                                                       tl-entry
 
-                                                   ;; else, keep looping
-                                                   (recur (inc i) tl-rest)))
+                                                       ;; else, keep looping
+                                                       (recur (inc i) tl-rest)))
 
-                                               ;; else
-                                               (recur (inc i) tl-rest))))
+                                                   ;; else
+                                                   (recur (inc i) tl-rest))))))
                              result (some-> found-entry
                                             index-protos/as-immutable
                                             reference-timeline-entry!)]                         

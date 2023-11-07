@@ -475,22 +475,23 @@
                                 
                                 ;; else skip if we aren't interested in this form id
                                 prints-so-far)))]
-    (loop [[tl-entry & rest-entries] tl-entries
-           thread-stack ()
-           prints (transient [])]
-      (if-not tl-entry
-        
-        (persistent! prints)
-        
-        (cond
-          (fn-call-trace/fn-call-trace? tl-entry)
-          (recur rest-entries (conj thread-stack tl-entry) prints)
+    (locking timeline-index
+      (loop [[tl-entry & rest-entries] tl-entries
+             thread-stack ()
+             prints (transient [])]
+        (if-not tl-entry
+          
+          (persistent! prints)
+          
+          (cond
+            (fn-call-trace/fn-call-trace? tl-entry)
+            (recur rest-entries (conj thread-stack tl-entry) prints)
 
-          (fn-return-trace/fn-return-trace? tl-entry)
-          (recur rest-entries (pop thread-stack) (maybe-print-entry prints (first thread-stack) tl-entry))
+            (fn-return-trace/fn-return-trace? tl-entry)
+            (recur rest-entries (pop thread-stack) (maybe-print-entry prints (first thread-stack) tl-entry))
 
-          (expr-trace/expr-trace? tl-entry)
-          (recur rest-entries thread-stack (maybe-print-entry prints (first thread-stack) tl-entry)))))))
+            (expr-trace/expr-trace? tl-entry)
+            (recur rest-entries thread-stack (maybe-print-entry prints (first thread-stack) tl-entry))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;

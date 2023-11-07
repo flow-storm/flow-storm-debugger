@@ -1,6 +1,6 @@
 (ns flow-storm.runtime.indexes.utils
   #?(:clj (:require [clojure.data.int-map :as int-map]))
-  #?(:clj (:import [java.util ArrayList ArrayDeque HashMap]
+  #?(:clj (:import [java.util ArrayList Vector ArrayDeque HashMap]
                    [java.util.concurrent ConcurrentHashMap])))
 
 ;;;;;;;;;;;;;;;;;;;
@@ -62,6 +62,40 @@
 #?(:cljs (defn ml-clear [mlist]
            (set! (.-length mlist) 0))
    :clj (defn ml-clear [^ArrayList mlist]
+          (.clear mlist)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mutable concurrent list ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+#?(:cljs (defn make-concurrent-mutable-list []
+           #js [])
+   :clj (defn make-concurrent-mutable-list []
+          (Vector.)))
+
+#?(:cljs (defn mcl-get [mlist idx]
+           (aget mlist idx))
+   :clj (defn mcl-get [^Vector mlist idx]
+          (.get mlist idx)))
+
+#?(:cljs (defn mcl-add [mlist elem]
+           (.push mlist elem))
+   :clj (defn mcl-add [^Vector mlist elem]
+          (.add mlist elem)))
+
+#?(:cljs (defn mcl-count [mlist]
+           (.-length mlist))
+   :clj (defn mcl-count [^Vector mlist]
+          (.size mlist)))
+
+#?(:cljs (defn mcl-sub-list [mlist from to]
+           (.slice mlist from to))
+   :clj (defn mcl-sub-list [^Vector mlist from to]
+          (.subList mlist from to)))
+
+#?(:cljs (defn mcl-clear [mlist]
+           (set! (.-length mlist) 0))
+   :clj (defn mcl-clear [^Vector mlist]
           (.clear mlist)))
 
 ;;;;;;;;;;;;;;;;;;;;;
