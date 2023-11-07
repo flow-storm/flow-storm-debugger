@@ -5,9 +5,13 @@
 ### New Features 
         
 ### Changes
-
+    
+    - Big codebase refactor for make it cleaner
+    
 ### Bugs fixed
 
+    - Fix functions list not showing entire functions names when they are large
+    
 ## 3.8.3 (25-10-2023)
 	
 ### New Features 
