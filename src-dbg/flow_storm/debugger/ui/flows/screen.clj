@@ -46,13 +46,21 @@
         (clear)
         (add-all threads-info)))))
 
+
+(defn copy-current-frame-symbol [flow-id thread-id args?]
+  (let [{:keys [fn-name fn-ns args-vec]} (dbg-state/current-frame flow-id thread-id)]
+    (ui-utils/copy-selected-frame-to-clipboard fn-ns fn-name (when args? args-vec))))
+
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
    pane
    (event-handler
     [kev]
-    (let [key-txt (.getText kev)]
-      (cond
+     (let [key-txt (.getText kev)
+           key-name (.getName (.getCode kev))
+           ctrl? (.isControlDown kev)
+           shift? (.isShiftDown kev)]
+       (cond
         (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
         (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
         (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
@@ -62,7 +70,10 @@
         (= key-txt "N") (flow-code/step-next-over flow-id thread-id)
         (= key-txt "^") (flow-code/step-out flow-id thread-id)
         (= key-txt "<") (flow-code/step-first flow-id thread-id)
-        (= key-txt ">") (flow-code/step-last flow-id thread-id))))))
+        (= key-txt ">") (flow-code/step-last flow-id thread-id)
+
+        (and shift? ctrl? (= key-name "F")) (copy-current-frame-symbol flow-id thread-id true)
+        (and ctrl? (= key-name "F"))        (copy-current-frame-symbol flow-id thread-id false))))))
 
 (defn open-thread [thread-info]
   (let [flow-id (:flow/id thread-info)

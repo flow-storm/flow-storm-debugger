@@ -1491,6 +1491,8 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 - `^` Step out
 - `<` Step first
 - `>` Step last
+- `Ctrl-f` Copy current function symbol
+- `Ctrl-Shift-f` Copy current function call form
 
 == Debugging react native applications
 

@@ -20,7 +20,9 @@
            [javafx.collections FXCollections ObservableList]
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.flowless VirtualFlow VirtualizedScrollPane]
-           [com.jthemedetecor OsThemeDetector]))
+           [com.jthemedetecor OsThemeDetector]
+           [java.awt Toolkit]
+           [java.awt.datatransfer StringSelection]))
 
 (defn run-later*
   [f]
@@ -619,6 +621,24 @@
     (catch Exception e
       (log-error "Couldn't retrieve os theme, setting :light by default" e)
       :light)))
+
+(defn set-clipboard [text]
+  (let [str-sel (StringSelection. text)]
+    (-> (Toolkit/getDefaultToolkit)
+        .getSystemClipboard
+        (.setContents str-sel str-sel))))
+
+(defn copy-selected-frame-to-clipboard
+  ([fn-ns fn-name] (copy-selected-frame-to-clipboard fn-ns fn-name nil))
+  ([fn-ns fn-name args-vec]
+   (let [fqfn (if fn-ns
+                (format "%s/%s" fn-ns fn-name)
+                fn-name)
+         clip-text (if args-vec
+                     (format "(apply %s (flow-storm.runtime.values/deref-val-id %d))" fqfn (:vid args-vec))
+                     fqfn)]
+     (set-clipboard clip-text))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;

@@ -3,7 +3,12 @@
 ## master (unreleased)
 	
 ### New Features 
-        
+    
+    - Ctrl-f copies the current qualified funcion symbol to the clipboard
+    - Ctrl-Shift-f copies the current function call form
+    - Right clicking on a tree node now shows "Copy qualified function symbol"
+    - Right clicking on a tree node now shows "Copy function calling form"
+    
 ### Changes
     
     - Big codebase refactor for make it cleaner

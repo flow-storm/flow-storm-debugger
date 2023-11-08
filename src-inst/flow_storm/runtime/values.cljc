@@ -85,6 +85,9 @@
     ;; if vref is not a ref, assume it is a value and just return it
     vref))
 
+(defn deref-val-id [vid]
+  (deref-value (types/make-value-ref vid)))
+
 (defn reference-value! [v]
   (try
     

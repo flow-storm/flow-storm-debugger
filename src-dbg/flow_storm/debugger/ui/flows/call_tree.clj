@@ -154,6 +154,9 @@
                                         (flow-code/jump-to-coord flow-id
                                                                  thread-id
                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at))))
+        copy-selected-frame-to-clipboard (fn [args?]
+                                           (let [{:keys [fn-name fn-ns args-vec]} (get-selected-frame)]
+                                             (ui-utils/copy-selected-frame-to-clipboard fn-ns fn-name (when args? args-vec))))
         _ (doto tree-view
             (.setOnMouseClicked (event-handler
                                  [mev]
@@ -163,6 +166,10 @@
                                    (.consume mev)))))
         ctx-menu-options [{:text "Step code"
                            :on-click jump-to-selected-frame-code}
+                          {:text "Copy qualified function symbol"
+                           :on-click (fn [] (copy-selected-frame-to-clipboard false))}
+                          {:text "Copy function calling form"
+                           :on-click (fn [] (copy-selected-frame-to-clipboard true))}
                           {:text "Hide from tree"
                            :on-click (fn [& _]
                                        (let [{:keys [fn-name fn-ns]} (get-selected-frame)]
