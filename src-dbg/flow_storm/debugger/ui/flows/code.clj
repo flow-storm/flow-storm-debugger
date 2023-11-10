@@ -358,6 +358,8 @@
 
 (defn jump-to-coord [flow-id thread-id next-tentry]
   (try
+    (when (:debug-mode? (dbg-state/debugger-config))
+      (utils/log (str "Jump to " next-tentry)))
     (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)
           curr-frame (if-let [cfr (dbg-state/current-frame flow-id thread-id)]
                        cfr

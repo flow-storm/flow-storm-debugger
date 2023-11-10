@@ -73,15 +73,27 @@
       (recur (inc i) (conj layout-tokens ltok))
       layout-tokens)))
 
+;; This is a fix for https://ask.clojure.org/index.php/13455/clojure-pprint-pprint-bug-when-using-the-code-dispatch-table
+(defn- pprint-let [alis]
+  (let [base-sym (first alis)]
+    (if (and (next alis) (vector? (second alis)))
+      (pp/pprint-logical-block
+       :prefix "(" :suffix ")"
+       (do
+         ((pp/formatter-out "~w ~1I~@_") base-sym)
+         (#'pp/pprint-binding-form (second alis))
+         ((pp/formatter-out " ~_~{~w~^ ~_~}") (next (rest alis)))))
+      (#'pp/pprint-simple-code-list alis))))
+
 (def hacked-code-table
   (#'pp/two-forms
      (#'pp/add-core-ns
         {'def #'pp/pprint-hold-first, 'defonce #'pp/pprint-hold-first,
          'defn #'pp/pprint-defn, 'defn- #'pp/pprint-defn, 'defmacro #'pp/pprint-defn, 'fn #'pp/pprint-defn,
-         'let #'pp/pprint-let, 'loop #'pp/pprint-let, 'binding #'pp/pprint-let,
-         'with-local-vars #'pp/pprint-let, 'with-open #'pp/pprint-let, 'when-let #'pp/pprint-let,
-         'if-let #'pp/pprint-let, 'doseq #'pp/pprint-let, 'dotimes #'pp/pprint-let,
-         'when-first #'pp/pprint-let,
+         'let #'pprint-let, 'loop #'pprint-let, 'binding #'pprint-let,
+         'with-local-vars #'pprint-let, 'with-open #'pprint-let, 'when-let #'pprint-let,
+         'if-let #'pprint-let, 'doseq #'pprint-let, 'dotimes #'pprint-let,
+         'when-first #'pprint-let,
          'if #'pp/pprint-if, 'if-not #'pp/pprint-if, 'when #'pp/pprint-if, 'when-not #'pp/pprint-if,
          'cond #'pp/pprint-cond, 'condp #'pp/pprint-condp,
 

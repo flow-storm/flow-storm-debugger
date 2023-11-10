@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features 
+            
+### Changes
+        
+### Bugs fixed
+
+    - Patch for clojure.pprint bug https://ask.clojure.org/index.php/13455/clojure-pprint-pprint-bug-when-using-the-code-dispatch-table
+
+## 3.8.4 (09-11-2023)
+	
+### New Features 
     
     - Ctrl-f copies the current qualified funcion symbol to the clipboard
     - Ctrl-Shift-f copies the current function call form
