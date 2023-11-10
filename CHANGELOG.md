@@ -7,6 +7,14 @@
 ### Changes
         
 ### Bugs fixed
+    
+## 3.8.5 (10-11-2023)
+	
+### New Features 
+            
+### Changes
+        
+### Bugs fixed
 
     - Patch for clojure.pprint bug https://ask.clojure.org/index.php/13455/clojure-pprint-pprint-bug-when-using-the-code-dispatch-table
 
