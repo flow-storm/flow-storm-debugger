@@ -171,7 +171,10 @@
                                        (.close log-output-stream))}]
 
     (utils/log "Initializing repl...")
-    (init-repl env-kind debugger-host port eval-clj eval-cljs)
+    (try
+      (init-repl env-kind debugger-host port eval-clj eval-cljs)
+      (catch Exception e
+        (utils/log-error "There was a problem initializing the remote runtime via repl" e)))
 
     (let [repl-ok? (= :watch-dog-ping (eval-clj ":watch-dog-ping" "user"))]
       (utils/log (str "Repl ok? : " repl-ok?))

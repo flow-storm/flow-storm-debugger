@@ -8,6 +8,8 @@
         
 ### Bugs fixed
     
+    - [Remote] Don't crash the debugger if there is an exception initializing the RT through the repl
+    
 ## 3.8.5 (10-11-2023)
 	
 ### New Features 
