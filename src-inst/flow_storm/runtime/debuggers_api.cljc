@@ -581,17 +581,20 @@
      (println "Connecting with the debugger with config : " config)
 
      ;; connect to the remote websocket
-     (remote-websocket-client/start-remote-websocket-client
-      (assoc config
-             :api-call-fn call-by-name
-             :on-connected (fn []
-                             ;; subscribe and automatically push all events thru the websocket
-                             ;; if there were any events waiting to be dispatched
-                             (rt-events/set-dispatch-fn
-                              (fn [ev]
-                                (-> [:event ev]
-                                    serializer/serialize
-                                    remote-websocket-client/send)))
+     
+     (try
+       (remote-websocket-client/start-remote-websocket-client
+        (assoc config
+               :api-call-fn call-by-name
+               :on-connected (fn []
+                               ;; subscribe and automatically push all events thru the websocket
+                               ;; if there were any events waiting to be dispatched
+                               (rt-events/set-dispatch-fn
+                                (fn [ev]
+                                  (-> [:event ev]
+                                      serializer/serialize
+                                      remote-websocket-client/send)))
 
-                             (println "Debugger connection ready. Events dispatch function set and pending events pushed.")))))
+                               (println "Debugger connection ready. Events dispatch function set and pending events pushed."))))
+       (catch :default e (utils/log-error "Couldn't connect to the debugger" e))))
    )

@@ -8,6 +8,7 @@
         
 ### Bugs fixed
     
+    - Capture exceptions on cljs remote connect
     - [Remote] Don't crash the debugger if there is an exception initializing the RT through the repl
     
 ## 3.8.5 (10-11-2023)
