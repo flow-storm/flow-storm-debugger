@@ -5,7 +5,9 @@
 ### New Features 
             
 ### Changes
-        
+
+    - Don't print handled exception error messages on std-err since it messes up cider
+    
 ### Bugs fixed
     
     - Capture exceptions on cljs remote connect

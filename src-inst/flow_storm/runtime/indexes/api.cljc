@@ -81,7 +81,7 @@
   
   #?(:clj
      (when-not (instance? java.lang.InterruptedException ex)
-       (utils/log-error (utils/format "Error in thread %s" thread) ex))
+       (utils/log (utils/format "Error in thread %s" thread)))
      :cljs (utils/log-error (utils/format "Error in thread %s" thread) ex))
   
   (let [thread-id #?(:clj (.getId ^Thread thread) :cljs 0)
