@@ -65,6 +65,13 @@ but it will be cached unless you run with -Sforce.
 It is much safer to just write the latest versions. Check out  the https://github.com/flow-storm/flow-storm-debugger/[github page] for the latest stable releases.
 ====
 
+[IMPORTANT]
+.On using MacOS
+====
+There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
+====
+
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
@@ -153,6 +160,13 @@ user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to r
 
 user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
 ----
+
+[IMPORTANT]
+.On using MacOS
+====
+There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
+====
 
 You should now see a empty debugger window.
 
@@ -277,6 +291,13 @@ when your need it, run the debugger ui with your shadow-cljs.edn data :
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
 ----
+
+[IMPORTANT]
+.On using MacOS
+====
+There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
+====
 
 Now since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
 Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger

@@ -888,6 +888,22 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 </tr>
 </table>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">On using MacOS</div>
+<div class="paragraph">
+<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up just
 evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
@@ -1017,6 +1033,22 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 
 </span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span><span class="w"> </span><span class="c1">;; will run the debugger GUI and get everything ready</span></code></pre>
 </div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">On using MacOS</div>
+<div class="paragraph">
+<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>You should now see a empty debugger window.</p>
@@ -1205,6 +1237,22 @@ when your need it, run the debugger ui with your shadow-cljs.edn data :</p>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app</code></pre>
 </div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">On using MacOS</div>
+<div class="paragraph">
+<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
+Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Now since we started the app with <code>flowstorm.startRecording=false</code> you will have to click on the record button once to start recording.
@@ -3352,7 +3400,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-15 10:58:15 -0300
+Last updated 2023-11-15 11:33:57 -0300
 </div>
 </div>
 </body>
