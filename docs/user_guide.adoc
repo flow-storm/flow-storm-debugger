@@ -333,7 +333,7 @@ $ cat shadow-cljs.edn
 
  ;; the next two lines aren't needed but pretty convenient
  :nrepl {:port 9000}
- :my-build-id {:devtools {:preloads [flow-storm.api]}}
+ :my-build-id {:devtools {:preloads [flow-storm.preload]}}
  ...} 
 ----
 
