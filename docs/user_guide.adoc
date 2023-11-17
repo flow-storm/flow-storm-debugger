@@ -1398,6 +1398,7 @@ On _ClojureStorm_ :
 ----
 -Dclojure.storm.instrumentOnlyPrefixes=my-app,my-lib
 -Dclojure.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting
+-Dclojure.storm.instrumentSkipRegex=.*test.*
 ----
 
 On _ClojureScriptStorm_ :
@@ -1409,8 +1410,8 @@ On _ClojureScriptStorm_ :
 ----
 
 Apart from `instrumentOnlyPrefixes` which you probably already know, there is `instrumentSkipPrefixes` which also
-accepts a comma separated list of namespaces prefixes to skip. This allows you to instrument you whole app but some
-undesired namespaces.
+accepts a comma separated list of namespaces prefixes to skip, and instrumentSkipRegex with accepts a regex for
+namespaces to skip. All these together allows you to instrument you whole app but some undesired namespaces.
 
 The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
 repl. This is slightly different between Clojure and ClojureScript.

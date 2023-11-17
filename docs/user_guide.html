@@ -2966,7 +2966,8 @@ how to uninstrument things.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="n">-Dclojure.storm.instrumentOnlyPrefixes=my-app,my-lib</span><span class="w">
-</span><span class="n">-Dclojure.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting</span></code></pre>
+</span><span class="n">-Dclojure.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting</span><span class="w">
+</span><span class="n">-Dclojure.storm.instrumentSkipRegex=.*test.*</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2980,8 +2981,8 @@ how to uninstrument things.</p>
 </div>
 <div class="paragraph">
 <p>Apart from <code>instrumentOnlyPrefixes</code> which you probably already know, there is <code>instrumentSkipPrefixes</code> which also
-accepts a comma separated list of namespaces prefixes to skip. This allows you to instrument you whole app but some
-undesired namespaces.</p>
+accepts a comma separated list of namespaces prefixes to skip, and instrumentSkipRegex with accepts a regex for
+namespaces to skip. All these together allows you to instrument you whole app but some undesired namespaces.</p>
 </div>
 <div class="paragraph">
 <p>The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
@@ -3400,7 +3401,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-15 11:33:57 -0300
+Last updated 2023-11-17 08:40:51 -0300
 </div>
 </div>
 </body>
