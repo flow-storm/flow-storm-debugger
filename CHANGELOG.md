@@ -5,6 +5,14 @@
 ### New Features 
             
 ### Changes
+    
+### Bugs fixed
+
+## 3.8.6 (17-11-2023)
+	
+### New Features 
+            
+### Changes
 
     - Don't print handled exception error messages on std-err since it messes up cider
     
