@@ -17,7 +17,10 @@
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8.1"}
         nrepl/nrepl {:mvn/version "1.0.0"}
         org.clojure/data.int-map {:mvn/version "1.2.1"}
-        org.fxmisc.richtext/richtextfx  {:mvn/version "0.11.1"}}
+        org.fxmisc.richtext/richtextfx  {:mvn/version "0.11.1"}
+
+        dorothy/dorothy {:mvn/version "0.0.7"}
+        org.clojure/core.async {:mvn/version "1.6.681"}}
 
  :aliases {:cljs {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.3"}
                                refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
@@ -31,7 +34,7 @@
                               ;;"-Dflowstorm.startRecording=false"
                               "-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
-                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev,clojure.core.async"
 
                               "-Dcljs.storm.instrumentOnlyPrefixes=dev"
                               "-Dcljs.storm.instrumentEnable=true"
