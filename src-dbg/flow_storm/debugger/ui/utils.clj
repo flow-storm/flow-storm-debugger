@@ -7,7 +7,7 @@
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
-            ComboBox CheckBox]
+            ComboBox CheckBox TextInputDialog]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
@@ -435,7 +435,8 @@
   `cell-factory-fn` a fn that gets called with each cell and item and should return a Node for the cell.
   `items` a collection of data items for the table. Each one should be a vector with the same amount "
 
-  [{:keys [columns cell-factory-fn row-update-fn items selection-mode search-predicate on-click on-enter resize-policy]
+  [{:keys [columns cell-factory-fn row-update-fn items selection-mode search-predicate
+           on-click on-enter resize-policy columns-width-percs]
     :or {selection-mode :multiple
          resize-policy :unconstrained}}]
 
@@ -443,30 +444,34 @@
 
   (let [tv (TableView.)
         make-column (fn [col-idx col-text]
-                      (doto (TableColumn. col-text)
-                        (.setCellValueFactory (proxy [javafx.util.Callback] []
-                                                (call [^TableColumn$CellDataFeatures cell-val]
-                                                  (proxy [ObservableValue] []
-                                                    (addListener [_])
-                                                    (removeListener [_])
-                                                    (getValue []
-                                                      (get (.getValue cell-val) col-idx))))))
-                        (.setCellFactory (proxy [javafx.util.Callback] []
-                                           (call [tcol]
-                                             (proxy [TableCell] []
-                                               (updateItem [item empty?]
-                                                 (let [^TableCell this this]
-                                                   (proxy-super updateItem item empty?)
-                                                   (if empty?
+                      (let [col (doto (TableColumn. col-text)
+                                  (.setCellValueFactory (proxy [javafx.util.Callback] []
+                                                          (call [^TableColumn$CellDataFeatures cell-val]
+                                                            (proxy [ObservableValue] []
+                                                              (addListener [_])
+                                                              (removeListener [_])
+                                                              (getValue []
+                                                                (get (.getValue cell-val) col-idx))))))
+                                  (.setCellFactory (proxy [javafx.util.Callback] []
+                                                     (call [tcol]
+                                                       (proxy [TableCell] []
+                                                         (updateItem [item empty?]
+                                                           (let [^TableCell this this]
+                                                             (proxy-super updateItem item empty?)
+                                                             (if empty?
 
-                                                     (doto this
-                                                       (.setGraphic nil)
-                                                       (.setText nil))
+                                                               (doto this
+                                                                 (.setGraphic nil)
+                                                                 (.setText nil))
 
-                                                     (let [cell-graphic (cell-factory-fn this item)]
-                                                       (doto this
-                                                         (.setText nil)
-                                                         (.setGraphic cell-graphic))))))))))))
+                                                               (let [cell-graphic (cell-factory-fn this item)]
+                                                                 (doto this
+                                                                   (.setText nil)
+                                                                   (.setGraphic cell-graphic)))))))))))]
+                        (when (seq columns-width-percs)
+                          (.bind (.prefWidthProperty col)
+                                 (-> tv .widthProperty (.multiply (get columns-width-percs col-idx)))))
+                        col))
 
         columns (map-indexed make-column columns)
         table-selection (.getSelectionModel tv)
@@ -507,6 +512,7 @@
                                  :constrained TableView/CONSTRAINED_RESIZE_POLICY))
     (HBox/setHgrow search-field Priority/ALWAYS)
     (HBox/setHgrow tv Priority/ALWAYS)
+    (VBox/setVgrow tv Priority/ALWAYS)
 
     (case selection-mode
       :multiple (.setSelectionMode table-selection SelectionMode/MULTIPLE)
@@ -639,6 +645,12 @@
                      fqfn)]
      (set-clipboard clip-text))))
 
+(defn ask-text-dialog [{:keys [header body]}]
+  (let [tdiag (doto (TextInputDialog.)
+                (.setHeaderText header)
+                (.setContentText body))]
+    (.showAndWait tdiag)
+    (-> tdiag .getEditor .getText)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;

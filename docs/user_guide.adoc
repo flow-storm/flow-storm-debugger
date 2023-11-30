@@ -715,7 +715,7 @@ You can use it to step over each expression, visualize values, locals and more.
 image::user_guide_images/controls.png[]
 
 The numbers at the center show `current_step_index / total_steps`. This means that a total of `total_steps` has been recorded
-for this thread so far.
+for this thread so far. The buttons right next to it control the <<#_bookmarks, bookmarking system>>
 
 Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
 positions you find and then use this text box to jump back to it if you need.
@@ -829,6 +829,21 @@ You can configure the print-level and print-meta for the pretty printing by usin
 Use the `def` button to define a var pointing to the current inspector value.
 
 You can use / to provide a namespace, otherwise will be defined under [cljs.]user
+
+==== Bookmarks
+
+Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
+you to mark execution positions so you can come back to them later.
+
+image::user_guide_images/bookmarks_controls.png[]
+
+You can bookmark the current position by pressing the bookmark button on the left. It will ask you the bookmark description.
+
+Use the button on the right to open the bookmarks panel.
+
+image::user_guide_images/bookmarks.png[]
+
+Double clicking on any bookmark will make the debugger jump back to it's position.
 
 ==== Re running a flow
 

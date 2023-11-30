@@ -47,10 +47,12 @@
 (s/def :thread.ui.callstack-tree-hidden-fns/ref (s/keys :req-un [:flow-storm/fn-name
                                                                  :flow-storm/fn-ns]))
 (s/def :thread.ui/callstack-tree-hidden-fns (s/coll-of :thread.ui.callstack-tree-hidden-fns/ref))
+(s/def :thread/bookmarks (s/map-of int? string?))
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry]
                             :opt [:thread/curr-frame
-                                  :thread.ui/callstack-tree-hidden-fns]))
+                                  :thread.ui/callstack-tree-hidden-fns
+                                  :thread/bookmarks]))
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
 (s/def :flow/id (s/nilable int?))
@@ -409,6 +411,19 @@
                                            (assoc ret [fid tid oid] o)))
                                        {}
                                        objs)))))))
+
+;;;;;;;;;;;;;;;
+;; Bookmarks ;;
+;;;;;;;;;;;;;;;
+
+(defn add-bookmark [flow-id thread-id idx text]
+  (swap! state assoc-in [:flows flow-id :flow/threads thread-id :thread/bookmarks idx] text))
+
+(defn remove-bookmark [flow-id thread-id idx]
+  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/bookmarks] dissoc idx))
+
+(defn all-bookmarks [flow-id thread-id]
+  (get-in @state [:flows flow-id :flow/threads thread-id :thread/bookmarks]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pending tasks sub-system ;;

@@ -12,16 +12,14 @@
            [javafx.stage Stage]
            [javafx.scene.layout VBox HBox Priority]
            [javafx.geometry Orientation]
-           [javafx.scene.control TextInputDialog SplitPane]))
+           [javafx.scene.control SplitPane]))
 
 (declare create-value-pane)
 
 (defn def-val [val]
-  (let [tdiag (doto (TextInputDialog.)
-                (.setHeaderText "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user ")
-                (.setContentText "Var name :"))
-        _ (.showAndWait tdiag)
-        val-name (-> tdiag .getEditor .getText)]
+  (let [val-name (ui-utils/ask-text-dialog
+                  {:header "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user "
+                   :body "Var name :"})]
     (when-not (str/blank? val-name)
       (runtime-api/def-value rt-api (symbol val-name) val))))
 

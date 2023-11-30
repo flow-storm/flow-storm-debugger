@@ -718,6 +718,7 @@ pre.rouge {
 <li><a href="#_locals">Locals</a></li>
 <li><a href="#_stack">Stack</a></li>
 <li><a href="#_value_panels">Value panels</a></li>
+<li><a href="#_bookmarks">Bookmarks</a></li>
 <li><a href="#_re_running_a_flow">Re running a flow</a></li>
 </ul>
 </li>
@@ -1892,7 +1893,7 @@ You can use it to step over each expression, visualize values, locals and more.<
 </div>
 <div class="paragraph">
 <p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
-for this thread so far.</p>
+for this thread so far. The buttons right next to it control the <a href="#_bookmarks">bookmarking system</a></p>
 </div>
 <div class="paragraph">
 <p>Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
@@ -2111,6 +2112,32 @@ there will be gaps.</p>
 <div class="paragraph">
 <p>You can use / to provide a namespace, otherwise will be defined under [cljs.]user</p>
 </div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_bookmarks"><a class="anchor" href="#_bookmarks"></a><a class="link" href="#_bookmarks">Bookmarks</a></h5>
+<div class="paragraph">
+<p>Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
+you to mark execution positions so you can come back to them later.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/bookmarks_controls.png" alt="bookmarks controls">
+</div>
+</div>
+<div class="paragraph">
+<p>You can bookmark the current position by pressing the bookmark button on the left. It will ask you the bookmark description.</p>
+</div>
+<div class="paragraph">
+<p>Use the button on the right to open the bookmarks panel.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/bookmarks.png" alt="bookmarks">
+</div>
+</div>
+<div class="paragraph">
+<p>Double clicking on any bookmark will make the debugger jump back to it&#8217;s position.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3401,7 +3428,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-17 08:40:51 -0300
+Last updated 2023-11-30 10:20:49 -0300
 </div>
 </div>
 </body>

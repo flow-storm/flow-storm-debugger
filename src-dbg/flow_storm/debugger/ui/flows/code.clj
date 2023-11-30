@@ -5,6 +5,7 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box border-pane]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
+            [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup subscribe-to-task-event]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [hansel.utils :refer [get-form-at-coord]])
@@ -478,14 +479,18 @@
 
 
 (defn- power-stepping-pane [flow-id thread-id]
-  (let [custom-expression-txt (doto (text-field {:initial-text "(fn [v] v)"})
-                                (.setVisible false))
+  (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
+        show-custom-field (fn [show?]
+                            (doto custom-expression-txt
+                              (.setVisible show?)
+                              (.setPrefWidth (if show? 200 0))))
+        _ (show-custom-field false)
         step-type-combo (combo-box {:items ["identity" "equality" "custom"]
                                     :on-change-fn (fn [_ new-val]
                                                     (case new-val
-                                                      "identity" (.setVisible custom-expression-txt false)
-                                                      "equality" (.setVisible custom-expression-txt false)
-                                                      "custom"   (.setVisible custom-expression-txt true)))})
+                                                      "identity" (show-custom-field false)
+                                                      "equality" (show-custom-field false)
+                                                      "custom"   (show-custom-field true)))})
         search-params (fn []
                         (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)]
                           (case step-type-val
@@ -504,6 +509,36 @@
                               (.setSpacing 3))]
     power-stepping-pane))
 
+(defn- trace-pos-pane [flow-id thread-id]
+  (let [curr-trace-text-field (doto (text-field {:initial-text "1"
+                                                 :on-return-key (fn [idx-str]
+                                                                  (let [target-idx (dec (Long/parseLong idx-str))
+                                                                        target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
+                                                                    (jump-to-coord flow-id thread-id target-tentry)))
+                                                 :align :right})
+                                (.setPrefWidth 80))
+        separator-lbl (label "/")
+        thread-trace-count-lbl (label "?")
+        open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
+                                            :on-click (fn []
+                                                        (bookmarks/show-bookmarks flow-id thread-id))
+                                       :tooltip "Open bookmarks")
+        bookmark-btn (ui-utils/icon-button :icon-name "mdi-bookmark"
+                                           :on-click (fn []
+                                                       (bookmarks/bookmark-add
+                                                        flow-id
+                                                        thread-id
+                                                        (dbg-state/current-idx flow-id thread-id)))
+                                           :tooltip "Bookmark the current position")]
+
+
+    (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
+    (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
+
+    (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl
+                  bookmark-btn open-book-btn] "trace-position-box")
+      (.setSpacing 2.0))))
+
 (defn- create-thread-controls-pane [flow-id thread-id]
   (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
                                         :on-click (fn [] (step-first flow-id thread-id))
@@ -520,18 +555,6 @@
                                                   (step-out flow-id thread-id))
                                       :tooltip "Step to the parent first expression")
 
-        curr-trace-text-field (doto (text-field {:initial-text "1"
-                                                 :on-return-key (fn [idx-str]
-                                                                  (let [target-idx (dec (Long/parseLong idx-str))
-                                                                        target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
-                                                                    (jump-to-coord flow-id thread-id target-tentry)))
-                                                 :align :right})
-                                (.setPrefWidth 80))
-
-        separator-lbl (label "/")
-        thread-trace-count-lbl (label "?")
-        _ (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
-        _ (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
@@ -555,17 +578,13 @@
                                                                                                                   :ns (:ns execution-expr)})))
                                               :disable (not execution-expression?))
 
-
-        trace-pos-box (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl] "trace-position-box")
-                        (.setSpacing 2.0))
         controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn])
                        (.setSpacing 2.0))]
 
     (border-pane {:left controls-box
-                  :center trace-pos-box
+                  :center (trace-pos-pane flow-id thread-id)
                   :right (power-stepping-pane flow-id thread-id)}
-                 "thread-controls-pane")
-    ))
+                 "thread-controls-pane")))
 
 (defn- create-search-pane [flow-id thread-id]
   (let [search-txt (doto (TextField.)
