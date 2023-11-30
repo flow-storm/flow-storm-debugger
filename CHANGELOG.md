@@ -5,7 +5,8 @@
 ### New Features 
 
     - Add a bookmarking system
-            
+    - Add navigation undo/redo system
+    
 ### Changes
     
 ### Bugs fixed

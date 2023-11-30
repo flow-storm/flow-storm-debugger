@@ -419,7 +419,8 @@
       (when changing-frame?
         (dbg-state/set-current-frame flow-id thread-id next-frame))
 
-      (dbg-state/set-current-timeline-entry flow-id thread-id next-tentry))
+      (dbg-state/set-current-timeline-entry flow-id thread-id next-tentry)
+      (dbg-state/update-nav-history flow-id thread-id next-tentry))
     (catch Throwable e
       (utils/log-error (str "Error jumping into " flow-id " " thread-id " " next-tentry) e))))
 
@@ -509,6 +510,14 @@
                               (.setSpacing 3))]
     power-stepping-pane))
 
+(defn undo-jump [flow-id thread-id]
+  (binding [dbg-state/*undo-redo-jump* true]
+    (jump-to-coord flow-id thread-id (dbg-state/undo-nav-history flow-id thread-id))))
+
+(defn redo-jump [flow-id thread-id]
+  (binding [dbg-state/*undo-redo-jump* true]
+    (jump-to-coord flow-id thread-id (dbg-state/redo-nav-history flow-id thread-id))))
+
 (defn- trace-pos-pane [flow-id thread-id]
   (let [curr-trace-text-field (doto (text-field {:initial-text "1"
                                                  :on-return-key (fn [idx-str]
@@ -529,14 +538,22 @@
                                                         flow-id
                                                         thread-id
                                                         (dbg-state/current-idx flow-id thread-id)))
-                                           :tooltip "Bookmark the current position")]
+                                           :tooltip "Bookmark the current position")
+        undo-nav-btn (ui-utils/icon-button :icon-name "mdi-undo"
+                                           :on-click (fn [] (undo-jump flow-id thread-id))
+                                           :tooltip "Undo navigation")
+        redo-nav-btn (ui-utils/icon-button :icon-name "mdi-redo"
+                                           :on-click (fn [] (redo-jump flow-id thread-id))
+                                           :tooltip "Redo navigation")]
 
 
     (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
     (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
 
     (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl
-                  bookmark-btn open-book-btn] "trace-position-box")
+                  undo-nav-btn redo-nav-btn
+                  bookmark-btn open-book-btn]
+                 "trace-position-box")
       (.setSpacing 2.0))))
 
 (defn- create-thread-controls-pane [flow-id thread-id]

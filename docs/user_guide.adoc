@@ -714,12 +714,6 @@ You can use it to step over each expression, visualize values, locals and more.
 
 image::user_guide_images/controls.png[]
 
-The numbers at the center show `current_step_index / total_steps`. This means that a total of `total_steps` has been recorded
-for this thread so far. The buttons right next to it control the <<#_bookmarks, bookmarking system>>
-
-Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
-positions you find and then use this text box to jump back to it if you need.
-
 The code tool allows you to step and "travel thought time" in two ways:
 
 - You can use the controls at the top to step over your code in different ways.
@@ -738,6 +732,11 @@ From left to right this are the controls you have available :
 - Step forward, will step forward in time going into sub functions.
 - Step over forward, will make one step forwards always staying on the same frame.
 - Jump to the last step of the recording.
+
+The numbers at the center show `current_step_index / total_steps`. This means that a total of `total_steps` has been recorded
+for this thread so far. The buttons right next to it control undo/redo of the navigation system and the <<#_bookmarks, bookmarking system>>.
+
+Write any number (less than total_steps) on the text box to jump into that position in time.
 
 ==== Power stepping
 
@@ -1530,6 +1529,8 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 - `>` Step last
 - `Ctrl-f` Copy current function symbol
 - `Ctrl-Shift-f` Copy current function call form
+- `Ctrl-z` Undo navigation
+- `Ctrl-r` Redo navigation
 
 == Debugging react native applications
 

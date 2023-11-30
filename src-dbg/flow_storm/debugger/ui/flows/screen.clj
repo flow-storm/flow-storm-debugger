@@ -64,6 +64,7 @@
         (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
         (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
         (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
+
         (= key-txt "P") (flow-code/step-prev-over flow-id thread-id)
         (= key-txt "p") (flow-code/step-prev flow-id thread-id)
         (= key-txt "n") (flow-code/step-next flow-id thread-id)
@@ -73,7 +74,10 @@
         (= key-txt ">") (flow-code/step-last flow-id thread-id)
 
         (and shift? ctrl? (= key-name "F")) (copy-current-frame-symbol flow-id thread-id true)
-        (and ctrl? (= key-name "F"))        (copy-current-frame-symbol flow-id thread-id false))))))
+        (and ctrl? (= key-name "F"))        (copy-current-frame-symbol flow-id thread-id false)
+
+        (and ctrl? (= key-name "Z")) (flow-code/undo-jump flow-id thread-id)
+        (and ctrl? (= key-name "R")) (flow-code/redo-jump flow-id thread-id))))))
 
 (defn open-thread [thread-info]
   (let [flow-id (:flow/id thread-info)

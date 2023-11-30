@@ -1892,14 +1892,6 @@ You can use it to step over each expression, visualize values, locals and more.<
 </div>
 </div>
 <div class="paragraph">
-<p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
-for this thread so far. The buttons right next to it control the <a href="#_bookmarks">bookmarking system</a></p>
-</div>
-<div class="paragraph">
-<p>Write any number (less than total_steps) on the text box to jump into that position in time. When jumping around you can write down any interesting
-positions you find and then use this text box to jump back to it if you need.</p>
-</div>
-<div class="paragraph">
 <p>The code tool allows you to step and "travel thought time" in two ways:</p>
 </div>
 <div class="ulist">
@@ -1945,6 +1937,13 @@ positions you find and then use this text box to jump back to it if you need.</p
 <p>Jump to the last step of the recording.</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
+for this thread so far. The buttons right next to it control undo/redo of the navigation system and the <a href="#_bookmarks">bookmarking system</a>.</p>
+</div>
+<div class="paragraph">
+<p>Write any number (less than total_steps) on the text box to jump into that position in time.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3186,6 +3185,12 @@ distinguish between multiple debugger instances.</p>
 <li>
 <p><code>Ctrl-Shift-f</code> Copy current function call form</p>
 </li>
+<li>
+<p><code>Ctrl-z</code> Undo navigation</p>
+</li>
+<li>
+<p><code>Ctrl-r</code> Redo navigation</p>
+</li>
 </ul>
 </div>
 </div>
@@ -3428,7 +3433,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-30 10:20:49 -0300
+Last updated 2023-11-30 14:50:05 -0300
 </div>
 </div>
 </body>

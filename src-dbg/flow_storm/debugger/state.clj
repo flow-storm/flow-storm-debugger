@@ -48,8 +48,14 @@
                                                                  :flow-storm/fn-ns]))
 (s/def :thread.ui/callstack-tree-hidden-fns (s/coll-of :thread.ui.callstack-tree-hidden-fns/ref))
 (s/def :thread/bookmarks (s/map-of int? string?))
+
+(s/def :navigation-history/history (s/coll-of :flow-storm/timeline-entry))
+(s/def :thread/navigation-history (s/keys :req-un [:navigation-history/head-pos
+                                                   :navigation-history/history]))
+
 (s/def :flow/thread (s/keys :req [:thread/id
-                                  :thread/curr-timeline-entry]
+                                  :thread/curr-timeline-entry
+                                  :thread/navigation-history]
                             :opt [:thread/curr-frame
                                   :thread.ui/callstack-tree-hidden-fns
                                   :thread/bookmarks]))
@@ -259,7 +265,10 @@
   (swap! state assoc-in [:flows flow-id :flow/threads thread-id]
          {:thread/id thread-id
           :thread/curr-timeline-entry nil
-          :thread/callstack-tree-hidden-fns #{}}))
+          :thread/callstack-tree-hidden-fns #{}
+          :thread/navigation-history {:head-pos 0
+                                      :history [{:fn-call-idx -1 ;; dummy entry
+                                                 :idx         -1}]}}))
 
 (defn get-thread [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id]))
@@ -435,6 +444,63 @@
 (defn dispatch-task-event [event-key task-id data]
   (when-let [cb (get-in @state [:pending-tasks-subscriptions [event-key task-id]])]
     (cb data)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Navigation undo system ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def ^:dynamic *undo-redo-jump* false)
+
+(defn update-nav-history
+
+  "Add to nav history if we are jumping to a different frame,
+  else update the head idx. If the head is not at the end, redo history
+  will be discarded."
+
+  [flow-id thread-id {:keys [fn-call-idx idx] :as tentry}]
+  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/navigation-history]
+         (fn [nav-hist]
+           (let [{:keys [history head-pos] :as nav-hist} (if (and (not *undo-redo-jump*)
+                                                                  (< (:head-pos nav-hist) (dec (count (:history nav-hist)))))
+                                                           (-> nav-hist
+                                                               (update :history subvec 0 (:head-pos nav-hist))
+                                                               (update :head-pos dec))
+                                                           nav-hist)
+                 changing-frames? (not= fn-call-idx (get-in history [head-pos :fn-call-idx]))]
+             (if changing-frames?
+               (-> nav-hist
+                   (update :history conj tentry)
+                   (update :head-pos inc))
+
+               (assoc-in nav-hist [:history head-pos] tentry))))))
+
+(defn current-nav-history-entry [flow-id thread-id]
+  (let [{:keys [history head-pos]} (get-in @state [:flows flow-id :flow/threads thread-id :thread/navigation-history])]
+    (get history head-pos)))
+
+(defn undo-nav-history
+
+  "Move the nav history head back and return it's idx."
+
+  [flow-id thread-id]
+  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/navigation-history :head-pos]
+         (fn [p]
+           (if (> p 1)
+             (dec p)
+             p)))
+  (current-nav-history-entry flow-id thread-id))
+
+(defn redo-nav-history
+
+  "Move the nav history head forward and return it's idx."
+
+  [flow-id thread-id]
+  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/navigation-history]
+         (fn [{:keys [history head-pos] :as h}]
+           (assoc h :head-pos (if (< (inc head-pos) (count history))
+                                (inc head-pos)
+                                head-pos))))
+  (current-nav-history-entry flow-id thread-id))
 
 ;;;;;;;;;;;
 ;; Other ;;
