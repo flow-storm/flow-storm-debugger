@@ -784,7 +784,7 @@ pre.rouge {
 <ul class="sectlevel3">
 <li><a href="#_instrument_verbose">25.1. Instrument verbose</a></li>
 <li><a href="#_run_verbose">25.2. Run verbose</a></li>
-<li><a href="#_ui_doesnt_work_on_macos">25.3. UI doesn&#8217;t work on MacOs</a></li>
+<li><a href="#_run_with_jdk_11">25.3. Run with JDK 11</a></li>
 </ul>
 </li>
 <li><a href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></li>
@@ -818,7 +818,7 @@ pre.rouge {
 <div class="ulist">
 <ul>
 <li>
-<p>jdk &gt;= 11</p>
+<p>jdk &gt;= 17 (if you still need to run it with jdk11 take a look at <a href="#_run_with_jdk_11">here</a>)</p>
 </li>
 <li>
 <p>Clojure &gt;= 1.10.0</p>
@@ -884,22 +884,6 @@ clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="
 <p>Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
 but it will be cached unless you run with -Sforce.
 It is much safer to just write the latest versions. Check out  the <a href="https://github.com/flow-storm/flow-storm-debugger/">github page</a> for the latest stable releases.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using MacOS</div>
-<div class="paragraph">
-<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
 </div>
 </td>
 </tr>
@@ -1034,22 +1018,6 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 
 </span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span><span class="w"> </span><span class="c1">;; will run the debugger GUI and get everything ready</span></code></pre>
 </div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using MacOS</div>
-<div class="paragraph">
-<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>You should now see a empty debugger window.</p>
@@ -1238,22 +1206,6 @@ when your need it, run the debugger ui with your shadow-cljs.edn data :</p>
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app</code></pre>
 </div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using MacOS</div>
-<div class="paragraph">
-<p>There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <a href="#_ui_doesnt_work_on_macos">here</a>.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>Now since we started the app with <code>flowstorm.startRecording=false</code> you will have to click on the record button once to start recording.
@@ -3351,57 +3303,20 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_ui_doesnt_work_on_macos"><a class="anchor" href="#_ui_doesnt_work_on_macos"></a><a class="link" href="#_ui_doesnt_work_on_macos">25.3. UI doesn&#8217;t work on MacOs</a></h4>
+<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">25.3. Run with JDK 11</a></h4>
 <div class="paragraph">
-<p>There are reports of people running into issues when trying to start the FlowStorm UI on Mac OS, that looks like this :</p>
+<p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
+</div>
+<div class="paragraph">
+<p>If that is the case add this dependencies to your alias :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>user=&gt; :dbg
-
-2023-10-25 12:45:42.828 java[20967:14795350] WARNING: Secure coding is automatically enabled for restorable state! However, not on all supported macOS versions of this application.
-Opt-in to secure coding explicitly by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState:.
-
-Oct 25, 2023 12:45:42 PM com.sun.javafx.application.PlatformImpl startup
-
-WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @5b2c883c'
-
-Waiting for full system start before dispatching events
-
-2023-10-25 12:45:43.526 java[20967:14795350] Assertion failure in -[_NSTrackingAreaAKViewHelper removeTrackingRect:], _NSTrackingAreaAKManager.m:1713
-
-Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: '0x0 is an invalid NSTrackingRectTag.
-Common possible reasons for this are: 1. already removed this trackingRectTag, 2. Truncated the NSTrackingRectTag to 32bit at some point.'
- ....</pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">org.openjfx/javafx-controls</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"19.0.2"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-base</span><span class="w">     </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"19.0.2"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-graphics</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"19.0.2"</span><span class="p">}</span><span class="w">
+</span><span class="n">org.openjfx/javafx-swing</span><span class="w">    </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"19.0.2"</span><span class="p">}</span></code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>This is because of an incompatibility between some versions of Mac OS, JavaFX and openJDK.</p>
-</div>
-<div class="paragraph">
-<p>Luckily there are a couple of solutions :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>moving to <a href="https://adoptium.net/installation/">temurin</a> seems to solve it</p>
-</li>
-<li>
-<p>or if you are on Jdk &gt;= 17 you can add the following dependencies to your alias</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">org.openjfx/javafx-controls</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
-</span><span class="n">org.openjfx/javafx-base</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
-</span><span class="n">org.openjfx/javafx-graphics</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span><span class="w">
-</span><span class="n">org.openjfx/javafx-swing</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"22-ea+11"</span><span class="p">}</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>So the issue seams to be fixed in the latest version of openjfx, the problem is that the latest version only
-works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.</p>
 </div>
 </div>
 </div>
@@ -3433,7 +3348,7 @@ works with jdk &gt;= 17, and I think we still have a bunch of people on jdk 11.<
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-11-30 14:50:05 -0300
+Last updated 2023-12-07 10:54:44 -0300
 </div>
 </div>
 </body>

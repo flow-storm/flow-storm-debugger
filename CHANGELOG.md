@@ -8,6 +8,9 @@
     - Add navigation undo/redo system
     
 ### Changes
+
+    - Upgrade JavaFX to 21.0.1
+    - Push minimal supported JDK version to 17 with a path for using it with 11
     
 ### Bugs fixed
 

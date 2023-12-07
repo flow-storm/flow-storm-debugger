@@ -38,7 +38,7 @@ ClojureScriptStorm latest stable releases :
 
 # Prerequisites
 
-  - jdk11+
+  - jdk17+ (if you still need to run it with jdk11 take a look at [here](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_run_with_jdk_11))
   - clojure 1.11.0+
   - clojure 1.10.* only supported if you use it from source, like `{:git/url "https://github.com/flow-storm/flow-storm-debugger" :git/sha "..."}`
 

@@ -23,7 +23,7 @@ Before you start check _FlowStorm_ minimum requirements.
 [IMPORTANT]
 .Minimum requirements
 ====
-	- jdk >= 11
+	- jdk >= 17 (if you still need to run it with jdk11 take a look at <<#_run_with_jdk_11,here>>)
 	- Clojure >= 1.10.0
 ====
 
@@ -64,14 +64,6 @@ Be careful when using RELEASE as maven versions, since the first time is going t
 but it will be cached unless you run with -Sforce.
 It is much safer to just write the latest versions. Check out  the https://github.com/flow-storm/flow-storm-debugger/[github page] for the latest stable releases.
 ====
-
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
-
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
@@ -160,13 +152,6 @@ user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to r
 
 user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
 ----
-
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
 
 You should now see a empty debugger window.
 
@@ -291,13 +276,6 @@ when your need it, run the debugger ui with your shadow-cljs.edn data :
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
 ----
-
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
 
 Now since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
 Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger
@@ -1615,46 +1593,19 @@ The first argument is a options map, which accepts `:verbose? :true`, in which c
 
 Is useful when you have instrumented a big application and wish to see tracing progress while running.
 
-=== UI doesn't work on MacOs
+=== Run with JDK 11
 
-There are reports of people running into issues when trying to start the FlowStorm UI on Mac OS, that looks like this :
+FlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.
 
-----
-user=> :dbg
-
-2023-10-25 12:45:42.828 java[20967:14795350] WARNING: Secure coding is automatically enabled for restorable state! However, not on all supported macOS versions of this application.
-Opt-in to secure coding explicitly by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState:.
-
-Oct 25, 2023 12:45:42 PM com.sun.javafx.application.PlatformImpl startup
-
-WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @5b2c883c'
-
-Waiting for full system start before dispatching events
-
-2023-10-25 12:45:43.526 java[20967:14795350] Assertion failure in -[_NSTrackingAreaAKViewHelper removeTrackingRect:], _NSTrackingAreaAKManager.m:1713
-
-Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: '0x0 is an invalid NSTrackingRectTag.
-Common possible reasons for this are: 1. already removed this trackingRectTag, 2. Truncated the NSTrackingRectTag to 32bit at some point.'
- ....
-----
-
-This is because of an incompatibility between some versions of Mac OS, JavaFX and openJDK.
-
-Luckily there are a couple of solutions :
-
-- moving to https://adoptium.net/installation/[temurin] seems to solve it
-- or if you are on Jdk >= 17 you can add the following dependencies to your alias
+If that is the case add this dependencies to your alias :
 
 [,clojure]
 ----
-org.openjfx/javafx-controls {:mvn/version "22-ea+11"}
-org.openjfx/javafx-base {:mvn/version "22-ea+11"}
-org.openjfx/javafx-graphics {:mvn/version "22-ea+11"}
-org.openjfx/javafx-swing {:mvn/version "22-ea+11"}
+org.openjfx/javafx-controls {:mvn/version "19.0.2"}
+org.openjfx/javafx-base     {:mvn/version "19.0.2"}
+org.openjfx/javafx-graphics {:mvn/version "19.0.2"}
+org.openjfx/javafx-swing    {:mvn/version "19.0.2"}
 ----
-
-So the issue seams to be fixed in the latest version of openjfx, the problem is that the latest version only
-works with jdk >= 17, and I think we still have a bunch of people on jdk 11.
 
 == Internals, diagrams and documentation
 
