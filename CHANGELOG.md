@@ -14,6 +14,7 @@
     - Improve keyboard event handling system to support different layouts
     - Improve following current selected expression
     - Remove double scrolling in code panes
+    - Make code stack pane jump a double-click
     
 ### Bugs fixed
 

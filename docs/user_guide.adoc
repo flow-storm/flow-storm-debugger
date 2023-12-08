@@ -789,7 +789,7 @@ there will be gaps.
 
 image::user_guide_images/stack.png[]
 
-Clicking on any of the stack entries will make the debugger jump to that point in time.
+Double clicking on any of the stack entries will make the debugger jump to that point in time.
 
 ==== Value panels
 

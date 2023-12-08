@@ -289,7 +289,8 @@
                                                      "link-lbl")))
         item-click (fn [mev selected-items _]
                      (let [{:keys [fn-call-idx]} (first selected-items)]
-                       (when (= MouseButton/PRIMARY (.getButton mev))
+                       (when (and (= MouseButton/PRIMARY (.getButton mev))
+                                  (= 2 (.getClickCount mev)))
                          (jump-to-coord flow-id
                                         thread-id
                                         (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)))))
