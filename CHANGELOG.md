@@ -17,6 +17,8 @@
     
 ### Bugs fixed
 
+    - Fix "Add to prints" not showing on Vanilla
+    
 ## 3.8.6 (17-11-2023)
 	
 ### New Features 

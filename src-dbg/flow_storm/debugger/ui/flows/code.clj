@@ -98,7 +98,7 @@
   will repaint and arm the form-code-area with the interesting and currently executing tokens.
   All interesting tokens will be clickable."
 
-  [flow-id thread-id ^CodeArea form-code-area print-tokens]
+  [flow-id thread-id form ^CodeArea form-code-area print-tokens]
   (let [[thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")]
     (fn [expr-executions curr-coord]
       (let [interesting-coords (group-by :coord expr-executions)
@@ -141,9 +141,26 @@
                                     (when-let [coord (:coord clicked-span)]
                                       (let [clicked-coord-exprs (get interesting-coords coord)
                                             last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
+
                                             token-right-click-menu (ui-utils/make-context-menu
-                                                                    [{:text "Add to prints"
-                                                                      :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}])]
+                                                                    (cond-> [{:text "Add to prints"
+                                                                              :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
+
+                                                                      (not (dbg-state/clojure-storm-env?))
+                                                                      (into [{:text "Fully instrument this form"
+                                                                              :on-click (fn []
+                                                                                          (runtime-api/eval-form rt-api
+                                                                                                                 (pr-str (:form/form form))
+                                                                                                                 {:instrument? true
+                                                                                                                  :ns (:form/ns form)}))}
+                                                                             {:text "Instrument this form without bindings"
+                                                                              :on-click (fn []
+                                                                                          (runtime-api/eval-form rt-api
+                                                                                                                 (pr-str (:form/form form))
+                                                                                                                 {:instrument? true
+                                                                                                                  :instrument-options {:disable #{:bind}}
+                                                                                                                  :ns (:form/ns form)}))}])))]
+
                                         (if (= MouseButton/SECONDARY (.getButton mev))
                                           (.show token-right-click-menu
                                                  form-code-area
@@ -190,13 +207,9 @@
         ^CodeArea form-code-area (ui-utils/code-area {:editable? false
                                                       :text code-text})
 
-        ;; ^VirtualizedScrollPane form-scroll (ui-utils/virtualized-scroll-pane
-        ;;                                     form-code-area
-        ;;                                     {:max-height 800})
+        form-pane (v-box [form-header form-code-area] "form-pane")
 
-        form-pane (v-box [form-header form-code-area #_form-scroll] "form-pane")
-
-        form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form-code-area print-tokens)]
+        form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form form-code-area print-tokens)]
 
     ;; The code area when focused will capture all keyboard events, so we
     ;; re-fire them so they can be handled up in the chain
@@ -309,31 +322,8 @@
         [form-pane]          (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))
 
         ;; if the form we are about to highlight doesn't exist in the view add it first
-        form-pane (or form-pane (add-form form flow-id thread-id form-id))
-        ctx-menu-options [{:text "Fully instrument this form"
-                           :on-click (fn []
-                                       (runtime-api/eval-form rt-api
-                                                              (pr-str (:form/form form))
-                                                              {:instrument? true
-                                                               :ns (:form/ns form)}))}
-                          {:text "Instrument this form without bindings"
-                           :on-click (fn []
-                                       (runtime-api/eval-form rt-api
-                                                              (pr-str (:form/form form))
-                                                              {:instrument? true
-                                                               :instrument-options {:disable #{:bind}}
-                                                               :ns (:form/ns form)}))}]
-        ctx-menu (ui-utils/make-context-menu ctx-menu-options)]
+        form-pane (or form-pane (add-form form flow-id thread-id form-id))]
 
-    (.setOnMouseClicked ^Node form-pane
-                        (event-handler
-                         [mev]
-                         (when (and (= MouseButton/SECONDARY (.getButton mev))
-                                    (not (dbg-state/clojure-storm-env?)))
-                           (.show ctx-menu
-                                  form-pane
-                                  (.getScreenX mev)
-                                  (.getScreenY mev)))))
     (ui-utils/add-class form-pane "form-background-highlighted")))
 
 (defn un-highlight-form-tokens [flow-id thread-id form-id]
