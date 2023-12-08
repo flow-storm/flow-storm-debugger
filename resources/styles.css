@@ -20,6 +20,15 @@
 	-fx-background-color: linear-gradient(to top, -fx-base, derive(-fx-base,30%));
 }
 
+.tab {
+    -fx-opacity: 0.5;
+    -fx-text-fill: -fx-theme-button1-text;
+}
+
+.tab: selected {
+        -fx-opacity: 1;
+}
+
 .vertical-tab:selected {
 	-fx-background-color: -fx-theme-selected-main-tools-tab-background;
 }
