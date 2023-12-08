@@ -18,6 +18,7 @@
 ### Bugs fixed
 
     - Fix "Add to prints" not showing on Vanilla
+    - Enter on time box focus the code
     
 ## 3.8.6 (17-11-2023)
 	

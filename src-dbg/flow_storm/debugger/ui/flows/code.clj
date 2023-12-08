@@ -501,9 +501,11 @@
 (defn- trace-pos-pane [flow-id thread-id]
   (let [curr-trace-text-field (doto (text-field {:initial-text "1"
                                                  :on-return-key (fn [idx-str]
-                                                                  (let [target-idx (dec (Long/parseLong idx-str))
+                                                                  (let [[forms-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
+                                                                        target-idx (dec (Long/parseLong idx-str))
                                                                         target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
-                                                                    (jump-to-coord flow-id thread-id target-tentry)))
+                                                                    (jump-to-coord flow-id thread-id target-tentry)
+                                                                    (.requestFocus forms-scroll-pane)))
                                                  :align :right})
                                 (.setPrefWidth 80))
         separator-lbl (label "/")
