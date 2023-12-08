@@ -14,7 +14,7 @@
            [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
-           [javafx.scene.input KeyCode MouseButton ScrollEvent]
+           [javafx.scene.input KeyCode MouseButton ScrollEvent KeyEvent]
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.richtext.model StyleSpansBuilder]
            [javafx.scene.input MouseEvent]
@@ -191,6 +191,14 @@
         form-pane (v-box [form-header form-scroll] "form-pane")
 
         form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form-code-area print-tokens)]
+
+    ;; The code area when focused will capture all keyboard events, so we
+    ;; re-fire them so they can be handled up in the chain
+    (.addEventFilter form-code-area
+                     KeyEvent/ANY
+                     (event-handler
+                         [^KeyEvent kev]
+                       (.fireEvent ^Node forms-box (.copyFor kev form-code-area ^Node forms-box))))
 
     ;; This is kind of hacky, but we want to forward all scroll events on the form-code-area
     ;; to the forms_box when it reaches the top or the bottom.

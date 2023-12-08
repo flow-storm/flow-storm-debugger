@@ -4,12 +4,13 @@
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box
+                                                               key-combo-match?]]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
            [javafx.geometry Orientation]
-           [ javafx.beans.value ChangeListener]))
+           [javafx.beans.value ChangeListener]))
 
 (declare create-or-focus-thread-tab)
 
@@ -55,29 +56,26 @@
   (.setOnKeyPressed
    pane
    (event-handler
-    [kev]
-     (let [key-txt (.getText kev)
-           key-name (.getName (.getCode kev))
-           ctrl? (.isControlDown kev)
-           shift? (.isShiftDown kev)]
+       [kev]
+     (let [key-txt (.getText kev)]
        (cond
-        (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
-        (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
-        (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
+         (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
+         (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
+         (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
 
-        (= key-txt "P") (flow-code/step-prev-over flow-id thread-id)
-        (= key-txt "p") (flow-code/step-prev flow-id thread-id)
-        (= key-txt "n") (flow-code/step-next flow-id thread-id)
-        (= key-txt "N") (flow-code/step-next-over flow-id thread-id)
-        (= key-txt "^") (flow-code/step-out flow-id thread-id)
-        (= key-txt "<") (flow-code/step-first flow-id thread-id)
-        (= key-txt ">") (flow-code/step-last flow-id thread-id)
+         (= key-txt "P") (flow-code/step-prev-over flow-id thread-id)
+         (= key-txt "p") (flow-code/step-prev flow-id thread-id)
+         (= key-txt "n") (flow-code/step-next flow-id thread-id)
+         (= key-txt "N") (flow-code/step-next-over flow-id thread-id)
+         (= key-txt "^") (flow-code/step-out flow-id thread-id)
+         (= key-txt "<") (flow-code/step-first flow-id thread-id)
+         (= key-txt ">") (flow-code/step-last flow-id thread-id)
 
-        (and shift? ctrl? (= key-name "F")) (copy-current-frame-symbol flow-id thread-id true)
-        (and ctrl? (= key-name "F"))        (copy-current-frame-symbol flow-id thread-id false)
+         (key-combo-match? kev "f" [:ctrl :shift])  (copy-current-frame-symbol flow-id thread-id true)
+         (key-combo-match? kev "f" [:ctrl])         (copy-current-frame-symbol flow-id thread-id false)
 
-        (and ctrl? (= key-name "Z")) (flow-code/undo-jump flow-id thread-id)
-        (and ctrl? (= key-name "R")) (flow-code/redo-jump flow-id thread-id))))))
+         (key-combo-match? kev "z" [:ctrl]) (flow-code/undo-jump flow-id thread-id)
+         (key-combo-match? kev "r" [:ctrl]) (flow-code/redo-jump flow-id thread-id))))))
 
 (defn open-thread [thread-info]
   (let [flow-id (:flow/id thread-info)

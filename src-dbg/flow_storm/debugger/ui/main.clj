@@ -20,7 +20,8 @@
 
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane]]
+             :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane
+                     key-combo-match?]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
@@ -339,21 +340,20 @@
          (.setOnKeyPressed (event-handler
                             [kev]
                             (let [key-name (.getName (.getCode kev))
-                                  shift? (.isShiftDown kev)
-                                  ctrl? (.isControlDown kev)]
+                                  shift? (.isShiftDown kev)]
 
                               (cond
 
-                                (and ctrl? (= key-name "G"))
+                                (key-combo-match? kev "g" [:ctrl])
                                 (runtime-api/interrupt-all-tasks rt-api)
 
-                                (and ctrl? (= key-name "L"))
+                                (key-combo-match? kev "l" [:ctrl])
                                 (clear-all)
 
-                                (and ctrl? (= key-name "D"))
+                                (key-combo-match? kev "d" [:ctrl])
                                 (toggle-debug-mode)
 
-                                (and ctrl? (= key-name "T"))
+                                (key-combo-match? kev "t" [:ctrl])
                                 (do
                                   (dbg-state/rotate-theme)
                                   (reset-theming @stages))
@@ -369,13 +369,13 @@
                                   (dbg-state/dec-font-size)
                                   (reset-theming @stages))
 
-                                (and ctrl? (= key-name "U"))
+                                (key-combo-match? kev "u" [:ctrl])
                                 (runtime-api/unblock-all-threads rt-api)
 
-                                (and shift? (= key-name "F")) (ui-general/select-main-tools-tab :flows)
-                                (and shift? (= key-name "B")) (ui-general/select-main-tools-tab :browser)
-                                (and shift? (= key-name "T")) (ui-general/select-main-tools-tab :taps)
-                                (and shift? (= key-name "D")) (ui-general/select-main-tools-tab :docs)
+                                (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab :flows)
+                                (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)
+                                (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab :taps)
+                                (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab :docs)
                                 (= key-name "Esc") (flows-screen/select-flow-tab nil)
                                 (= key-name "0")   (flows-screen/select-flow-tab 0)
                                 ))))

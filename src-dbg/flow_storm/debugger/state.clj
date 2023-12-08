@@ -457,7 +457,7 @@
   else update the head idx. If the head is not at the end, redo history
   will be discarded."
 
-  [flow-id thread-id {:keys [fn-call-idx idx] :as tentry}]
+  [flow-id thread-id {:keys [fn-call-idx] :as tentry}]
   (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/navigation-history]
          (fn [nav-hist]
            (let [{:keys [history head-pos] :as nav-hist} (if (and (not *undo-redo-jump*)

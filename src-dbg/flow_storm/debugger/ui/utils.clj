@@ -8,6 +8,7 @@
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
             ComboBox CheckBox TextInputDialog]
+           [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.collections.transformation FilteredList]
@@ -651,6 +652,18 @@
                 (.setContentText body))]
     (.showAndWait tdiag)
     (-> tdiag .getEditor .getText)))
+
+(defn key-combo-match?
+  "Return true if the keyboard event `kev` matches the `key-name` and `modifiers`.
+  `key-name` should be a stirng with the key name.
+  `modifiers` should be a collection of modifiers like :ctrl, :shift"
+  [kev key-name modifiers]
+  (let [mod-k->key-comb (fn [m]
+                          (case m
+                            :shift KeyCombination/SHIFT_DOWN
+                            :ctrl  KeyCombination/CONTROL_DOWN))
+        k (KeyCharacterCombination. key-name  (into-array KeyCombination$Modifier (mapv mod-k->key-comb modifiers)))]
+    (.match k kev)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;
