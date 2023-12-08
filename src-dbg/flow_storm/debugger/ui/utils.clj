@@ -69,7 +69,7 @@
         (.addAll ^objects (into-array Object cm-items)))
     cm))
 
-(defn ensure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node]
+(defn ensure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node y-perc]
   (let [scroll-pane-content (.getContent scroll-pane)
 
         ;; first take the top left corner of the `node` and the `scroll-pane` into scene coordinates
@@ -85,8 +85,10 @@
         pane-w (-> scroll-pane .getContent .getBoundsInLocal .getWidth)
         pane-h (-> scroll-pane .getContent .getBoundsInLocal .getHeight)
 
-        node-min-x-in-content (.getMinX node-bounds-in-content)
-        node-min-y-in-content (.getMinY node-bounds-in-content)
+        node-interesting-x-in-content (.getMinX node-bounds-in-content)
+        node-interesting-y-in-content (+ (.getMinY node-bounds-in-content)
+                                         (* y-perc (- (.getMaxY node-bounds-in-content)
+                                                      (.getMinY node-bounds-in-content))))
 
         pane-view-min-x (.getMinX viewport-bounds-in-content)
         pane-view-max-x (+ pane-view-min-x (-> scroll-pane .getViewportBounds .getWidth))
@@ -95,14 +97,14 @@
         pane-view-max-y (+ pane-view-min-y (-> scroll-pane .getViewportBounds .getHeight))
 
         ;; check if the node is visible in both axis
-        node-visible-x? (<= pane-view-min-x node-min-x-in-content pane-view-max-x)
-        node-visible-y? (<= pane-view-min-y node-min-y-in-content pane-view-max-y)]
+        node-visible-x? (<= pane-view-min-x node-interesting-x-in-content pane-view-max-x)
+        node-visible-y? (<= pane-view-min-y node-interesting-y-in-content pane-view-max-y)]
 
     ;; if the node isn't visible in any of the axis scroll accordingly
     (when-not node-visible-x?
-      (.setHvalue scroll-pane (/ node-min-x-in-content pane-w)))
+      (.setHvalue scroll-pane (/ node-interesting-x-in-content pane-w)))
     (when-not node-visible-y?
-      (.setVvalue scroll-pane (/ node-min-y-in-content pane-h)))))
+      (.setVvalue scroll-pane (/ node-interesting-y-in-content pane-h)))))
 
 (defn create-list-cell-factory [update-item-fn]
   (proxy [ListCell] []

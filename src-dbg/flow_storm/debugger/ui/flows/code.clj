@@ -14,11 +14,10 @@
            [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
-           [javafx.scene.input KeyCode MouseButton ScrollEvent KeyEvent]
+           [javafx.scene.input KeyCode MouseButton KeyEvent]
            [org.fxmisc.richtext CodeArea]
-           [org.fxmisc.richtext.model StyleSpansBuilder]
-           [javafx.scene.input MouseEvent]
-           [org.fxmisc.flowless VirtualizedScrollPane]))
+           [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]
+           [javafx.scene.input MouseEvent]))
 
 (declare jump-to-coord)
 (declare find-and-jump-same-val)
@@ -100,69 +99,76 @@
   All interesting tokens will be clickable."
 
   [flow-id thread-id ^CodeArea form-code-area print-tokens]
-  (fn [expr-executions curr-coord]
-                        (let [interesting-coords (group-by :coord expr-executions)
-                              spans (->> print-tokens
-                                         (map (fn [{:keys [coord] :as tok}]
-                                                (if (contains? interesting-coords coord)
-                                                  tok
-                                                  (dissoc tok :coord))))
-                                         form-pprinter/coord-spans)
-                              exec-idx (some (fn [{:keys [coord idx-from]}]
-                                               (when (= coord curr-coord)
-                                                 idx-from))
-                                             spans)
-                              style-spans (build-style-spans spans curr-coord)]
+  (let [[thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")]
+    (fn [expr-executions curr-coord]
+      (let [interesting-coords (group-by :coord expr-executions)
+            spans (->> print-tokens
+                       (map (fn [{:keys [coord] :as tok}]
+                              (if (contains? interesting-coords coord)
+                                tok
+                                (dissoc tok :coord))))
+                       form-pprinter/coord-spans)
+            exec-idx  (some (fn [{:keys [coord idx-from]}]
+                              (when (= coord curr-coord)
+                                idx-from))
+                            spans)
+            style-spans (build-style-spans spans curr-coord)]
+        (when exec-idx
+          (.moveTo form-code-area exec-idx)
+          (.requestFollowCaret form-code-area)
 
-                          (when exec-idx
-                            (.moveTo form-code-area exec-idx)
-                            (.requestFollowCaret form-code-area))
+          (let [caret-pos (.getCaretPosition form-code-area)
+                caret-pos-2d (.offsetToPosition form-code-area caret-pos TwoDimensional$Bias/Forward)
+                caret-line (.getMajor caret-pos-2d)
+                area-lines (-> form-code-area .getParagraphs .size)
+                caret-area-perc (if (pos? area-lines) (float (/ caret-line area-lines)) 0)]
+            (ui-utils/ensure-node-visible-in-scroll-pane thread-scroll-pane form-code-area caret-area-perc)))
 
-                          (.setStyleSpans form-code-area 0 0 style-spans)
+        (.setStyleSpans form-code-area 0 0 style-spans)
 
-                          (.setOnMouseClicked form-code-area
-                                              (event-handler
-                                               [^MouseEvent mev]
-                                               (let [char-hit (-> mev .getSource (.hit (.getX mev) (.getY mev)))
-                                                     opt-char-idx (.getCharacterIndex char-hit)]
-                                                 (when (.isPresent opt-char-idx)
-                                                   (let [char-idx (.getAsInt opt-char-idx)
-                                                         clicked-span (->> spans
-                                                                           (some (fn [{:keys [idx-from len] :as span}]
-                                                                                   (when (and (>= char-idx idx-from)
-                                                                                              (< char-idx (+ idx-from len)))
-                                                                                     span))))]
-                                                     (when-let [coord (:coord clicked-span)]
-                                                       (let [clicked-coord-exprs (get interesting-coords coord)
-                                                             last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
-                                                             token-right-click-menu (ui-utils/make-context-menu
-                                                                                     [{:text "Add to prints"
-                                                                                       :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}])]
-                                                         (if (= MouseButton/SECONDARY (.getButton mev))
-                                                           (.show token-right-click-menu
-                                                                  form-code-area
-                                                                  (.getScreenX mev)
-                                                                  (.getScreenY mev))
-                                                           (if (= 1 (count clicked-coord-exprs))
-                                                             (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
+        (.setOnMouseClicked form-code-area
+                            (event-handler
+                                [^MouseEvent mev]
+                              (let [char-hit (-> mev .getSource (.hit (.getX mev) (.getY mev)))
+                                    opt-char-idx (.getCharacterIndex char-hit)]
+                                (when (.isPresent opt-char-idx)
+                                  (let [char-idx (.getAsInt opt-char-idx)
+                                        clicked-span (->> spans
+                                                          (some (fn [{:keys [idx-from len] :as span}]
+                                                                  (when (and (>= char-idx idx-from)
+                                                                             (< char-idx (+ idx-from len)))
+                                                                    span))))]
+                                    (when-let [coord (:coord clicked-span)]
+                                      (let [clicked-coord-exprs (get interesting-coords coord)
+                                            last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
+                                            token-right-click-menu (ui-utils/make-context-menu
+                                                                    [{:text "Add to prints"
+                                                                      :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}])]
+                                        (if (= MouseButton/SECONDARY (.getButton mev))
+                                          (.show token-right-click-menu
+                                                 form-code-area
+                                                 (.getScreenX mev)
+                                                 (.getScreenY mev))
+                                          (if (= 1 (count clicked-coord-exprs))
+                                            (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
-                                                             (let [make-menu-item (fn [{:keys [idx result]}]
-                                                                                    (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
-                                                                                      {:text (format "%s" (utils/elide-string v-str 80))
-                                                                                       :on-click #(jump-to-coord flow-id
-                                                                                                                 thread-id
-                                                                                                                 (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
-                                                                   ctx-menu-options (->> clicked-coord-exprs
-                                                                                         (map make-menu-item)
-                                                                                         (into [{:text "Goto Last Iteration"
-                                                                                                 :on-click #(jump-to-coord flow-id
-                                                                                                                           thread-id
-                                                                                                                           (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
-                                                                   loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
-                                                               (.show loop-traces-menu
-                                                                      form-code-area
-                                                                      (.getScreenX mev)
-                                                                      (.getScreenY mev)))))))))))))))
+                                            (let [make-menu-item (fn [{:keys [idx result]}]
+                                                                   (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
+                                                                     {:text (format "%s" (utils/elide-string v-str 80))
+                                                                      :on-click #(jump-to-coord flow-id
+                                                                                                thread-id
+                                                                                                (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
+                                                  ctx-menu-options (->> clicked-coord-exprs
+                                                                        (map make-menu-item)
+                                                                        (into [{:text "Goto Last Iteration"
+                                                                                :on-click #(jump-to-coord flow-id
+                                                                                                          thread-id
+                                                                                                          (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
+                                                  loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
+                                              (.show loop-traces-menu
+                                                     form-code-area
+                                                     (.getScreenX mev)
+                                                     (.getScreenY mev))))))))))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."
@@ -182,13 +188,13 @@
                           (.setAlignment (Pos/TOP_RIGHT)))
 
         ^CodeArea form-code-area (ui-utils/code-area {:editable? false
-                                            :text code-text})
+                                                      :text code-text})
 
-        ^VirtualizedScrollPane form-scroll (ui-utils/virtualized-scroll-pane
-                                            form-code-area
-                                            {:max-height 800})
+        ;; ^VirtualizedScrollPane form-scroll (ui-utils/virtualized-scroll-pane
+        ;;                                     form-code-area
+        ;;                                     {:max-height 800})
 
-        form-pane (v-box [form-header form-scroll] "form-pane")
+        form-pane (v-box [form-header form-code-area #_form-scroll] "form-pane")
 
         form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form-code-area print-tokens)]
 
@@ -199,27 +205,6 @@
                      (event-handler
                          [^KeyEvent kev]
                        (.fireEvent ^Node forms-box (.copyFor kev form-code-area ^Node forms-box))))
-
-    ;; This is kind of hacky, but we want to forward all scroll events on the form-code-area
-    ;; to the forms_box when it reaches the top or the bottom.
-    ;; This is so we get scroll inside the form-code-area but also scroll in the outer scroll-pane that
-    ;; contains all forms.
-    (.addEventFilter form-code-area
-                     ScrollEvent/ANY
-                     (event-handler
-                      [^ScrollEvent sev]
-                      (let [current-absolute-pos (.getEstimatedScrollY form-code-area)
-                            view-port-height (.getHeight form-scroll)
-                            total-estimated-height (or (-> form-scroll .totalHeightEstimateProperty .getValue) 1.0)
-                            fractional-pos (/ current-absolute-pos (- total-estimated-height view-port-height))
-                            at-top? (= fractional-pos 0.0)
-                            at-bottom? (>= fractional-pos 1.0)]
-                        (when (or (and at-top? (pos? (.getDeltaY sev)))
-                                  (and at-bottom? (neg? (.getDeltaY sev)))
-                                  (<= total-estimated-height view-port-height)
-                                  (or (.isAltDown sev) (.isControlDown sev)))
-                          (.fireEvent ^Node forms-box (.copyFor sev form-code-area ^Node forms-box))
-                          (.consume sev)))))
 
     (ui-utils/add-class form-code-area "form-pane")
 
@@ -322,7 +307,6 @@
 (defn add-or-highlight-form [flow-id thread-id form-id]
   (let [form (runtime-api/get-form rt-api form-id)
         [form-pane]          (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))
-        [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
         ;; if the form we are about to highlight doesn't exist in the view add it first
         form-pane (or form-pane (add-form form flow-id thread-id form-id))
@@ -350,8 +334,6 @@
                                   form-pane
                                   (.getScreenX mev)
                                   (.getScreenY mev)))))
-
-    (ui-utils/ensure-node-visible-in-scroll-pane thread-scroll-pane form-pane)
     (ui-utils/add-class form-pane "form-background-highlighted")))
 
 (defn un-highlight-form-tokens [flow-id thread-id form-id]
