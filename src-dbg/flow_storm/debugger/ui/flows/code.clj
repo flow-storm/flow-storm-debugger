@@ -14,7 +14,7 @@
            [javafx.geometry Insets Orientation Pos]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
-           [javafx.scene.input KeyCode MouseButton KeyEvent]
+           [javafx.scene.input KeyCode MouseButton KeyEvent ScrollEvent]
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]
            [javafx.scene.input MouseEvent]))
@@ -218,6 +218,12 @@
                      (event-handler
                          [^KeyEvent kev]
                        (.fireEvent ^Node forms-box (.copyFor kev form-code-area ^Node forms-box))))
+
+    (.addEventFilter form-code-area
+                     ScrollEvent/ANY
+                     (event-handler
+                         [^ScrollEvent sev]
+                       (.fireEvent ^Node forms-box (.copyFor sev form-code-area ^Node forms-box))))
 
     (ui-utils/add-class form-code-area "form-pane")
 
