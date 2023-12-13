@@ -30,7 +30,7 @@
                                   (js/console.error "websocket node dependency not installed. Please npm install websocket to use flowstorm with nodejs" e)))]
                       (.-w3cwebsocket ^js obj))
 
-                    js/window.WebSocket)
+                    js/globalThis.WebSocket)
         ws-client (WebSocket. uri-str)]
     ws-client))
 
@@ -42,15 +42,20 @@
   (let [ser-packet (serializer/serialize [:event ev-packet])]
     (send ser-packet)))
 
-(defn start-remote-websocket-client [{:keys [debugger-host on-connected api-call-fn]
-                                      :or {debugger-host "localhost"}}]
+(defn start-remote-websocket-client [{:keys [debugger-host debugger-ws-port on-connected api-call-fn]}]
+
   (if (remote-connected?)
 
     (js/console.warn "Websocket already connected. Skipping.")
 
-    (let [port 7722
-          uri-str (utils/format "ws://%s:%s/ws" debugger-host port)
-          ws-client (web-socket-client-object uri-str)]
+    (let [debugger-host (or debugger-host "localhost")
+          debugger-ws-port (or debugger-ws-port 7722)
+          uri-str (utils/format "ws://%s:%s/ws" debugger-host debugger-ws-port)
+          _ (println "About to connect to " uri-str)
+          ws-client (try
+                      (web-socket-client-object uri-str)
+                      (catch js/Error e
+                        (js/console.error (str "Can't connect to " uri-str) e)))]
 
       (set! (.-onerror ws-client) (fn []
                                     (log-error (utils/format "WebSocket error connection %s" uri-str))))

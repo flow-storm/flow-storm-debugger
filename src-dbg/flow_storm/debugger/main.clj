@@ -115,10 +115,8 @@
                                                           ;; But we need to skip this the first time the ws connection comes up
                                                           ;; since maybe the system ins't fully started yet, we maybe don't even have a UI
                                                           (when @fully-started
-                                                            (when-let [{:keys [:repl/port]} (dbg-state/repl-config)]
-                                                              (repl-core/init-repl (dbg-state/env-kind)
-                                                                                   (:debugger-host (dbg-state/debugger-config))
-                                                                                   port))
+                                                            (when (dbg-state/repl-config)
+                                                              (repl-core/init-repl (dbg-state/env-kind)))
                                                             (ui-main/setup-ui-from-runtime-config)))
 
                                               :on-repl-down (fn []

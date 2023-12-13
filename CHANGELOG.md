@@ -15,6 +15,7 @@
     - Improve following current selected expression
     - Remove double scrolling in code panes
     - Make code stack pane jump a double-click
+    - Support multiple debugger instances running at the same time. Useful for debugging multiple build in cljs.
     
 ### Bugs fixed
 

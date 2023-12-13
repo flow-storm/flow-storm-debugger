@@ -99,37 +99,30 @@
                             :cause e}))))
        (utils/log-error "No cljs repl available")))))
 
-(defn make-cljs-repl-init-sequence [debugger-host port]
-  (let [remote-opts {:port port
-                     :debugger-host debugger-host}]
+(defn make-cljs-repl-init-sequence []
+  [{:code "(do (in-ns 'shadow.user) nil)"                                      :ns nil         :repl-kind :clj}
+   {:code "(require '[flow-storm.runtime.debuggers-api :include-macros true])" :ns "cljs.user" :repl-kind :cljs}])
 
-    [{:code "(do (in-ns 'shadow.user) nil)"                                                  :ns nil         :repl-kind :clj}
-     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api :include-macros true])" :ns "cljs.user" :repl-kind :cljs}
-     {:code (format "(dbg-api/remote-connect %s)" (pr-str remote-opts))                      :ns "cljs.user" :repl-kind :cljs}]))
-
-(defn make-clj-repl-init-sequence [debugger-host port]
-  (let [remote-opts {:port port
-                     :debugger-host debugger-host}]
-
-    [{:code "(do (in-ns 'user) nil)"                                     :ns nil    :repl-kind :clj}
-     {:code "(require '[flow-storm.runtime.debuggers-api :as dbg-api])"  :ns "user" :repl-kind :clj}
-     {:code (format "(dbg-api/remote-connect %s)" (pr-str remote-opts))  :ns "user" :repl-kind :clj}]))
+(defn make-clj-repl-init-sequence []
+  (let [opts (select-keys (dbg-state/debugger-config) [:debugger-host :debugger-ws-port])]
+    [{:code "(do (in-ns 'user) nil)"                                                      :ns nil    :repl-kind :clj}
+     {:code "(require '[flow-storm.runtime.debuggers-api])"                               :ns "user" :repl-kind :clj}
+     {:code (format "(flow-storm.runtime.debuggers-api/remote-connect %s)" (pr-str opts)) :ns "user" :repl-kind :clj}]))
 
 (defn init-repl
-  ([env-kind debugger-host port] (init-repl env-kind debugger-host port (:repl-eval repl) (:repl-eval-cljs repl)))
-  ([env-kind debugger-host port repl-eval repl-eval-cljs]
+  ([env-kind] (init-repl env-kind (:repl-eval repl) (:repl-eval-cljs repl)))
+  ([env-kind repl-eval repl-eval-cljs]
    (let [repl-init-sequence (case env-kind
-                              :clj  (make-clj-repl-init-sequence debugger-host port)
-                              :cljs (make-cljs-repl-init-sequence debugger-host port))]
+                              :clj  (make-clj-repl-init-sequence)
+                              :cljs (make-cljs-repl-init-sequence))]
      (doseq [{:keys [code ns repl-kind]} repl-init-sequence]
        (case repl-kind
          :clj  (repl-eval code ns)
          :cljs (repl-eval-cljs code ns))))))
 
 
-(defn- connect-and-init [{:keys [repl-type runtime-host debugger-host port build-id on-repl-up]}]
+(defn- connect-and-init [{:keys [repl-type runtime-host port build-id on-repl-up]}]
   (let [runtime-host (or runtime-host "localhost")
-        debugger-host (or debugger-host "localhost")
         env-kind (if (#{:shadow} repl-type) :cljs :clj) ;; HACKY, this logic is replicated in `state`
         repl-kind :nrepl ;; HACKY, this logic is replicated in `state`
         log-file (io/file log-file-path)
@@ -172,7 +165,7 @@
 
     (utils/log "Initializing repl...")
     (try
-      (init-repl env-kind debugger-host port eval-clj eval-cljs)
+      (init-repl env-kind eval-clj eval-cljs)
       (catch Exception e
         (utils/log-error "There was a problem initializing the remote runtime via repl" e)))
 

@@ -237,7 +237,7 @@ First, make your shadow-cljs.edn looks something like this :
                       :http-port 8021}}}}
 ----
 
-So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+So, the important parts are: you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
 and also add `flow-storm.storm-preload` to your preloads. If you have other preloads make sure `flow-storm.storm-preload`
 is the first one.
 
@@ -269,15 +269,18 @@ It is important to configure what namespaces you want to instrument, and you do 
 This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
 `cljs.storm.instrumentOnlyPrefixes=org.my-app,org.my-lib,hiccup`
 
-And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs) and
-when your need it, run the debugger ui with your shadow-cljs.edn data :
+And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs).
+
+Whenever your need the debugger, on a terminal run the ui with your shadow-cljs.edn data :
 
 [,bash]
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
 ----
 
-Now since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
+and then reload you page so it connects to it.
+
+Since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
 Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger
 under the main thread.
 
@@ -442,6 +445,83 @@ once it is connected.
 
 Here is a repo you can use if you want to try _FlowStorm_ with shadow-cljs https://github.com/flow-storm/shadow-flow-storm-basic
 
+==== Multiple ClojureScript builds
+
+You can setup FlowStorm to debug multiple ClojureScript builds. This can be useful when your application is made up of multiple parts,
+like when you have web workers.
+
+Debugging multiple builds require multiple debugger instances, one per build.
+
+The FlowStorm UI will start a websocket server, by default on 7722, so if you want to run multiple instances of it, you need
+to run each instance under a different port. You can do this by providing a `:ws-port` to the startup command.
+
+So let's say you want to run two debuggers, one for your page and one for a webworker, your can run them like this :
+
+[,bash]
+----
+# on one terminal start your app debugger instance
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
+
+# on a second terminal start your webworker debugger instance
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733
+----
+
+Now you also need to configure your builds to tell them what port they should connect to.
+You do this by writing different preloads for each of your builds, and then using them instead of your `flow-storm.storm-preload`, like:
+
+`my_app.main_storm_preload.cljs`
+
+[,clojure]
+----
+(ns my-app.main-storm-preload
+  (:require [cljs.storm.tracer]
+            [flow-storm.tracer :as tracer]
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
+
+(tracer/hook-clojurescript-storm)
+(dbg-api/setup-runtime)
+(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7722})
+----
+
+`my_app.webworker_storm_preload.cljs`
+
+[,clojure]
+----
+(ns my-app.webworker-storm-preload
+  (:require [cljs.storm.tracer]
+            [flow-storm.tracer :as tracer]
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
+
+(tracer/hook-clojurescript-storm)
+(dbg-api/setup-runtime)
+(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7733})
+----
+
+They are the same as `flow-storm.storm-preload` just with different port numbers.
+
+Now you can configure your shadow-cljs.edn like this :
+[,clojure]
+----
+{...
+ :builds
+ {:app
+  {:target :browser
+   ...
+   :modules
+   {:my-app {:init-fn my.app/init
+           :preloads [my-app.main-storm-preload]}
+    :my-webworker {:init-fn my.app.worker/init
+                   :preloads [my-app.webworker-storm-preload]
+                   :web-worker true}}}}}
+----
+
+[NOTE]
+.Multiple debuggers tips
+====
+You can change the theme or customize the styles of different instances to make it easier to
+know which debugger instance is connected to which application.
+====
+
 === Babashka
 
 You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.
@@ -485,36 +565,36 @@ After the server has started, you can use the app from the browser and everythin
 == Remote debugging
 
 You can remotely debug any Clojure application the exposes a nrepl server.
-You can do remote Clojure debugging in two ways (the same as local debugging), with and without _ClojureStorm_.
 
-The debuggee side should be setup the same as a normal local setup with the optional change that you can use
-`flow-storm-inst` instead of `flow-storm-dbg` being the former a slimmed down version of the later one that
+In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
+`flow-storm-inst` instead of `flow-storm-dbg`, being the former a slimmed down version of the later one that
 doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
 
-Once you have on your remote box your debuggee running and exposing a nrepl server you can connect to it by running :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :runtime-host '"YOUR-REPL-IP-ADDRESS"' :debugger-host '"YOUR-IP-ADDRESS"'
-----
-
-assuming your nrepl server is listening on port 9000.
-
-If your application is running in a different box you can also provide two extra keys :
-
-   - `:runtime-host` should be the ip of the debuggee (defaults to localhost)
-   - `:debugger-host` should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
-
-=== SSH tunnel
-
-You can debug remote process through a ssh tunnel by creating a tunnel like this :
+The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :
 
 [,bash]
 ----
 ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
 ----
 
-assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000.
+assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and 
+that the debugger websocket server is running on the default port.
+
+After the tunnel is established, you can run you debugger UI like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
+----
+
+and that is it.
+
+If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
+----
 
 === Docker
 
