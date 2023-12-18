@@ -280,20 +280,20 @@
   "This function is meant to be called after all the system has started,
   to configure the part of UI that depends on runtime state."
   []
-  (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
-    (log (str "Runtime config retrieved :" runtime-config))
-    (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                             (map first)
-                             (into #{}))]
-      (ui-utils/run-later
-        (dbg-state/set-runtime-config runtime-config)
-        (set-recording-btn recording?)
-        (timeline-screen/set-recording-check total-order-recording?)
-        (printer-screen/update-prints-controls)
+  (ui-utils/run-later
+   (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+     (log (str "Runtime config retrieved :" runtime-config))
+     (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                              (map first)
+                              (into #{}))]
+       (dbg-state/set-runtime-config runtime-config)
+       (set-recording-btn recording?)
+       (timeline-screen/set-recording-check total-order-recording?)
+       (printer-screen/update-prints-controls)
 
 
-        (doseq [fid all-flows-ids]
-          (create-flow {:flow-id fid}))))))
+       (doseq [fid all-flows-ids]
+         (create-flow {:flow-id fid}))))))
 
 
 (defn start-ui [config]

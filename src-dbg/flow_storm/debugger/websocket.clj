@@ -103,9 +103,9 @@
                    (on-start))
 
                  (onOpen [^WebSocket conn ^ClientHandshake handshake-data]
+                   (log (format "Got a connection %s" conn))
                    (when on-open
-                     (on-open conn))
-                   (log (format "Got a connection %s" conn)))
+                     (on-open conn)))
 
                  (onMessage [conn message]
                    (on-message conn message))
