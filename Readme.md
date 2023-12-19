@@ -2,7 +2,7 @@
 
 This is the central repository for [FlowStorm](http://www.flow-storm.org/) an omniscient time travel debugger for Clojure and ClojureScript.
 
-![demo](./docs/images/screenshot-light.png)
+![demo](./docs/images/screenshot.png)
 
 There are two ways of using it :
 
