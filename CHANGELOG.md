@@ -4,6 +4,14 @@
 	
 ### New Features 
 
+### Changes
+
+### Bugs fixed
+
+## 3.9.0 (19-12-2023)
+	
+### New Features 
+
     - Add a bookmarking system
     - Add navigation undo/redo system
     
