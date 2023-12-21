@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.ui.flows.components
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button text-area]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button text-area check-box]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
@@ -22,6 +22,8 @@
         print-level-txt (doto (TextField. "5")
                           (.setPrefWidth 50)
                           (.setAlignment Pos/CENTER))
+        print-wrap-chk (doto (check-box {:on-change (fn [selected?] (.setWrapText result-txt selected?))}) 
+                             (.setSelected false))                       
         def-btn (button :label "def"
                         :classes ["def-btn" "btn-sm"]
                         :tooltip "Define a reference to this value so it can be used from the repl.")
@@ -33,6 +35,7 @@
                         :tooltip "Tap this value as with tap>. Useful to send it to other inspectors like portal, REBL, Reveal, etc")
         tools-box (doto (h-box [(label "*print-level*") print-level-txt
                                 (label "*print-meta*") print-meta-chk
+                                (label "*print-wrap*") print-wrap-chk
                                 def-btn
                                 inspect-btn
                                 tap-btn])
