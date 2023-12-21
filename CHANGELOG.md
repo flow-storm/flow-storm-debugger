@@ -8,6 +8,8 @@
 
 ### Bugs fixed
 
+    - Don't trace false as nil
+
 ## 3.9.0 (19-12-2023)
 	
 ### New Features 
