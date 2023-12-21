@@ -81,3 +81,18 @@
          add
          sub
          (+ c d j e (hinted a c d j)))))
+
+(defn lorem-ipsum [arg1 arg2 arg3]
+  (str "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+        "Proin vehicula euismod ligula, eu consectetur tortor facilisis vel."
+        "Pellentesque " arg1 " elit nec, " arg2 " sagittis turpis. "
+        "Duis fermentum mi et eros vehicula, id fringilla justo tincidunt."
+        "Integer " arg3 " ut justo in dignissim. "
+        "Proin ac ex eu sem sollicitudin hendrerit."))
+
+(defn generate-lorem-ipsum []
+  (let [long-arg1 (apply str (repeat 120 "a")) 
+        long-arg2 (apply str (repeat 120 "b")) 
+        long-arg3 (apply str (repeat 120 "c"))] 
+
+        (lorem-ipsum long-arg1 long-arg2 long-arg3)))
