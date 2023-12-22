@@ -3,6 +3,7 @@
 ## master (unreleased)
 	
 ### New Features 
+    - Add print-wrap controls on panes
 
 ### Changes
 
