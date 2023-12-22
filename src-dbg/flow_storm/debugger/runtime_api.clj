@@ -27,6 +27,8 @@
 (declare rt-api)
 (declare api-call)
 
+(def api-call-timeout 4000)
+
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
@@ -143,7 +145,7 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :local "runtime-config" []))
-  (val-pprint [_ v opts] (api-call :local "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
+  (val-pprint [_ v opts] (api-call :local "val-pprint" [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
   (shallow-val [_ v] (api-call :local "shallow-val" [v] {:cache api-cache}))  ;; CACHED
   (get-form [_ form-id] (api-call :local "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
@@ -266,7 +268,7 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :remote "runtime-config" []))
-  (val-pprint [_ v opts] (api-call :remote "val-pprint" [v opts] {:cache api-cache :timeout 4000})) ;; CACHED
+  (val-pprint [_ v opts] (api-call :remote "val-pprint" [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
   (shallow-val [_ v] (api-call :remote "shallow-val" [v] {:cache api-cache}))  ;; CACHED
   (get-form [_ form-id] (api-call :remote "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))

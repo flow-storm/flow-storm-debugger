@@ -4,13 +4,34 @@
 	
 ### New Features 
 
+### Changes
+
+### Bugs fixed
+
+    - Don't trace false as nil
+
+## 3.9.0 (19-12-2023)
+	
+### New Features 
+
     - Add a bookmarking system
     - Add navigation undo/redo system
     
 ### Changes
+
+    - Upgrade JavaFX to 21.0.1
+    - Push minimal supported JDK version to 17 with a path for using it with 11
+    - Improve keyboard event handling system to support different layouts
+    - Improve following current selected expression
+    - Remove double scrolling in code panes
+    - Make code stack pane jump a double-click
+    - Support multiple debugger instances running at the same time. Useful for debugging multiple build in cljs.
     
 ### Bugs fixed
 
+    - Fix "Add to prints" not showing on Vanilla
+    - Enter on time box focus the code
+    
 ## 3.8.6 (17-11-2023)
 	
 ### New Features 

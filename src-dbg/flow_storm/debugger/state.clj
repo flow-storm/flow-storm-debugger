@@ -133,12 +133,15 @@
                                    :repl/type
                                    :repl/port
                                    :repl.cljs/build-id])))
+
 (s/def :config/debugger-host string?)
+(s/def :config/debugger-ws-port int?)
 (s/def :config/runtime-host string?)
 (s/def :config/debug-mode? boolean?)
 
 (s/def ::debugger-config (s/keys :req-un [:config/repl
                                           :config/debugger-host
+                                          :config/debugger-ws-port
                                           :config/runtime-host
                                           :config/debug-mode?]))
 
@@ -156,7 +159,7 @@
                                 ::debugger-config]
                        :opt-un [:ui/selected-flow-id]))
 
-(defn initial-state [{:keys [theme styles local? port repl-type debugger-host runtime-host] :as config}]
+(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
   {:flows {}
    :selected-flow-id nil
    :printers {}
@@ -181,6 +184,7 @@
                                 :repl/port port}
                          (#{:shadow} repl-type) (assoc :repl.cljs/build-id (:build-id config))))
                      :debugger-host (or debugger-host "localhost")
+                     :debugger-ws-port (or ws-port 7722)
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false}})
 
@@ -457,7 +461,7 @@
   else update the head idx. If the head is not at the end, redo history
   will be discarded."
 
-  [flow-id thread-id {:keys [fn-call-idx idx] :as tentry}]
+  [flow-id thread-id {:keys [fn-call-idx] :as tentry}]
   (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/navigation-history]
          (fn [nav-hist]
            (let [{:keys [history head-pos] :as nav-hist} (if (and (not *undo-redo-jump*)

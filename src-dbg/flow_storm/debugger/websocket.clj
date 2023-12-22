@@ -103,9 +103,9 @@
                    (on-start))
 
                  (onOpen [^WebSocket conn ^ClientHandshake handshake-data]
+                   (log (format "Got a connection %s" conn))
                    (when on-open
-                     (on-open conn))
-                   (log (format "Got a connection %s" conn)))
+                     (on-open conn)))
 
                  (onMessage [conn message]
                    (on-message conn message))
@@ -128,10 +128,11 @@
   nil)
 
 (defn start-websocket-server [{:keys [on-ws-event on-ws-up on-ws-down]}]
-  (let [remote-connection (atom nil)
+  (let [{:keys [debugger-ws-port]} (dbg-state/debugger-config)
+        remote-connection (atom nil)
         ws-ready (promise)
         ws-server (create-ws-server
-                   {:port 7722
+                   {:port debugger-ws-port
                     :on-start (fn [] (deliver ws-ready true))
                     :on-open (fn [conn]
                                (reset! remote-connection conn)

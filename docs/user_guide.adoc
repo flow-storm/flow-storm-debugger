@@ -23,7 +23,7 @@ Before you start check _FlowStorm_ minimum requirements.
 [IMPORTANT]
 .Minimum requirements
 ====
-	- jdk >= 11
+	- jdk >= 17 (if you still need to run it with jdk11 take a look at <<#_run_with_jdk_11,here>>)
 	- Clojure >= 1.10.0
 ====
 
@@ -64,14 +64,6 @@ Be careful when using RELEASE as maven versions, since the first time is going t
 but it will be cached unless you run with -Sforce.
 It is much safer to just write the latest versions. Check out  the https://github.com/flow-storm/flow-storm-debugger/[github page] for the latest stable releases.
 ====
-
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
-
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
@@ -161,13 +153,6 @@ user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to r
 user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
 ----
 
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
-
 You should now see a empty debugger window.
 
 Lets debug something :
@@ -252,7 +237,7 @@ First, make your shadow-cljs.edn looks something like this :
                       :http-port 8021}}}}
 ----
 
-So, the important parts are you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+So, the important parts are: you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
 and also add `flow-storm.storm-preload` to your preloads. If you have other preloads make sure `flow-storm.storm-preload`
 is the first one.
 
@@ -284,22 +269,18 @@ It is important to configure what namespaces you want to instrument, and you do 
 This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
 `cljs.storm.instrumentOnlyPrefixes=org.my-app,org.my-lib,hiccup`
 
-And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs) and
-when your need it, run the debugger ui with your shadow-cljs.edn data :
+And this is it. Once you have it configured, run your shadow watch as you normally do, load your app on the browser (or nodejs).
+
+Whenever your need the debugger, on a terminal run the ui with your shadow-cljs.edn data :
 
 [,bash]
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
 ----
 
-[IMPORTANT]
-.On using MacOS
-====
-There is a known issue that makes the UI crash when starting on some versions of MacOS, due to JavaFx/OpenJDK/MacOS incompatibilities.
-Luckly there is a fix for it <<#_ui_doesnt_work_on_macos,here>>.
-====
+and then reload you page so it connects to it.
 
-Now since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
+Since we started the app with `flowstorm.startRecording=false` you will have to click on the record button once to start recording.
 Whenever recording is enable and something executes under an instrumented namespace you should see the recordings appear in the debugger
 under the main thread.
 
@@ -464,6 +445,83 @@ once it is connected.
 
 Here is a repo you can use if you want to try _FlowStorm_ with shadow-cljs https://github.com/flow-storm/shadow-flow-storm-basic
 
+==== Multiple ClojureScript builds
+
+You can setup FlowStorm to debug multiple ClojureScript builds. This can be useful when your application is made up of multiple parts,
+like when you have web workers.
+
+Debugging multiple builds require multiple debugger instances, one per build.
+
+The FlowStorm UI will start a websocket server, by default on 7722, so if you want to run multiple instances of it, you need
+to run each instance under a different port. You can do this by providing a `:ws-port` to the startup command.
+
+So let's say you want to run two debuggers, one for your page and one for a webworker, your can run them like this :
+
+[,bash]
+----
+# on one terminal start your app debugger instance
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
+
+# on a second terminal start your webworker debugger instance
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733
+----
+
+Now you also need to configure your builds to tell them what port they should connect to.
+You do this by writing different preloads for each of your builds, and then using them instead of your `flow-storm.storm-preload`, like:
+
+`my_app.main_storm_preload.cljs`
+
+[,clojure]
+----
+(ns my-app.main-storm-preload
+  (:require [cljs.storm.tracer]
+            [flow-storm.tracer :as tracer]
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
+
+(tracer/hook-clojurescript-storm)
+(dbg-api/setup-runtime)
+(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7722})
+----
+
+`my_app.webworker_storm_preload.cljs`
+
+[,clojure]
+----
+(ns my-app.webworker-storm-preload
+  (:require [cljs.storm.tracer]
+            [flow-storm.tracer :as tracer]
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
+
+(tracer/hook-clojurescript-storm)
+(dbg-api/setup-runtime)
+(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7733})
+----
+
+They are the same as `flow-storm.storm-preload` just with different port numbers.
+
+Now you can configure your shadow-cljs.edn like this :
+[,clojure]
+----
+{...
+ :builds
+ {:app
+  {:target :browser
+   ...
+   :modules
+   {:my-app {:init-fn my.app/init
+           :preloads [my-app.main-storm-preload]}
+    :my-webworker {:init-fn my.app.worker/init
+                   :preloads [my-app.webworker-storm-preload]
+                   :web-worker true}}}}}
+----
+
+[NOTE]
+.Multiple debuggers tips
+====
+You can change the theme or customize the styles of different instances to make it easier to
+know which debugger instance is connected to which application.
+====
+
 === Babashka
 
 You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.
@@ -507,36 +565,36 @@ After the server has started, you can use the app from the browser and everythin
 == Remote debugging
 
 You can remotely debug any Clojure application the exposes a nrepl server.
-You can do remote Clojure debugging in two ways (the same as local debugging), with and without _ClojureStorm_.
 
-The debuggee side should be setup the same as a normal local setup with the optional change that you can use
-`flow-storm-inst` instead of `flow-storm-dbg` being the former a slimmed down version of the later one that
+In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
+`flow-storm-inst` instead of `flow-storm-dbg`, being the former a slimmed down version of the later one that
 doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
 
-Once you have on your remote box your debuggee running and exposing a nrepl server you can connect to it by running :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :runtime-host '"YOUR-REPL-IP-ADDRESS"' :debugger-host '"YOUR-IP-ADDRESS"'
-----
-
-assuming your nrepl server is listening on port 9000.
-
-If your application is running in a different box you can also provide two extra keys :
-
-   - `:runtime-host` should be the ip of the debuggee (defaults to localhost)
-   - `:debugger-host` should be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
-
-=== SSH tunnel
-
-You can debug remote process through a ssh tunnel by creating a tunnel like this :
+The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :
 
 [,bash]
 ----
 ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
 ----
 
-assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000.
+assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and 
+that the debugger websocket server is running on the default port.
+
+After the tunnel is established, you can run you debugger UI like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
+----
+
+and that is it.
+
+If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
+----
 
 === Docker
 
@@ -811,7 +869,7 @@ there will be gaps.
 
 image::user_guide_images/stack.png[]
 
-Clicking on any of the stack entries will make the debugger jump to that point in time.
+Double clicking on any of the stack entries will make the debugger jump to that point in time.
 
 ==== Value panels
 
@@ -1615,46 +1673,19 @@ The first argument is a options map, which accepts `:verbose? :true`, in which c
 
 Is useful when you have instrumented a big application and wish to see tracing progress while running.
 
-=== UI doesn't work on MacOs
+=== Run with JDK 11
 
-There are reports of people running into issues when trying to start the FlowStorm UI on Mac OS, that looks like this :
+FlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.
 
-----
-user=> :dbg
-
-2023-10-25 12:45:42.828 java[20967:14795350] WARNING: Secure coding is automatically enabled for restorable state! However, not on all supported macOS versions of this application.
-Opt-in to secure coding explicitly by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState:.
-
-Oct 25, 2023 12:45:42 PM com.sun.javafx.application.PlatformImpl startup
-
-WARNING: Unsupported JavaFX configuration: classes were loaded from 'unnamed module @5b2c883c'
-
-Waiting for full system start before dispatching events
-
-2023-10-25 12:45:43.526 java[20967:14795350] Assertion failure in -[_NSTrackingAreaAKViewHelper removeTrackingRect:], _NSTrackingAreaAKManager.m:1713
-
-Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: '0x0 is an invalid NSTrackingRectTag.
-Common possible reasons for this are: 1. already removed this trackingRectTag, 2. Truncated the NSTrackingRectTag to 32bit at some point.'
- ....
-----
-
-This is because of an incompatibility between some versions of Mac OS, JavaFX and openJDK.
-
-Luckily there are a couple of solutions :
-
-- moving to https://adoptium.net/installation/[temurin] seems to solve it
-- or if you are on Jdk >= 17 you can add the following dependencies to your alias
+If that is the case add this dependencies to your alias :
 
 [,clojure]
 ----
-org.openjfx/javafx-controls {:mvn/version "22-ea+11"}
-org.openjfx/javafx-base {:mvn/version "22-ea+11"}
-org.openjfx/javafx-graphics {:mvn/version "22-ea+11"}
-org.openjfx/javafx-swing {:mvn/version "22-ea+11"}
+org.openjfx/javafx-controls {:mvn/version "19.0.2"}
+org.openjfx/javafx-base     {:mvn/version "19.0.2"}
+org.openjfx/javafx-graphics {:mvn/version "19.0.2"}
+org.openjfx/javafx-swing    {:mvn/version "19.0.2"}
 ----
-
-So the issue seams to be fixed in the latest version of openjfx, the problem is that the latest version only
-works with jdk >= 17, and I think we still have a bunch of people on jdk 11.
 
 == Internals, diagrams and documentation
 

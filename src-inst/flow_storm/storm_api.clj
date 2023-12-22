@@ -42,14 +42,29 @@
   (println))
 
 (defn maybe-execute-flow-storm-specials [input]
-  (case input
-    :dbg        (do (start-debugger)                    true)
-    :ex         (do (jump-to-last-exception)            true)
-    :last       (do (jump-to-last-expression)           true)
-    :rec        (do (dbg-api/set-recording true)  true)
-    :stop       (do (dbg-api/set-recording false) true)
+  (try
+    (case input
+      :dbg        (do (start-debugger)                    true)
+      :ex         (do (jump-to-last-exception)            true)
+      :last       (do (jump-to-last-expression)           true)
+      :rec        (do (dbg-api/set-recording true)  true)
+      :stop       (do (dbg-api/set-recording false) true)
 
-    :tut/basics (do ((requiring-resolve 'flow-storm.tutorials.basics/start))     true)
-    :tut/next   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-next)) true)
-    :tut/prev   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-prev)) true)
-    false))
+      :tut/basics (do ((requiring-resolve 'flow-storm.tutorials.basics/start))     true)
+      :tut/next   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-next)) true)
+      :tut/prev   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-prev)) true)
+      false)
+
+    (catch Exception e
+      (when (or (instance? UnsupportedClassVersionError e)
+                (and (.getCause e) (instance? UnsupportedClassVersionError (.getCause e))))
+        (println "\n\nFlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.")
+        (println "\nIf that is the case add this dependencies to your alias :\n")
+        (println "   org.openjfx/javafx-controls {:mvn/version \"19.0.2\"}")
+        (println "   org.openjfx/javafx-base     {:mvn/version \"19.0.2\"}")
+        (println "   org.openjfx/javafx-graphics {:mvn/version \"19.0.2\"}")
+        (println "   org.openjfx/javafx-swing    {:mvn/version \"19.0.2\"}")
+        (println)
+)
+
+      false)))

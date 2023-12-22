@@ -577,14 +577,11 @@
 
    :cljs ;;----------------------------------------------------------------------------------------------
    (defn remote-connect [config]
-
-     (println "Connecting with the debugger with config : " config)
-
      ;; connect to the remote websocket
      
      (try
        (remote-websocket-client/start-remote-websocket-client
-        (assoc config
+        (assoc config               
                :api-call-fn call-by-name
                :on-connected (fn []
                                ;; subscribe and automatically push all events thru the websocket

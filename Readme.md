@@ -2,7 +2,7 @@
 
 This is the central repository for [FlowStorm](http://www.flow-storm.org/) an omniscient time travel debugger for Clojure and ClojureScript.
 
-![demo](./docs/images/screenshot-light.png)
+![demo](./docs/images/screenshot.png)
 
 There are two ways of using it :
 
@@ -20,25 +20,25 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)
-  - `[com.github.flow-storm/flow-storm-dbg "3.8.6"]`
+  - `[com.github.flow-storm/flow-storm-dbg "3.9.0"]`
 - A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
-  - `[com.github.flow-storm/flow-storm-inst "3.8.6"]`
+  - `[com.github.flow-storm/flow-storm-inst "3.9.0"]`
 
 ClojureStorm latest stable releases : 
 
 - Clojure 1.12.0
-  - `[com.github.flow-storm/clojure "1.12.0-alpha4_9"]`
+  - `[com.github.flow-storm/clojure "1.12.0-alpha4_11"]`
 - Clojure 1.11.1
-  - `[com.github.flow-storm/clojure "1.11.1-15"]`
+  - `[com.github.flow-storm/clojure "1.11.1-17"]`
 
 ClojureScriptStorm latest stable releases : 
 
 - ClojureScript 1.11.60
-  - `[com.github.flow-storm/clojurescript "1.11.60-7"]`
+  - `[com.github.flow-storm/clojurescript "1.11.60-9"]`
 
 # Prerequisites
 
-  - jdk11+
+  - jdk17+ (if you still need to run it with jdk11 take a look at [here](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_run_with_jdk_11))
   - clojure 1.11.0+
   - clojure 1.10.* only supported if you use it from source, like `{:git/url "https://github.com/flow-storm/flow-storm-debugger" :git/sha "..."}`
 
