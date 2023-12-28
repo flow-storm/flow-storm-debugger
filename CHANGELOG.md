@@ -3,6 +3,7 @@
 ## master (unreleased)
 	
 ### New Features 
+
     - Add print-wrap controls on panes
 
 ### Changes
@@ -10,6 +11,7 @@
 ### Bugs fixed
 
     - Don't trace false as nil
+    - Update hansel to 0.1.81 to fix browser var instrumentation in cljc
 
 ## 3.9.0 (19-12-2023)
 	
