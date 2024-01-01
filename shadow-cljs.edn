@@ -1,5 +1,5 @@
 ;; shadow-cljs configuration
-{:deps {:aliases [:cljs :dev]}
+{:deps {:aliases [:cljs-storm :dev]}
 
  :builds
  {:dev-test {:target :node-script

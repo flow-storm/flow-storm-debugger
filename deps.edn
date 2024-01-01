@@ -20,22 +20,28 @@
         org.clojure/data.int-map {:mvn/version "1.2.1"}
         org.fxmisc.richtext/richtextfx  {:mvn/version "0.11.1"}}
 
- :aliases {:cljs {:extra-deps {cider/cider-nrepl {:mvn/version "0.28.3"}
-                               refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
-                               cider/piggieback {:mvn/version "0.5.2"}
-                               thheller/shadow-cljs {:mvn/version "2.23.3"}}}
+ :aliases {:cljs-storm {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
+                        :extra-deps {thheller/shadow-cljs {:mvn/version "2.27.4"
+                                                           :exclusions [org.clojure/clojurescript]}
+                                     ;; bring ClojureScriptStorm
+                                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-1"}
+                                     ;; add FlowStorm runtime dep
+                                     com.github.flow-storm/flow-storm-inst {:local/root "." #_#_:mvn/version "RELEASE"}
+                                     cider/cider-nrepl {:mvn/version "0.28.3"}
+                                     refactor-nrepl/refactor-nrepl {:mvn/version "3.5.2"}
+                                     cider/piggieback {:mvn/version "0.5.2"}}
+                        :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=dev"
+                                   "-Dcljs.storm.instrumentEnable=true"
+                                   "-Dflowstorm.startRecording=false"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.11.1-19"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"
                               ;;"-Dflowstorm.startRecording=false"
                               "-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
                               "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
-
-                              "-Dcljs.storm.instrumentOnlyPrefixes=dev"
-                              "-Dcljs.storm.instrumentEnable=true"
                               ]}
 
            :dev {:extra-paths ["src-dev" "classes"]

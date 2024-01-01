@@ -5,6 +5,8 @@
 ### New Features
 
 ### Changes 
+
+    - Big refactor with a ton of improvements to the repl API
     
 ### Bugs fixed
 

@@ -54,14 +54,12 @@
     print-tokens))
 
 (defn- jump-to-record-here [flow-id thread-id form-id coord {:keys [backward? from-idx]}]
-  (when-let [tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
+  (when-let [tentry (runtime-api/find-timeline-entry rt-api {:flow-id   flow-id
                                                              :thread-id thread-id
-                                                             :from-idx (or from-idx 0)
+                                                             :from-idx  from-idx
                                                              :backward? backward?
-                                                             :eq-val-ref nil
-                                                             :comp-fn-key :same-coord
-                                                             :comp-fn-coord coord
-                                                             :comp-fn-form-id form-id})]
+                                                             :coord     coord
+                                                             :form-id   form-id})]
     (jump-to-coord flow-id thread-id tentry)))
 
 (defn- add-to-printer
@@ -505,32 +503,9 @@
         last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
     (jump-to-coord flow-id thread-id last-tentry)))
 
-(defn find-and-jump-same-val [flow-id thread-id curr-vref search-params backward?]
-  (let [{:keys [idx]} (dbg-state/current-timeline-entry flow-id thread-id)]
-    (when-let [next-tentry (runtime-api/find-timeline-entry rt-api (merge
-                                                                    {:flow-id flow-id
-                                                                     :thread-id thread-id
-                                                                     :from-idx (if backward?
-                                                                                 (dec idx)
-                                                                                 (inc idx))
-                                                                     :backward? backward?
-                                                                     :eq-val-ref curr-vref}
-                                                                    search-params))]
-      (jump-to-coord flow-id thread-id next-tentry))))
-
-(defn step-same-val [flow-id thread-id {:keys [fixed-coord?] :as search-params} backward?]
-  (let [{:keys [result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
-        search-params (if fixed-coord?
-                        (let [{:keys [form-id]} (dbg-state/current-frame flow-id thread-id)]
-                          (assoc search-params
-                                 :comp-fn-coord coord
-                                 :comp-fn-form-id form-id))
-                         search-params)]
-    ;; hmm if the current entry is a fn-call then result will be nil and we will be following nils
-    ;; not sure how to do about that, since custom stepping goes this path also
-    ;; and doesn't work with the current expr result
-    (find-and-jump-same-val flow-id thread-id result search-params backward?)))
-
+(defn find-and-jump-same-val [flow-id thread-id search-params]
+  (when-let [next-tentry (runtime-api/find-timeline-entry rt-api search-params)]
+    (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn- power-stepping-pane [flow-id thread-id]
   (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
@@ -547,23 +522,29 @@
                                                       "same-coord"   (show-custom-field false)
                                                       "custom"       (show-custom-field true)
                                                       "custom-same-coord" (show-custom-field true)))})
-        search-params (fn []
-                        (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)]
-                          (case step-type-val
-                            "identity"          {:comp-fn-key :identity}
-                            "equality"          {:comp-fn-key :equality}
-                            "same-coord"        {:comp-fn-key :same-coord
-                                                 :fixed-coord? true}
-                            "custom"            {:comp-fn-key :custom
-                                                 :comp-fn-code (.getText custom-expression-txt)}
-                            "custom-same-coord" {:comp-fn-key :custom
-                                                 :comp-fn-code (.getText custom-expression-txt)
-                                                 :fixed-coord? true})))
+        search-params (fn [backward?]
+                        (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)
+                              {:keys [idx result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
+                              {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
+                              params (case step-type-val
+                                       "identity"          {:identity-val result}
+                                       "equality"          {:equality-val result}
+                                       "same-coord"        {:coord coord
+                                                            :form-id form-id}
+                                       "custom"            {:custom-pred-form (.getText custom-expression-txt)}
+                                       "custom-same-coord" {:custom-pred-form (.getText custom-expression-txt)
+                                                            :coord coord
+                                                            :form-id form-id})]
+                          (assoc params
+                                 :flow-id flow-id
+                                 :thread-id thread-id
+                                 :backward? backward?
+                                 :from-idx   (if backward? (dec idx) (inc idx)))))
         val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
-                                           :on-click (fn [] (step-same-val flow-id thread-id (search-params) true))
+                                           :on-click (fn [] (find-and-jump-same-val flow-id thread-id (search-params true)))
                                            :tooltip "Find the prev expression that contains this value")
         val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
-                                           :on-click (fn [] (step-same-val flow-id thread-id (search-params) false))
+                                           :on-click (fn [] (find-and-jump-same-val flow-id thread-id (search-params false)))
                                            :tooltip "Find the next expression that contains this value")
 
         power-stepping-pane (doto (h-box [val-prev-btn val-next-btn step-type-combo custom-expression-txt])

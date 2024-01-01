@@ -4,26 +4,15 @@
 
 (def nil-idx -1)
 
-(defprotocol ExprTraceP  
-  (set-idx [_ idx])
-  (set-fn-call-idx [_ idx]))
-
 (deftype ExprTrace
     [coord
      exprVal
-     ^:unsynchronized-mutable ^int fnCallIdx
-     ^:unsynchronized-mutable ^int thisIdx]
+     ^int fnCallIdx
+     ^int thisIdx]
 
   index-protos/ExpressionTimelineEntryP
   (get-expr-val [_] exprVal)
   
-  ExprTraceP
-    
-  (set-idx [_ idx]
-    (set! thisIdx (int idx)))
-  (set-fn-call-idx [_ idx]
-    (set! fnCallIdx (int idx)))
-
   index-protos/CoordableTimelineEntryP
   (get-coord-vec [_] (utils/str-coord->vec coord))
   (get-coord-raw [_] coord)
@@ -51,8 +40,8 @@
       [Object
        (toString [_] (utils/format "[%d ExprTrace] coord: %s, valType: %s" thisIdx coord (type exprVal)))]))
 
-(defn make-expr-trace [coord expr-val]
-  (->ExprTrace coord expr-val nil-idx nil-idx))
+(defn make-expr-trace [coord expr-val this-idx fn-call-idx]
+  (->ExprTrace coord expr-val fn-call-idx this-idx))
 
 (defn expr-trace? [x]
   (and x (instance? ExprTrace x)))

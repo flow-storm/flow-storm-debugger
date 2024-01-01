@@ -315,3 +315,11 @@
 
 (defn stringify-coord [coord-vec]
   (str/join "," coord-vec))
+
+(defn lerp [from to t]
+  (+ from (* t (- to from))))
+
+(defn inverse-lerp [from to n]
+  (float
+   (/ (- n from)
+      (- to from))))

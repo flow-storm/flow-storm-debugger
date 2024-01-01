@@ -1,19 +1,18 @@
 (ns flow-storm.runtime.indexes.protocols)
 
-(defprotocol BuildIndexP
-  (add-form-init [_ trace])
-  (add-fn-call [_ trace])
-  (add-fn-return [_ trace])
-  (add-expr-exec [_ trace])  
-  (add-bind [_ trace])
-  (reset-build-stack [_]))
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Timeline protocols ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol TimelineP
-  (timeline-count [_])
-  (timeline-entry [_ idx drift])
-  (timeline-frames [_ from-idx to-idx pred])
-  (timeline-raw-entries [_ from-idx to-idx])
-  (timeline-find-entry [_ from-idx backwards? pred]))
+(defprotocol RecorderP
+  (add-fn-call [_ fn-ns fn-name form-id args])
+  (add-fn-return [_ coord ret-val])
+  (add-fn-unwind [_ coord throwable])
+  (add-expr-exec [_ coord expr-val])  
+  (add-bind [_ coord symb-name symb-val]))
+
+(defprotocol TreeBuilderP
+  (reset-build-stack [_]))
 
 (defprotocol TimelineEntryP
   (entry-type [_])
@@ -32,14 +31,21 @@
 
 (defprotocol TreeP
   (tree-root-index [_])
-  (tree-childs-indexes [_ fn-call-idx])
-  (tree-frame-data [_ fn-call-idx opts]))
+  (tree-childs-indexes [_ fn-call-idx]))
 
 (defprotocol ImmutableP
   (as-immutable [_]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Function stats protocols ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defprotocol FnCallStatsP
   (all-stats [_]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Forms registry protocols ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol FormRegistryP
   (register-form [_ form-id form])
@@ -48,6 +54,10 @@
   (start-form-registry [_])
   (stop-form-registry [_]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Thread registry protocols ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defprotocol ThreadRegistryP
   (all-threads [_])
   (flow-threads-info [_ flow-id])
@@ -55,8 +65,38 @@
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
-  (record-total-order-entry [_ flow-id thread-id thread-tl-idx entry])
-  (build-total-order-timeline [_ forms-registry])
+  (record-total-order-entry [_ flow-id thread-id entry])
+  (total-order-timeline [_])
   (discard-threads [_ flow-threads-ids])
   (start-thread-registry [_ callbacks])
   (stop-thread-registry [_]))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Entries protocols ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol FnCallTraceP
+  (get-fn-name [_])
+  (get-fn-ns [_])
+  (get-form-id [_])
+  (get-fn-args [_])
+  (get-parent-idx [_])
+  (set-parent-idx [_ idx])
+  (get-ret-idx [_])
+  (set-ret-idx [_ idx])    
+  (add-binding [_ bind])
+  (set-idx [_ idx])
+  (bindings [_]))
+
+(defprotocol BindTraceP
+  (get-bind-sym-name [_])
+  (get-bind-val [_]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Total order timeline ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defprotocol TotalOrderTimelineEntryP
+  (tote-flow-id [_])
+  (tote-thread-id [_])
+  (tote-entry [_]))

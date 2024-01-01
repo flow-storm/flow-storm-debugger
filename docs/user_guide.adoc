@@ -162,7 +162,7 @@ user> (fs-api/local-connect) ;; will run the debugger GUI and get everything rea
 
 You should now see a empty debugger window.
 
-Lets debug something :
+Let's debug something :
 
 [,clojure]
 ----
@@ -329,7 +329,7 @@ And now refresh your browser page so your browser app connects to the UI.
 
 ==== ClojureScript vanilla FlowStorm
 
-Lets say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
+Let's say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
 
 First you need to add _FlowStorm_ dependency to your project dependencies, like this :
 
@@ -355,7 +355,7 @@ It is much safer to just write the latest versions. Check out  the https://githu
 ====
 
 
-Then lets say you start your repl like :
+Then let's say you start your repl like :
 
 [,bash]
 ----
@@ -556,7 +556,7 @@ the `user` namespace since the script doesn't contain any namespace declaration.
 And that is it, you can now start your clojure repl as usual, with `clj -A:dev` and then eval the `:dbg` keyword to
 start the debugger UI.
 
-Then eval the entire file to compile everything.To start the server in this example you will have to remove the wrapping
+Then eval the entire file to compile everything. To start the server in this example you will have to remove the wrapping
 that is basically only allowing the server to run if we are running from babashka, like this :
 
 [,clojure]
@@ -678,7 +678,7 @@ The second argument can be a map supporting the following options :
 
 ==== What can't be instrumented?
 
-This are some limitations when instrumenting forms :
+These are some limitations when instrumenting forms :
 
 1. Very big forms can't be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
 When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying `Instrumented expression is too large for the Clojure compiler`
@@ -841,7 +841,7 @@ In the contrived example above we see we are stepping the `foo` function. All in
 body is highlighted but the bodies of the two anonymous functions for mapping and reducing. This
 will only get highlighted once you step into their bodies.
 
-In this case you are sure there are recordings for this functions bodies because the reduce is
+In this case you are sure there are recordings for these functions bodies because the reduce is
 non lazy, so if you keep stepping eventually you will get into their bodies, but there is a faster way.
 
 image::user_guide_images/stepper_highlighting_2.png[]
@@ -885,10 +885,10 @@ Custom power stepping is only supported in Clojure now.
 
 ==== Searching
 
-You can use the search box under the controls to search for the next expression (starting at your current step) which it's string
+You can use the search box under the controls to search for the next expression (starting at your current step) which its string
 serialization contains your search text.
 
-You can use the print-level and print-length fields to control how deep this serialization will be made. If this numbers are big
+You can use the print-level and print-length fields to control how deep this serialization will be made. If these numbers are big
 and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
 and you can always use Ctrl-g to stop the search if it is taking too long.
 
@@ -971,7 +971,7 @@ Use the button open button to open the bookmarks panel.
 
 image::user_guide_images/bookmarks.png[]
 
-Double clicking on any bookmark will make the debugger jump back to it's position.
+Double clicking on any bookmark will make the debugger jump back to its position.
 
 ==== Re running a flow
 
@@ -1030,7 +1030,7 @@ Clicking on any item will display the result of the call in the value pane, whil
 ==== Un-instrumenting functions
 
 Since the functions tool shows all the functions sorted by how many time they have been called it is a good tool to
-see where most of your traces are coming from. If you want to reduce the number of traces, to make lets say, search faster,
+see where most of your traces are coming from. If you want to reduce the number of traces, to make let's say, search faster,
 you can right click on any function to un instrument it. You will have to <<#_re_running_a_flow,re run the flow>> after.
 
 == Browser tool
@@ -1077,7 +1077,7 @@ Generate projects functions documentation by sampling their executions.
 
 === Generating docs
 
-Lets say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
+Let's say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
 
 First we clone the repo. Then we can generate it by calling `flow-storm.api/cli-doc`. 
 
@@ -1175,7 +1175,7 @@ image::user_guide_images/timeline_enable.png[]
 Once it is enable _FlowStorm_ will record everything as usual but also record the total order for your function calls and expressions,
 which you can then retrieve and update by clicking on the refresh button at the top.
 
-As an example, lets say you record this code :
+As an example, let's say you record this code :
 
 [,clojure]
 ----
@@ -1209,7 +1209,7 @@ For this cases _FlowStorm_ has the `Printer tool`, which allows you to define, m
 of re running your code again. It will work on your recordings as everything else.
 
 You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
-recorded expression. It will ask you for an optional message, which you can use to identify this particular prints in the output console.
+recorded expression. It will ask you for an optional message, which you can use to identify these particular prints in the output console.
 
 image::user_guide_images/printer_add.png[]
 
@@ -1317,7 +1317,7 @@ In ClojureScript you need to call them via your cljs repl.
 All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
 the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.
 
-When you clear your threads you are also crearing its limit counters, so next time you record something new counters will be initialized from your
+When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
 global limits definitions.
 
 == The tool bar
@@ -1341,7 +1341,7 @@ If you run any Clojure programs from the command line, by using `clj -X ...`, `c
 you can use `flow-storm.api/cli-run` as a trampoline, to start a debugger, instrument everything you are interested in an then
 run you original command.
 
-As an example, lets say you are compiling ClojureScript code like this :
+As an example, let's say you are compiling ClojureScript code like this :
 
 [,bash]
 ----
@@ -1364,105 +1364,202 @@ clj -Sforce -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} c
 
 == Programmable debugging
 
-_FlowStorm_ gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
-enough.
+_FlowStorm_ gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
+These allows you to explore your recordings using Clojure and write small programs to analyze
+them if what's provided by the GUI is not enough.
 
-Lets say you have traced some code and now you want to analyze the traces from the repl, this are some examples :
+Most of what is documented here is also documented in the `flow-storm.runtime.indexes.api` namespace docstring, which
+you can retrieve by evaluating `(doc flow-storm.runtime.indexes.api)`. In fact, this is the only namespace you need to
+require on your repl in order to work with your recordings.
 
-[,clojure]
-----
-(require '[flow-storm.runtime.indexes.api :as index-api]) ;; first require the index-api
+Let's say you have recorded some execution and now you want to work with the recordings from the repl.
 
-(index-api/print-threads)        ;; you can print all threads
-(index-api/select-thread nil 16) ;; select the flow-id and thread-id, so you don't need to be constantly typing it
-----
-
-=== Example 1 
-
-Collect all the types information for parameters that flow into a function
+So first we require the api ns as `ia`.
 
 [,clojure]
 ----
-(defn fn-signatures [fn-ns fn-name]
-    (let [[flow-id thread-id] @index-api/selected-thread
-          frames (index-api/all-frames flow-id thread-id (fn [fns fname _ _]
-                                                           (and (= fn-name fname)
-                                                                (= fn-ns fns))))
-          signature-types (->> frames
-                               (reduce (fn [coll-samples frame]
-                                         (conj coll-samples (mapv type (:args-vec frame))))
-                                       #{}))]
-      signature-types))
-
-(fn-signatures "user" "factorial")
+(require '[flow-storm.runtime.indexes.api :as ia])
 ----
 
-=== Example 2
+Now from the UI, you can get the thread-id of your recordings (the number next to the thread name)
+which you will need for accessing them from the repl.
 
-Visualization lenses over traces. Say I have a loop-recur process in which I am computing
-new versions of an accumulated data structure, but I want to see only some derived data
-instead of the entire data-structure (like, a visualization based on every frame of the loop).
+=== Timelines
 
-Lets say we stepped with the debugger to index 109 (some expression inside a loop),
-and we want to work with all the values for that coordinate from the repl, then you can :
+Let's say you want to explore recordings on thread 32. You can retrieve its timeline by calling `ia/get-timeline` like this :
 
 [,clojure]
 ----
-(defn frame-similar-values [idx]
-    (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
-          {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
-
-      (->> expr-executions
-           (reduce (fn [coll-vals expr-exec]
-                     (if (= coord (:coord expr-exec))
-                       (conj coll-vals (:result expr-exec))
-                       coll-vals))
-                   []))))
-				   
-(frame-similar-values 109) ;; get all the values
+(def timeline (ia/get-timeline 32))
 ----
 
-=== Example 3
+Once you have the timeline you can start exploring it.
 
-Create a small stepper for the repl
+The timeline implements many of the Clojure basic interfaces, so you can :
 
 [,clojure]
 ----
-;; a helper for pprinting forms with highlighted parts
-(require '[flow-storm.form-pprinter :as form-pprinter])
-;; and some utils for printing with colors
-(require '[flow-storm.utils :as utils]) 
+user> (count timeline)
+798
 
-(def idx (atom 0)) ;; the state of our debugger, where we are in the timeline
-
-(defn show-current []
-    (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
-          {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
-          {:keys [form/form]} (index-api/get-form form-id)]
-      (case type
-        :fn-call (let [{:keys [fn-name fn-ns]} idx-entry]
-                   (println "Called" fn-ns fn-name))
-        (:expr :fn-return) (let [{:keys [coord result]} idx-entry]
-                             (form-pprinter/pprint-form-hl-coord form coord)
-                             (println "\n")
-                             (println "==[VAL]==>" (utils/colored-string result :yellow))))))
-
-(defn step-next []
-  (swap! idx inc)
-  (show-current))
-
-(defn step-prev []
-  (swap! idx dec)
-  (show-current))
-
-;; use the debugger with
-(reset! idx 12) ;; move the idx wherever you want
-(step-next)
-(step-prev)
+user> (take 3 timeline)
+(#object[...FnCallTrace ... "[0 FnCallTrace] ..."]
+ #object[...FnCallTrace ... "[1 FnCallTrace] ..."]
+ #object[...FnCallTrace ... "[2 FnCallTrace] ..."])
+ 
+user> (get timeline 0)
+#object[...FnCallTrace ... "[0 FnCallTrace] ..."]
 ----
 
+The easiest way to take a look at a thread timeline is with some code like this :
+
+[,clojure]
+----
+(->> timeline
+     (take 3)
+     (map ia/as-immutable))
+
+({:type :fn-call,
+  :fn-ns "org.my-app
+  :fn-name "run-server",
+  :ret-idx 797,
+  :fn-call-idx 0,
+  :parent-indx nil,
+  :fn-args [],
+  :form-id -798068730,
+  :idx 0}
+ ...
+ ...)
+----
+
+In most cases converting all entries into maps with `ia/as-immutable` is enough, but if you want a little bit more
+performance you can access entries information without creating a immutable map first.
+
+Timelines entries are of 4 different kinds: `FnCallTrace`, `FnReturnTrace`, `FnUnwindTrace` and `ExprTrace`.
+
+You can access their data by using the following functions depending on the entry :
+  
+All kinds :
+
+  - `as-immutable`
+  - `entry-idx`
+  - `fn-call-idx`
+
+`ExprTrace`, `FnReturnTrace` and `FnUnwindTrace` :
+
+  - `get-coord-vec`
+
+`ExprTrace`, `FnReturnTrace` :
+
+  - `get-expr-val`
+
+`FnUnwindTrace` :
+
+  - `get-throwable`
+  
+`FnCallTrace` :
+
+  - `get-fn-name`
+  - `get-fn-ns`
+  - `get-fn-args`
+  - `get-fn-parent-idx`
+  - `get-fn-ret-idx`
+  - `get-fn-bindings`
+
+You can also access the timeline as a tree by calling :
+
+  - `callstack-root-node`
+  - `callstack-node-childs`
+  - `callstack-node-frame-data`
+
+take a look at their docstrings for more info.
+
+=== Forms
+  
+You can retrieve forms by form id with `get-form` and then use `get-sub-form-at-coord` and a coordinate.
+
+Here is a little example :
+
+[,clojure]
+----
+;; retrieve some expression entry into expr
+user> (def expr (-> timeline
+                    (get 3)
+                    ia/as-immutable))
+
+user> expr
+{:type :expr, :coord [2 2 1], :result 4, :fn-call-idx 2, :idx 3}
+
+;; retrieve the fn-call entry for our expr
+user> (def fn-call (-> timeline
+                       (get (:fn-call-idx expr))
+                       ia/as-immutable))
+user> fn-call
+{:type :fn-call,
+ :fn-ns "dev-tester"
+ :fn-name "other-function",
+ :form-id 1451539897,
+ ...}
+
+;; grab it's form
+user> (def form (-> fn-call
+                    :form-id
+                    ia/get-form
+                    :form/form))
+user> form
+(def other-function (fn [a b] (+ a b 10)))
+
+;; lets look at the sub-form from form at our expr coordinate
+user> (ia/get-sub-form-at-coord form (:coord expr))
+a                    
+----
+
+=== Multi-thread timeline
+  
+If you have recorded a multi-thread timeline, you can retrieve it with `total-order-timeline` like this :
+
+[,clojure]
+----
+(def mt-timeline (ia/total-order-timeline))
+----
+
+which you can then iterate using normal Clojure functions (map, filter, reduce, get, etc).
+
+The easiest way to explore it is again with some code like this :
+
+[,clojure]
+----  
+user> (->> mt-timeline
+           (take 3)
+           (map ia/as-immutable))
+
+({:thread-id 32,
+  :type :fn-call,  
+  :fn-call-idx 0,
+  :fn-ns "org.my-app",
+  :fn-name "run",
+  :fn-args [],
+  :ret-idx 797,
+  :parent-indx nil,  
+  :form-id -798068730,
+  :idx 0}
+  ...
+  ...)
+----
+
+Notice that each of this entries contains a thread-id also.
+
+=== Other utilities
+
+There are other utitities in the api ns that could be useful, some of the most interesting ones :
+
+  - `find-timeline-entry`
+  - `stack-for-frame`
+  - `fn-call-stats`
+
+take a look at their docstrings for more info.
+  
+  
 == Dealing with mutable values
 
 _FlowStorm_ will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
@@ -1602,7 +1699,7 @@ repl (not the Cljs one) by calling :
 The `[add|rm]-instr-prefix` set of functions have an extra parameter called `touch-path`.
 This is kind of a hacky way of going around shadow-cljs cache.
 
-Lets say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
+Let's say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
 Shadow-cljs will not recompile files that haven't been modified since the last compilation. You can use the `touch-path`
 parameter for this. If you provide `src` for example, it will walk the directory structure down and touch every file,
 which should fire a recompilation.
@@ -1752,7 +1849,7 @@ Is useful when you have instrumented a big application and wish to see tracing p
 
 FlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.
 
-If that is the case add this dependencies to your alias :
+If that is the case add these dependencies to your alias :
 
 [,clojure]
 ----

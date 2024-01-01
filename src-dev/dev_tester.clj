@@ -70,6 +70,21 @@
 (defn hinted [a ^long b c ^long d]
   (+ a c (+ b d)))
 
+(defn lorem-ipsum [arg1 arg2 arg3]
+  (str "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+        "Proin vehicula euismod ligula, eu consectetur tortor facilisis vel."
+        "Pellentesque " arg1 " elit nec, " arg2 " sagittis turpis. "
+        "Duis fermentum mi et eros vehicula, id fringilla justo tincidunt."
+        "Integer " arg3 " ut justo in dignissim. "
+        "Proin ac ex eu sem sollicitudin hendrerit."))
+
+(defn generate-lorem-ipsum []
+  (let [long-arg1 (apply str (repeat 120 "a"))
+        long-arg2 (apply str (repeat 120 "b"))
+        long-arg3 (apply str (repeat 120 "c"))]
+
+    (lorem-ipsum long-arg1 long-arg2 long-arg3)))
+
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
@@ -88,7 +103,8 @@
             (if (> i 0)
               (recur (dec i) (+ sum i))
               sum))
-        z (catcher)]
+        z (catcher)
+        li (generate-lorem-ipsum)]
     (->> xs
          (map (fn [x] (+ 1 (do-it x))))
          (reduce + )
@@ -96,17 +112,10 @@
          sub
          (+ c d j e (hinted a c d j)))))
 
-(defn lorem-ipsum [arg1 arg2 arg3]
-  (str "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-        "Proin vehicula euismod ligula, eu consectetur tortor facilisis vel."
-        "Pellentesque " arg1 " elit nec, " arg2 " sagittis turpis. "
-        "Duis fermentum mi et eros vehicula, id fringilla justo tincidunt."
-        "Integer " arg3 " ut justo in dignissim. "
-        "Proin ac ex eu sem sollicitudin hendrerit."))
+(defn run []
+  (boo [1 "hello" 4]))
 
-(defn generate-lorem-ipsum []
-  (let [long-arg1 (apply str (repeat 120 "a"))
-        long-arg2 (apply str (repeat 120 "b"))
-        long-arg3 (apply str (repeat 120 "c"))]
-
-        (lorem-ipsum long-arg1 long-arg2 long-arg3)))
+(defn run-parallel []
+  (->> (range 4)
+       (pmap (fn [i] (factorial i)))
+       (reduce +)))

@@ -4,26 +4,15 @@
 
 (def nil-idx -1)
 
-(defprotocol FnReturnTraceP
-  (set-fn-call-idx [_ idx])
-  (set-idx [_ idx]))
-
 (deftype FnReturnTrace
-    [                              coord
-                                   retVal
-     ^:unsynchronized-mutable ^int fnCallIdx
-     ^:unsynchronized-mutable ^int thisIdx]
+    [     coord
+          retVal
+     ^int fnCallIdx
+     ^int thisIdx]
 
   index-protos/ExpressionTimelineEntryP
   (get-expr-val [_] retVal)
   
-  FnReturnTraceP
-    
-  (set-fn-call-idx [_ idx]
-    (set! fnCallIdx (int idx)))
-  (set-idx [_ idx]
-    (set! thisIdx (int idx)))
-
   index-protos/CoordableTimelineEntryP
   (get-coord-vec [_] (utils/str-coord->vec coord))
   (get-coord-raw [_] coord)
@@ -53,25 +42,18 @@
        (toString [_] (utils/format "[%d FnReturnTrace] retValType: %s" thisIdx (type retVal)))])
   )
 
-(defn make-fn-return-trace [coord ret-val]
-  (->FnReturnTrace coord ret-val nil-idx nil-idx))
+(defn make-fn-return-trace [coord ret-val this-idx fn-call-idx]
+  (->FnReturnTrace coord ret-val fn-call-idx this-idx))
 
 (defn fn-return-trace? [x]
   (and x (instance? FnReturnTrace x)))
 
 (deftype FnUnwindTrace
-    [                              coord
-                                   throwable
-     ^:unsynchronized-mutable ^int fnCallIdx
-     ^:unsynchronized-mutable ^int thisIdx]
-
-  FnReturnTraceP
-    
-  (set-fn-call-idx [_ idx]
-    (set! fnCallIdx (int idx)))
-  (set-idx [_ idx]
-    (set! thisIdx (int idx)))
-
+    [     coord
+          throwable
+     ^int fnCallIdx
+     ^int thisIdx]
+      
   index-protos/CoordableTimelineEntryP
   (get-coord-vec [_] (utils/str-coord->vec coord))
   (get-coord-raw [_] coord)
@@ -102,11 +84,11 @@
   
   #?@(:clj
       [Object
-       (toString [_] (utils/format "[%d FnUnwindTrace] throwable: %s" thisIdx (type throwable)))])
+       (toString [_] (utils/format "[%d FnUnwindTrace] fn-call: %d throwable: %s" thisIdx fnCallIdx (type throwable)))])
   )
 
-(defn make-fn-unwind-trace [coord throwable]
-  (->FnUnwindTrace coord throwable nil-idx nil-idx))
+(defn make-fn-unwind-trace [coord throwable this-idx fn-call-idx]
+  (->FnUnwindTrace coord throwable fn-call-idx this-idx))
 
 (defn fn-unwind-trace? [x]
   (and x (instance? FnUnwindTrace x)))

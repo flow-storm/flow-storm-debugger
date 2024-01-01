@@ -2,11 +2,7 @@
   (:require [flow-storm.utils :as utils :refer [stringify-coord]]
             [hansel.instrument.runtime :refer [*runtime-ctx*]]
             [flow-storm.runtime.values :refer [snapshot-reference]]
-            [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.types.fn-call-trace :refer [make-fn-call-trace]]
-            [flow-storm.runtime.types.fn-return-trace :refer [make-fn-return-trace make-fn-unwind-trace]]
-            [flow-storm.runtime.types.expr-trace :refer [make-expr-trace]]
-            [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]))
+            [flow-storm.runtime.indexes.api :as indexes-api]))
 
 (declare start-tracer)
 (declare stop-tracer)
@@ -134,7 +130,10 @@
           flow-id
           thread-id
           thread-name
-          (make-fn-call-trace fn-ns fn-name form-id args)
+          fn-ns
+          fn-name
+          form-id
+          args
           @total-order-recording))))))
 
 (defn trace-fn-return
@@ -152,10 +151,10 @@
      (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-fn-return-trace
         flow-id
-        thread-id      
-        (make-fn-return-trace coord (snapshot-reference return))
-        @total-order-recording
-        false)))))
+        thread-id
+        coord
+        (snapshot-reference return)
+        @total-order-recording)))))
 
 (defn trace-fn-unwind
   ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
@@ -163,19 +162,19 @@
          thread-id (utils/get-current-thread-id)]
 
      (when thread-trace-limit
-       (when (> (indexes-api/timeline-count flow-id thread-id) thread-trace-limit)
+       (when (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit)
          (throw (ex-info "thread-trace-limit exceeded" {}))))
 
      (trace-fn-unwind flow-id throwable (stringify-coord coor) form-id)))
   
   ([flow-id throwable coord _] ;; for using with storm  
    (let [thread-id (utils/get-current-thread-id)]
-       (indexes-api/add-fn-return-trace
+       (indexes-api/add-fn-unwind-trace
         flow-id
         thread-id      
-        (make-fn-unwind-trace coord (snapshot-reference throwable))
-        @total-order-recording
-        true))))
+        coord
+        (snapshot-reference throwable)
+        @total-order-recording))))
 
 (defn trace-expr-exec
   
@@ -186,7 +185,7 @@
          thread-id (utils/get-current-thread-id)]
 
      (when thread-trace-limit
-       (when (> (indexes-api/timeline-count flow-id thread-id) thread-trace-limit)
+       (when (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit)
          (throw (ex-info "thread-trace-limit exceeded" {}))))
 
      (trace-expr-exec flow-id result (stringify-coord coor) form-id))
@@ -199,7 +198,8 @@
        (indexes-api/add-expr-exec-trace      
         flow-id
         thread-id      
-        (make-expr-trace coord (snapshot-reference result))
+        coord
+        (snapshot-reference result)
         @total-order-recording)))))
 
 (defn trace-bind
@@ -216,8 +216,10 @@
      (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-bind-trace      
         flow-id
-        thread-id      
-        (make-bind-trace sym-name (snapshot-reference val) coord))))))
+        thread-id
+        coord
+        sym-name
+        (snapshot-reference val))))))
 
 (defn hansel-config
 

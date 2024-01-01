@@ -5,19 +5,6 @@
 
 (def nil-idx -1)
 
-(defprotocol FnCallTraceP
-  (get-fn-name [_])
-  (get-fn-ns [_])
-  (get-form-id [_])
-  (get-fn-args [_])
-  (get-parent-idx [_])
-  (set-parent-idx [_ idx])
-  (get-ret-idx [_])
-  (set-ret-idx [_ idx])    
-  (add-binding [_ bind])
-  (set-idx [_ idx])
-  (bindings [_]))
-
 (deftype FnCallTrace
     [                         fnName
                               fnNs
@@ -28,7 +15,7 @@
      ^:unsynchronized-mutable ^int parentIdx
      ^:unsynchronized-mutable ^int retIdx]
 
-  FnCallTraceP
+  index-protos/FnCallTraceP
 
   (get-fn-name [_] fnName)
   (get-fn-ns [_] fnNs)
@@ -70,21 +57,21 @@
      :fn-args fnArgs
      :fn-call-idx (index-protos/entry-idx this)
      :idx (index-protos/entry-idx this)
-     :parent-indx (get-parent-idx this)
-     :ret-idx (get-ret-idx this)})
+     :parent-indx (index-protos/get-parent-idx this)
+     :ret-idx (index-protos/get-ret-idx this)})
 
   #?@(:clj
       [Object
        (toString [_] (utils/format "[%d FnCallTrace] %s/%s form-id: %d ret: %d" thisIdx fnNs fnName formId retIdx))]))
 
-(defn make-fn-call-trace [fn-ns fn-name form-id fn-args]
+(defn make-fn-call-trace [fn-ns fn-name form-id fn-args this-idx parent-idx]
   (->FnCallTrace fn-name
                  fn-ns
                  form-id
                  fn-args
                  (index-utils/make-mutable-list)
-                 nil-idx
-                 nil-idx
+                 this-idx
+                 (or parent-idx nil-idx)
                  nil-idx))
 
 (defn fn-call-trace? [x]

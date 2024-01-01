@@ -35,6 +35,7 @@ Whatever instrumentation system the user chooses, when instrumented code runs it
 
   * `flow-storm.tracer/trace-fn-call`
   * `flow-storm.tracer/trace-fn-return`
+  * `flow-storm.tracer/trace-fn-unwind`
   * `flow-storm.tracer/trace-expr-exec`
   * `flow-storm.tracer/trace-bind`
   
@@ -252,16 +253,24 @@ You can then decompile it into :
 public final class dev_tester$sum extends AFunction
 {
     public static Object invokeStatic(final Object a, final Object b) {
-        Tracer.traceFnCall(PersistentVector.create(a, b), "dev-tester", "sum", -1340777963);
-        Tracer.traceBind(a, "", "a");
-        Tracer.traceBind(b, "", "b");
-        Tracer.traceExpr(a, "3,1", -1340777963);
-        Tracer.traceExpr(b, "3,2", -1340777963);
-        final Number add = Numbers.add(a, b);
-        Tracer.traceExpr(add, "3", -1340777963);
-        Tracer.traceFnReturn(add, "", -1340777963);
+        Number add;
+        try {
+            Tracer.traceFnCall(new Object[] { a, b }, "user", "sum", -1340777963);
+            Tracer.traceBind(a, "", "a");
+            Tracer.traceBind(b, "", "b");
+            Tracer.traceExpr(a, "3,1", -1340777963);
+            Tracer.traceExpr(b, "3,2", -1340777963);
+            add = Numbers.add(a, b);
+            Tracer.traceExpr(add, "3", -1340777963);
+            Tracer.traceFnReturn(add, "", -1340777963);
+        }
+        catch (Throwable throwable) {
+            Tracer.traceFnUnwind(throwable, "", -1340777963);
+            throw throwable;
+        }
         return add;
     }
+
     
     @Override
     public Object invoke(final Object a, final Object b) {

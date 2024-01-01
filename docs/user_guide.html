@@ -750,9 +750,10 @@ pre.rouge {
 <li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">14. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
 <li><a href="#_programmable_debugging">15. Programmable debugging</a>
 <ul class="sectlevel3">
-<li><a href="#_example_1">15.1. Example 1</a></li>
-<li><a href="#_example_2">15.2. Example 2</a></li>
-<li><a href="#_example_3">15.3. Example 3</a></li>
+<li><a href="#_timelines">15.1. Timelines</a></li>
+<li><a href="#_forms">15.2. Forms</a></li>
+<li><a href="#_multi_thread_timeline">15.3. Multi-thread timeline</a></li>
+<li><a href="#_other_utilities">15.4. Other utilities</a></li>
 </ul>
 </li>
 <li><a href="#_dealing_with_mutable_values">16. Dealing with mutable values</a></li>
@@ -1039,7 +1040,7 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 <p>You should now see a empty debugger window.</p>
 </div>
 <div class="paragraph">
-<p>Lets debug something :</p>
+<p>Let&#8217;s debug something :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1288,7 +1289,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 <div class="sect4">
 <h5 id="_clojurescript_vanilla_flowstorm"><a class="anchor" href="#_clojurescript_vanilla_flowstorm"></a><a class="link" href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></h5>
 <div class="paragraph">
-<p>Lets say you are using <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> to start a ClojureScript repl.</p>
+<p>Let&#8217;s say you are using <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> to start a ClojureScript repl.</p>
 </div>
 <div class="paragraph">
 <p>First you need to add <em>FlowStorm</em> dependency to your project dependencies, like this :</p>
@@ -1324,7 +1325,7 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 </table>
 </div>
 <div class="paragraph">
-<p>Then lets say you start your repl like :</p>
+<p>Then let&#8217;s say you start your repl like :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1602,7 +1603,7 @@ the <code>user</code> namespace since the script doesn&#8217;t contain any names
 start the debugger UI.</p>
 </div>
 <div class="paragraph">
-<p>Then eval the entire file to compile everything.To start the server in this example you will have to remove the wrapping
+<p>Then eval the entire file to compile everything. To start the server in this example you will have to remove the wrapping
 that is basically only allowing the server to run if we are running from babashka, like this :</p>
 </div>
 <div class="listingblock">
@@ -1778,7 +1779,7 @@ instrument all namespaces starting with <code>org.my-app.core</code>, and all st
 <div class="sect4">
 <h5 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></h5>
 <div class="paragraph">
-<p>This are some limitations when instrumenting forms :</p>
+<p>These are some limitations when instrumenting forms :</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -2094,7 +2095,7 @@ body is highlighted but the bodies of the two anonymous functions for mapping an
 will only get highlighted once you step into their bodies.</p>
 </div>
 <div class="paragraph">
-<p>In this case you are sure there are recordings for this functions bodies because the reduce is
+<p>In this case you are sure there are recordings for these functions bodies because the reduce is
 non lazy, so if you keep stepping eventually you will get into their bodies, but there is a faster way.</p>
 </div>
 <div class="imageblock">
@@ -2177,11 +2178,11 @@ If you define it like <code>(fn [v] (map? v))</code> will make the power stepper
 <div class="sect4">
 <h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
 <div class="paragraph">
-<p>You can use the search box under the controls to search for the next expression (starting at your current step) which it&#8217;s string
+<p>You can use the search box under the controls to search for the next expression (starting at your current step) which its string
 serialization contains your search text.</p>
 </div>
 <div class="paragraph">
-<p>You can use the print-level and print-length fields to control how deep this serialization will be made. If this numbers are big
+<p>You can use the print-level and print-length fields to control how deep this serialization will be made. If these numbers are big
 and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
 and you can always use Ctrl-g to stop the search if it is taking too long.</p>
 </div>
@@ -2331,7 +2332,7 @@ you to mark execution positions so you can come back to them later.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Double clicking on any bookmark will make the debugger jump back to it&#8217;s position.</p>
+<p>Double clicking on any bookmark will make the debugger jump back to its position.</p>
 </div>
 </div>
 <div class="sect4">
@@ -2433,7 +2434,7 @@ for each call, and you can use the check boxes at the top to hide some of them.<
 <h5 id="_un_instrumenting_functions"><a class="anchor" href="#_un_instrumenting_functions"></a><a class="link" href="#_un_instrumenting_functions">Un-instrumenting functions</a></h5>
 <div class="paragraph">
 <p>Since the functions tool shows all the functions sorted by how many time they have been called it is a good tool to
-see where most of your traces are coming from. If you want to reduce the number of traces, to make lets say, search faster,
+see where most of your traces are coming from. If you want to reduce the number of traces, to make let&#8217;s say, search faster,
 you can right click on any function to un instrument it. You will have to <a href="#_re_running_a_flow">re run the flow</a> after.</p>
 </div>
 </div>
@@ -2510,7 +2511,7 @@ Use the <code>clear</code> button to clear the list.</p>
 <div class="sect3">
 <h4 id="_generating_docs"><a class="anchor" href="#_generating_docs"></a><a class="link" href="#_generating_docs">7.1. Generating docs</a></h4>
 <div class="paragraph">
-<p>Lets say we want to generate documentation for datascript(<a href="https://github.com/tonsky/datascript/" class="bare">https://github.com/tonsky/datascript/</a>).</p>
+<p>Let&#8217;s say we want to generate documentation for datascript(<a href="https://github.com/tonsky/datascript/" class="bare">https://github.com/tonsky/datascript/</a>).</p>
 </div>
 <div class="paragraph">
 <p>First we clone the repo. Then we can generate it by calling <code>flow-storm.api/cli-doc</code>.</p>
@@ -2650,7 +2651,7 @@ This can be used, for example, to visualize how multiple threads expressions int
 which you can then retrieve and update by clicking on the refresh button at the top.</p>
 </div>
 <div class="paragraph">
-<p>As an example, lets say you record this code :</p>
+<p>As an example, let&#8217;s say you record this code :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2703,7 +2704,7 @@ of re running your code again. It will work on your recordings as everything els
 </div>
 <div class="paragraph">
 <p>You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
-recorded expression. It will ask you for an optional message, which you can use to identify this particular prints in the output console.</p>
+recorded expression. It will ask you for an optional message, which you can use to identify these particular prints in the output console.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2898,7 +2899,7 @@ In ClojureScript you need to call them via your cljs repl.</p>
 the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.</p>
 </div>
 <div class="paragraph">
-<p>When you clear your threads you are also crearing its limit counters, so next time you record something new counters will be initialized from your
+<p>When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
 global limits definitions.</p>
 </div>
 </div>
@@ -2946,7 +2947,7 @@ you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debu
 run you original command.</p>
 </div>
 <div class="paragraph">
-<p>As an example, lets say you are compiling ClojureScript code like this :</p>
+<p>As an example, let&#8217;s say you are compiling ClojureScript code like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2972,111 +2973,286 @@ run you original command.</p>
 <div class="sect2">
 <h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">15. Programmable debugging</a></h3>
 <div class="paragraph">
-<p><em>FlowStorm</em> gives you full access to its internal indexes from the repl so you can write programs to analyze your traces if whats provided by the GUI is not
-enough.</p>
+<p><em>FlowStorm</em> gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
+These allows you to explore your recordings using Clojure and write small programs to analyze
+them if what&#8217;s provided by the GUI is not enough.</p>
 </div>
 <div class="paragraph">
-<p>Lets say you have traced some code and now you want to analyze the traces from the repl, this are some examples :</p>
+<p>Most of what is documented here is also documented in the <code>flow-storm.runtime.indexes.api</code> namespace docstring, which
+you can retrieve by evaluating <code>(doc flow-storm.runtime.indexes.api)</code>. In fact, this is the only namespace you need to
+require on your repl in order to work with your recordings.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say you have recorded some execution and now you want to work with the recordings from the repl.</p>
+</div>
+<div class="paragraph">
+<p>So first we require the api ns as <code>ia</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.runtime.indexes.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">index-api</span><span class="p">])</span><span class="w"> </span><span class="c1">;; first require the index-api</span><span class="w">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.runtime.indexes.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">ia</span><span class="p">])</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now from the UI, you can get the thread-id of your recordings (the number next to the thread name)
+which you will need for accessing them from the repl.</p>
+</div>
+<div class="sect3">
+<h4 id="_timelines"><a class="anchor" href="#_timelines"></a><a class="link" href="#_timelines">15.1. Timelines</a></h4>
+<div class="paragraph">
+<p>Let&#8217;s say you want to explore recordings on thread 32. You can retrieve its timeline by calling <code>ia/get-timeline</code> like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/get-timeline</span><span class="w"> </span><span class="mi">32</span><span class="p">))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have the timeline you can start exploring it.</p>
+</div>
+<div class="paragraph">
+<p>The timeline implements many of the Clojure basic interfaces, so you can :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">count</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
+</span><span class="mi">798</span><span class="w">
 
-</span><span class="p">(</span><span class="nf">index-api/print-threads</span><span class="p">)</span><span class="w">        </span><span class="c1">;; you can print all threads</span><span class="w">
-</span><span class="p">(</span><span class="nf">index-api/select-thread</span><span class="w"> </span><span class="n">nil</span><span class="w"> </span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="c1">;; select the flow-id and thread-id, so you don't need to be constantly typing it</span></code></pre>
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
+</span><span class="p">(</span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[0 FnCallTrace] ..."</span><span class="p">]</span><span class="w">
+ </span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[1 FnCallTrace] ..."</span><span class="p">]</span><span class="w">
+ </span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[2 FnCallTrace] ..."</span><span class="p">])</span><span class="w">
+
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">
+</span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[0 FnCallTrace] ..."</span><span class="p">]</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The easiest way to take a look at a thread timeline is with some code like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">timeline</span><span class="w">
+     </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
+     </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
+
+</span><span class="p">({</span><span class="no">:type</span><span class="w"> </span><span class="no">:fn-call,</span><span class="w">
+  </span><span class="no">:fn-ns</span><span class="w"> </span><span class="s">"org.my-app
+  :fn-name "</span><span class="n">run-server</span><span class="err">"</span><span class="n">,</span><span class="w">
+  </span><span class="no">:ret-idx</span><span class="w"> </span><span class="mi">797</span><span class="n">,</span><span class="w">
+  </span><span class="no">:fn-call-idx</span><span class="w"> </span><span class="mi">0</span><span class="n">,</span><span class="w">
+  </span><span class="no">:parent-indx</span><span class="w"> </span><span class="n">nil,</span><span class="w">
+  </span><span class="no">:fn-args</span><span class="w"> </span><span class="p">[]</span><span class="n">,</span><span class="w">
+  </span><span class="no">:form-id</span><span class="w"> </span><span class="mi">-798068730</span><span class="n">,</span><span class="w">
+  </span><span class="no">:idx</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span><span class="w">
+ </span><span class="n">...</span><span class="w">
+ </span><span class="n">...</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In most cases converting all entries into maps with <code>ia/as-immutable</code> is enough, but if you want a little bit more
+performance you can access entries information without creating a immutable map first.</p>
+</div>
+<div class="paragraph">
+<p>Timelines entries are of 4 different kinds: <code>FnCallTrace</code>, <code>FnReturnTrace</code>, <code>FnUnwindTrace</code> and <code>ExprTrace</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can access their data by using the following functions depending on the entry :</p>
+</div>
+<div class="paragraph">
+<p>All kinds :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>as-immutable</code></p>
+</li>
+<li>
+<p><code>entry-idx</code></p>
+</li>
+<li>
+<p><code>fn-call-idx</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>ExprTrace</code>, <code>FnReturnTrace</code> and <code>FnUnwindTrace</code> :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>get-coord-vec</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>ExprTrace</code>, <code>FnReturnTrace</code> :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>get-expr-val</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>FnUnwindTrace</code> :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>get-throwable</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>FnCallTrace</code> :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>get-fn-name</code></p>
+</li>
+<li>
+<p><code>get-fn-ns</code></p>
+</li>
+<li>
+<p><code>get-fn-args</code></p>
+</li>
+<li>
+<p><code>get-fn-parent-idx</code></p>
+</li>
+<li>
+<p><code>get-fn-ret-idx</code></p>
+</li>
+<li>
+<p><code>get-fn-bindings</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also access the timeline as a tree by calling :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>callstack-root-node</code></p>
+</li>
+<li>
+<p><code>callstack-node-childs</code></p>
+</li>
+<li>
+<p><code>callstack-node-frame-data</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>take a look at their docstrings for more info.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_1"><a class="anchor" href="#_example_1"></a><a class="link" href="#_example_1">15.1. Example 1</a></h4>
+<h4 id="_forms"><a class="anchor" href="#_forms"></a><a class="link" href="#_forms">15.2. Forms</a></h4>
 <div class="paragraph">
-<p>Collect all the types information for parameters that flow into a function</p>
+<p>You can retrieve forms by form id with <code>get-form</code> and then use <code>get-sub-form-at-coord</code> and a coordinate.</p>
+</div>
+<div class="paragraph">
+<p>Here is a little example :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">fn-signatures</span><span class="w"> </span><span class="p">[</span><span class="n">fn-ns</span><span class="w"> </span><span class="n">fn-name</span><span class="p">]</span><span class="w">
-    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
-          </span><span class="n">frames</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/all-frames</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">fns</span><span class="w"> </span><span class="n">fname</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="n">_</span><span class="p">]</span><span class="w">
-                                                           </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">fn-name</span><span class="w"> </span><span class="n">fname</span><span class="p">)</span><span class="w">
-                                                                </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">fn-ns</span><span class="w"> </span><span class="n">fns</span><span class="p">))))</span><span class="w">
-          </span><span class="n">signature-types</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">frames</span><span class="w">
-                               </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">coll-samples</span><span class="w"> </span><span class="n">frame</span><span class="p">]</span><span class="w">
-                                         </span><span class="p">(</span><span class="nb">conj</span><span class="w"> </span><span class="n">coll-samples</span><span class="w"> </span><span class="p">(</span><span class="nf">mapv</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">(</span><span class="no">:args-vec</span><span class="w"> </span><span class="n">frame</span><span class="p">))))</span><span class="w">
-                                       </span><span class="o">#</span><span class="p">{}))]</span><span class="w">
-      </span><span class="n">signature-types</span><span class="p">))</span><span class="w">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="c1">;; retrieve some expression entry into expr</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="n">timeline</span><span class="w">
+                    </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
+                    </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
 
-</span><span class="p">(</span><span class="nf">fn-signatures</span><span class="w"> </span><span class="s">"user"</span><span class="w"> </span><span class="s">"factorial"</span><span class="p">)</span></code></pre>
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="n">expr</span><span class="w">
+</span><span class="p">{</span><span class="no">:type</span><span class="w"> </span><span class="no">:expr,</span><span class="w"> </span><span class="no">:coord</span><span class="w"> </span><span class="p">[</span><span class="mi">2</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="n">,</span><span class="w"> </span><span class="no">:result</span><span class="w"> </span><span class="mi">4</span><span class="n">,</span><span class="w"> </span><span class="no">:fn-call-idx</span><span class="w"> </span><span class="mi">2</span><span class="n">,</span><span class="w"> </span><span class="no">:idx</span><span class="w"> </span><span class="mi">3</span><span class="p">}</span><span class="w">
+
+</span><span class="c1">;; retrieve the fn-call entry for our expr</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">fn-call</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="n">timeline</span><span class="w">
+                       </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="p">(</span><span class="no">:fn-call-idx</span><span class="w"> </span><span class="n">expr</span><span class="p">))</span><span class="w">
+                       </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="n">fn-call</span><span class="w">
+</span><span class="p">{</span><span class="no">:type</span><span class="w"> </span><span class="no">:fn-call,</span><span class="w">
+ </span><span class="no">:fn-ns</span><span class="w"> </span><span class="s">"dev-tester"</span><span class="w">
+ </span><span class="no">:fn-name</span><span class="w"> </span><span class="s">"other-function"</span><span class="n">,</span><span class="w">
+ </span><span class="no">:form-id</span><span class="w"> </span><span class="mi">1451539897</span><span class="n">,</span><span class="w">
+ </span><span class="n">...</span><span class="p">}</span><span class="w">
+
+</span><span class="c1">;; grab it's form</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">form</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="n">fn-call</span><span class="w">
+                    </span><span class="no">:form-id</span><span class="w">
+                    </span><span class="n">ia/get-form</span><span class="w">
+                    </span><span class="no">:form/form</span><span class="p">))</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="n">form</span><span class="w">
+</span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">other-function</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w">
+
+</span><span class="c1">;; lets look at the sub-form from form at our expr coordinate</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/get-sub-form-at-coord</span><span class="w"> </span><span class="n">form</span><span class="w"> </span><span class="p">(</span><span class="no">:coord</span><span class="w"> </span><span class="n">expr</span><span class="p">))</span><span class="w">
+</span><span class="n">a</span></code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_2"><a class="anchor" href="#_example_2"></a><a class="link" href="#_example_2">15.2. Example 2</a></h4>
+<h4 id="_multi_thread_timeline"><a class="anchor" href="#_multi_thread_timeline"></a><a class="link" href="#_multi_thread_timeline">15.3. Multi-thread timeline</a></h4>
 <div class="paragraph">
-<p>Visualization lenses over traces. Say I have a loop-recur process in which I am computing
-new versions of an accumulated data structure, but I want to see only some derived data
-instead of the entire data-structure (like, a visualization based on every frame of the loop).</p>
-</div>
-<div class="paragraph">
-<p>Lets say we stepped with the debugger to index 109 (some expression inside a loop),
-and we want to work with all the values for that coordinate from the repl, then you can :</p>
+<p>If you have recorded a multi-thread timeline, you can retrieve it with <code>total-order-timeline</code> like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">frame-similar-values</span><span class="w"> </span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="w">
-    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
-          </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">fn-call-idx</span><span class="w"> </span><span class="n">coord</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/timeline-entry</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="no">:at</span><span class="p">)</span><span class="w">
-          </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">expr-executions</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/frame-data</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="n">fn-call-idx</span><span class="w"> </span><span class="p">{</span><span class="no">:include-exprs?</span><span class="w"> </span><span class="n">true</span><span class="p">})]</span><span class="w">
-
-      </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">expr-executions</span><span class="w">
-           </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">coll-vals</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">]</span><span class="w">
-                     </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">coord</span><span class="w"> </span><span class="p">(</span><span class="no">:coord</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">))</span><span class="w">
-                       </span><span class="p">(</span><span class="nb">conj</span><span class="w"> </span><span class="n">coll-vals</span><span class="w"> </span><span class="p">(</span><span class="no">:result</span><span class="w"> </span><span class="n">expr-exec</span><span class="p">))</span><span class="w">
-                       </span><span class="n">coll-vals</span><span class="p">))</span><span class="w">
-                   </span><span class="p">[]))))</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">frame-similar-values</span><span class="w"> </span><span class="mi">109</span><span class="p">)</span><span class="w"> </span><span class="c1">;; get all the values</span></code></pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/total-order-timeline</span><span class="p">))</span></code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>which you can then iterate using normal Clojure functions (map, filter, reduce, get, etc).</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to explore it is again with some code like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w">
+           </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
+           </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
+
+</span><span class="p">({</span><span class="no">:thread-id</span><span class="w"> </span><span class="mi">32</span><span class="n">,</span><span class="w">
+  </span><span class="no">:type</span><span class="w"> </span><span class="no">:fn-call,</span><span class="w">
+  </span><span class="no">:fn-call-idx</span><span class="w"> </span><span class="mi">0</span><span class="n">,</span><span class="w">
+  </span><span class="no">:fn-ns</span><span class="w"> </span><span class="s">"org.my-app"</span><span class="n">,</span><span class="w">
+  </span><span class="no">:fn-name</span><span class="w"> </span><span class="s">"run"</span><span class="n">,</span><span class="w">
+  </span><span class="no">:fn-args</span><span class="w"> </span><span class="p">[]</span><span class="n">,</span><span class="w">
+  </span><span class="no">:ret-idx</span><span class="w"> </span><span class="mi">797</span><span class="n">,</span><span class="w">
+  </span><span class="no">:parent-indx</span><span class="w"> </span><span class="n">nil,</span><span class="w">
+  </span><span class="no">:form-id</span><span class="w"> </span><span class="mi">-798068730</span><span class="n">,</span><span class="w">
+  </span><span class="no">:idx</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span><span class="w">
+  </span><span class="n">...</span><span class="w">
+  </span><span class="n">...</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice that each of this entries contains a thread-id also.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_example_3"><a class="anchor" href="#_example_3"></a><a class="link" href="#_example_3">15.3. Example 3</a></h4>
+<h4 id="_other_utilities"><a class="anchor" href="#_other_utilities"></a><a class="link" href="#_other_utilities">15.4. Other utilities</a></h4>
 <div class="paragraph">
-<p>Create a small stepper for the repl</p>
+<p>There are other utitities in the api ns that could be useful, some of the most interesting ones :</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="c1">;; a helper for pprinting forms with highlighted parts</span><span class="w">
-</span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.form-pprinter</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">form-pprinter</span><span class="p">])</span><span class="w">
-</span><span class="c1">;; and some utils for printing with colors</span><span class="w">
-</span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.utils</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">utils</span><span class="p">])</span><span class="w">
-
-</span><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="p">(</span><span class="nf">atom</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="c1">;; the state of our debugger, where we are in the timeline</span><span class="w">
-
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">show-current</span><span class="w"> </span><span class="p">[]</span><span class="w">
-    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w"> </span><span class="o">@</span><span class="n">index-api/selected-thread</span><span class="w">
-          </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">type</span><span class="w"> </span><span class="n">fn-ns</span><span class="w"> </span><span class="n">fn-name</span><span class="w"> </span><span class="n">coord</span><span class="w"> </span><span class="n">fn-call-idx</span><span class="w"> </span><span class="n">result</span><span class="p">]</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">idx-entry</span><span class="p">}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/timeline-entry</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="o">@</span><span class="n">idx</span><span class="w"> </span><span class="no">:at</span><span class="p">)</span><span class="w">
-          </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">form-id</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/frame-data</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="w"> </span><span class="n">fn-call-idx</span><span class="w"> </span><span class="p">{})</span><span class="w">
-          </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">form/form</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">index-api/get-form</span><span class="w"> </span><span class="n">form-id</span><span class="p">)]</span><span class="w">
-      </span><span class="p">(</span><span class="nf">case</span><span class="w"> </span><span class="n">type</span><span class="w">
-        </span><span class="no">:fn-call</span><span class="w"> </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">fn-name</span><span class="w"> </span><span class="n">fn-ns</span><span class="p">]}</span><span class="w"> </span><span class="n">idx-entry</span><span class="p">]</span><span class="w">
-                   </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"Called"</span><span class="w"> </span><span class="n">fn-ns</span><span class="w"> </span><span class="n">fn-name</span><span class="p">))</span><span class="w">
-        </span><span class="p">(</span><span class="no">:expr</span><span class="w"> </span><span class="no">:fn-return</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">coord</span><span class="w"> </span><span class="n">result</span><span class="p">]}</span><span class="w"> </span><span class="n">idx-entry</span><span class="p">]</span><span class="w">
-                             </span><span class="p">(</span><span class="nf">form-pprinter/pprint-form-hl-coord</span><span class="w"> </span><span class="n">form</span><span class="w"> </span><span class="n">coord</span><span class="p">)</span><span class="w">
-                             </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"\n"</span><span class="p">)</span><span class="w">
-                             </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"==[VAL]==&gt;"</span><span class="w"> </span><span class="p">(</span><span class="nf">utils/colored-string</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="no">:yellow</span><span class="p">))))))</span><span class="w">
-
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">step-next</span><span class="w"> </span><span class="p">[]</span><span class="w">
-  </span><span class="p">(</span><span class="nf">swap!</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="nb">inc</span><span class="p">)</span><span class="w">
-  </span><span class="p">(</span><span class="nf">show-current</span><span class="p">))</span><span class="w">
-
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">step-prev</span><span class="w"> </span><span class="p">[]</span><span class="w">
-  </span><span class="p">(</span><span class="nf">swap!</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="nb">dec</span><span class="p">)</span><span class="w">
-  </span><span class="p">(</span><span class="nf">show-current</span><span class="p">))</span><span class="w">
-
-</span><span class="c1">;; use the debugger with</span><span class="w">
-</span><span class="p">(</span><span class="nf">reset!</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="mi">12</span><span class="p">)</span><span class="w"> </span><span class="c1">;; move the idx wherever you want</span><span class="w">
-</span><span class="p">(</span><span class="nf">step-next</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">step-prev</span><span class="p">)</span></code></pre>
+<div class="ulist">
+<ul>
+<li>
+<p><code>find-timeline-entry</code></p>
+</li>
+<li>
+<p><code>stack-for-frame</code></p>
+</li>
+<li>
+<p><code>fn-call-stats</code></p>
+</li>
+</ul>
 </div>
+<div class="paragraph">
+<p>take a look at their docstrings for more info.</p>
 </div>
 </div>
 </div>
@@ -3261,7 +3437,7 @@ repl (not the Cljs one) by calling :</p>
 This is kind of a hacky way of going around shadow-cljs cache.</p>
 </div>
 <div class="paragraph">
-<p>Lets say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
+<p>Let&#8217;s say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
 Shadow-cljs will not recompile files that haven&#8217;t been modified since the last compilation. You can use the <code>touch-path</code>
 parameter for this. If you provide <code>src</code> for example, it will walk the directory structure down and touch every file,
 which should fire a recompilation.</p>
@@ -3557,7 +3733,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
 <div class="paragraph">
-<p>If that is the case add this dependencies to your alias :</p>
+<p>If that is the case add these dependencies to your alias :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -3597,7 +3773,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-10 11:46:08 -0300
+Last updated 2024-02-14 14:53:27 -0300
 </div>
 </div>
 </body>

@@ -118,10 +118,6 @@
   ;; Example expressions to generate trace data ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (defn bar [a b] (+ a b))
-  (defn foo [a b] (let [c (+ a b)] (bar c c)))
-
-  (doall (pmap (fn [i] (foo i (inc i))) (range 4)))
 
   (dev-tester/boo [1 "hello" 4])
 
@@ -139,7 +135,7 @@
 (comment
 
   (index-api/print-threads)
-  (index-api/select-thread nil 18)
+  (index-api/select-thread nil 32)
   (index-api/print-forms)
 
 
@@ -207,27 +203,36 @@
   (index-api/select-thread nil 18)
 
   (step-next)
-  (step-prev)
+  (step-prev))
 
-  (defn foo []
-  (let [a (+ 1 2)]
-    (throw (Exception. "damn"))
-    (+ a 3)))
+(comment
 
-(defn bar []
-  (try
-    (foo)
-    (catch Exception e 45)))
+  (dev-tester/run)
+  (dev-tester/run-parallel)
 
-(defn blabla []
-  (+ 3 4 (* 3 4)))
+  (require 'dev-tester-12)
+  (dev-tester-12/run)
 
-(defn baz []
-  (+ (bar) (blabla) 4))
+  (def tl (index-api/get-timeline 31))
 
-(println (str (:timeline-index (index-api/get-thread-indexes nil 18))))
-(require '[flow-storm.runtime.indexes.protocols :as index-protos])
-(index-protos/tree-childs-indexes (:timeline-index (index-api/get-thread-indexes nil 18)) 1)
+  (->> tl
+      (take 10)
+      (map index-api/as-immutable))
 
-(type (:fn-args (index-protos/timeline-entry  (:timeline-index (index-api/get-thread-indexes nil 18)) 0 :at)))
+  (count tl)
+  (take 10 tl)
+  (time
+   (reduce (fn [r e]
+             (inc r))
+           0
+           tl))
+  (get tl 0)
+  (nth tl 0)
+  (empty? tl)
+
+  (def total-timeline (index-api/total-order-timeline))
+  (->> total-timeline
+       (take 10)
+       (map index-api/as-immutable))
+
   )
