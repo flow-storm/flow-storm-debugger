@@ -1494,7 +1494,7 @@ You can disable/enable instrumentation by evaluating the keys`:noinst` and  `:in
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
 in after enabling/disabling instrumentation.
 
-For adding/removing prefixes without restarting your repl you can call :
+For adding/removing and check your prefixes without restarting your repl you can call :
 
 [,clojure]
 ----
@@ -1503,6 +1503,9 @@ For adding/removing prefixes without restarting your repl you can call :
 
 (clojure.storm.Emitter/addInstrumentationSkipPrefix "dev")
 (clojure.storm.Emitter/removeInstrumentationSkipPrefix "dev")
+
+(clojure.storm.Emitter/getInstrumentationOnlyPrefixes)
+(clojure.storm.Emitter/getInstrumentationSkipPrefixes)
 ----
 
 You can also check your current prefixes by evaluating the `:help` keyword at the repl.
