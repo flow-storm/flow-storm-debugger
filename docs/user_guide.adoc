@@ -1494,7 +1494,7 @@ You can disable/enable instrumentation by evaluating the keys`:noinst` and  `:in
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
 in after enabling/disabling instrumentation.
 
-For adding/removing and check your prefixes without restarting your repl you can call :
+For adding/removing and checking your prefixes without restarting your repl you can call :
 
 [,clojure]
 ----
