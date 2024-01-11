@@ -34,8 +34,7 @@
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
-   (taps-screen/add-tap-value value)
-   (ui-general/select-main-tools-tab :taps)))
+   (taps-screen/add-tap-value value)))
 
 (defn- flow-created-event [flow-info]
   (ui-utils/run-now

@@ -8,6 +8,8 @@
 
 ### Changes
 
+    - Don't automatically switch to the Taps tab on new taps
+
 ### Bugs fixed
 
     - Don't trace false as nil
