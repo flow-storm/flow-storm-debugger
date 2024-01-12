@@ -2,6 +2,14 @@
 
 ## master (unreleased)
 	
+### New Features
+
+### Changes
+
+### Bugs fixed
+
+## 3.9.1 (12-01-2024)
+	
 ### New Features 
 
     - Add print-wrap controls on panes
