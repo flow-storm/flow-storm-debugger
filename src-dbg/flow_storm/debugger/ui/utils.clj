@@ -16,6 +16,7 @@
            [javafx.beans.value ObservableValue]
            [javafx.scene Node]
            [javafx.scene.layout HBox Priority VBox Region]
+           [javafx.util Duration]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
            [javafx.collections FXCollections ObservableList]
@@ -127,6 +128,10 @@
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
 
+(defn- tool-tip [text]
+  (doto (Tooltip. text)
+    (.setShowDelay (Duration. 400))))
+
 (defn button [& {:keys [label classes on-click disable tooltip]}]
   (let [b (Button. label)]
 
@@ -140,7 +145,7 @@
     (when disable
       (.setDisable b true))
 
-    (when tooltip (.setTooltip b (Tooltip. tooltip)))
+    (when tooltip (.setTooltip b (tool-tip tooltip)))
 
     b))
 
@@ -148,7 +153,7 @@
   (let [b (doto (Button.)
             (.setGraphic (FontIcon. icon-name)))]
 
-    (when tooltip (.setTooltip b (Tooltip. tooltip)))
+    (when tooltip (.setTooltip b (tool-tip tooltip)))
     (when on-click
       (.setOnAction b (event-handler [_] (on-click))))
 
@@ -291,7 +296,7 @@
     (when on-selection-changed
       (.setOnSelectionChanged t on-selection-changed))
 
-    (when tooltip (.setTooltip t (Tooltip. tooltip)))
+    (when tooltip (.setTooltip t (tool-tip tooltip)))
 
     t))
 

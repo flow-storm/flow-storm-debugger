@@ -6,6 +6,8 @@
 
 ### Changes
 
+    - Make tooltips have a 400ms delay instead of default 1000ms
+    
 ### Bugs fixed
 
 ## 3.9.1 (12-01-2024)
