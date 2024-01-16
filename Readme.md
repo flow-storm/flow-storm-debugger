@@ -96,6 +96,8 @@ If you want to enhance, fix, debug, or just learn about the internals of FlowSto
 
 ## Some demo videos (newers at the top)
 
+- [Reifying execution, the interactive programming missing piece](https://www.youtube.com/watch?v=BuSpMvVU7j4&t=1394s)
+- [FlowStorm printer demo](https://www.youtube.com/watch?v=06-MA4HSS24)
 - [Smashing a real ClojureScript bug with FlowStorm](https://www.youtube.com/watch?v=4VXT-RHHuvI)
 - [Debugging Clojure with FlowStorm 3.6](https://www.youtube.com/watch?v=Mmr1nO6uMzc)
 - [Searching and following values](https://www.youtube.com/watch?v=CwXhy-QsZHw)
