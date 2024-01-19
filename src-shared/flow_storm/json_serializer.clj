@@ -16,7 +16,7 @@
                                                                            str)
                                                                   ValueRef (transit/write-handler
                                                                             (fn [_] "flow_storm.types.ValueRef")
-                                                                            (fn [vref] (str (:vid vref))))}
+                                                                            (fn [vref] (types/serialize-val-ref vref)))}
                                                        :default-handler (transit/write-handler
                                                                          (fn [_] "object")
                                                                          pr-str)})
@@ -31,6 +31,9 @@
     (let [^ByteArrayInputStream in (ByteArrayInputStream. (.getBytes s))
           reader (transit/reader in :json {:handlers {"object" (transit/read-handler (fn [s] s))
                                                       "regex"  (transit/read-handler (fn [s] (re-pattern s)))
-                                                      "flow_storm.types.ValueRef" (transit/read-handler (fn [vid] (types/make-value-ref (Integer/parseInt vid))))}})]
+                                                      "flow_storm.types.ValueRef" (transit/read-handler (fn [vref-str]
+                                                                                                          (-> vref-str
+                                                                                                              read-string
+                                                                                                              types/deserialize-val-ref)))}})]
       (transit/read reader))
     (catch Exception e (log-error (format "Error deserializing %s, ERROR: %s" s (.getMessage e))) (throw e))))

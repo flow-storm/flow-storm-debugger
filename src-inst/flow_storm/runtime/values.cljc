@@ -92,8 +92,9 @@
   (try
     
     (swap! values-ref-registry add-val-ref v)
-    (get-value-ref @values-ref-registry v)
-
+    (-> (get-value-ref @values-ref-registry v)
+        (types/add-val-preview v))
+    
     ;; if for whatever reason we can't reference the value
     ;; let's be explicit so at least the user knows that 
     ;; something went wrong and the value can't be trusted.

@@ -102,12 +102,12 @@
   (let [browsable-val? (types/value-ref? v)
         item {:browsable-val? browsable-val?
               :stack-txt (if (types/value-ref? stack-key)
-                           (:val-str (runtime-api/val-pprint rt-api stack-key {:print-level 4 :pprint? false :print-length 20}))
+                           (-> v meta :val-preview)
                            (pr-str stack-key))}]
-    (if :browsable-val?
+    (if browsable-val?
       (assoc item
              :val-ref v
-             :val-txt (:val-str (runtime-api/val-pprint rt-api v {:print-level 4 :pprint? false :print-length 20})))
+             :val-txt (-> v meta :val-preview))
 
       (assoc item
              :val-ref v
