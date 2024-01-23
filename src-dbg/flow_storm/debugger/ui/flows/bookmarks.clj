@@ -14,9 +14,9 @@
     (let [bookmarks (dbg-state/all-bookmarks flow-id thread-id)]
       (clear)
       (add-all (mapv (fn [[b-idx b-text]]
-                       [{:idx b-idx, :cell-type :text, :text (str (inc b-idx))}
-                        {:idx b-idx, :cell-type :text, :text b-text           }
-                        {:idx b-idx, :cell-type :actions                      }])
+                       [{:idx b-idx, :cell-type :text, :text (str b-idx)}
+                        {:idx b-idx, :cell-type :text, :text b-text     }
+                        {:idx b-idx, :cell-type :actions                }])
                      bookmarks)))))
 
 (defn bookmark-add [flow-id thread-id idx]

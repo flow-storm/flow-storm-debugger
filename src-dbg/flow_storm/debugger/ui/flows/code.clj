@@ -317,7 +317,7 @@
 
 (defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
   (let [[^Label lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
-    (.setText lbl (str cnt))))
+    (.setText lbl (str (dec cnt)))))
 
 (defn- unhighlight-form [flow-id thread-id form-id]
   (let [[form-pane] (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))]
@@ -378,7 +378,7 @@
           changing-form? (not= curr-form-id next-form-id)]
 
       ;; update thread current trace label and total traces
-      (.setText curr-trace-text-field (str (inc next-idx)))
+      (.setText curr-trace-text-field (str next-idx))
       (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
       (when (or first-jump? changing-frame?)
@@ -506,10 +506,10 @@
     (jump-to-coord flow-id thread-id (dbg-state/redo-nav-history flow-id thread-id))))
 
 (defn- trace-pos-pane [flow-id thread-id]
-  (let [curr-trace-text-field (doto (text-field {:initial-text "1"
+  (let [curr-trace-text-field (doto (text-field {:initial-text "0"
                                                  :on-return-key (fn [idx-str]
                                                                   (let [[forms-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
-                                                                        target-idx (dec (Long/parseLong idx-str))
+                                                                        target-idx (Long/parseLong idx-str)
                                                                         target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
                                                                     (jump-to-coord flow-id thread-id target-tentry)
                                                                     (.requestFocus forms-scroll-pane)))

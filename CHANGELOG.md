@@ -10,6 +10,7 @@
 ### Changes
 
     - Make tooltips have a 400ms delay instead of default 1000ms
+    - Display timeline indexes zero based (used to be 1 based) to be less confusing when using the repl api
     
 ### Bugs fixed
 

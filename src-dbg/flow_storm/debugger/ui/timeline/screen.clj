@@ -61,7 +61,7 @@
                                                (->> timeline
                                                     (mapv (fn [{:keys [thread-timeline-idx type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
                                                             (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)
-                                                                  idx (inc thread-timeline-idx)]
+                                                                  idx thread-timeline-idx]
                                                               (with-meta
                                                                 (case type
                                                                  :fn-call   [thread-id name idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
