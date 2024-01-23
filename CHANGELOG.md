@@ -4,6 +4,8 @@
 	
 ### New Features
 
+    - Add a index column to the bookmarks table
+    
 ### Changes
 
     - Make tooltips have a 400ms delay instead of default 1000ms

@@ -14,10 +14,9 @@
     (let [bookmarks (dbg-state/all-bookmarks flow-id thread-id)]
       (clear)
       (add-all (mapv (fn [[b-idx b-text]]
-                       (let [bookmark {:idx b-idx
-                                       :text b-text}]
-                         [(assoc bookmark :cell-type :text)
-                          (assoc bookmark :cell-type :actions)]))
+                       [{:idx b-idx, :cell-type :text, :text (str (inc b-idx))}
+                        {:idx b-idx, :cell-type :text, :text b-text           }
+                        {:idx b-idx, :cell-type :actions                      }])
                      bookmarks)))))
 
 (defn bookmark-add [flow-id thread-id idx]
@@ -35,8 +34,8 @@
                                                            (dbg-state/remove-bookmark flow-id thread-id idx)
                                                            (update-bookmarks flow-id thread-id)))))
         {:keys [table-view-pane] :as tv-data} (table-view
-                                               {:columns             ["Bookmarks" ""]
-                                                :columns-width-percs [0.9         0.1]
+                                               {:columns             ["Idx" "Bookmarks" ""]
+                                                :columns-width-percs [0.1   0.8         0.1]
                                                 :cell-factory-fn cell-factory
                                                 :resize-policy :constrained
                                                 :on-click (fn [mev sel-items _]
