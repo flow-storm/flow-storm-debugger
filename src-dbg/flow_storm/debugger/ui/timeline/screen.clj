@@ -22,7 +22,7 @@
 
 (defn main-pane []
   (let [{:keys [table-view-pane table-view add-all] :as table-data}
-        (table-view {:columns ["Thread Id" "Thread Name" "Function" "Expression" "Value" "Value type"]
+        (table-view {:columns ["Thread Id" "Thread Name" "Thread Idx" "Function" "Expression" "Value" "Value type"]
                      :resize-policy :constrained
                      :cell-factory-fn (fn [_ cell-val]
                                         (doto (label (str cell-val))
@@ -39,7 +39,7 @@
                                               (flows-screen/goto-location {:flow-id flow-id
                                                                            :thread-id thread-id
                                                                            :idx thread-timeline-idx})))))))
-                     :search-predicate (fn [[_ thread-id function expression expr-val expr-type] search-str]
+                     :search-predicate (fn [[_ thread-id _ function expression expr-val expr-type] search-str]
                                          (boolean
                                           (or (str/includes? (str thread-id) search-str)
                                               (str/includes? function search-str)
@@ -59,13 +59,14 @@
                                                                    (into #{}))
                                                    thread-color (zipmap thread-ids thread-colors)]
                                                (->> timeline
-                                                    (mapv (fn [{:keys [type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
-                                                            (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)]
+                                                    (mapv (fn [{:keys [thread-timeline-idx type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
+                                                            (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)
+                                                                  idx (inc thread-timeline-idx)]
                                                               (with-meta
                                                                 (case type
-                                                                 :fn-call   [thread-id name  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
-                                                                 :fn-return [thread-id name "RETURN"                         ""       expr-val-str expr-type]
-                                                                 :expr-exec [thread-id name ""                               expr-str expr-val-str expr-type])
+                                                                 :fn-call   [thread-id name idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
+                                                                 :fn-return [thread-id name idx "RETURN"                         ""       expr-val-str expr-type]
+                                                                 :expr-exec [thread-id name idx ""                               expr-str expr-val-str expr-type])
                                                                 (assoc tl-entry :color (thread-color thread-id))))))
                                                     add-all)))
                                  :tooltip "Refresh the content of the timeline")

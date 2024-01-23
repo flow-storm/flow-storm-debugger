@@ -4,7 +4,8 @@
 	
 ### New Features
 
-    - Add a index column to the bookmarks table
+    - Add a timeline index column to the bookmarks table
+    - Add a thread timeline index column to the multi-thread timeline
     
 ### Changes
 
