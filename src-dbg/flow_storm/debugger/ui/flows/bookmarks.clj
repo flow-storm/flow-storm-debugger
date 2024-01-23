@@ -48,9 +48,11 @@
                                                                            :idx       idx}))))
                                                 :selection-mode :multiple
                                                 :search-predicate (fn [[_ bookmark-text] search-str]
-                                                                    (str/includes? bookmark-text search-str))})]
+                                                                    (str/includes? bookmark-text search-str))})
+        th-info (dbg-state/get-thread-info thread-id)]
     (store-obj flow-id thread-id "bookmarks_table_data" tv-data)
-    (doto (v-box [(label (format "Bookmarks for thread: %s" (:thread/name (dbg-state/get-thread-info thread-id))))
+    (doto (v-box [(label (format "Bookmarks for thread: %s" (ui-utils/thread-label (:thread/id th-info)
+                                                                                   (:thread/name th-info))))
                   table-view-pane])
       (.setSpacing 10))))
 
@@ -58,7 +60,7 @@
   (try
     (let [scene (Scene. (create-bookmarks-pane flow-id thread-id) 800 400)
           stage (doto (Stage.)
-                  (.setTitle "FlowStorm bookmarks")
+                  (.setTitle (str "FlowStorm bookmarks for thread - " thread-id))
                   (.setScene scene))]
 
       (dbg-state/register-and-init-stage! stage)

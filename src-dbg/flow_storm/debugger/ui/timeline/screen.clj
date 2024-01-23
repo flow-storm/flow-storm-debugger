@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.timeline.screen
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label table-view h-box border-pane icon-button event-handler]]
+             :refer [label table-view h-box border-pane icon-button event-handler thread-label]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
@@ -22,7 +22,7 @@
 
 (defn main-pane []
   (let [{:keys [table-view-pane table-view add-all] :as table-data}
-        (table-view {:columns ["Thread Id" "Thread Name" "Thread Idx" "Function" "Expression" "Value" "Value type"]
+        (table-view {:columns ["Thread" "Thread Idx" "Function" "Expression" "Value" "Value type"]
                      :resize-policy :constrained
                      :cell-factory-fn (fn [_ cell-val]
                                         (doto (label (str cell-val))
@@ -64,9 +64,9 @@
                                                                   idx thread-timeline-idx]
                                                               (with-meta
                                                                 (case type
-                                                                 :fn-call   [thread-id name idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
-                                                                 :fn-return [thread-id name idx "RETURN"                         ""       expr-val-str expr-type]
-                                                                 :expr-exec [thread-id name idx ""                               expr-str expr-val-str expr-type])
+                                                                  :fn-call   [(thread-label thread-id name) idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
+                                                                  :fn-return [(thread-label thread-id name) idx "RETURN"                         ""       expr-val-str expr-type]
+                                                                  :expr-exec [(thread-label thread-id name) idx ""                               expr-str expr-val-str expr-type])
                                                                 (assoc tl-entry :color (thread-color thread-id))))))
                                                     add-all)))
                                  :tooltip "Refresh the content of the timeline")

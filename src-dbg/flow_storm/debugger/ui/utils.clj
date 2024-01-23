@@ -672,6 +672,11 @@
         k (KeyCharacterCombination. key-name  (into-array KeyCombination$Modifier (mapv mod-k->key-comb modifiers)))]
     (.match k kev)))
 
+(defn thread-label [thread-id thread-name]
+  (if thread-name
+    (format "[%d] %s" thread-id thread-name)
+    (format "thread-%d" thread-id)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

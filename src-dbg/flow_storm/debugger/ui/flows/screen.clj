@@ -121,7 +121,7 @@
                                                                               :on-click (fn []
                                                                                           (runtime-api/unblock-all-threads rt-api))}
                                                 ctx-menu (ui-utils/make-context-menu [ctx-menu-unblock-all-threads])
-                                                blocked-thread (h-box [(v-box [(label name "thread-blocked")
+                                                blocked-thread (h-box [(v-box [(label (ui-utils/thread-label id name) "thread-blocked")
                                                                                (label (format "%s/%s" bp-var-ns bp-var-name) "light")])
                                                                        thread-unblock-btn])]
                                             (doto blocked-thread
@@ -135,7 +135,7 @@
                                                        (.getScreenY mev))))))
 
                                           ;; if not blocked just render a label
-                                          (label name))))
+                                          (label (ui-utils/thread-label id name)))))
                     :on-click (fn [mev sel-items _]
                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
                                            (= 2 (.getClickCount mev)))
@@ -210,7 +210,7 @@
 
 
       (let [thread-tab-pane (create-thread-pane flow-id thread-id)
-            thread-tab (tab {:text (or thread-name (str "thread-" thread-id))
+            thread-tab (tab {:text (ui-utils/thread-label thread-id thread-name)
                              :content thread-tab-pane
                              :id (str thread-id)})]
 
