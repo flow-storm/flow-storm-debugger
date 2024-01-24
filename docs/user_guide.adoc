@@ -65,6 +65,13 @@ but it will be cached unless you run with -Sforce.
 It is much safer to just write the latest versions. Check out  the https://github.com/flow-storm/flow-storm-debugger/[github page] for the latest stable releases.
 ====
 
+[NOTE]
+.On disabling/enabling instrumentation
+====
+It is possible to <<#_controlling_instrumentation_in_clojurestorm,disable/enable instrumentation>> without restarting the repl, which is necessary for
+things like measuring performance.
+====
+
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
 
@@ -1490,7 +1497,7 @@ repl. This is slightly different between Clojure and ClojureScript.
 
 === Controlling instrumentation in ClojureStorm
 
-You can disable/enable instrumentation by evaluating the keys`:noinst` and  `:inst` on your repl.
+You can disable/enable instrumentation by evaluating the keys `:noinst` and  `:inst` on your repl.
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
 in after enabling/disabling instrumentation.
 

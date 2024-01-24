@@ -889,6 +889,22 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">On disabling/enabling instrumentation</div>
+<div class="paragraph">
+<p>It is possible to <a href="#_controlling_instrumentation_in_clojurestorm">disable/enable instrumentation</a> without restarting the repl, which is necessary for
+things like measuring performance.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up just
 evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
@@ -3063,7 +3079,7 @@ repl. This is slightly different between Clojure and ClojureScript.</p>
 <div class="sect3">
 <h4 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">18.1. Controlling instrumentation in ClojureStorm</a></h4>
 <div class="paragraph">
-<p>You can disable/enable instrumentation by evaluating the keys`:noinst` and  <code>:inst</code> on your repl.
+<p>You can disable/enable instrumentation by evaluating the keys <code>:noinst</code> and  <code>:inst</code> on your repl.
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
 in after enabling/disabling instrumentation.</p>
 </div>
@@ -3445,7 +3461,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-10 12:57:44 -0300
+Last updated 2024-01-24 20:02:49 -0300
 </div>
 </div>
 </body>
