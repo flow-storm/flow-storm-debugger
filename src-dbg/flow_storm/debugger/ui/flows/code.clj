@@ -458,8 +458,14 @@
                                                                     search-params))]
       (jump-to-coord flow-id thread-id next-tentry))))
 
-(defn step-same-val [flow-id thread-id search-params backward?]
-  (let [{:keys [result]} (dbg-state/current-timeline-entry flow-id thread-id)]
+(defn step-same-val [flow-id thread-id {:keys [fixed-coord?] :as search-params} backward?]
+  (let [{:keys [result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
+        search-params (if fixed-coord?
+                        (let [{:keys [form-id]} (dbg-state/current-frame flow-id thread-id)]
+                          (assoc search-params
+                                 :comp-fn-coord coord
+                                 :comp-fn-form-id form-id))
+                         search-params)]
     ;; hmm if the current entry is a fn-call then result will be nil and we will be following nils
     ;; not sure how to do about that, since custom stepping goes this path also
     ;; and doesn't work with the current expr result
@@ -473,19 +479,26 @@
                               (.setVisible show?)
                               (.setPrefWidth (if show? 200 0))))
         _ (show-custom-field false)
-        step-type-combo (combo-box {:items ["identity" "equality" "custom"]
+        step-type-combo (combo-box {:items ["identity" "equality" "same-coord" "custom" "custom-same-coord"]
                                     :on-change-fn (fn [_ new-val]
                                                     (case new-val
-                                                      "identity" (show-custom-field false)
-                                                      "equality" (show-custom-field false)
-                                                      "custom"   (show-custom-field true)))})
+                                                      "identity"     (show-custom-field false)
+                                                      "equality"     (show-custom-field false)
+                                                      "same-coord"   (show-custom-field false)
+                                                      "custom"       (show-custom-field true)
+                                                      "custom-same-coord" (show-custom-field true)))})
         search-params (fn []
                         (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)]
                           (case step-type-val
-                            "identity" {:comp-fn-key :identity}
-                            "equality" {:comp-fn-key :equality}
-                            "custom"   {:comp-fn-key :custom
-                                        :comp-fn-code (.getText custom-expression-txt)})))
+                            "identity"          {:comp-fn-key :identity}
+                            "equality"          {:comp-fn-key :equality}
+                            "same-coord"        {:comp-fn-key :same-coord
+                                                 :fixed-coord? true}
+                            "custom"            {:comp-fn-key :custom
+                                                 :comp-fn-code (.getText custom-expression-txt)}
+                            "custom-same-coord" {:comp-fn-key :custom
+                                                 :comp-fn-code (.getText custom-expression-txt)
+                                                 :fixed-coord? true})))
         val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
                                            :on-click (fn [] (step-same-val flow-id thread-id (search-params) true))
                                            :tooltip "Find the prev expression that contains this value")

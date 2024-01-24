@@ -807,12 +807,14 @@ Write any number (less than total_steps) on the text box to jump into that posit
 
 The controls at the right are power stepping controls. They provide more powerfull ways of stepping through the code.
 
-There are currently 3 power stepping tools :
+There are currently 5 power stepping tools :
 
-- identity, will step to the next value which identity is the same as the current value
-- equality, will step to the next value which is equals (clojure equality) to the current value
-- custom, allows you to provide a predicate, which will be used to find the next step.
+- `identity`, will step to the prev/next value which identity is the same as the current value.
+- 'equality', will step to the prev/next value which is equals (clojure equality) to the current value.
+- `same-coord` will step to the prev/next value for the same form and coordinate.
+- `custom`, allows you to provide a predicate, which will be used to find the next step.
   If you define it like `(fn [v] (map? v))` will make the power stepper step over all map values.
+- `custom-same-coord`, the same as `custom` but fixed on the current coordinate like `same-coord`.
 
 image::user_guide_images/controls_power_custom.png[]
 

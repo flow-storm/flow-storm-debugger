@@ -236,8 +236,12 @@
             next-idx (if backward? dec inc)]
         (loop [i from-idx]
           (when (not= i last-idx)
-            (let [tl-entry (ml-get timeline i)]
-              (if (pred tl-entry)
+            (let [tl-entry (ml-get timeline i)
+                  fn-call (if (fn-call-trace/fn-call-trace? tl-entry)
+                            tl-entry
+                            (ml-get timeline (index-protos/fn-call-idx tl-entry)))
+                  form-id (fn-call-trace/get-form-id fn-call)]
+              (if (pred form-id tl-entry)
                 (index-protos/as-immutable tl-entry)
                 (recur (next-idx i)))))))))
 

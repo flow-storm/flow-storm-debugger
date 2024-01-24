@@ -2014,19 +2014,25 @@ for this thread so far. The buttons right next to it control undo/redo of the na
 <p>The controls at the right are power stepping controls. They provide more powerfull ways of stepping through the code.</p>
 </div>
 <div class="paragraph">
-<p>There are currently 3 power stepping tools :</p>
+<p>There are currently 5 power stepping tools :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>identity, will step to the next value which identity is the same as the current value</p>
+<p><code>identity</code>, will step to the prev/next value which identity is the same as the current value.</p>
 </li>
 <li>
-<p>equality, will step to the next value which is equals (clojure equality) to the current value</p>
+<p>'equality', will step to the prev/next value which is equals (clojure equality) to the current value.</p>
 </li>
 <li>
-<p>custom, allows you to provide a predicate, which will be used to find the next step.
+<p><code>same-coord</code> will step to the prev/next value for the same form and coordinate.</p>
+</li>
+<li>
+<p><code>custom</code>, allows you to provide a predicate, which will be used to find the next step.
 If you define it like <code>(fn [v] (map? v))</code> will make the power stepper step over all map values.</p>
+</li>
+<li>
+<p><code>custom-same-coord</code>, the same as <code>custom</code> but fixed on the current coordinate like <code>same-coord</code>.</p>
 </li>
 </ul>
 </div>
@@ -3461,7 +3467,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-24 20:02:49 -0300
+Last updated 2024-01-25 09:16:18 -0300
 </div>
 </div>
 </body>

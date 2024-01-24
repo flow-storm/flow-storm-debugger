@@ -1,13 +1,12 @@
 (ns flow-storm.tracer
-  (:require [flow-storm.utils :as utils]
+  (:require [flow-storm.utils :as utils :refer [stringify-coord]]
             [hansel.instrument.runtime :refer [*runtime-ctx*]]
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.types.fn-call-trace :refer [make-fn-call-trace]]
             [flow-storm.runtime.types.fn-return-trace :refer [make-fn-return-trace]]
             [flow-storm.runtime.types.expr-trace :refer [make-expr-trace]]
-            [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]
-            [clojure.string :as str]))
+            [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]))
 
 (declare start-tracer)
 (declare stop-tracer)
@@ -137,9 +136,6 @@
           thread-name
           (make-fn-call-trace fn-ns fn-name form-id args)
           @total-order-recording))))))
-
-(defn- stringify-coord [coord-vec]
-  (str/join "," coord-vec))
 
 (defn trace-fn-return
 

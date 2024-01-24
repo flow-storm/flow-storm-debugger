@@ -312,3 +312,6 @@
                  (let [[fqfn cnt] (str/split fn-desc #":")
                        [fn-ns fn-name] (str/split fqfn #"/")]
                    [fn-ns fn-name (parse-int cnt)]))))))
+
+(defn stringify-coord [coord-vec]
+  (str/join "," coord-vec))

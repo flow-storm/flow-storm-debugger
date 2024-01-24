@@ -389,7 +389,7 @@
                                 timeline-index
                                 from-idx
                                 backward?
-                                (fn [entry]
+                                (fn [_ entry]
                                   (and (fn-call-trace/fn-call-trace? entry)
                                        (= (fn-call-trace/get-fn-ns entry)   (namespace fq-fn-call-symb))
                                        (= (fn-call-trace/get-fn-name entry) (name fq-fn-call-symb)))))]
@@ -402,29 +402,42 @@
   (some (fn [[fid tid]]
           (when (= flow-id fid)
             (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
-              (when-let [fn-call (index-protos/timeline-find-entry timeline-index 0 false fn-call-trace/fn-call-trace?)]
+              (when-let [fn-call (index-protos/timeline-find-entry timeline-index
+                                                                   0
+                                                                   false
+                                                                   (fn [_ entry]
+                                                                     (fn-call-trace/fn-call-trace? entry)))]
                 (assoc fn-call
                        :flow-id fid
                        :thread-id tid)))))
         (index-protos/all-threads flow-thread-registry)))
 
-(defn find-timeline-entry [{:keys [flow-id thread-id from-idx eq-val comp-fn-key backward?] :as criteria
+(defn find-timeline-entry [{:keys [flow-id thread-id from-idx eq-val comp-fn-key comp-fn-form-id comp-fn-coord backward?] :as criteria
                             :or {from-idx 0
                                  comp-fn-key :equality}}]
   (try
-    (let [comp-fn (case comp-fn-key
-                    :equality =
-                    :identity identical?
+    (let [coord (when comp-fn-coord (utils/stringify-coord comp-fn-coord))
+          comp-fn (case comp-fn-key
+                    :equality        (fn [expr-val target-val _ _] (= expr-val target-val))
+                    :identity        (fn [expr-val target-val _ _] (identical? expr-val target-val))
+                    :same-coord      (fn [_ _ expr-coord expr-form-id]
+                                       (and (= expr-coord coord) (= comp-fn-form-id expr-form-id)))
                     :custom #?(:clj (let [custom-cmp-fn (eval (read-string (:comp-fn-code criteria)))]
-                                      (fn [v _]
-                                        (custom-cmp-fn v)))
+                                      (fn [expr-val _ expr-coord expr-form-id]
+                                        (and (custom-cmp-fn expr-val)
+                                             (if coord
+                                               (and (= expr-coord coord) (= comp-fn-form-id expr-form-id))
+                                               true))))
                                :cljs (do
                                        (utils/log "Custom stepping is not supported in ClojureScript yet")
                                        (constantly true))))
-          search-pred (fn [tl-entry]
+          search-pred (fn [form-id tl-entry]
                         (when (or (fn-return-trace/fn-return-trace? tl-entry)
                                   (expr-trace/expr-trace? tl-entry))
-                          (comp-fn (index-protos/get-expr-val tl-entry) eq-val)))]
+                          (comp-fn (index-protos/get-expr-val  tl-entry)                                   
+                                   eq-val
+                                   (index-protos/get-coord-raw tl-entry)
+                                   form-id)))]
       (some (fn [[fid tid]]
               (when (and (or (not (contains? criteria :flow-id))
                              (= flow-id fid))
