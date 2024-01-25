@@ -149,7 +149,7 @@
 
     b))
 
-(defn icon-button [& {:keys [icon-name classes on-click disable tooltip]}]
+(defn icon-button [& {:keys [icon-name classes on-click disable tooltip mirrored?]}]
   (let [b (doto (Button.)
             (.setGraphic (FontIcon. icon-name)))]
 
@@ -160,6 +160,9 @@
     (when classes
       (doseq [c classes]
         (.add (.getStyleClass b) c)))
+
+    (when mirrored?
+      (.add (.getStyleClass b) "mirrored"))
 
     (when disable
       (.setDisable b true))

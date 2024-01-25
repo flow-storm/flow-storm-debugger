@@ -11,7 +11,7 @@
             [hansel.utils :refer [get-form-at-coord]])
   (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField TextInputDialog]
            [javafx.scene Node]
-           [javafx.geometry Insets Orientation Pos]
+           [javafx.geometry Orientation Pos]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
            [javafx.scene.input KeyCode MouseButton KeyEvent ScrollEvent]
@@ -549,7 +549,14 @@
     (jump-to-coord flow-id thread-id (dbg-state/redo-nav-history flow-id thread-id))))
 
 (defn- trace-pos-pane [flow-id thread-id]
-  (let [curr-trace-text-field (doto (text-field {:initial-text "0"
+  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
+                                        :on-click (fn [] (step-first flow-id thread-id))
+                                        :tooltip "Step to the first recorded expression")
+        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
+                                       :on-click (fn [] (step-last flow-id thread-id))
+                                       :tooltip "Step to the last recorded expression")
+
+        curr-trace-text-field (doto (text-field {:initial-text "0"
                                                  :on-return-key (fn [idx-str]
                                                                   (let [[forms-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
                                                                         target-idx (Long/parseLong idx-str)
@@ -559,11 +566,20 @@
                                                  :align :right})
                                 (.setPrefWidth 80))
         separator-lbl (label "/")
-        thread-trace-count-lbl (label "?")
-        open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
+        thread-trace-count-lbl (label "?")]
+
+    (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
+    (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
+
+    (doto (h-box [first-btn curr-trace-text-field separator-lbl thread-trace-count-lbl last-btn]
+                 "trace-position-box")
+      (.setSpacing 2.0))))
+
+(defn- create-bookmarks-and-nav-pane [flow-id thread-id]
+  (let [open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
                                             :on-click (fn []
                                                         (bookmarks/show-bookmarks flow-id thread-id))
-                                       :tooltip "Open bookmarks")
+                                            :tooltip "Open bookmarks")
         bookmark-btn (ui-utils/icon-button :icon-name "mdi-bookmark"
                                            :on-click (fn []
                                                        (bookmarks/bookmark-add
@@ -576,67 +592,26 @@
                                            :tooltip "Undo navigation")
         redo-nav-btn (ui-utils/icon-button :icon-name "mdi-redo"
                                            :on-click (fn [] (redo-jump flow-id thread-id))
-                                           :tooltip "Redo navigation")]
-
-
-    (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
-    (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
-
-    (doto (h-box [curr-trace-text-field separator-lbl thread-trace-count-lbl
-                  undo-nav-btn redo-nav-btn
-                  bookmark-btn open-book-btn]
-                 "trace-position-box")
-      (.setSpacing 2.0))))
-
-(defn- create-thread-controls-pane [flow-id thread-id]
-  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
-                                        :on-click (fn [] (step-first flow-id thread-id))
-                                        :tooltip "Step to the first recorded expression")
-        prev-over-btn (ui-utils/icon-button :icon-name "mdi-step-backward"
-                                       :on-click (fn [] (step-prev-over flow-id thread-id))
-                                       :tooltip "Step to the previous recorded interesting expression in the current frame")
-        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
-                                       :on-click (fn [] (step-prev flow-id thread-id))
-                                       :tooltip "Step to the previous recorded interesting expression")
-
-        out-btn (ui-utils/icon-button :icon-name "mdi-debug-step-out"
-                                      :on-click (fn []
-                                                  (step-out flow-id thread-id))
-                                      :tooltip "Step to the parent first expression")
-
+                                           :tooltip "Redo navigation")
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
+
         execution-expression? (and (:ns execution-expr)
                                    (:form execution-expr))
-        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
-                                       :on-click (fn [] (step-next flow-id thread-id))
-                                       :tooltip "Step to the next recorded interesting expression")
-        next-over-btn (ui-utils/icon-button :icon-name "mdi-step-forward"
-                                            :on-click (fn [] (step-next-over flow-id thread-id))
-                                            :tooltip "Step to the next recorded interesting expression in the current frame")
-
-
-        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
-                                       :on-click (fn [] (step-last flow-id thread-id))
-                                       :tooltip "Step to the last recorded expression")
-
-
         re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
                                               :on-click (fn []
                                                           (when execution-expression?
                                                             (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
                                                                                                                   :ns (:ns execution-expr)})))
-                                              :disable (not execution-expression?))
+                                              :disable (not execution-expression?))]
+    (doto (h-box [undo-nav-btn redo-nav-btn
+                  bookmark-btn open-book-btn
+                  re-run-flow-btn])
+      (.setSpacing 2.0))))
 
-        controls-box (doto (h-box [first-btn prev-over-btn prev-btn out-btn re-run-flow-btn next-btn next-over-btn last-btn])
-                       (.setSpacing 2.0))]
 
-    (border-pane {:left controls-box
-                  :center (trace-pos-pane flow-id thread-id)
-                  :right (power-stepping-pane flow-id thread-id)}
-                 "thread-controls-pane")))
-
-(defn- create-search-pane [flow-id thread-id]
-  (let [search-txt (doto (TextField.)
+(defn- create-controls-first-row-pane [flow-id thread-id]
+  (let [bookmarks-and-nav-pane (create-bookmarks-and-nav-pane flow-id thread-id)
+        search-txt (doto (TextField.)
                      (.setPromptText "Search"))
         search-lvl-txt (doto (TextField. "2")
                          (.setPrefWidth 50)
@@ -687,13 +662,43 @@
                                    (when (= (.getCode kev) KeyCode/ENTER)
                                      (search))))
 
-    (doto (h-box [search-txt
-                  (label "*print-level* : ") search-lvl-txt
-                  (label "*print-length* : ") search-len-txt
-                  search-btn
-                  search-progress-lbl])
-      (.setSpacing 3.0)
-      (.setPadding (Insets. 4.0)))))
+    (border-pane {:left bookmarks-and-nav-pane
+                  :right (doto (h-box [search-txt
+                                       search-btn
+                                       (label "*print-level* : ") search-lvl-txt
+                                       (label "*print-length* : ") search-len-txt
+                                       search-progress-lbl])
+                           (.setSpacing 3.0))}
+                 "thread-controls-pane")))
+
+(defn- create-controls-second-row-pane [flow-id thread-id]
+  (let [prev-over-btn (ui-utils/icon-button :icon-name "mdi-debug-step-over"
+                                            :on-click (fn [] (step-prev-over flow-id thread-id))
+                                            :tooltip "Step to the previous recorded interesting expression in the current frame"
+                                            :mirrored? true)
+        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
+                                       :on-click (fn [] (step-prev flow-id thread-id))
+                                       :tooltip "Step to the previous recorded interesting expression")
+
+        out-btn (ui-utils/icon-button :icon-name "mdi-debug-step-out"
+                                      :on-click (fn []
+                                                  (step-out flow-id thread-id))
+                                      :tooltip "Step to the parent first expression")
+
+        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
+                                       :on-click (fn [] (step-next flow-id thread-id))
+                                       :tooltip "Step to the next recorded interesting expression")
+        next-over-btn (ui-utils/icon-button :icon-name "mdi-debug-step-over"
+                                            :on-click (fn [] (step-next-over flow-id thread-id))
+                                            :tooltip "Step to the next recorded interesting expression in the current frame")
+
+        controls-box (doto (h-box [prev-over-btn prev-btn out-btn next-btn next-over-btn])
+                       (.setSpacing 2.0))]
+
+    (border-pane {:left controls-box
+                  :center (trace-pos-pane flow-id thread-id)
+                  :right (power-stepping-pane flow-id thread-id)}
+                 "thread-controls-pane")))
 
 (defn- create-forms-pane [flow-id thread-id]
   (let [forms-box (doto (v-box [])
@@ -706,9 +711,11 @@
                                        (< (.getDeltaY ev) 0) (step-next flow-id thread-id)))))
                     (.setSpacing 5))
         scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
-        controls-pane (create-thread-controls-pane flow-id thread-id)
-        search-pane (create-search-pane flow-id thread-id)
-        outer-box (v-box [controls-pane search-pane scroll-pane])]
+        controls-first-row-pane (create-controls-first-row-pane flow-id thread-id)
+        controls-second-row-pane (create-controls-second-row-pane flow-id thread-id)
+        outer-box (v-box [controls-first-row-pane
+                          controls-second-row-pane
+                          scroll-pane])]
     (VBox/setVgrow forms-box Priority/ALWAYS)
     (VBox/setVgrow scroll-pane Priority/ALWAYS)
     (HBox/setHgrow scroll-pane Priority/ALWAYS)

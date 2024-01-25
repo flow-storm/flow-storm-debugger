@@ -73,7 +73,11 @@
 }
 
 .button .ikonli-font-icon {
-	-fx-icon-color: -fx-theme-button1-text;
+	-fx-icon-color: -fx-theme-button1-text;    
+}
+
+.mirrored {
+    -fx-scale-x: -1;
 }
 
 .text-field {
