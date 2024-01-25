@@ -53,6 +53,17 @@
 
     print-tokens))
 
+(defn- jump-to-first-record [flow-id thread-id form-id coord]
+  (when-let [tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
+                                                             :thread-id thread-id
+                                                             :from-idx 0
+                                                             :backward? false
+                                                             :eq-val-ref nil
+                                                             :comp-fn-key :same-coord
+                                                             :comp-fn-coord coord
+                                                             :comp-fn-form-id form-id})]
+    (jump-to-coord flow-id thread-id tentry)))
+
 (defn- add-to-printer
 
   "Presents the user a dialog asking for a message and adds a print to the printer
@@ -85,11 +96,12 @@
   [coord-spans curr-coord]
 
   (let [^StyleSpansBuilder spb (StyleSpansBuilder.)]
-    (doseq [{:keys [len coord]} coord-spans]
+    (doseq [{:keys [len coord interesting?]} coord-spans]
       (cond
-        (and coord (= coord curr-coord)) (.add spb ["code-token" "executing"] len)
-        coord                            (.add spb ["code-token" "interesting"] len)
-        :else                            (.add spb ["code-token"] len)))
+        (and coord interesting? (= coord curr-coord)) (.add spb ["code-token" "executing"] len)
+        (and coord interesting?)                      (.add spb ["code-token" "interesting"] len)
+        coord                                         (.add spb ["code-token" "possible"] len)
+        :else                                         (.add spb ["code-token"] len)))
     (.create spb)))
 
 (defn- build-form-paint-and-arm-fn
@@ -105,8 +117,8 @@
             spans (->> print-tokens
                        (map (fn [{:keys [coord] :as tok}]
                               (if (contains? interesting-coords coord)
-                                tok
-                                (dissoc tok :coord))))
+                                (assoc tok :interesting? true)
+                                tok)))
                        form-pprinter/coord-spans)
             exec-idx  (some (fn [{:keys [coord idx-from]}]
                               (when (= coord curr-coord)
@@ -139,53 +151,69 @@
                                                                              (< char-idx (+ idx-from len)))
                                                                     span))))]
                                     (when-let [coord (:coord clicked-span)]
-                                      (let [clicked-coord-exprs (get interesting-coords coord)
-                                            last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
+                                      (if (:interesting? clicked-span)
+                                        (let [clicked-coord-exprs (get interesting-coords coord)
+                                              last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
 
-                                            token-right-click-menu (ui-utils/make-context-menu
-                                                                    (cond-> [{:text "Add to prints"
-                                                                              :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
+                                              token-right-click-menu (ui-utils/make-context-menu
+                                                                      (cond-> [{:text "Add to prints"
+                                                                                :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
 
-                                                                      (not (dbg-state/clojure-storm-env?))
-                                                                      (into [{:text "Fully instrument this form"
-                                                                              :on-click (fn []
-                                                                                          (runtime-api/eval-form rt-api
-                                                                                                                 (pr-str (:form/form form))
-                                                                                                                 {:instrument? true
-                                                                                                                  :ns (:form/ns form)}))}
-                                                                             {:text "Instrument this form without bindings"
-                                                                              :on-click (fn []
-                                                                                          (runtime-api/eval-form rt-api
-                                                                                                                 (pr-str (:form/form form))
-                                                                                                                 {:instrument? true
-                                                                                                                  :instrument-options {:disable #{:bind}}
-                                                                                                                  :ns (:form/ns form)}))}])))]
+                                                                        (not (dbg-state/clojure-storm-env?))
+                                                                        (into [{:text "Fully instrument this form"
+                                                                                :on-click (fn []
+                                                                                            (runtime-api/eval-form rt-api
+                                                                                                                   (pr-str (:form/form form))
+                                                                                                                   {:instrument? true
+                                                                                                                    :ns (:form/ns form)}))}
+                                                                               {:text "Instrument this form without bindings"
+                                                                                :on-click (fn []
+                                                                                            (runtime-api/eval-form rt-api
+                                                                                                                   (pr-str (:form/form form))
+                                                                                                                   {:instrument? true
+                                                                                                                    :instrument-options {:disable #{:bind}}
+                                                                                                                    :ns (:form/ns form)}))}])))]
 
-                                        (if (= MouseButton/SECONDARY (.getButton mev))
-                                          (.show token-right-click-menu
-                                                 form-code-area
-                                                 (.getScreenX mev)
-                                                 (.getScreenY mev))
-                                          (if (= 1 (count clicked-coord-exprs))
-                                            (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
+                                          (if (= MouseButton/SECONDARY (.getButton mev))
+                                            (.show token-right-click-menu
+                                                   form-code-area
+                                                   (.getScreenX mev)
+                                                   (.getScreenY mev))
+                                            (if (= 1 (count clicked-coord-exprs))
+                                              (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
-                                            (let [make-menu-item (fn [{:keys [idx result]}]
-                                                                   (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
-                                                                     {:text (format "%s" (utils/elide-string v-str 80))
-                                                                      :on-click #(jump-to-coord flow-id
-                                                                                                thread-id
-                                                                                                (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
-                                                  ctx-menu-options (->> clicked-coord-exprs
-                                                                        (map make-menu-item)
-                                                                        (into [{:text "Goto Last Iteration"
-                                                                                :on-click #(jump-to-coord flow-id
+                                              (let [make-menu-item (fn [{:keys [idx result]}]
+                                                                     (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
+                                                                       {:text (format "%s" (utils/elide-string v-str 80))
+                                                                        :on-click #(jump-to-coord flow-id
+                                                                                                  thread-id
+                                                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
+                                                    ctx-menu-options (->> clicked-coord-exprs
+                                                                          (map make-menu-item)
+                                                                          (into [{:text "Goto Last Iteration"
+                                                                                  :on-click #(jump-to-coord flow-id
+                                                                                                            thread-id
+                                                                                                            (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
+                                                    loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
+                                                (.show loop-traces-menu
+                                                       form-code-area
+                                                       (.getScreenX mev)
+                                                       (.getScreenY mev))))))
+
+                                        ;; else if it is not interesting? we don't want to jump there
+                                        ;; but provide a way of search and jump to it by coord and form
+                                        (let [token-right-click-menu (ui-utils/make-context-menu
+                                                                      [{:text "Jump to first record here"
+                                                                        :on-click (fn []
+                                                                                    (jump-to-first-record flow-id
                                                                                                           thread-id
-                                                                                                          (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
-                                                  loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
-                                              (.show loop-traces-menu
-                                                     form-code-area
-                                                     (.getScreenX mev)
-                                                     (.getScreenY mev))))))))))))))))
+                                                                                                          (:form/id form)
+                                                                                                          coord))}])]
+                                          (when (= MouseButton/SECONDARY (.getButton mev))
+                                            (.show token-right-click-menu
+                                                   form-code-area
+                                                   (.getScreenX mev)
+                                                   (.getScreenY mev)))))))))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."

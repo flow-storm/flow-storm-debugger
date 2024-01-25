@@ -7,6 +7,7 @@
     - Add a timeline index column to the bookmarks table
     - Add a thread timeline index column to the multi-thread timeline
     - New same-coord and custom-same-coord power steppers
+    - New "Jump to first record here" to find recordings from unhighlighted text
     
 ### Changes
 

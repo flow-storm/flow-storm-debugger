@@ -141,6 +141,10 @@
 	-fx-font-weight: bold;
 }
 
+.code-token.possible {
+    -fx-cursor: default;
+}
+
 .forms-scroll-container {
 	-fx-padding: 10 0 0 0;
 }

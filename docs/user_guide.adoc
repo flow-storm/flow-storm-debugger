@@ -779,13 +779,10 @@ You can use it to step over each expression, visualize values, locals and more.
 
 image::user_guide_images/controls.png[]
 
-The code tool allows you to step and "travel thought time" in two ways:
+The code tool allows you to step and "travel thought time" in three ways:
 
-- You can use the controls at the top to step over your code in different ways.
-
-- Or you can click on the highlighted forms to position the debugger at that point in time.
-
-Only the forms that were executed at least once for the flow and thread will be highlighted.
+- Use the controls at the top to step over your code in different ways.
+- Click on the highlighted forms to position the debugger at that point in time.
 
 From left to right this are the controls you have available :
 
@@ -802,6 +799,32 @@ The numbers at the center show `current_step_index / total_steps`. This means th
 for this thread so far. The buttons right next to it control undo/redo of the navigation system and the <<#_bookmarks, bookmarking system>>.
 
 Write any number (less than total_steps) on the text box to jump into that position in time.
+
+Only the forms that were executed at least once for the current function frame will be highlighted.
+
+This means that code can be un-highlighted for two reasons:
+
+- there isn't any recording for that part of the code
+- there is a recording but doesn't belong to this function frame.
+
+image::user_guide_images/stepper_highlighting.png[]
+
+In the contrived example above we see we are stepping the `foo` function. All inside this function
+body is highlighted but the bodies of the two anonymous functions for mapping and reducing. This
+will only get highlighted once you step into their bodies.
+
+In this case you are sure there are recordings for this functions bodies because the reduce is
+non lazy, so if you keep stepping eventually you will get into their bodies, but there is a faster way.
+
+image::user_guide_images/stepper_highlighting_2.png[]
+
+For this you can right click on any un-highlighted expression that you think there could be a recording for and
+select `Jump to first record here`.
+
+image::user_guide_images/stepper_highlighting_3.png[]
+
+This will make FlowStorm scan from the beginning of the timeline searching for a value
+recorded at that coordinate and move the stepper to that point in time.
 
 ==== Power stepping
 
