@@ -613,7 +613,7 @@ https://github.com/flow-storm/docker-flow-storm-basic
 [NOTE]
 .ClojureStorm
 ====
-Instructions here only apply to vanilla _FlowStorm_ and ClojureScript debugging. If you are using _ClojureStorm_
+Instructions here only apply to vanilla _FlowStorm_. If you are using _ClojureStorm_ or _ClojureScriptStorm_
 this is done automatically for you, so just skip this section.
 ====
 
@@ -747,6 +747,13 @@ The `Flows` tab contains a bunch of tools for analyzing all traced executions fl
 Flows are identified by a flow-id and can be started by running a form with `#rtrace`, `#rtrace1`, `#rtrace2`, etc,.
 If you run a flow twice with the same flow id, the first one is going to be replaced.
 
+[NOTE]
+.ClojureStorm
+====
+Currently, working with different flows in parallel is only supported in Vanilla FlowStorm.
+If you are using ClojureStorm or ClojureScriptStorm the only flow you will see is the funnel flow.
+====
+
 A flow will happen in one or more threads. A separate tab will show for each thread.
 
 For example if we trace a form that spawns multiple threads :
@@ -777,30 +784,51 @@ You can use it to step over each expression, visualize values, locals and more.
 
 ==== Code stepping
 
-image::user_guide_images/controls.png[]
-
-The code tool allows you to step and "travel thought time" in three ways:
+The code tool allows you to step and "travel throught time" in two ways:
 
 - Use the controls at the top to step over your code in different ways.
 - Click on the highlighted forms to position the debugger at that point in time.
 
-From left to right this are the controls you have available :
+image::user_guide_images/controls.png[]
 
-- Jump to the first step of the recording.
+For moving around using the controls we have two rows of buttons.
+
+The second row of controls, the most imoprtant one, are the stepping controls.
+
+From left to right they are :
+
 - Step over backwards, will make one step backwards always staying on the same frame.
 - Step backwards, will step backwards in time going into sub functions.
 - Step out, will position the debugger in the next step after this function was called.
-- Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.
 - Step forward, will step forward in time going into sub functions.
 - Step over forward, will make one step forwards always staying on the same frame.
-- Jump to the last step of the recording.
 
 The numbers at the center show `current_step_index / total_steps`. This means that a total of `total_steps` has been recorded
-for this thread so far. The buttons right next to it control undo/redo of the navigation system and the <<#_bookmarks, bookmarking system>>.
+for this thread so far. Write any number (less than total_steps) on the text box to jump into that position in time.
 
-Write any number (less than total_steps) on the text box to jump into that position in time.
+The buttons around the step counter are :
 
+- Jump to the first step of the recording.
+- Jump to the last step of the recording.
+
+The last stepping controls to the right are the <<#_power_stepping, power stepping>> controls.
+
+
+On the first row we have more controls, also for moving around in time.
+
+From left to right we have :
+
+- Undo navigation
+- Redo navigation
+- Add a <<#_bookmarks, bookmark>>
+- Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.
+- The <<#_searching,value search>> tool
+
+[NOTE]
+.Highlighting
+====
 Only the forms that were executed at least once for the current function frame will be highlighted.
+====
 
 This means that code can be un-highlighted for two reasons:
 
@@ -924,11 +952,13 @@ You can use / to provide a namespace, otherwise will be defined under [cljs.]use
 Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
 you to mark execution positions so you can come back to them later.
 
-image::user_guide_images/bookmarks_controls.png[]
+image::user_guide_images/bookmarks_add_btn.png[]
 
-You can bookmark the current position by pressing the bookmark button on the left. It will ask you the bookmark description.
+You can bookmark the current position by pressing the bookmark button. It will ask you the bookmark description.
 
-Use the button on the right to open the bookmarks panel.
+image::user_guide_images/bookmarks_open_btn.png[]
+
+Use the button open button to open the bookmarks panel.
 
 image::user_guide_images/bookmarks.png[]
 
@@ -1293,6 +1323,7 @@ From left to right :
 - Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
 - Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
 - Unblock all breakpoint blocked threads if any.
+- Open the bookmarks window.
 - Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
 
 == Debug cmd line programs (clj -X, clj -m, etc)

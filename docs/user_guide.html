@@ -1679,7 +1679,7 @@ that the debugger websocket server is running on the default port.</p>
 <td class="content">
 <div class="title">ClojureStorm</div>
 <div class="paragraph">
-<p>Instructions here only apply to vanilla <em>FlowStorm</em> and ClojureScript debugging. If you are using <em>ClojureStorm</em>
+<p>Instructions here only apply to vanilla <em>FlowStorm</em>. If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em>
 this is done automatically for you, so just skip this section.</p>
 </div>
 </td>
@@ -1900,6 +1900,22 @@ and then clicking <code>Fully instrument this form</code>.</p>
 <p>Flows are identified by a flow-id and can be started by running a form with <code>#rtrace</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, etc,.
 If you run a flow twice with the same flow id, the first one is going to be replaced.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureStorm</div>
+<div class="paragraph">
+<p>Currently, working with different flows in parallel is only supported in Vanilla FlowStorm.
+If you are using ClojureStorm or ClojureScriptStorm the only flow you will see is the funnel flow.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>A flow will happen in one or more threads. A separate tab will show for each thread.</p>
 </div>
@@ -1948,13 +1964,8 @@ You can use it to step over each expression, visualize values, locals and more.<
 </div>
 <div class="sect4">
 <h5 id="_code_stepping"><a class="anchor" href="#_code_stepping"></a><a class="link" href="#_code_stepping">Code stepping</a></h5>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/controls.png" alt="controls">
-</div>
-</div>
 <div class="paragraph">
-<p>The code tool allows you to step and "travel thought time" in three ways:</p>
+<p>The code tool allows you to step and "travel throught time" in two ways:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1966,14 +1977,22 @@ You can use it to step over each expression, visualize values, locals and more.<
 </li>
 </ul>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/controls.png" alt="controls">
+</div>
+</div>
 <div class="paragraph">
-<p>From left to right this are the controls you have available :</p>
+<p>For moving around using the controls we have two rows of buttons.</p>
+</div>
+<div class="paragraph">
+<p>The second row of controls, the most imoprtant one, are the stepping controls.</p>
+</div>
+<div class="paragraph">
+<p>From left to right they are :</p>
 </div>
 <div class="ulist">
 <ul>
-<li>
-<p>Jump to the first step of the recording.</p>
-</li>
 <li>
 <p>Step over backwards, will make one step backwards always staying on the same frame.</p>
 </li>
@@ -1984,13 +2003,24 @@ You can use it to step over each expression, visualize values, locals and more.<
 <p>Step out, will position the debugger in the next step after this function was called.</p>
 </li>
 <li>
-<p>Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.</p>
-</li>
-<li>
 <p>Step forward, will step forward in time going into sub functions.</p>
 </li>
 <li>
 <p>Step over forward, will make one step forwards always staying on the same frame.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
+for this thread so far. Write any number (less than total_steps) on the text box to jump into that position in time.</p>
+</div>
+<div class="paragraph">
+<p>The buttons around the step counter are :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Jump to the first step of the recording.</p>
 </li>
 <li>
 <p>Jump to the last step of the recording.</p>
@@ -1998,14 +2028,47 @@ You can use it to step over each expression, visualize values, locals and more.<
 </ul>
 </div>
 <div class="paragraph">
-<p>The numbers at the center show <code>current_step_index / total_steps</code>. This means that a total of <code>total_steps</code> has been recorded
-for this thread so far. The buttons right next to it control undo/redo of the navigation system and the <a href="#_bookmarks">bookmarking system</a>.</p>
+<p>The last stepping controls to the right are the <a href="#_power_stepping">power stepping</a> controls.</p>
 </div>
 <div class="paragraph">
-<p>Write any number (less than total_steps) on the text box to jump into that position in time.</p>
+<p>On the first row we have more controls, also for moving around in time.</p>
 </div>
+<div class="paragraph">
+<p>From left to right we have :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Undo navigation</p>
+</li>
+<li>
+<p>Redo navigation</p>
+</li>
+<li>
+<p>Add a <a href="#_bookmarks">bookmark</a></p>
+</li>
+<li>
+<p>Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.</p>
+</li>
+<li>
+<p>The <a href="#_searching">value search</a> tool</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Highlighting</div>
 <div class="paragraph">
 <p>Only the forms that were executed at least once for the current function frame will be highlighted.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>This means that code can be un-highlighted for two reasons:</p>
@@ -2234,14 +2297,19 @@ you to mark execution positions so you can come back to them later.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/bookmarks_controls.png" alt="bookmarks controls">
+<img src="user_guide_images/bookmarks_add_btn.png" alt="bookmarks add btn">
 </div>
 </div>
 <div class="paragraph">
-<p>You can bookmark the current position by pressing the bookmark button on the left. It will ask you the bookmark description.</p>
+<p>You can bookmark the current position by pressing the bookmark button. It will ask you the bookmark description.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/bookmarks_open_btn.png" alt="bookmarks open btn">
+</div>
 </div>
 <div class="paragraph">
-<p>Use the button on the right to open the bookmarks panel.</p>
+<p>Use the button open button to open the bookmarks panel.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2846,6 +2914,9 @@ global limits definitions.</p>
 </li>
 <li>
 <p>Unblock all breakpoint blocked threads if any.</p>
+</li>
+<li>
+<p>Open the bookmarks window.</p>
 </li>
 <li>
 <p>Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.</p>
@@ -3512,7 +3583,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-26 09:46:11 -0300
+Last updated 2024-01-26 19:40:43 -0300
 </div>
 </div>
 </body>
