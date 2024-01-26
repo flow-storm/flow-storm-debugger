@@ -576,11 +576,7 @@
       (.setSpacing 2.0))))
 
 (defn- create-bookmarks-and-nav-pane [flow-id thread-id]
-  (let [open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
-                                            :on-click (fn []
-                                                        (bookmarks/show-bookmarks flow-id thread-id))
-                                            :tooltip "Open bookmarks")
-        bookmark-btn (ui-utils/icon-button :icon-name "mdi-bookmark"
+  (let [bookmark-btn (ui-utils/icon-button :icon-name "mdi-bookmark"
                                            :on-click (fn []
                                                        (bookmarks/bookmark-add
                                                         flow-id
@@ -604,7 +600,7 @@
                                                                                                                   :ns (:ns execution-expr)})))
                                               :disable (not execution-expression?))]
     (doto (h-box [undo-nav-btn redo-nav-btn
-                  bookmark-btn open-book-btn
+                  bookmark-btn
                   re-run-flow-btn])
       (.setSpacing 2.0))))
 

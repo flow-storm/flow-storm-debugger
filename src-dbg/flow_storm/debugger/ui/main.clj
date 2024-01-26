@@ -29,6 +29,7 @@
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
             [flow-storm.debugger.ui.printer.screen :as printer-screen]
+            [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
@@ -184,6 +185,10 @@
         unblock-threads-btn (icon-button :icon-name "mdi-run"
                                          :tooltip "Unblock all blocked threads if any (Ctrl-u)"
                                          :on-click (fn [] (runtime-api/unblock-all-threads rt-api)))
+        open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
+                                            :on-click (fn []
+                                                        (bookmarks/show-bookmarks))
+                                            :tooltip "Open bookmarks")
         quick-jump-textfield (doto (h-box [(label "Quick jump:")
                                            (ui-utils/autocomplete-textfield
                                             (fn []
@@ -199,6 +204,7 @@
                task-cancel-btn
                record-btn
                unblock-threads-btn
+               open-book-btn
                quick-jump-textfield]]
 
     (store-obj "task-cancel-btn" task-cancel-btn)

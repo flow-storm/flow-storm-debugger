@@ -47,7 +47,6 @@
 (s/def :thread.ui.callstack-tree-hidden-fns/ref (s/keys :req-un [:flow-storm/fn-name
                                                                  :flow-storm/fn-ns]))
 (s/def :thread.ui/callstack-tree-hidden-fns (s/coll-of :thread.ui.callstack-tree-hidden-fns/ref))
-(s/def :thread/bookmarks (s/map-of int? string?))
 
 (s/def :navigation-history/history (s/coll-of :flow-storm/timeline-entry))
 (s/def :thread/navigation-history (s/keys :req-un [:navigation-history/head-pos
@@ -57,8 +56,7 @@
                                   :thread/curr-timeline-entry
                                   :thread/navigation-history]
                             :opt [:thread/curr-frame
-                                  :thread.ui/callstack-tree-hidden-fns
-                                  :thread/bookmarks]))
+                                  :thread.ui/callstack-tree-hidden-fns]))
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
 (s/def :flow/id (s/nilable int?))
@@ -145,6 +143,9 @@
                                           :config/runtime-host
                                           :config/debug-mode?]))
 
+(s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
+(s/def ::bookmarks (s/map-of :bookmark/id string?))
+
 (s/def ::state (s/keys :req-un [:flow/flows
                                 :flow/threads-info
                                 :printer/printers
@@ -156,7 +157,8 @@
                                 ::connection-status
                                 ::local-mode?
                                 ::runtime-config
-                                ::debugger-config]
+                                ::debugger-config
+                                ::bookmarks]
                        :opt-un [:ui/selected-flow-id]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
@@ -430,13 +432,30 @@
 ;;;;;;;;;;;;;;;
 
 (defn add-bookmark [flow-id thread-id idx text]
-  (swap! state assoc-in [:flows flow-id :flow/threads thread-id :thread/bookmarks idx] text))
+  (swap! state assoc-in [:bookmarks [flow-id thread-id idx]] text))
 
 (defn remove-bookmark [flow-id thread-id idx]
-  (swap! state update-in [:flows flow-id :flow/threads thread-id :thread/bookmarks] dissoc idx))
+  (swap! state update-in [:bookmarks] dissoc [flow-id thread-id idx]))
 
-(defn all-bookmarks [flow-id thread-id]
-  (get-in @state [:flows flow-id :flow/threads thread-id :thread/bookmarks]))
+(defn remove-bookmarks [flow-id]
+  (swap! state update-in [:bookmarks]
+         (fn [bookmarks]
+           (reduce-kv (fn [bks [fid :as bkey] btext]
+                        (if (= fid flow-id)
+                          bks
+                          (assoc bks bkey btext)))
+                      {}
+                      bookmarks))))
+
+(defn all-bookmarks []
+  (reduce-kv (fn [bks [flow-id thread-id idx] text]
+               (conj bks
+                     {:flow-id flow-id
+                      :thread-id thread-id
+                      :idx idx
+                      :text text}))
+             []
+             (get-in @state [:bookmarks])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pending tasks sub-system ;;

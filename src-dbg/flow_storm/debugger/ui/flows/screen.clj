@@ -3,6 +3,7 @@
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.flows.call-tree :as flow-tree]
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
+            [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box
                                                                key-combo-match?]]
@@ -36,7 +37,10 @@
   (runtime-api/discard-flow rt-api flow-id)
 
   ;; remove it from the ui
-  (remove-flow flow-id))
+  (remove-flow flow-id)
+
+  ;; remove all bookmarks associated to this flow
+  (bookmarks/remove-bookmarks flow-id))
 
 (defn update-threads-list [flow-id]
   (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]

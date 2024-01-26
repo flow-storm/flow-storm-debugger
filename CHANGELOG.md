@@ -16,6 +16,7 @@
     - Add thread-ids everywhere thread-names show
     - Show form line next to form namespace if known
     - New stepper buttong layout
+    - Centralize bookmarks system (one bookmark system for all flows and threads)
     
 ### Bugs fixed
 
