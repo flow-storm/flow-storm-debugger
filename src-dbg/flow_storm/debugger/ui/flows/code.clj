@@ -226,7 +226,9 @@
                            maybe-unwrap-runi-tokens))
         [forms-box] (obj-lookup flow-id thread-id "forms_box")
         code-text (form-pprinter/to-string print-tokens)
-        ns-label (doto (label (str (:form/ns form)))
+        ns-label (doto (label (if-let [form-line (some-> form :form/form meta :line)]
+                                (format "%s:%d" (:form/ns form) form-line)
+                                (:form/ns form)))
                    (.setFont (Font. 10)))
 
         form-header (doto (h-box [ns-label])

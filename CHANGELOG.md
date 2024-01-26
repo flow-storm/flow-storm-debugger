@@ -14,6 +14,7 @@
     - Make tooltips have a 400ms delay instead of default 1000ms
     - Display timeline indexes zero based (used to be 1 based) to be less confusing when using the repl api
     - Add thread-ids everywhere thread-names show
+    - Show form line next to form namespace if known
     
 ### Bugs fixed
 
