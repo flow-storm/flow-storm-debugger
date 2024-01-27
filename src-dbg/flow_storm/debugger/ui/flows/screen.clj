@@ -225,7 +225,9 @@
                              [ev]
                               (clean-objs flow-id thread-id)))
         (-> all-tabs
-            (.addAll [thread-tab]))))))
+            (.addAll [thread-tab]))
+
+        (.select ^SingleSelectionModel sel-model ^Tab thread-tab)))))
 
 (defn select-flow-tab [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
