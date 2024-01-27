@@ -17,6 +17,7 @@
     - Show form line next to form namespace if known
     - New stepper buttong layout
     - Centralize bookmarks system (one bookmark system for all flows and threads)
+    - Step over doesn't stop at function boundaries anymore
     
 ### Bugs fixed
 

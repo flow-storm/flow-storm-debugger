@@ -68,34 +68,45 @@
 
 (defn- timeline-next-over-idx [timeline idx]
   (let [last-idx (dec (ml-count timeline))
-        init-fn-call-idx (index-protos/fn-call-idx (ml-get timeline idx))]
-    (loop [i (inc idx)]
-      (if (>= i last-idx)
-        idx
-        (let [tl-entry (ml-get timeline i)]
-          (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
-            i
-            (if (fn-call-trace/fn-call-trace? tl-entry)
-              ;; this is an imporatant optimization for big timelines,
-              ;; when moving forward, if we see a fn-call jump directly past the return
-              (recur (if-let [ret-idx (fn-call-trace/get-ret-idx tl-entry)]
-                       (inc ret-idx)
-                       last-idx))
-              (recur (inc i)))))))))
+        init-entry (ml-get timeline idx)
+        init-fn-call-idx (index-protos/fn-call-idx init-entry)]
+    (if (fn-return-trace/fn-return-trace? init-entry)
+      ;; if we are on a return just move next
+      (inc idx)
+      
+      (loop [i (inc idx)]
+        (if (>= i last-idx)
+          idx
+          (let [tl-entry (ml-get timeline i)]
+            (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+              i
+              (if (fn-call-trace/fn-call-trace? tl-entry)
+                ;; this is an imporatant optimization for big timelines,
+                ;; when moving forward, if we see a fn-call jump directly past the return
+                (recur (if-let [ret-idx (fn-call-trace/get-ret-idx tl-entry)]
+                         (inc ret-idx)
+                         last-idx))
+                (recur (inc i))))))))))
 
 (defn- timeline-prev-over-idx [timeline idx]
-  (let [init-fn-call-idx (index-protos/fn-call-idx (ml-get timeline idx))]
-    (loop [i (dec idx)]
-      (if-not (pos? i)
-        idx
-        (let [tl-entry (ml-get timeline i)]
-          (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
-            i
-            ;; this is an important optimization for big timelines
-            ;; when moving back sikip over entire functions instead
-            ;; of just searching backwards one entry at a time until
-            ;; we find our original frame
-            (recur (dec (index-protos/fn-call-idx tl-entry)))))))))
+  (let [init-entry (ml-get timeline idx)
+        init-fn-call-idx (index-protos/fn-call-idx init-entry)]
+    (if (fn-call-trace/fn-call-trace? init-entry)
+      
+      ;; if we are on a fn-call just move prev
+      (dec idx)
+      
+      (loop [i (dec idx)]
+        (if-not (pos? i)
+          idx
+          (let [tl-entry (ml-get timeline i)]
+            (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+              i
+              ;; this is an important optimization for big timelines
+              ;; when moving back sikip over entire functions instead
+              ;; of just searching backwards one entry at a time until
+              ;; we find our original frame
+              (recur (dec (index-protos/fn-call-idx tl-entry))))))))))
 
 (defn- timeline-prev-idx [timeline idx]
   (if-not (pos? idx)
