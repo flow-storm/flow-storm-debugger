@@ -20,6 +20,8 @@
     
 ### Bugs fixed
 
+    - Pasting in quick jump box doesn't fire autocomplete
+    
 ## 3.9.1 (12-01-2024)
 	
 ### New Features 

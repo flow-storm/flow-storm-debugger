@@ -573,7 +573,7 @@
                         (reset! options nil))
 
                       (when (and (= 0 (count old-val))
-                                 (= 1 (count new-val)))
+                                 (pos? (count new-val)))
                         (reset! options (completions-fn)))
 
                       (let [new-items (reduce (fn [r {:keys [text on-select]}]
