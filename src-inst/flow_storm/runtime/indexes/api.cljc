@@ -354,9 +354,9 @@
                              nil
                              nil
                              (fn [fns fname formid _]
-                               (and (= form-id formid)
-                                    (= fn-name fname)
-                                    (= fn-ns fns))))))
+                               (and (if form-id (= form-id formid) true)
+                                    (if fn-name (= fn-name fname)  true)
+                                    (if fn-ns   (= fn-ns fns)      true))))))
 
 
 (defn discard-flow [flow-id] 

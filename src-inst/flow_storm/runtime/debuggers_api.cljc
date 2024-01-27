@@ -136,9 +136,7 @@
           {}
           (index-api/all-threads)))
 
-(def find-fn-frames index-api/find-fn-frames)
-
-(defn find-fn-frames-light [flow-id thread-id fn-ns fn-name form-id]
+(defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]
   (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
         frames (into [] (map reference-frame-data!) fn-frames)]
     frames))
@@ -449,7 +447,7 @@
              :callstack-node-childs callstack-node-childs
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
-             :find-fn-frames-light find-fn-frames-light
+             :find-fn-frames find-fn-frames
              :find-timeline-entry find-timeline-entry
              :total-order-timeline total-order-timeline
              :thread-prints thread-prints

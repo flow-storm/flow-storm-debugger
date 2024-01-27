@@ -53,7 +53,7 @@
 (defn- show-function-calls [flow-id thread-id selected-items]
   (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
         [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
-        fn-call-traces (runtime-api/find-fn-frames-light rt-api flow-id thread-id fn-ns fn-name form-id)]
+        fn-call-traces (runtime-api/find-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id)]
     (clear)
     (add-all fn-call-traces)))
 
