@@ -25,8 +25,8 @@
                 (:vid vref)
                 (-> vref meta :val-preview pr-str)))
 
-(defn deserialize-val-ref [[vid-str vprev]]
-  (with-meta (make-value-ref (utils/parse-int vid-str))
+(defn deserialize-val-ref [[vid vprev]]
+  (with-meta (make-value-ref vid)
     {:val-preview vprev}))
 
 #?(:clj (defmethod print-method ValueRef [vref ^java.io.Writer w]
