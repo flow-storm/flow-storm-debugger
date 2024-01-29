@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.ui.flows.call-tree
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
-            [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
+            [flow-storm.debugger.ui.flows.general :as ui-flows-gral :refer [show-message]]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -13,6 +13,8 @@
            [javafx.geometry Pos Orientation]
            [javafx.scene.layout HBox Priority VBox]))
 
+(def call-stack-tree-childs-limit 500)
+
 (defn update-call-stack-tree-pane [flow-id thread-id]
   (let [lazy-tree-item (fn lazy-tree-item [tree-node]
                          (let [calls (runtime-api/callstack-node-childs rt-api tree-node)]
@@ -21,11 +23,18 @@
                                (let [^ObservableList super-childrens (proxy-super getChildren)]
                                  (if (.isEmpty super-childrens)
                                    (let [new-children (->> calls
+                                                           (take call-stack-tree-childs-limit)
                                                            (remove (fn [child-node]
                                                                      (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
                                                                        (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
                                                            (map lazy-tree-item)
                                                            (into-array TreeItem))]
+
+                                     (when (> (count calls) call-stack-tree-childs-limit)
+                                       (show-message (format "Tree childs had been limited to %d to keep the UI responsive. You can still analyze all of them with the rest of the tools."
+                                                             call-stack-tree-childs-limit)
+                                                     :warning))
+
                                      (.setAll super-childrens new-children)
                                      super-childrens)
                                    super-childrens)))
