@@ -2104,7 +2104,7 @@ non lazy, so if you keep stepping eventually you will get into their bodies, but
 </div>
 <div class="paragraph">
 <p>For this you can right click on any un-highlighted expression that you think there could be a recording for and
-select <code>Jump to first record here</code>.</p>
+select <code>Jump forward here</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2112,8 +2112,12 @@ select <code>Jump to first record here</code>.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This will make FlowStorm scan from the beginning of the timeline searching for a value
-recorded at that coordinate and move the stepper to that point in time.</p>
+<p>This will make FlowStorm scan from the current point of the timeline searching forward for a value
+recorded at that coordinate (if any) and move the stepper to that point in time.</p>
+</div>
+<div class="paragraph">
+<p>You also have <code>Jump to first record here</code> which will scan from the beginning of the timeline and <code>Jump backwards here</code>
+which will search backwards from the current position.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3583,7 +3587,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-26 19:40:43 -0300
+Last updated 2024-01-29 07:59:08 -0300
 </div>
 </div>
 </body>

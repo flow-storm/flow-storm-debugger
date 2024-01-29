@@ -847,12 +847,15 @@ non lazy, so if you keep stepping eventually you will get into their bodies, but
 image::user_guide_images/stepper_highlighting_2.png[]
 
 For this you can right click on any un-highlighted expression that you think there could be a recording for and
-select `Jump to first record here`.
+select `Jump forward here`.
 
 image::user_guide_images/stepper_highlighting_3.png[]
 
-This will make FlowStorm scan from the beginning of the timeline searching for a value
-recorded at that coordinate and move the stepper to that point in time.
+This will make FlowStorm scan from the current point of the timeline searching forward for a value
+recorded at that coordinate (if any) and move the stepper to that point in time.
+
+You also have `Jump to first record here` which will scan from the beginning of the timeline and `Jump backwards here`
+which will search backwards from the current position.
 
 ==== Power stepping
 

@@ -53,11 +53,11 @@
 
     print-tokens))
 
-(defn- jump-to-first-record [flow-id thread-id form-id coord]
+(defn- jump-to-record-here [flow-id thread-id form-id coord {:keys [backward? from-idx]}]
   (when-let [tentry (runtime-api/find-timeline-entry rt-api {:flow-id flow-id
                                                              :thread-id thread-id
-                                                             :from-idx 0
-                                                             :backward? false
+                                                             :from-idx (or from-idx 0)
+                                                             :backward? backward?
                                                              :eq-val-ref nil
                                                              :comp-fn-key :same-coord
                                                              :comp-fn-coord coord
@@ -202,13 +202,18 @@
 
                                         ;; else if it is not interesting? we don't want to jump there
                                         ;; but provide a way of search and jump to it by coord and form
-                                        (let [token-right-click-menu (ui-utils/make-context-menu
-                                                                      [{:text "Jump to first record here"
-                                                                        :on-click (fn []
-                                                                                    (jump-to-first-record flow-id
-                                                                                                          thread-id
-                                                                                                          (:form/id form)
-                                                                                                          coord))}])]
+                                        (let [form-id (:form/id form)
+                                              curr-idx (dbg-state/current-idx flow-id thread-id)
+
+                                              token-right-click-menu
+                                              (ui-utils/make-context-menu
+                                               [{:text "Jump to first record here"
+                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
+                                                {:text "Jump forward here"
+                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
+                                                {:text "Jump backwards here"
+                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])]
+
                                           (when (= MouseButton/SECONDARY (.getButton mev))
                                             (.show token-right-click-menu
                                                    form-code-area
