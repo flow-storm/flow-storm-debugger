@@ -184,7 +184,7 @@
            (try
              (loop []
                (let [repl-ok? (try
-                                (= :watch-dog-ping (eval-code-str ":watch-dog-ping"))
+                                (= :watch-dog-ping (eval-code-str ":watch-dog-ping" "user"))
                                 (catch clojure.lang.ExceptionInfo ei
                                   (let [{:keys [error/type] :as exd} (ex-data ei)]
                                     (utils/log (format "[WATCHDOG] error executing ping. %s %s" type exd))

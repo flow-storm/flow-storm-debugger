@@ -25,6 +25,7 @@
     - Pasting in quick jump box doesn't fire autocomplete
     - Quick jump should create and/or focus the tab
     - Fix tree view freezes when a node contains too many childs
+    - Fix quick-jump on Clojure remote
     
 ## 3.9.1 (12-01-2024)
 	

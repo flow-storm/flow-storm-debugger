@@ -246,8 +246,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn get-form [form-id]
-  (when forms-registry
-    (index-protos/get-form forms-registry form-id)))
+  (when forms-registry    
+    (try
+      (index-protos/get-form forms-registry form-id)
+      (catch Exception _ nil))))
 
 (defn all-threads []
   (when flow-thread-registry
@@ -334,7 +336,7 @@
   (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
     (->> (index-protos/all-stats fn-call-stats-index)
          (keep (fn [[fn-call cnt]]
-                 (let [form (get-form (:form-id fn-call))]
+                 (when-let [form (get-form (:form-id fn-call))]
                    (cond-> {:fn-ns (:fn-ns fn-call)
                             :fn-name (:fn-name fn-call)
                             :form-id (:form-id fn-call)

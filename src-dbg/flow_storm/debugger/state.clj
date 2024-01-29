@@ -122,15 +122,15 @@
                                           :status/breakpoints])))
 
 (s/def :repl/kind #{:nrepl})
-(s/def :repl/type #{:shadow})
+(s/def :repl/type #{:shadow :clojure})
 (s/def :repl/port int?)
 (s/def :repl.cljs/build-id keyword?)
 
 (s/def :config/repl (s/nilable
                      (s/keys :req [:repl/kind
                                    :repl/type
-                                   :repl/port
-                                   :repl.cljs/build-id])))
+                                   :repl/port]
+                             :opt [:repl.cljs/build-id])))
 
 (s/def :config/debugger-host string?)
 (s/def :config/debugger-ws-port int?)
@@ -182,13 +182,14 @@
    :debugger-config {:repl
                      (when port
                        (cond-> {:repl/kind :nrepl
-                                :repl/type repl-type
+                                :repl/type (or repl-type :clojure)
                                 :repl/port port}
                          (#{:shadow} repl-type) (assoc :repl.cljs/build-id (:build-id config))))
                      :debugger-host (or debugger-host "localhost")
                      :debugger-ws-port (or ws-port 7722)
                      :runtime-host (or runtime-host "localhost")
-                     :debug-mode? false}})
+                     :debug-mode? false}
+   :bookmarks {}})
 
 (def register-and-init-stage!
 
