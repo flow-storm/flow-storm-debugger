@@ -70,7 +70,7 @@
   (let [last-idx (dec (ml-count timeline))
         init-entry (ml-get timeline idx)
         init-fn-call-idx (index-protos/fn-call-idx init-entry)]
-    (if (fn-return-trace/fn-return-trace? init-entry)
+    (if (fn-return-trace/fn-end-trace? init-entry)
       ;; if we are on a return just move next
       (inc idx)
       
@@ -137,7 +137,7 @@
             (+ 2 idx))
           (+ 1 idx))))))
 
-(defrecord ExecutionTimelineTree [;; an array of FnCall, Expr, FnRet
+(defrecord ExecutionTimelineTree [;; an array of FnCall, Expr, FnRet, FnUnwind
                                   timeline 
 
                                   ;; a stack of pointers to prev FnCall
@@ -296,6 +296,16 @@
                          (conj ch-indexes i))
 
                   (recur (inc i) ch-indexes)))))))))
+
+  #?@(:clj
+      [Object
+       (toString [_]                 
+                 (.toString
+                  (reduce (fn [^StringBuilder sb tl-entry]
+                            (.append sb (str tl-entry))
+                            (.append sb "\n"))
+                          (StringBuilder.)
+                          timeline)))])
   
   (tree-frame-data [this fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
     (if (= fn-call-idx tree-root-idx)
@@ -309,11 +319,15 @@
                 fr-data {:fn-ns (fn-call-trace/get-fn-ns fn-call)
                          :fn-name (fn-call-trace/get-fn-name fn-call)
                          :args-vec (fn-call-trace/get-fn-args fn-call)
-                         :ret (when fn-return
-                                (index-protos/get-expr-val fn-return))
                          :form-id (fn-call-trace/get-form-id fn-call)
                          :fn-call-idx fn-call-idx
                          :parent-fn-call-idx (fn-call-trace/get-parent-idx fn-call)}
+                fr-data (cond-> fr-data
+                          (nil? fn-return)                             (assoc :return/kind :waiting)
+                          (fn-return-trace/fn-unwind-trace? fn-return) (assoc :return/kind :unwind
+                                                                              :throwable (index-protos/get-throwable fn-return))
+                          (fn-return-trace/fn-return-trace? fn-return) (assoc :return/kind :return
+                                                                              :ret (index-protos/get-expr-val fn-return)))
                 fr-data (if include-path?
                           (assoc fr-data :fn-call-idx-path (get-fn-call-idx-path timeline fn-call-idx))
                           fr-data)

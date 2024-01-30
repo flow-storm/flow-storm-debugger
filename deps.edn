@@ -26,7 +26,7 @@
                                thheller/shadow-cljs {:mvn/version "2.23.3"}}}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.11.1-18"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-master-SNAPSHOT"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"
                               ;;"-Dflowstorm.startRecording=false"

@@ -49,7 +49,7 @@
   
   #?@(:clj
       [Object
-       (toString [_] (utils/format "[ExprTrace] coord: %s, valType: %s" coord (type exprVal)))]))
+       (toString [_] (utils/format "[%d ExprTrace] coord: %s, valType: %s" thisIdx coord (type exprVal)))]))
 
 (defn make-expr-trace [coord expr-val]
   (->ExprTrace coord expr-val nil-idx nil-idx))

@@ -27,6 +27,9 @@
 (defprotocol ExpressionTimelineEntryP
   (get-expr-val [_]))
 
+(defprotocol UnwindTimelineEntryP
+  (get-throwable [_]))
+
 (defprotocol TreeP
   (tree-root-index [_])
   (tree-childs-indexes [_ fn-call-idx])

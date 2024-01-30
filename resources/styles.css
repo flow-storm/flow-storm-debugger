@@ -84,11 +84,17 @@
     -fx-prompt-text-fill: -fx-theme-button2-text;
 }
 
-.conn-status-lbl.ok {
+.label.ok {
 	-fx-background-color: -fx-theme-ok;
 	-fx-text-fill: #323232;
 }
-.conn-status-lbl.fail {
+
+.label.warning {
+	-fx-background-color: -fx-theme-warning;
+	-fx-text-fill: #323232;
+}
+
+.label.fail {
 	-fx-background-color: -fx-theme-fail;
 	-fx-text-fill: #323232;
 }

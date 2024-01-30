@@ -107,7 +107,7 @@
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
-        ret-val (-> selected-items first :ret)
+        {:keys [ret throwable return/kind]} (first selected-items)
         jump-to-idx (fn []
                       (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
                       (flows-code/jump-to-coord flow-id
@@ -118,11 +118,14 @@
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 1 (.getClickCount mev)))
 
-      (flow-cmp/update-pprint-pane flow-id
-                                   thread-id
-                                   "functions-calls-ret-val"
-                                   ret-val
-                                   {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})
+      (flow-cmp/update-return-pprint-pane flow-id
+                                          thread-id
+                                          "functions-calls-ret-val"
+                                          kind
+                                          (case kind
+                                            :return ret
+                                            :unwind throwable)
+                                          {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})
 
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 2 (.getClickCount mev)))
@@ -149,12 +152,15 @@
                                                          :cell-factory-fn (partial functions-calls-cell-factory selected-args)
                                                          :on-click (partial function-call-click flow-id thread-id)
                                                          :on-enter (fn [sel-items]
-                                                                     (let [ret-val (-> sel-items first :ret)]
-                                                                       (flow-cmp/update-pprint-pane flow-id
-                                                                                                    thread-id
-                                                                                                    "functions-calls-ret-val"
-                                                                                                    ret-val
-                                                                                                    {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})))
+                                                                     (let [{:keys [ret throwable return/kind]} (first sel-items)]
+                                                                       (flow-cmp/update-return-pprint-pane flow-id
+                                                                                                           thread-id
+                                                                                                           "functions-calls-ret-val"
+                                                                                                           kind
+                                                                                                           (case kind
+                                                                                                             :return ret
+                                                                                                             :unwind throwable)
+                                                                                                           {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})))
                                                          :selection-mode :single})
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]

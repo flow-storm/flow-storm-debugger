@@ -249,7 +249,8 @@
   (when forms-registry    
     (try
       (index-protos/get-form forms-registry form-id)
-      (catch Exception _ nil))))
+      #?(:clj (catch Exception _ nil)
+         :cljs (catch js/Error _ nil)))))
 
 (defn all-threads []
   (when flow-thread-registry
@@ -284,6 +285,7 @@
         [entry-coord entry-idx] (case (:type entry)
                                   :fn-call   [[] fn-call-idx]
                                   :fn-return [(:coord entry) (:idx entry)]
+                                  :fn-unwind [(:coord entry) (:idx entry)]
                                   :expr      [(:coord entry) (:idx entry)])]
     
     (cond->> (:bindings frame-data)
@@ -502,7 +504,7 @@
             (fn-call-trace/fn-call-trace? tl-entry)
             (recur rest-entries (conj thread-stack tl-entry) prints)
 
-            (fn-return-trace/fn-return-trace? tl-entry)
+            (fn-return-trace/fn-end-trace? tl-entry)
             (recur rest-entries (pop thread-stack) (maybe-print-entry prints (first thread-stack) tl-entry))
 
             (expr-trace/expr-trace? tl-entry)

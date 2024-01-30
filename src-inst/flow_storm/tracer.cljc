@@ -4,7 +4,7 @@
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.types.fn-call-trace :refer [make-fn-call-trace]]
-            [flow-storm.runtime.types.fn-return-trace :refer [make-fn-return-trace]]
+            [flow-storm.runtime.types.fn-return-trace :refer [make-fn-return-trace make-fn-unwind-trace]]
             [flow-storm.runtime.types.expr-trace :refer [make-expr-trace]]
             [flow-storm.runtime.types.bind-trace :refer [make-bind-trace]]))
 
@@ -156,6 +156,15 @@
         (make-fn-return-trace coord (snapshot-reference return))
         @total-order-recording)))))
 
+(defn trace-fn-unwind
+  ([flow-id throwable coord _] ;; for using with storm  
+   (let [thread-id (utils/get-current-thread-id)]
+       (indexes-api/add-fn-return-trace
+        flow-id
+        thread-id      
+        (make-fn-unwind-trace coord (snapshot-reference throwable))
+        @total-order-recording))))
+
 (defn trace-expr-exec
   
   "Send expression execution trace."
@@ -206,6 +215,7 @@
   (cond-> `{:trace-form-init trace-form-init
             :trace-fn-call trace-fn-call
             :trace-fn-return trace-fn-return
+            :trace-fn-unwind trace-fn-unwind
             :trace-expr-exec trace-expr-exec
             :trace-bind trace-bind}
     
@@ -224,20 +234,41 @@
 #?(:clj
    (defn hook-clojure-storm [handle-exception-fn]  
      (set-clojure-storm
-      {:trace-fn-call-fn-key    trace-fn-call
+      {:trace-fn-call-fn    trace-fn-call
+	   :trace-fn-return-fn  trace-fn-return
+	   :trace-fn-unwind-fn  trace-fn-unwind
+	   :trace-expr-fn       trace-expr-exec
+	   :trace-bind-fn       trace-bind
+	   :handle-exception-fn handle-exception-fn
+
+       ;; this are just for backward compatibility
+       ;; TODO: remove this when it feels safe
+       :trace-fn-call-fn-key    trace-fn-call
 	   :trace-fn-return-fn-key  trace-fn-return
+	   :trace-fn-unwind-fn-key  trace-fn-unwind
 	   :trace-expr-fn-key       trace-expr-exec
 	   :trace-bind-fn-key       trace-bind
-	   :handle-exception-fn-key handle-exception-fn})))
+       })))
 
 #?(:clj
    (defn unhook-clojure-storm []  
      (set-clojure-storm
-      {:trace-fn-call-fn-key    nil
+      {:trace-fn-call-fn    nil
+	   :trace-fn-return-fn  nil
+	   :trace-fn-unwind-fn  nil
+	   :trace-expr-fn       nil
+	   :trace-bind-fn       nil
+       :handle-exception-fn nil
+
+       ;; this are just for backward compatibility
+       ;; TODO: remove this when it feels safe
+       :trace-fn-call-fn-key    nil
 	   :trace-fn-return-fn-key  nil
+	   :trace-fn-unwind-fn-key  nil
 	   :trace-expr-fn-key       nil
 	   :trace-bind-fn-key       nil
-	   :handle-exception-fn-key nil})))
+       
+	   })))
 
 #?(:cljs        
    (defn hook-clojurescript-storm []
@@ -247,6 +278,7 @@
          cljs.storm.tracer.trace_expr_fn=flow_storm.tracer.trace_expr_exec;
          cljs.storm.tracer.trace_fn_call_fn=flow_storm.tracer.trace_fn_call;
          cljs.storm.tracer.trace_fn_return_fn=flow_storm.tracer.trace_fn_return;
+         cljs.storm.tracer.trace_fn_unwind_fn=flow_storm.tracer.trace_fn_unwind;
          cljs.storm.tracer.trace_bind_fn=flow_storm.tracer.trace_bind;
          cljs.storm.tracer.trace_form_init_fn=flow_storm.tracer.trace_form_init;
          console.log(\"ClojureScriptStorm functions plugged in.\");

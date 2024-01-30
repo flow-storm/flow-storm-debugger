@@ -25,6 +25,7 @@
 	-fx-theme-breadcrums:                         #de00c0;
 	-fx-theme-ok:                                 #00ff00;
 	-fx-theme-fail:                               #ff0000;
+    -fx-theme-warning:                            orange;
 	-fx-theme-title-label:                        orange;
 	-fx-theme-field-label:                        #de00c0;
 	-fx-theme-breakpoint:                         #ff0000;

@@ -75,7 +75,7 @@
 
   #?@(:clj
       [Object
-       (toString [_] (utils/format "[FnCallTrace] %s/%s form-id: %d" fnNs fnName formId))]))
+       (toString [_] (utils/format "[%d FnCallTrace] %s/%s form-id: %d ret: %d" thisIdx fnNs fnName formId retIdx))]))
 
 (defn make-fn-call-trace [fn-ns fn-name form-id fn-args]
   (->FnCallTrace fn-name

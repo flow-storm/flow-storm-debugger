@@ -205,17 +205,20 @@
                   (proxy [ChangeListener] []
                     (changed [changed old-val new-val]
                       (when new-val
-                        (let [{:keys [args-vec ret]} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
+                        (let [{:keys [args-vec ret throwable return/kind]} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
                           (flow-cmp/update-pprint-pane flow-id
                                                        thread-id
                                                        "fn_args"
                                                        args-vec
                                                        {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)})
-                          (flow-cmp/update-pprint-pane flow-id
-                                                       thread-id
-                                                       "fn_ret"
-                                                       ret
-                                                       {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)}))))))
+                          (flow-cmp/update-return-pprint-pane flow-id
+                                                              thread-id
+                                                              "fn_ret"
+                                                              kind
+                                                              (case kind
+                                                                :return ret
+                                                                :unwind throwable)
+                                                              {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)}))))))
 
     (store-obj flow-id thread-id "callstack_tree_view" tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)

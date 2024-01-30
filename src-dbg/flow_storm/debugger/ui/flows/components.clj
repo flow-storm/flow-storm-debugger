@@ -22,8 +22,8 @@
         print-level-txt (doto (TextField. "5")
                           (.setPrefWidth 50)
                           (.setAlignment Pos/CENTER))
-        print-wrap-chk (doto (check-box {:on-change (fn [selected?] (.setWrapText result-txt selected?))}) 
-                             (.setSelected false))                       
+        print-wrap-chk (doto (check-box {:on-change (fn [selected?] (.setWrapText result-txt selected?))})
+                             (.setSelected false))
         def-btn (button :label "def"
                         :classes ["def-btn" "btn-sm"]
                         :tooltip "Define a reference to this value so it can be used from the repl.")
@@ -42,12 +42,16 @@
                     (.setAlignment Pos/CENTER_RIGHT)
                     (.setSpacing 3.0))
         result-type-lbl (label "")
+        extra-lbl (label "")
+        header-box (doto (h-box [result-type-lbl extra-lbl])
+                     (.setSpacing 3.0))
         box (v-box [tools-box
-                    result-type-lbl
+                    header-box
                     result-txt])]
 
     (VBox/setVgrow result-txt Priority/ALWAYS)
     (store-obj flow-id thread-id (ui-utils/thread-pprint-type-lbl-id pane-id) result-type-lbl)
+    (store-obj flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id) extra-lbl)
     (store-obj flow-id thread-id (ui-utils/thread-pprint-area-id pane-id) result-txt)
     (store-obj flow-id thread-id (ui-utils/thread-pprint-level-txt-id pane-id) print-level-txt)
     (store-obj flow-id thread-id (ui-utils/thread-pprint-meta-chk-id pane-id) print-meta-chk)
@@ -75,3 +79,20 @@
 
     (.setText result-txt val-str)
     (.setText result-type-lbl (format "Type: %s" val-type))))
+
+(defn update-return-pprint-pane [flow-id thread-id pane-id kind val opts]
+  (let [[extra-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id))]
+    (case kind
+      :waiting (do
+                 (.setText extra-lbl "Waiting")
+                 (ui-utils/rm-class extra-lbl "fail")
+                 (ui-utils/add-class extra-lbl "warning"))
+      :unwind (do
+                (.setText extra-lbl "Throwed")
+                (ui-utils/rm-class extra-lbl "warning")
+                (ui-utils/add-class extra-lbl "fail"))
+      :return (do
+                (ui-utils/rm-class extra-lbl "fail")
+                (ui-utils/rm-class extra-lbl "warning")
+                (.setText extra-lbl "")))
+    (update-pprint-pane flow-id thread-id pane-id val opts)))

@@ -77,21 +77,21 @@
 
 (def timeline-count index-api/timeline-count)
 
-(defn- reference-frame-data! [{:keys [dispatch-val] :as frame-data}]
+(defn- reference-frame-data! [{:keys [dispatch-val return/kind] :as frame-data}]
   (cond-> frame-data
-    true         (dissoc :frame)
-    dispatch-val (update :dispatch-val reference-value!)
-    true         (update :args-vec reference-value!)
-    true         (update :ret reference-value!)
-    true         (update :bindings (fn [bs]
-                                     (mapv #(update % :value reference-value!) bs)))
-    true         (update :expr-executions (fn [ee]
-                                            (mapv #(update % :result reference-value!) ee)))))
+    true             (dissoc :frame)
+    dispatch-val     (update :dispatch-val reference-value!)
+    true             (update :args-vec reference-value!)
+    (= kind :return) (update :ret reference-value!)
+    (= kind :unwind) (update :throwable reference-value!)
+    true             (update :bindings (fn [bs] (mapv #(update % :value reference-value!) bs)))
+    true             (update :expr-executions (fn [ee] (mapv #(update % :result reference-value!) ee)))))
 
 (defn reference-timeline-entry! [entry]
   (case (:type entry)
     :fn-call   (update entry :fn-args reference-value!)
     :fn-return (update entry :result reference-value!)
+    :fn-unwind (update entry :throwable reference-value!)
     :bind      (update entry :value reference-value!)
     :expr      (update entry :result reference-value!)))
 

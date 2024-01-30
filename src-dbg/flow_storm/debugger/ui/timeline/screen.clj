@@ -66,6 +66,7 @@
                                                                 (case type
                                                                   :fn-call   [(thread-label thread-id name) idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
                                                                   :fn-return [(thread-label thread-id name) idx "RETURN"                         ""       expr-val-str expr-type]
+                                                                  :fn-unwind [(thread-label thread-id name) idx "UNWIND"                         ""       "" expr-type]
                                                                   :expr-exec [(thread-label thread-id name) idx ""                               expr-str expr-val-str expr-type])
                                                                 (assoc tl-entry :color (thread-color thread-id))))))
                                                     add-all)))
