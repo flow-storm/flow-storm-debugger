@@ -80,8 +80,12 @@
     (.setText result-txt val-str)
     (.setText result-type-lbl (format "Type: %s" val-type))))
 
-(defn update-return-pprint-pane [flow-id thread-id pane-id kind val opts]
-  (let [[extra-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id))]
+(defn update-return-pprint-pane [flow-id thread-id pane-id {:keys [ret throwable return/kind]} opts]
+  (let [[extra-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id))
+        val (case kind
+              :return ret
+              :unwind throwable
+              :waiting nil)]
     (case kind
       :waiting (do
                  (.setText extra-lbl "Waiting")

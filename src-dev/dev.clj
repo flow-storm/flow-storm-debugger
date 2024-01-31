@@ -25,7 +25,8 @@
             [flow-storm.utils :as utils]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [flow-storm.runtime.indexes.protocols :as index-protos]))
 
 (javafx.embed.swing.JFXPanel.)
 
@@ -208,4 +209,25 @@
   (step-next)
   (step-prev)
 
+  (defn foo []
+  (let [a (+ 1 2)]
+    (throw (Exception. "damn"))
+    (+ a 3)))
+
+(defn bar []
+  (try
+    (foo)
+    (catch Exception e 45)))
+
+(defn blabla []
+  (+ 3 4 (* 3 4)))
+
+(defn baz []
+  (+ (bar) (blabla) 4))
+
+(println (str (:timeline-index (index-api/get-thread-indexes nil 18))))
+(require '[flow-storm.runtime.indexes.protocols :as index-protos])
+(index-protos/tree-childs-indexes (:timeline-index (index-api/get-thread-indexes nil 18)) 1)
+
+(type (:fn-args (index-protos/timeline-entry  (:timeline-index (index-api/get-thread-indexes nil 18)) 0 :at)))
   )

@@ -107,7 +107,7 @@
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
-        {:keys [ret throwable return/kind]} (first selected-items)
+        ret-entry (first selected-items)
         jump-to-idx (fn []
                       (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
                       (flows-code/jump-to-coord flow-id
@@ -121,10 +121,7 @@
       (flow-cmp/update-return-pprint-pane flow-id
                                           thread-id
                                           "functions-calls-ret-val"
-                                          kind
-                                          (case kind
-                                            :return ret
-                                            :unwind throwable)
+                                          ret-entry
                                           {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})
 
       (and (= MouseButton/PRIMARY (.getButton mev))
@@ -152,14 +149,11 @@
                                                          :cell-factory-fn (partial functions-calls-cell-factory selected-args)
                                                          :on-click (partial function-call-click flow-id thread-id)
                                                          :on-enter (fn [sel-items]
-                                                                     (let [{:keys [ret throwable return/kind]} (first sel-items)]
+                                                                     (let [ret-entry (first sel-items)]
                                                                        (flow-cmp/update-return-pprint-pane flow-id
                                                                                                            thread-id
                                                                                                            "functions-calls-ret-val"
-                                                                                                           kind
-                                                                                                           (case kind
-                                                                                                             :return ret
-                                                                                                             :unwind throwable)
+                                                                                                           ret-entry
                                                                                                            {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})))
                                                          :selection-mode :single})
         args-print-type-checks (doto (->> args-checks

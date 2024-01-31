@@ -157,6 +157,16 @@
         @total-order-recording)))))
 
 (defn trace-fn-unwind
+  ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
+   (let [{:keys [flow-id thread-trace-limit]} *runtime-ctx*
+         thread-id (utils/get-current-thread-id)]
+
+     (when thread-trace-limit
+       (when (> (indexes-api/timeline-count flow-id thread-id) thread-trace-limit)
+         (throw (ex-info "thread-trace-limit exceeded" {}))))
+
+     (trace-fn-unwind flow-id throwable (stringify-coord coor) form-id)))
+  
   ([flow-id throwable coord _] ;; for using with storm  
    (let [thread-id (utils/get-current-thread-id)]
        (indexes-api/add-fn-return-trace
