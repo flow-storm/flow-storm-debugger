@@ -11,7 +11,10 @@
     - :ex captured exception system removed - superseded by unwind tracing
     
 ### Bugs fixed
-
+    
+    - [IMPORTANT!] Fix timeline structure when functions unwind (requires ClojureStorm >= 1.11.1-19) 
+    - Fix value inspector stack showing val instead of key
+    
 ## 3.10.0 (29-01-2024)
 	
 ### New Features

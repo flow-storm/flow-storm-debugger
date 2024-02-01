@@ -102,7 +102,7 @@
   (let [browsable-val? (types/value-ref? v)
         item {:browsable-val? browsable-val?
               :stack-txt (if (types/value-ref? stack-key)
-                           (-> v meta :val-preview)
+                           (-> stack-key meta :val-preview)
                            (pr-str stack-key))}]
     (if browsable-val?
       (assoc item
