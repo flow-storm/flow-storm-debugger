@@ -78,7 +78,7 @@
                                               'com.cognitect/transit-clj {:mvn/version "1.0.333"}
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions ['com.google.guava/guava 'org.slf4j/slf4j-nop]}
-                                              'com.github.flow-storm/hansel {:mvn/version "0.1.81"}
+                                              'com.github.flow-storm/hansel {:mvn/version "0.1.83"}
                                               'org.clojure/data.int-map {:mvn/version "1.2.1"}}
 
                                        :paths src-dirs}})
