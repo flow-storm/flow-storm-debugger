@@ -202,12 +202,13 @@
                                (.setAlignment Pos/CENTER_LEFT))
         format-exception-item (fn [{:keys [idx fn-ns fn-name ex-type]}]
                                 (format "%d - %s/%s %s" idx fn-ns fn-name ex-type))
-        exceptions-combo (combo-box {:on-change-fn (fn [_ {:keys [flow-id thread-id idx] :as to-item}]
+        exceptions-combo (combo-box {:on-change-fn (fn [_ {:keys [flow-id thread-id idx ex-message] :as to-item}]
                                                      (when to-item
                                                        (flows-screen/goto-location {:flow-id flow-id
                                                                                     :thread-id thread-id
                                                                                     :idx idx})))
-                                     :cell-factory-fn (fn [_ item] (label (format-exception-item item)))
+                                     :cell-factory-fn (fn [_ item] (doto (label (format-exception-item item))
+                                                                     (.setTooltip (ui-utils/tool-tip (or (:ex-message item) "")))))
                                      :button-factory-fn (fn [_ item] (label (format-exception-item item)))})
         exceptions-box (doto (h-box [(label "Exceptions:") exceptions-combo]
                                     "hidden-pane")

@@ -128,7 +128,7 @@
 (defn icon [^String icon-name]
   (FontIcon. icon-name))
 
-(defn- tool-tip [text]
+(defn tool-tip [text]
   (doto (Tooltip. text)
     (.setShowDelay (Duration. 400))))
 
