@@ -4,6 +4,19 @@
 ;; Some testing code ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn uncatched-throw []
+  (let [a (+ 1 2)]
+    (throw (Exception. "damn"))
+    (+ a 3)))
+
+(defn throw-forwarder []
+  (uncatched-throw))
+
+(defn catcher []
+  (try
+    (throw-forwarder)
+    (catch Exception _ 45)))
+
 (defmacro dummy-sum-macro [a b]
   `(+ ~a ~b))
 
@@ -74,7 +87,8 @@
                  sum 0]
             (if (> i 0)
               (recur (dec i) (+ sum i))
-              sum))]
+              sum))
+        z (catcher)]
     (->> xs
          (map (fn [x] (+ 1 (do-it x))))
          (reduce + )
@@ -91,8 +105,8 @@
         "Proin ac ex eu sem sollicitudin hendrerit."))
 
 (defn generate-lorem-ipsum []
-  (let [long-arg1 (apply str (repeat 120 "a")) 
-        long-arg2 (apply str (repeat 120 "b")) 
-        long-arg3 (apply str (repeat 120 "c"))] 
+  (let [long-arg1 (apply str (repeat 120 "a"))
+        long-arg2 (apply str (repeat 120 "b"))
+        long-arg3 (apply str (repeat 120 "c"))]
 
         (lorem-ipsum long-arg1 long-arg2 long-arg3)))

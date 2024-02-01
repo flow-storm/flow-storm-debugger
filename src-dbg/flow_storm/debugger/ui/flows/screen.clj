@@ -6,7 +6,7 @@
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box
-                                                               key-combo-match?]]
+                                                               key-combo-match? combo-box-set-items]]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
@@ -14,6 +14,15 @@
            [javafx.beans.value ChangeListener]))
 
 (declare create-or-focus-thread-tab)
+
+(defn update-exceptions-combo []
+  (let [unwinds (dbg-state/get-fn-unwinds)
+        [ex-combo] (obj-lookup "exceptions-combo")
+        [ex-box] (obj-lookup "exceptions-box")]
+    (ui-utils/clear-classes ex-box)
+    (when (zero? (count unwinds))
+      (ui-utils/add-class ex-box "hidden-pane"))
+    (combo-box-set-items ex-combo unwinds)))
 
 (defn remove-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -40,7 +49,10 @@
   (remove-flow flow-id)
 
   ;; remove all bookmarks associated to this flow
-  (bookmarks/remove-bookmarks flow-id))
+  (bookmarks/remove-bookmarks flow-id)
+
+  (dbg-state/remove-unwinds flow-id)
+  (ui-utils/run-later (update-exceptions-combo)))
 
 (defn update-threads-list [flow-id]
   (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]

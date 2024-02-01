@@ -77,6 +77,11 @@
 (defn- recording-updated-event [{:keys [recording?]}]
   (ui-main/set-recording-btn recording?))
 
+(defn- function-unwinded-event [unwind-data]
+  (dbg-state/add-fn-unwind unwind-data)
+  (ui-utils/run-later
+    (flows-screen/update-exceptions-combo)))
+
 (defn process-event [[ev-type ev-args-map]]
   (when (and (:debug-mode? (dbg-state/debugger-config))
              (not (= ev-type :heap-info-update)))
@@ -97,4 +102,5 @@
     :show-doc (show-doc-event ev-args-map)
     :break-installed (break-installed-event ev-args-map)
     :break-removed (break-removed-event ev-args-map)
-    :recording-updated (recording-updated-event ev-args-map)))
+    :recording-updated (recording-updated-event ev-args-map)
+    :function-unwinded-event (function-unwinded-event ev-args-map)))

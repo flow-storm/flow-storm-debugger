@@ -29,14 +29,18 @@
 (s/def :flow-storm.frame/args-vec           any? #_(s/coll-of :flow-storm/val-ref)) ;; TODO: fix this https://clojure.atlassian.net/browse/CLJ-1975
 (s/def :flow-storm.frame/expr-executions    (s/coll-of :flow-storm/timeline-entry)) ;; TODO: this could be refined, since they can only by :expr and :fn-return
 
-(s/def :flow-storm/frame (s/keys :req-un [:flow-storm.frame/ret
-                                          :flow-storm.frame/fn-call-idx
+(s/def :return/kind #{:waiting :unwind :return})
+
+(s/def :flow-storm/frame (s/keys :req [:return/kind]
+                                 :req-un [:flow-storm.frame/fn-call-idx
                                           :flow-storm.frame/parent-fn-call-idx
                                           :flow-storm/fn-name
                                           :flow-storm/fn-ns
                                           :flow-storm/form-id
                                           :flow-storm.frame/args-vec
-                                          :flow-storm.frame/expr-executions]))
+                                          :flow-storm.frame/expr-executions]
+                                 :opt-un [:flow-storm.frame/ret
+                                          :flow-storm.frame/throwable]))
 
 (s/def :thread/id int?)
 (s/def :thread/name string?)
@@ -52,11 +56,20 @@
 (s/def :thread/navigation-history (s/keys :req-un [:navigation-history/head-pos
                                                    :navigation-history/history]))
 
+(s/def :thread.unwind/ex-type string?)
+(s/def :thread.unwind/ex-message string?)
+(s/def :thread/unwind (s/keys :req-un [:flow-storm/fn-name
+                                       :flow-storm/fn-ns
+                                       :thread.unwind/ex-type
+                                       :thread.unwind/ex-message]))
+(s/def ::unwinds (s/coll-of :thread/unwind))
+
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry
                                   :thread/navigation-history]
                             :opt [:thread/curr-frame
                                   :thread.ui/callstack-tree-hidden-fns]))
+
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
 (s/def :flow/id (s/nilable int?))
@@ -158,7 +171,8 @@
                                 ::local-mode?
                                 ::runtime-config
                                 ::debugger-config
-                                ::bookmarks]
+                                ::bookmarks
+                                ::unwinds]
                        :opt-un [:ui/selected-flow-id]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
@@ -189,7 +203,8 @@
                      :debugger-ws-port (or ws-port 7722)
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false}
-   :bookmarks {}})
+   :bookmarks {}
+   :unwinds []})
 
 (def register-and-init-stage!
 
@@ -525,6 +540,23 @@
                                 (inc head-pos)
                                 head-pos))))
   (current-nav-history-entry flow-id thread-id))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Function unwind (throws) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn add-fn-unwind [unwind-data]
+  (swap! state update :unwinds conj unwind-data))
+
+(defn get-fn-unwinds []
+  (get @state :unwinds))
+
+(defn remove-unwinds [flow-id]
+  (swap! state update :unwinds
+         (fn [unwinds]
+           (remove (fn [u]
+                     (= flow-id (:flow-id u)))
+                   unwinds))))
 
 ;;;;;;;;;;;
 ;; Other ;;

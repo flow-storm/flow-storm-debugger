@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+    
+    - Add exceptions display
+
+### Changes
+
+### Bugs fixed
+
+## 3.10.0 (29-01-2024)
+	
+### New Features
 
     - Add a timeline index column to the bookmarks table
     - Add a thread timeline index column to the multi-thread timeline

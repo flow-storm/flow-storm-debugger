@@ -154,7 +154,8 @@
         flow-id
         thread-id      
         (make-fn-return-trace coord (snapshot-reference return))
-        @total-order-recording)))))
+        @total-order-recording
+        false)))))
 
 (defn trace-fn-unwind
   ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
@@ -173,7 +174,8 @@
         flow-id
         thread-id      
         (make-fn-unwind-trace coord (snapshot-reference throwable))
-        @total-order-recording))))
+        @total-order-recording
+        true))))
 
 (defn trace-expr-exec
   

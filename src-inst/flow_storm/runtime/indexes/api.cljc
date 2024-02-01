@@ -210,14 +210,26 @@
         ;; if this thread is already limited, just increment the depth
         (swap! thread-limited inc)))))
 
-(defn add-fn-return-trace [flow-id thread-id trace total-order-recording?]
+(defn add-fn-return-trace [flow-id thread-id trace total-order-recording? unwind?]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
     (when timeline-index
       (if-not @thread-limited
         ;; when not limited, go ahead
         (let [tl-idx (index-protos/add-fn-return timeline-index trace)]
           (when (and tl-idx total-order-recording?)
-            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace)))
+            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx trace))
+          (when unwind?
+            (let [fn-idx (index-protos/fn-call-idx trace)
+                  {:keys [fn-ns fn-name]} (index-protos/timeline-entry timeline-index fn-idx :at)
+                  throwable (index-protos/get-throwable trace)
+                  ev (events/make-function-unwinded-event {:flow-id flow-id
+                                                           :thread-id thread-id
+                                                           :idx tl-idx
+                                                           :fn-ns fn-ns
+                                                           :fn-name fn-name
+                                                           :ex-type (pr-str (type throwable))
+                                                           :ex-message (ex-message throwable)})]
+              (events/publish-event! ev))))
 
         ;; if we are limited decrease the limit depth or remove it when it reaches to 0
         (do

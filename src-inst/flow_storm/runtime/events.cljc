@@ -65,6 +65,9 @@
 (defn make-recording-updated-event [recording?]
   [:recording-updated {:recording? recording?}])
 
+(defn make-function-unwinded-event [ev-data]
+  [:function-unwinded-event ev-data])
+
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 

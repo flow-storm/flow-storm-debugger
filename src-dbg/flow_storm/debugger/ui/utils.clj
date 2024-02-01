@@ -226,7 +226,7 @@
     (.setItems cbox observable-list)
     (.addAll observable-list ^objects (into-array Object items))))
 
-(defn combo-box [{:keys [items on-change-fn on-showing-fn]}]
+(defn combo-box [{:keys [items button-factory-fn cell-factory-fn on-change-fn on-showing-fn]}]
   (let [cb (ComboBox.)
         sel-model (.getSelectionModel cb)]
     (combo-box-set-items cb items)
@@ -238,6 +238,18 @@
           (.addListener (proxy [ChangeListener] []
                           (changed [_ prev-val new-val]
                             (on-change-fn prev-val new-val))))))
+
+    (when cell-factory-fn
+      (.setCellFactory cb (proxy [javafx.util.Callback] []
+                            (call [lv]
+                              (create-list-cell-factory
+                               (fn [^ListCell list-cell item]
+                                 (.setGraphic list-cell (cell-factory-fn cb item))))))))
+
+    (when button-factory-fn
+      (.setButtonCell cb (create-list-cell-factory
+                          (fn [^ListCell list-cell item]
+                            (.setGraphic list-cell (button-factory-fn cb item))))))
 
     (when on-showing-fn
       (.setOnShowing
