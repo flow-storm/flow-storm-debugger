@@ -244,15 +244,14 @@
        (.invoke setTraceFnsCallbacks nil (into-array [callbacks])))))
 
 #?(:clj
-   (defn hook-clojure-storm [handle-exception-fn]  
+   (defn hook-clojure-storm []  
      (set-clojure-storm
       {:trace-fn-call-fn    trace-fn-call
 	   :trace-fn-return-fn  trace-fn-return
 	   :trace-fn-unwind-fn  trace-fn-unwind
 	   :trace-expr-fn       trace-expr-exec
 	   :trace-bind-fn       trace-bind
-	   :handle-exception-fn handle-exception-fn
-
+       
        ;; this are just for backward compatibility
        ;; TODO: remove this when it feels safe
        :trace-fn-call-fn-key    trace-fn-call
@@ -270,8 +269,7 @@
 	   :trace-fn-unwind-fn  nil
 	   :trace-expr-fn       nil
 	   :trace-bind-fn       nil
-       :handle-exception-fn nil
-
+       
        ;; this are just for backward compatibility
        ;; TODO: remove this when it feels safe
        :trace-fn-call-fn-key    nil

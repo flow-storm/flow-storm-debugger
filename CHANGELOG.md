@@ -8,6 +8,8 @@
 
 ### Changes
 
+    - :ex captured exception system removed - superseded by unwind tracing
+    
 ### Bugs fixed
 
 ## 3.10.0 (29-01-2024)

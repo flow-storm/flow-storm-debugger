@@ -12,8 +12,6 @@
   (let [config {:skip-index-start? true}]
     (fs-api/local-connect config)))
 
-(def jump-to-last-exception dbg-api/jump-to-last-exception)
-
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
 
 (defn print-flow-storm-help []
@@ -24,7 +22,6 @@
   (println "  :dbg        - Show the FlowStorm debugger UI, you can dispose it by closing the window.")
   (println "  :rec        - Start recording. All instrumented code traces will be recorded.")
   (println "  :stop       - Stop recording. Instrumented code will execute but nothing will be recorded, so no extra heap will be consumed.")
-  (println "  :ex         - Focus the last recorded exception.")
   (println "  :last       - Focus the last recorded expression on this thread.")
   (println "  :help       - Print this help.")
   (println "  :tut/basics - Starts the basics tutorial.")
@@ -45,7 +42,6 @@
   (try
     (case input
       :dbg        (do (start-debugger)                    true)
-      :ex         (do (jump-to-last-exception)            true)
       :last       (do (jump-to-last-expression)           true)
       :rec        (do (dbg-api/set-recording true)  true)
       :stop       (do (dbg-api/set-recording false) true)

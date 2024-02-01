@@ -32,20 +32,11 @@
   
   nil)
 
-(def last-exception-location
-  
-  "Stores the location of the last captured exception."
-  
-  (atom nil))
-
 (def fn-call-limits
 
   "Stores the function calls limits for different functions."
   
   (atom nil))
-
-(defn get-last-exception-location []
-  @last-exception-location)
 
 (defn add-fn-call-limit [fn-ns fn-name limit]
   (swap! fn-call-limits assoc-in [fn-ns fn-name] limit))
@@ -77,24 +68,6 @@
 
     (utils/log "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger.")))
 
-(defn handle-exception [thread ex]
-  
-  #?(:clj
-     (when-not (instance? java.lang.InterruptedException ex)
-       (utils/log (utils/format "Error in thread %s" thread)))
-     :cljs (utils/log-error (utils/format "Error in thread %s" thread) ex))
-  
-  (let [thread-id #?(:clj (.getId ^Thread thread) :cljs 0)
-        thread-name  #?(:clj (.getName ^Thread thread) :cljs "main")
-        {:keys [timeline-index]} (get-thread-indexes nil thread-id)]
-    
-    (when timeline-index
-      (index-protos/reset-build-stack timeline-index)
-      
-      (reset! last-exception-location {:thread/id thread-id
-                                       :thread/name thread-name
-                                       :thread/idx (dec (index-protos/timeline-count timeline-index))}))))
-
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
   (discard-flow flow-id)  
   (events/publish-event! (events/make-flow-created-event flow-id ns form timestamp)))
@@ -103,7 +76,7 @@
    (defn start []
      (alter-var-root #'flow-thread-registry (fn [_]
                                               (when (utils/storm-env?)
-                                                ((requiring-resolve 'flow-storm.tracer/hook-clojure-storm) handle-exception)                                                                                                
+                                                ((requiring-resolve 'flow-storm.tracer/hook-clojure-storm))
                                                 (utils/log "Storm functions plugged in"))
                                               (let [registry (index-protos/start-thread-registry
                                                               (thread-registry/make-thread-registry)

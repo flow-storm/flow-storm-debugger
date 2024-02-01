@@ -286,12 +286,6 @@
 (defn set-total-order-recording [x]
   (tracer/set-total-order-recording x))
 
-(defn jump-to-last-exception []
-  (let [last-ex-loc (index-api/get-last-exception-location)]
-    (if last-ex-loc
-      (goto-location nil last-ex-loc)
-      (log "No exception recorded"))))
-
 (defn jump-to-last-expression-in-this-thread
   ([] (jump-to-last-expression-in-this-thread nil))
   ([flow-id]
