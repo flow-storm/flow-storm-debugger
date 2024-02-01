@@ -139,10 +139,9 @@
 	-fx-font-family: 'monospaced';
     -fx-fill: -fx-theme-flow-code-text;
 }
-.code-token.executing {
-    -fx-stroke: -fx-theme-flow-code-executing-text;
-    -fx-fill: -fx-theme-flow-code-executing-text;
-	-fx-stroke-width: 1;
+.code-token.executing { 
+    -rtfx-background-color: -fx-theme-flow-code-executing-text;
+    -fx-fill: -fx-theme-base2;
 }
 
 .code-token.interesting {

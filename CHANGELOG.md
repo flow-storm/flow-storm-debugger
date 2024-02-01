@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+
+### Changes 
+
+    - Better execution highlighting system
+    
+### Bugs fixed
+    
+## 3.11.0 (01-02-2024)
+	
+### New Features
     
     - Add exceptions display
 
