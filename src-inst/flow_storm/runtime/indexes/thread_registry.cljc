@@ -2,7 +2,7 @@
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :refer [int-map make-mutable-list ml-add ml-clear]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace :refer [fn-call-trace?]]
-            [flow-storm.runtime.types.fn-return-trace :as fn-return-trace :refer [fn-end-trace?]]
+            [flow-storm.runtime.types.fn-return-trace :as fn-return-trace :refer [fn-end-trace? fn-return-trace?]]
             [flow-storm.runtime.types.expr-trace :as expr-trace :refer [expr-trace?]]
             [clojure.string :as str]
             [hansel.utils :as hansel-utils])
@@ -153,7 +153,9 @@
               (fn-end-trace? entry)
               (recur r
                      (update threads-stacks tid pop)
-                     (conj! timeline-ret {:type                :fn-return
+                     (conj! timeline-ret {:type                (if (fn-return-trace? entry)
+                                                                 :fn-return
+                                                                 :fn-unwind)
                                           :flow-id             fid
                                           :thread-id           tid
                                           :thread-timeline-idx tidx}))

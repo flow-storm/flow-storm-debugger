@@ -202,7 +202,7 @@
                                (.setAlignment Pos/CENTER_LEFT))
         format-exception-item (fn [{:keys [idx fn-ns fn-name ex-type]}]
                                 (format "%d - %s/%s %s" idx fn-ns fn-name ex-type))
-        exceptions-combo (combo-box {:on-change-fn (fn [_ {:keys [flow-id thread-id idx ex-message] :as to-item}]
+        exceptions-combo (combo-box {:on-change-fn (fn [_ {:keys [flow-id thread-id idx] :as to-item}]
                                                      (when to-item
                                                        (flows-screen/goto-location {:flow-id flow-id
                                                                                     :thread-id thread-id
