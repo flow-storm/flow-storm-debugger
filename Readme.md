@@ -77,6 +77,7 @@ Flow storm debugger is packed with a ton of features :
 - Execution [call tree explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_call_stack_tree_tool)
 - Functions [calls explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
 - [Inspect any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
+- [Explore your exceptions](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_exceptions_debugging)
 - [Define any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
 - [Multi-threading](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
 - [Thread blocking](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
