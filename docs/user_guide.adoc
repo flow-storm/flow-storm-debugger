@@ -900,13 +900,17 @@ When clicking on a highlighted form two things can happen :
 
 image::user_guide_images/loops.png[]
 
-==== Exception debugging
+==== Exceptions debugging
 
-If you are using _ClojureStorm_ you can jump to the last captured exception by evaluating the `:ex` keyword on your repl. This
-will position the debugger right before the exception so you can step backwards and explore the cause.
+`FlowStorm` will report all functions that didn't return because an exception unwind the stack, even
+when that exception was captured further and it didn't bubble up.
 
-If you are using vanilla or using _FlowStorm_ with ClojureScript, most of the time you can accomplish the same by clicking the `Step last` button
-right after the exception happens.
+image::user_guide_images/exceptions.png[]
+
+When an unwind situation is recorded a combobox will show up in the toolbar, containing all the functions names
+together with the exceptions types. If you hover the mouse over any of them, a tooltip will display the exception message.
+
+Clicking on any of them will position the stepper at that point in time so you can explore what happened before.
 
 ==== Locals
 

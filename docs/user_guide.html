@@ -714,7 +714,7 @@ pre.rouge {
 <li><a href="#_power_stepping">Power stepping</a></li>
 <li><a href="#_searching">Searching</a></li>
 <li><a href="#_loops">Loops</a></li>
-<li><a href="#_exception_debugging">Exception debugging</a></li>
+<li><a href="#_exceptions_debugging">Exceptions debugging</a></li>
 <li><a href="#_locals">Locals</a></li>
 <li><a href="#_stack">Stack</a></li>
 <li><a href="#_value_panels">Value panels</a></li>
@@ -2207,14 +2207,22 @@ and clicking on them will make the debugger jump to that specific point in time.
 </div>
 </div>
 <div class="sect4">
-<h5 id="_exception_debugging"><a class="anchor" href="#_exception_debugging"></a><a class="link" href="#_exception_debugging">Exception debugging</a></h5>
+<h5 id="_exceptions_debugging"><a class="anchor" href="#_exceptions_debugging"></a><a class="link" href="#_exceptions_debugging">Exceptions debugging</a></h5>
 <div class="paragraph">
-<p>If you are using <em>ClojureStorm</em> you can jump to the last captured exception by evaluating the <code>:ex</code> keyword on your repl. This
-will position the debugger right before the exception so you can step backwards and explore the cause.</p>
+<p><code>FlowStorm</code> will report all functions that didn&#8217;t return because an exception unwind the stack, even
+when that exception was captured further and it didn&#8217;t bubble up.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/exceptions.png" alt="exceptions">
+</div>
 </div>
 <div class="paragraph">
-<p>If you are using vanilla or using <em>FlowStorm</em> with ClojureScript, most of the time you can accomplish the same by clicking the <code>Step last</code> button
-right after the exception happens.</p>
+<p>When an unwind situation is recorded a combobox will show up in the toolbar, containing all the functions names
+together with the exceptions types. If you hover the mouse over any of them, a tooltip will display the exception message.</p>
+</div>
+<div class="paragraph">
+<p>Clicking on any of them will position the stepper at that point in time so you can explore what happened before.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3587,7 +3595,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-01-29 07:59:08 -0300
+Last updated 2024-02-01 11:15:34 -0300
 </div>
 </div>
 </body>
