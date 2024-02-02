@@ -139,13 +139,14 @@
 	-fx-font-family: 'monospaced';
     -fx-fill: -fx-theme-flow-code-text;
 }
+
 .code-token.executing { 
-    -rtfx-background-color: -fx-theme-flow-code-executing-text;
-    -fx-fill: -fx-theme-base2;
+    -rtfx-background-color: -fx-theme-flow-code-executing-background;
+    -fx-fill: -fx-theme-flow-code-executing-text;
 }
 
 .code-token.executing-dim { 
-    -rtfx-background-color: -fx-theme-flow-code-executing-text-dim;    
+    -rtfx-background-color: -fx-theme-flow-code-executing-background-dim;    
 }
 
 .code-token.interesting {

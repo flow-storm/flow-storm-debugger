@@ -15,9 +15,10 @@
 	-fx-theme-selected-main-tools-tab-text:       white;	
     
     -fx-theme-flow-code-text:                     #FFF;
-	-fx-theme-flow-code-executing-text:           #91ed91;
-	-fx-theme-flow-code-executing-text-dim:       #6db251;
-	-fx-theme-flow-code-interesting-text:         #de00c0;
+	-fx-theme-flow-code-executing-text:           #3f474f;
+	-fx-theme-flow-code-executing-background:     #00d97e;
+	-fx-theme-flow-code-executing-background-dim: #009c5a;
+	-fx-theme-flow-code-interesting-text:         #eb34d5;
 	
 	-fx-theme-defmethod-text:                     #de00c0;
 	-fx-theme-defn-text:                          #FFF;

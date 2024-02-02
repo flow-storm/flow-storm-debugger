@@ -13,13 +13,14 @@
 	
 	-fx-theme-selected-main-tools-tab-background: #4743ba;
 	-fx-theme-selected-main-tools-tab-text:       white;	
-    
-    -fx-theme-flow-code-text:                     #0b0d2e;
-	-fx-theme-flow-code-executing-text:           #3dba69;
-    -fx-theme-flow-code-executing-text-dim:       #50d980;
-	-fx-theme-flow-code-interesting-text:         #de00c0;
-	
-	-fx-theme-defmethod-text:                     #9c0084;
+
+    -fx-theme-flow-code-text:                     #3f474f;
+	-fx-theme-flow-code-executing-text:           #3f474f;
+	-fx-theme-flow-code-executing-background:     #43e8a4;
+	-fx-theme-flow-code-executing-background-dim: #9de3c6;
+	-fx-theme-flow-code-interesting-text:         #eb34d5;
+
+    -fx-theme-defmethod-text:                     #9c0084;
 	-fx-theme-defn-text:                          #222;
 	-fx-theme-extend-text:                        #369658;
 	-fx-theme-links:                              #9c0084;
