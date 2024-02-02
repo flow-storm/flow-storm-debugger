@@ -107,14 +107,17 @@
   (let [^StyleSpansBuilder spb (StyleSpansBuilder.)
         [exec-from exec-to] (calculate-execution-idx-range coord-spans curr-coord)]
     (doseq [{:keys [idx-from len coord interesting? tab?]} coord-spans]
-      (let [color-classes (cond-> ["code-token"]
+      (let [executing? (and exec-from exec-to
+                            (<= exec-from idx-from (+ idx-from len) exec-to))
+            color-classes (cond-> ["code-token"]
                             (and coord (not interesting?))
                             (conj "possible")
 
-                            (and exec-from exec-to
-                                 (<= exec-from idx-from (+ idx-from len) exec-to)
-                                 (not tab?))
+                            (and executing? (not tab?))
                             (conj "executing")
+
+                            (and executing? tab?)
+                            (conj "executing-dim")
 
                             interesting?
                             (conj "interesting"))]

@@ -16,6 +16,7 @@
     
     -fx-theme-flow-code-text:                     #0b0d2e;
 	-fx-theme-flow-code-executing-text:           #40b840;
+    -fx-theme-flow-code-executing-text-dim:       #40b840;
 	-fx-theme-flow-code-interesting-text:         #de00c0;
 	
 	-fx-theme-defmethod-text:                     #9c0084;

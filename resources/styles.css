@@ -144,6 +144,10 @@
     -fx-fill: -fx-theme-base2;
 }
 
+.code-token.executing-dim { 
+    -rtfx-background-color: -fx-theme-flow-code-executing-text-dim;    
+}
+
 .code-token.interesting {
 	-fx-fill: -fx-theme-flow-code-interesting-text;
 	-fx-cursor: hand;
