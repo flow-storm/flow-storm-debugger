@@ -88,19 +88,13 @@
                                             :print-level  3
                                             :enable? true))))
 
-(defn- calculate-execution-highlight-span [spans curr-coord]
+(defn- calculate-execution-idx-range [spans curr-coord]
   (let [[s1 s2 :as hl-coords-spans] (->> spans
                                          (map-indexed (fn [i s] (assoc s :i i)))
                                          (filter (fn [{:keys [coord]}] (= coord curr-coord))))]
     (case (count hl-coords-spans)
-      1 (select-keys (get spans (:i s1)) [:idx-from :len])
-      2 (let [spans-range (subvec spans (:i s1) (inc (:i s2)))
-              last-span (last spans-range)
-              from (:idx-from s1)
-              len (- (+ (:idx-from last-span) (:len last-span))
-                     from)]
-          {:idx-from from
-           :len len})
+      1 [(:idx-from s1) (+ (:idx-from s1) (:len s1))]
+      2 [(:idx-from s1) (+ (:idx-from s2) (:len s2))]
       nil)))
 
 (defn- build-style-spans
@@ -111,17 +105,18 @@
   [coord-spans curr-coord]
 
   (let [^StyleSpansBuilder spb (StyleSpansBuilder.)
-        {exec-idx-from :idx-from exec-len :len} (calculate-execution-highlight-span coord-spans curr-coord)]
-    (doseq [{:keys [idx-from len coord interesting?]} coord-spans]
+        [exec-from exec-to] (calculate-execution-idx-range coord-spans curr-coord)]
+    (doseq [{:keys [idx-from len coord interesting? tab?]} coord-spans]
       (let [color-classes (cond-> ["code-token"]
                             (and coord (not interesting?))
                             (conj "possible")
 
-                            (and exec-idx-from idx-from len exec-len
-                                 (<= exec-idx-from idx-from (+ idx-from len) (+ exec-idx-from exec-len)))
+                            (and exec-from exec-to
+                                 (<= exec-from idx-from (+ idx-from len) exec-to)
+                                 (not tab?))
                             (conj "executing")
 
-                            (and coord interesting?)
+                            interesting?
                             (conj "interesting"))]
 
         (.add spb color-classes len)))
@@ -144,7 +139,7 @@
                                 (assoc tok :interesting? true)
                                 tok)))
                        form-pprinter/coord-spans)
-            _ (def SPANS spans)
+
             exec-idx  (some (fn [{:keys [coord idx-from]}]
                               (when (= coord curr-coord)
                                 idx-from))
