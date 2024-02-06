@@ -85,7 +85,8 @@
         val (case kind
               :return ret
               :unwind throwable
-              :waiting nil)]
+              :waiting nil
+              nil)]
     (case kind
       :waiting (do
                  (.setText extra-lbl "Waiting")

@@ -108,7 +108,6 @@
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
-        ret-entry (first selected-items)
         jump-to-idx (fn []
                       (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
                       (flows-code/jump-to-coord flow-id
@@ -116,15 +115,6 @@
                                                 (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))]
 
     (cond
-      (and (= MouseButton/PRIMARY (.getButton mev))
-           (= 1 (.getClickCount mev)))
-
-      (flow-cmp/update-return-pprint-pane flow-id
-                                          thread-id
-                                          "functions-calls-ret-val"
-                                          ret-entry
-                                          {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})
-
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 2 (.getClickCount mev)))
 
@@ -149,13 +139,12 @@
         {:keys [list-view-pane] :as lv-data} (list-view {:editable? false
                                                          :cell-factory-fn (partial functions-calls-cell-factory selected-args)
                                                          :on-click (partial function-call-click flow-id thread-id)
-                                                         :on-enter (fn [sel-items]
-                                                                     (let [ret-entry (first sel-items)]
-                                                                       (flow-cmp/update-return-pprint-pane flow-id
-                                                                                                           thread-id
-                                                                                                           "functions-calls-ret-val"
-                                                                                                           ret-entry
-                                                                                                           {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)})))
+                                                         :on-selection-change (fn [_ ret-entry]
+                                                                                (flow-cmp/update-return-pprint-pane flow-id
+                                                                                                                    thread-id
+                                                                                                                    "functions-calls-ret-val"
+                                                                                                                    ret-entry
+                                                                                                                    {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
                                                          :selection-mode :single})
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]

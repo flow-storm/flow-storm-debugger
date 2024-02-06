@@ -7,6 +7,7 @@
 ### Changes 
 
     - Better execution highlighting system
+    - Browser and functions calls list views update as they change with the keyboard
     
 ### Bugs fixed
 

@@ -143,26 +143,22 @@
                                        (.setText list-cell nil)
                                        (.setGraphic list-cell (label ns-name)))
                     :on-click (fn [mev sel-items {:keys [list-view-pane]}]
-                                (cond (= MouseButton/PRIMARY (.getButton mev))
-                                      (let [sel-cnt (count sel-items)]
-                                        (when (= 1 sel-cnt)
-                                          (get-all-vars-for-ns (first sel-items))))
-
-                                      (and (= MouseButton/SECONDARY (.getButton mev))
+                                (when (and (= MouseButton/SECONDARY (.getButton mev))
                                            (not (dbg-state/clojure-storm-env?)))
-                                      (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
-                                                                          :on-click (fn []
-                                                                                      (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
-                                            ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
-                                                                         :on-click (fn []
-                                                                                     (instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}
-                                            ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
-                                                                                  ctx-menu-instrument-ns-full])]
+                                  (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
+                                                                      :on-click (fn []
+                                                                                  (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
+                                        ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
+                                                                     :on-click (fn []
+                                                                                 (instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}
+                                        ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
+                                                                              ctx-menu-instrument-ns-full])]
 
-                                        (ui-utils/show-context-menu ctx-menu
-                                                                    list-view-pane
-                                                                    (.getScreenX mev)
-                                                                    (.getScreenY mev)))))
+                                    (ui-utils/show-context-menu ctx-menu
+                                                                list-view-pane
+                                                                (.getScreenX mev)
+                                                                (.getScreenY mev)))))
+                    :on-selection-change (fn [_ sel-ns] (when sel-ns (get-all-vars-for-ns sel-ns)))
                     :selection-mode :multiple
                     :search-predicate (fn [ns-name search-str]
                                         (str/includes? ns-name search-str))})]
@@ -177,11 +173,9 @@
                     :cell-factory-fn (fn [list-cell {:keys [var-name]}]
                                        (.setText list-cell nil)
                                        (.setGraphic list-cell (label var-name)))
-                    :on-click (fn [mev sel-items _]
-                                (cond (= MouseButton/PRIMARY (.getButton mev))
-                                      (let [sel-cnt (count sel-items)]
-                                        (when (= 1 sel-cnt)
-                                          (get-var-meta (first sel-items))))))
+                    :on-selection-change (fn [_ sel-var]
+                                           (when sel-var
+                                             (get-var-meta sel-var)))
                     :selection-mode :single
                     :search-predicate (fn [{:keys [var-name]} search-str]
                                         (str/includes? var-name search-str))})]

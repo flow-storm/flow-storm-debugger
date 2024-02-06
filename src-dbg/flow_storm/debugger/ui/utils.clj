@@ -384,7 +384,7 @@
        (add-class sp class))
      sp)))
 
-(defn list-view [{:keys [editable? cell-factory-fn on-click on-enter selection-mode search-predicate]
+(defn list-view [{:keys [editable? cell-factory-fn on-click on-enter on-selection-change selection-mode search-predicate]
                   :or {editable? false
                        selection-mode :multiple}}]
   (let [observable-list (FXCollections/observableArrayList)
@@ -448,7 +448,14 @@
        lv
        (event-handler
         [mev]
-        (on-click mev (selected-items) list-view-data))))
+         (on-click mev (selected-items) list-view-data))))
+
+    (when on-selection-change
+      (-> list-selection
+          .selectedItemProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed [_ old-val new-val]
+                            (on-selection-change old-val new-val))))))
 
     list-view-data))
 
