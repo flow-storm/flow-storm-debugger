@@ -106,6 +106,10 @@
                                         (assoc r k (:vid vref)))
                                       {}
                                       bindings)})})
+(defn toggle-recording [_]
+  {:code `(debuggers-api/toggle-recording)
+   :post-proc (fn [_]
+                {:status :done})})
 
 (defn clear-recordings [_]
   {:code `(debuggers-api/clear-recordings)
@@ -185,6 +189,7 @@
         "flow-storm-timeline-entry"     (process-msg next-handler msg timeline-entry     piggieback?)
         "flow-storm-frame-data"         (process-msg next-handler msg frame-data         piggieback?)
         "flow-storm-pprint"             (process-msg next-handler msg pprint-val-ref     piggieback?)
+        "flow-storm-toggle-recording"   (process-msg next-handler msg toggle-recording   piggieback?)
         "flow-storm-clear-recordings"   (process-msg next-handler msg clear-recordings   piggieback?)
         "flow-storm-bindings"           (process-msg next-handler msg bindings           piggieback?)
         "flow-storm-recorded-functions" (process-msg next-handler msg recorded-functions piggieback?)
@@ -272,6 +277,12 @@
                            "all-frame" "When true return all the bindings for the frame, not just the current visible ones"}
                 :optional {}
                 :returns {"bindings" "A map with {:keys [bind-symb val-ref-id]}"}}
+
+               "flow-storm-toggle-recording"
+               {:doc "Toggles recording on/off"
+                :requires {}
+                :optional {}
+                :returns {}}
 
                "flow-storm-clear-recordings"
                {:doc "Clears all flows recordings"
