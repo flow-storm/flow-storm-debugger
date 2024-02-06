@@ -198,10 +198,10 @@
                                                                                                                     :ns (:form/ns form)}))}])))]
 
                                           (if (= MouseButton/SECONDARY (.getButton mev))
-                                            (.show token-right-click-menu
-                                                   form-code-area
-                                                   (.getScreenX mev)
-                                                   (.getScreenY mev))
+                                            (ui-utils/show-context-menu token-right-click-menu
+                                                                        form-code-area
+                                                                        (.getScreenX mev)
+                                                                        (.getScreenY mev))
                                             (if (= 1 (count clicked-coord-exprs))
                                               (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
@@ -218,10 +218,11 @@
                                                                                                             thread-id
                                                                                                             (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
                                                     loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
-                                                (.show loop-traces-menu
-                                                       form-code-area
-                                                       (.getScreenX mev)
-                                                       (.getScreenY mev))))))
+                                                (ui-utils/show-context-menu
+                                                 loop-traces-menu
+                                                 form-code-area
+                                                 (.getScreenX mev)
+                                                 (.getScreenY mev))))))
 
                                         ;; else if it is not interesting? we don't want to jump there
                                         ;; but provide a way of search and jump to it by coord and form
@@ -238,10 +239,11 @@
                                                  :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])]
 
                                           (when (= MouseButton/SECONDARY (.getButton mev))
-                                            (.show token-right-click-menu
-                                                   form-code-area
-                                                   (.getScreenX mev)
-                                                   (.getScreenY mev)))))))))))))))
+                                            (ui-utils/show-context-menu
+                                             token-right-click-menu
+                                             form-code-area
+                                             (.getScreenX mev)
+                                             (.getScreenY mev)))))))))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."
@@ -325,10 +327,10 @@
                                                 {:text "Inspect"
                                                  :on-click (fn []
                                                              (value-inspector/create-inspector val {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)}))}])]
-      (.show ctx-menu
-             list-view-pane
-             (.getScreenX mev)
-             (.getScreenY mev)))))
+      (ui-utils/show-context-menu ctx-menu
+                                  list-view-pane
+                                  (.getScreenX mev)
+                                  (.getScreenY mev)))))
 
 (defn- create-locals-pane [flow-id thread-id]
   (let [{:keys [list-view-pane] :as lv-data}

@@ -3,7 +3,8 @@
   "Mostly javaFx Utilities for building the UI"
 
   (:require [flow-storm.utils :refer [log-error]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
@@ -567,6 +568,12 @@
 
     table-data))
 
+(defn show-context-menu [menu parent x y]
+  (let [[curr-menu] (obj-lookup "current_context_menu")]
+    (when curr-menu (.hide curr-menu))
+    (.show menu parent x y)
+    (store-obj "current_context_menu" menu)))
+
 (defn autocomplete-textfield
   "Creates a textfield with autocompletion.
   `completions-fn` should be a fn that will be called with no args when the text length
@@ -605,7 +612,7 @@
                         (if (seq new-items)
                           (do
                             (.addAll menu-items ^objects (into-array Object new-items))
-                            (.show options-menu tf Side/BOTTOM 0 0))
+                            (show-context-menu options-menu tf Side/BOTTOM 0 0))
                           (.hide options-menu))))))
     tf))
 

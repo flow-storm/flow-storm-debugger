@@ -74,10 +74,11 @@
            (not (dbg-state/clojure-storm-env?)))
       (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
             ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
-        (.show ctx-menu
-               table-view-pane
-               (.getScreenX mev)
-               (.getScreenY mev))))))
+        (ui-utils/show-context-menu
+         ctx-menu
+         table-view-pane
+         (.getScreenX mev)
+         (.getScreenY mev))))))
 
 (defn- create-fns-list-pane [flow-id thread-id]
   (let [{:keys [table-view-pane table-view] :as tv-data} (table-view
@@ -132,10 +133,10 @@
       (= MouseButton/SECONDARY (.getButton mev))
       (let [ctx-menu (ui-utils/make-context-menu [{:text "Step code"
                                                    :on-click jump-to-idx}])]
-        (.show ctx-menu
-               list-view-pane
-               (.getScreenX mev)
-               (.getScreenY mev))))))
+        (ui-utils/show-context-menu ctx-menu
+                                    list-view-pane
+                                    (.getScreenX mev)
+                                    (.getScreenY mev))))))
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
   (let [args-checks (repeatedly max-args (fn [] (doto (CheckBox.)

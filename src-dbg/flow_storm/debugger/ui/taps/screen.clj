@@ -48,10 +48,10 @@
                                     (= MouseButton/SECONDARY (.getButton mev))
                                     (let [ctx-menu (ui-utils/make-context-menu [{:text "Search value on Flows"
                                                                                  :on-click (fn [] (find-and-jump-tap-val val))}])]
-                                      (.show ctx-menu
-                                             list-view
-                                             (.getScreenX mev)
-                                             (.getScreenY mev))))))
+                                      (ui-utils/show-context-menu ctx-menu
+                                                                  list-view
+                                                                  (.getScreenX mev)
+                                                                  (.getScreenY mev))))))
                     :selection-mode :single})
         clear-btn (button :label "clear"
                           :on-click (fn [] (clear-all-taps)))

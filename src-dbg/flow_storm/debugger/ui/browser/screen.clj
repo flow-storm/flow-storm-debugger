@@ -159,10 +159,10 @@
                                             ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
                                                                                   ctx-menu-instrument-ns-full])]
 
-                                        (.show ctx-menu
-                                               list-view-pane
-                                               (.getScreenX mev)
-                                               (.getScreenY mev)))))
+                                        (ui-utils/show-context-menu ctx-menu
+                                                                    list-view-pane
+                                                                    (.getScreenX mev)
+                                                                    (.getScreenY mev)))))
                     :selection-mode :multiple
                     :search-predicate (fn [ns-name search-str]
                                         (str/includes? ns-name search-str))})]

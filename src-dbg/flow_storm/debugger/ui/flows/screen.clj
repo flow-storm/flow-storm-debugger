@@ -145,10 +145,10 @@
                                               (.setOnContextMenuRequested
                                                (event-handler
                                                 [mev]
-                                                (.show ctx-menu
-                                                       blocked-thread
-                                                       (.getScreenX mev)
-                                                       (.getScreenY mev))))))
+                                                 (ui-utils/show-context-menu ctx-menu
+                                                                             blocked-thread
+                                                                             (.getScreenX mev)
+                                                                             (.getScreenY mev))))))
 
                                           ;; if not blocked just render a label
                                           (label (ui-utils/thread-label id name)))))

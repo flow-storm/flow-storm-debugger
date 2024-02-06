@@ -7,7 +7,6 @@
   All the state is inside one atom `state` which is specified by the `::state` spec."
 
   (:require [flow-storm.state-management :refer [defstate]]
-            [flow-storm.debugger.ui.utils :as ui-utils]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]))
 
@@ -184,7 +183,7 @@
    :selected-theme (case theme
                      :light :light
                      :dark  :dark
-                     :auto  (ui-utils/get-current-os-theme)
+                     :auto  ((requiring-resolve 'flow-storm.debugger.ui.utils/get-current-os-theme))
                      :light)
    :local-mode? (boolean local?)
    :extra-styles styles
