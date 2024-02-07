@@ -39,11 +39,11 @@
                                               (flows-screen/goto-location {:flow-id flow-id
                                                                            :thread-id thread-id
                                                                            :idx thread-timeline-idx})))))))
-                     :search-predicate (fn [[_ thread-id _ function expression expr-val expr-type] search-str]
+                     :search-predicate (fn [[thread-name _ function expr-str expr-val expr-type] search-str]
                                          (boolean
-                                          (or (str/includes? (str thread-id) search-str)
+                                          (or (str/includes? thread-name search-str)
                                               (str/includes? function search-str)
-                                              (str/includes? expression search-str)
+                                              (str/includes? expr-str search-str)
                                               (and expr-val (str/includes? expr-val search-str))
                                               (and expr-type (str/includes? expr-type search-str)))))
                      :items []})

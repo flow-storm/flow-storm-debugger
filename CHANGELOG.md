@@ -11,6 +11,7 @@
     
 ### Bugs fixed
 
+    - Fix multi-thread timeline search
     - Close context menu if there is one already open
     
 ## 3.11.0 (01-02-2024)
