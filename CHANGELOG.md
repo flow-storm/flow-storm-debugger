@@ -5,6 +5,14 @@
 ### New Features
 
 ### Changes 
+    
+### Bugs fixed
+
+## 3.11.1 (08-02-2024)
+	
+### New Features
+
+### Changes 
 
     - Better execution highlighting system
     - Browser and functions calls list views update as they change with the keyboard
