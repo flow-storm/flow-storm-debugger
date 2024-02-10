@@ -2137,7 +2137,9 @@ which will search backwards from the current position.</p>
 <p>'equality', will step to the prev/next value which is equals (clojure equality) to the current value.</p>
 </li>
 <li>
-<p><code>same-coord</code> will step to the prev/next value for the same form and coordinate.</p>
+<p><code>same-coord</code> will step to the prev/next value for the same coordinate. This means it will move to the next recording in
+the timeline for this exact place in the code you are currently in. You can also see it as take me to all the situations
+when the current expression executed doesn&#8217;t matter how we got to it.</p>
 </li>
 <li>
 <p><code>custom</code>, allows you to provide a predicate, which will be used to find the next step.
@@ -3595,7 +3597,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-10 09:53:18 -0300
+Last updated 2024-02-10 11:46:08 -0300
 </div>
 </div>
 </body>
