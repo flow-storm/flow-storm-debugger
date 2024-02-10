@@ -967,8 +967,8 @@ although you can still do it if you need it. There are also other options you ca
 <td class="content">
 <div class="title">lein dependencies</div>
 <div class="paragraph">
-<p>Make sure your global :dependencies don&#8217;t include the official org.clojure/clojure dependency.
-For some reason lein will add the dependency to the classpath even if you have it on exclusions.</p>
+<p>If you are usig lein &lt; 2.11.0 make sure your global :dependencies don&#8217;t include the official org.clojure/clojure dependency.
+Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.</p>
 </div>
 </td>
 </tr>
@@ -3595,7 +3595,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-01 11:15:34 -0300
+Last updated 2024-02-10 09:53:18 -0300
 </div>
 </div>
 </body>

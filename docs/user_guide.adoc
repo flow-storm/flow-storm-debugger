@@ -116,8 +116,8 @@ with `YOUR_INSTRUMENTATION_STRING` as described above.
 [NOTE]
 .lein dependencies
 ====
-Make sure your global :dependencies don't include the official org.clojure/clojure dependency.
-For some reason lein will add the dependency to the classpath even if you have it on exclusions.
+If you are usig lein < 2.11.0 make sure your global :dependencies don't include the official org.clojure/clojure dependency.
+Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.
 ====
 
 [NOTE]
