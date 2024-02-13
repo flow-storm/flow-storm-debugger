@@ -8,6 +8,8 @@
     
 ### Bugs fixed
 
+    - Fix quick jump
+
 ## 3.11.1 (08-02-2024)
 	
 ### New Features

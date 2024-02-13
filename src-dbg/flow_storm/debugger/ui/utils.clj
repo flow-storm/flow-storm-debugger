@@ -619,7 +619,7 @@
                         (if (seq new-items)
                           (do
                             (.addAll menu-items ^objects (into-array Object new-items))
-                            (show-context-menu options-menu tf Side/BOTTOM 0 0))
+                            (.show options-menu tf Side/BOTTOM 0 0))
                           (.hide options-menu))))))
     tf))
 
