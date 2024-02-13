@@ -194,7 +194,7 @@
 (defn- create-thread-pane [flow-id thread-id]
   (let [code-tab (tab {:graphic (icon "mdi-code-parentheses")
                        :content (flow-code/create-code-pane flow-id thread-id)
-                       :tooltip "Coode tool. Allows you to step over the traced code."})
+                       :tooltip "Code tool. Allows you to step over the traced code."})
 
         callstack-tree-tab (tab {:graphic (icon "mdi-file-tree")
                                  :content (flow-tree/create-call-stack-tree-pane flow-id thread-id)
