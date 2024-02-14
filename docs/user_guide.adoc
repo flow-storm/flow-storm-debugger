@@ -1420,7 +1420,7 @@ The easiest way to take a look at a thread timeline is with some code like this 
      (map ia/as-immutable))
 
 ({:type :fn-call,
-  :fn-ns "org.my-app
+  :fn-ns "org.my-app",
   :fn-name "run-server",
   :ret-idx 797,
   :fn-call-idx 0,
@@ -1472,7 +1472,7 @@ You can also access the timeline as a tree by calling :
   - `callstack-node-childs`
   - `callstack-node-frame-data`
 
-take a look at their docstrings for more info.
+Take a look at their docstrings for more info.
 
 === Forms
   
@@ -1547,7 +1547,7 @@ user> (->> mt-timeline
   ...)
 ----
 
-Notice that each of this entries contains a thread-id also.
+Notice that each of these entries contains a flow-id and thread-id also.
 
 === Other utilities
 
@@ -1557,7 +1557,7 @@ There are other utitities in the api ns that could be useful, some of the most i
   - `stack-for-frame`
   - `fn-call-stats`
 
-take a look at their docstrings for more info.
+Take a look at their docstrings for more info.
   
   
 == Dealing with mutable values
