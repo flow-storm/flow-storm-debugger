@@ -30,7 +30,7 @@
     {:val-preview vprev}))
 
 #?(:clj (defmethod print-method ValueRef [vref ^java.io.Writer w]
-          (.write w (str "#flow-storm.types/value-ref " (:vid vref))))
+          (.write w ^String (str "#flow-storm.types/value-ref " (:vid vref))))
    
    :cljs (extend-protocol IPrintWithWriter
            ValueRef

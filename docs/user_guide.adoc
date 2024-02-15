@@ -1403,12 +1403,12 @@ user> (count timeline)
 798
 
 user> (take 3 timeline)
-(#object[...FnCallTrace ... "[0 FnCallTrace] ..."]
- #object[...FnCallTrace ... "[1 FnCallTrace] ..."]
- #object[...FnCallTrace ... "[2 FnCallTrace] ..."])
+; (#flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]
+;  #flow-storm/fn-call-trace [Idx: 1 org.my-app/read-config]
+;  #flow-storm/fn-call-trace [Idx: 2 org.my-app/check-config])
  
 user> (get timeline 0)
-#object[...FnCallTrace ... "[0 FnCallTrace] ..."]
+; #flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]
 ----
 
 The easiest way to take a look at a thread timeline is with some code like this :
@@ -1419,17 +1419,17 @@ The easiest way to take a look at a thread timeline is with some code like this 
      (take 3)
      (map ia/as-immutable))
 
-({:type :fn-call,
-  :fn-ns "org.my-app",
-  :fn-name "run-server",
-  :ret-idx 797,
-  :fn-call-idx 0,
-  :parent-indx nil,
-  :fn-args [],
-  :form-id -798068730,
-  :idx 0}
- ...
- ...)
+; ({:type :fn-call,
+;   :fn-ns "org.my-app",
+;   :fn-name "run-server",
+;   :ret-idx 797,
+;   :fn-call-idx 0,
+;   :parent-indx nil,
+;   :fn-args [],
+;   :form-id -798068730,
+;   :idx 0}
+;  ...
+;  ...)
 ----
 
 In most cases converting all entries into maps with `ia/as-immutable` is enough, but if you want a little bit more

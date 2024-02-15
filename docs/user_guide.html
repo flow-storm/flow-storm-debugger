@@ -3019,12 +3019,12 @@ which you will need for accessing them from the repl.</p>
 </span><span class="mi">798</span><span class="w">
 
 </span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[0 FnCallTrace] ..."</span><span class="p">]</span><span class="w">
- </span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[1 FnCallTrace] ..."</span><span class="p">]</span><span class="w">
- </span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[2 FnCallTrace] ..."</span><span class="p">])</span><span class="w">
+</span><span class="c1">; (#flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]</span><span class="w">
+</span><span class="c1">;  #flow-storm/fn-call-trace [Idx: 1 org.my-app/read-config]</span><span class="w">
+</span><span class="c1">;  #flow-storm/fn-call-trace [Idx: 2 org.my-app/check-config])</span><span class="w">
 
 </span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">
-</span><span class="o">#</span><span class="n">object</span><span class="p">[</span><span class="n">...FnCallTrace</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="s">"[0 FnCallTrace] ..."</span><span class="p">]</span></code></pre>
+</span><span class="c1">; #flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3036,17 +3036,17 @@ which you will need for accessing them from the repl.</p>
      </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
      </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
 
-</span><span class="p">({</span><span class="no">:type</span><span class="w"> </span><span class="no">:fn-call,</span><span class="w">
-  </span><span class="no">:fn-ns</span><span class="w"> </span><span class="s">"org.my-app"</span><span class="n">,</span><span class="w">
-  </span><span class="no">:fn-name</span><span class="w"> </span><span class="s">"run-server"</span><span class="n">,</span><span class="w">
-  </span><span class="no">:ret-idx</span><span class="w"> </span><span class="mi">797</span><span class="n">,</span><span class="w">
-  </span><span class="no">:fn-call-idx</span><span class="w"> </span><span class="mi">0</span><span class="n">,</span><span class="w">
-  </span><span class="no">:parent-indx</span><span class="w"> </span><span class="n">nil,</span><span class="w">
-  </span><span class="no">:fn-args</span><span class="w"> </span><span class="p">[]</span><span class="n">,</span><span class="w">
-  </span><span class="no">:form-id</span><span class="w"> </span><span class="mi">-798068730</span><span class="n">,</span><span class="w">
-  </span><span class="no">:idx</span><span class="w"> </span><span class="mi">0</span><span class="p">}</span><span class="w">
- </span><span class="n">...</span><span class="w">
- </span><span class="n">...</span><span class="p">)</span></code></pre>
+</span><span class="c1">; ({:type :fn-call,</span><span class="w">
+</span><span class="c1">;   :fn-ns "org.my-app",</span><span class="w">
+</span><span class="c1">;   :fn-name "run-server",</span><span class="w">
+</span><span class="c1">;   :ret-idx 797,</span><span class="w">
+</span><span class="c1">;   :fn-call-idx 0,</span><span class="w">
+</span><span class="c1">;   :parent-indx nil,</span><span class="w">
+</span><span class="c1">;   :fn-args [],</span><span class="w">
+</span><span class="c1">;   :form-id -798068730,</span><span class="w">
+</span><span class="c1">;   :idx 0}</span><span class="w">
+</span><span class="c1">;  ...</span><span class="w">
+</span><span class="c1">;  ...)</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3776,7 +3776,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-15 09:58:30 -0300
+Last updated 2024-02-15 10:28:45 -0300
 </div>
 </div>
 </body>

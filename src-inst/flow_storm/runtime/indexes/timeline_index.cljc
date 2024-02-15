@@ -6,6 +6,7 @@
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]
             [flow-storm.runtime.types.bind-trace :as bind-trace]
+            [flow-storm.utils :as utils]
             #?(:clj [clojure.core.protocols :as cp])))
 
 #?(:clj (set! *warn-on-reflection* true))
@@ -15,6 +16,9 @@
      :clj 10000))
 
 (def tree-root-idx -1)
+
+(defn- print-it [timeline]
+  (utils/format "#flow-storm/timeline [count: %d]" (count timeline)))
 
 (deftype ExecutionTimelineTree [;; an array of FnCall, Expr, FnRet, FnUnwind
                                   timeline 
@@ -129,16 +133,7 @@
                     (recur (inc i) ch-indexes))))))))))
   
   #?@(:clj
-      [Object
-       (toString [_]                 
-                 (.toString ^StringBuilder
-                  (reduce (fn [^StringBuilder sb tl-entry]
-                            (.append sb (str tl-entry))
-                            (.append sb "\n"))
-                          (StringBuilder.)
-                          timeline)))
-       
-       clojure.lang.Counted       
+      [clojure.lang.Counted       
        (count
         [this]
         (locking this
@@ -170,15 +165,7 @@
        (nth [this k not-found] (locking this (or (ml-get timeline k) not-found)))]
 
       :cljs
-      [Object
-       (toString [_]                 
-                 (reduce (fn [s tl-entry]
-                           (s (str tl-entry "\n")))
-                         ""
-                         timeline))
-       
-       
-       ICounted
+      [ICounted
        (-count [_] (ml-count timeline))
 
        ISeqable
@@ -196,7 +183,15 @@
 
        IIndexed
        (-nth [_ n] (ml-get timeline n))
-       (-nth [_ n not-found] (or (ml-get timeline n) not-found))]))
+       (-nth [_ n not-found] (or (ml-get timeline n) not-found))
+
+       IPrintWithWriter
+       (-pr-writer [this writer _]
+                   (write-all writer (print-it this)))]))
+
+#?(:clj
+   (defmethod print-method ExecutionTimelineTree [timeline ^java.io.Writer w]
+      (.write w ^String (print-it timeline))))
 
 (defn make-index []
   (let [build-stack (make-mutable-stack)

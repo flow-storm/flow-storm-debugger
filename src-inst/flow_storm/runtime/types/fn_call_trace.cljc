@@ -1,9 +1,15 @@
 (ns flow-storm.runtime.types.fn-call-trace
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :as index-utils])
-  #?(:clj (:require [flow-storm.utils :as utils])))
+            [flow-storm.runtime.indexes.utils :as index-utils]
+            [flow-storm.utils :as utils]))
 
 (def nil-idx -1)
+
+(defn- print-it [fn-call]
+  (utils/format "#flow-storm/fn-call-trace [Idx: %d %s/%s]"
+                (index-protos/entry-idx fn-call)
+                (index-protos/get-fn-ns fn-call)
+                (index-protos/get-fn-name fn-call)))
 
 (deftype FnCallTrace
     [                         fnName
@@ -60,9 +66,14 @@
      :parent-indx (index-protos/get-parent-idx this)
      :ret-idx (index-protos/get-ret-idx this)})
 
-  #?@(:clj
-      [Object
-       (toString [_] (utils/format "[%d FnCallTrace] %s/%s form-id: %d ret: %d" thisIdx fnNs fnName formId retIdx))]))
+  #?@(:cljs
+      [IPrintWithWriter
+       (-pr-writer [this writer _]
+                   (write-all writer (print-it this)))]))
+
+#?(:clj
+   (defmethod print-method FnCallTrace [fn-call ^java.io.Writer w]
+     (.write w ^String (print-it fn-call))))
 
 (defn make-fn-call-trace [fn-ns fn-name form-id fn-args this-idx parent-idx]
   (->FnCallTrace fn-name

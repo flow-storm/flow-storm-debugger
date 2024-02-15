@@ -4,6 +4,12 @@
 
 (def nil-idx -1)
 
+(defn- print-it [expr]
+  (utils/format "#flow-storm/expr-trace [Idx: %d, Coord: %s, Type: %s]"
+                (index-protos/entry-idx expr)
+                (index-protos/get-coord-raw expr)
+                (pr-str (type (index-protos/get-expr-val expr)))))
+
 (deftype ExprTrace
     [coord
      exprVal
@@ -35,10 +41,15 @@
      :result (index-protos/get-expr-val this)
      :fn-call-idx (index-protos/fn-call-idx this)
      :idx (index-protos/entry-idx this)})
-  
-  #?@(:clj
-      [Object
-       (toString [_] (utils/format "[%d ExprTrace] coord: %s, valType: %s" thisIdx coord (type exprVal)))]))
+
+  #?@(:cljs
+      [IPrintWithWriter
+       (-pr-writer [this writer _]
+                   (write-all writer (print-it this)))]))
+
+#?(:clj
+   (defmethod print-method ExprTrace [expr ^java.io.Writer w]
+     (.write w ^String (print-it expr))))
 
 (defn make-expr-trace [coord expr-val this-idx fn-call-idx]
   (->ExprTrace coord expr-val fn-call-idx this-idx))

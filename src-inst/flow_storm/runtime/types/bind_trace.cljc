@@ -4,6 +4,12 @@
 
 (def nil-idx -1)
 
+(defn- print-it [bind]
+  (utils/format "#flow-storm/bind-trace [Symbol: %s, ValType: %s, Coord: %s]"
+                (index-protos/get-bind-sym-name bind)
+                (pr-str (type (index-protos/get-bind-val bind)))
+                (index-protos/get-coord-raw bind)))
+
 (deftype BindTrace
     [symName
      val
@@ -27,10 +33,15 @@
      :value (index-protos/get-bind-val this)
      :coord (index-protos/get-coord-vec this)
      :visible-after visibleAfterIdx})
+  
+  #?@(:cljs
+      [IPrintWithWriter
+       (-pr-writer [this writer _]
+                   (write-all writer (print-it this)))]))
 
-  #?@(:clj
-      [Object
-       (toString [_] (utils/format "[BindTrace] coord: %s, sym: %s, valType: %s" coord symName (type val)))]))
+#?(:clj
+   (defmethod print-method BindTrace [bind #?@(:clj [^java.io.Writer w] :cljs [w])]
+     (.write w ^String (print-it bind))))
 
 (defn make-bind-trace [sym-name val coord visible-after-idx]
   (->BindTrace sym-name val coord visible-after-idx))
