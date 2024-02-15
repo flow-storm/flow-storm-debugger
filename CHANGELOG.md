@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes 
+        
+### Bugs fixed
+
+## 3.12.0 (15-02-2024)
+	
+### New Features
 
     - Add identity-other-thread power stepper
     
