@@ -859,7 +859,11 @@ which will search backwards from the current position.
 
 ==== Power stepping
 
+image::user_guide_images/controls_power_custom.png[]
+
 The controls at the right are power stepping controls. They provide more powerfull ways of stepping through the code.
+
+Clicking on the back and forward button will use the selected power stepping tool.
 
 There are currently 5 power stepping tools :
 
@@ -871,10 +875,11 @@ There are currently 5 power stepping tools :
 - `custom`, allows you to provide a predicate, which will be used to find the next step.
   If you define it like `(fn [v] (map? v))` will make the power stepper step over all map values.
 - `custom-same-coord`, the same as `custom` but fixed on the current coordinate like `same-coord`.
-
-image::user_guide_images/controls_power_custom.png[]
-
-Clicking on the back and forward button will use the selected power stepping tool.
+- `identity-other-thread`, will step to a position which identity is the same as the current value in a different thread.
+  Here the prev and next arrows do the same thing, it will just jump to the first position that matches this value on a
+  different thread. This has some limitations. If there are more than two threads working with this identity there is no way
+  of choosing which thread to go. If you need more control, checkout the <<#_programmable_debugging,programmable debugging>>
+  section, specially the `find-expr-entry` function.
 
 [NOTE]
 .Custom stepping

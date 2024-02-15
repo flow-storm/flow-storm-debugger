@@ -4,6 +4,8 @@
 	
 ### New Features
 
+    - Add identity-other-thread power stepper
+    
 ### Changes 
 
     - Big refactor with a ton of improvements to the repl API

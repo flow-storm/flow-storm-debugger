@@ -609,11 +609,12 @@
   - form-id, search by the form-id of the expression.
   - coord, a vector with a coordinate to match, like [3 1 2].
   - custom-pred-form, a string with a form to use as a custom predicate over expression values, like \"(fn [v] (map? v))\"
-
+  - skip-threads, a set of threads ids to skip.
+  
   Absent criteria that doesn't have a default value will always match.
   "
   
-  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward?] :as criteria}]
+  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward? skip-threads] :as criteria}]
   
   (try
     (let [coord (when coord (utils/stringify-coord coord))
@@ -634,7 +635,9 @@
               (when (and (or (not (contains? criteria :flow-id))
                              (= flow-id fid))
                          (or (not (contains? criteria :thread-id))
-                             (= thread-id tid)))
+                             (= thread-id tid))
+                         (not (and (set? skip-threads)
+                                   (skip-threads tid))))
                 (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
                       from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]                  
                   (when-let [entry (timeline-index/timeline-find-entry timeline-index

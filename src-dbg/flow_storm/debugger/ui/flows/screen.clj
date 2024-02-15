@@ -235,7 +235,8 @@
         (.setOnCloseRequest thread-tab
                             (event-handler
                              [ev]
-                              (clean-objs flow-id thread-id)))
+                              (clean-objs flow-id thread-id)
+                              (dbg-state/remove-thread flow-id thread-id)))
         (-> all-tabs
             (.addAll [thread-tab]))
 

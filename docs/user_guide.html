@@ -2123,8 +2123,16 @@ which will search backwards from the current position.</p>
 </div>
 <div class="sect4">
 <h5 id="_power_stepping"><a class="anchor" href="#_power_stepping"></a><a class="link" href="#_power_stepping">Power stepping</a></h5>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/controls_power_custom.png" alt="controls power custom">
+</div>
+</div>
 <div class="paragraph">
 <p>The controls at the right are power stepping controls. They provide more powerfull ways of stepping through the code.</p>
+</div>
+<div class="paragraph">
+<p>Clicking on the back and forward button will use the selected power stepping tool.</p>
 </div>
 <div class="paragraph">
 <p>There are currently 5 power stepping tools :</p>
@@ -2149,15 +2157,14 @@ If you define it like <code>(fn [v] (map? v))</code> will make the power stepper
 <li>
 <p><code>custom-same-coord</code>, the same as <code>custom</code> but fixed on the current coordinate like <code>same-coord</code>.</p>
 </li>
+<li>
+<p><code>identity-other-thread</code>, will step to a position which identity is the same as the current value in a different thread.
+Here the prev and next arrows do the same thing, it will just jump to the first position that matches this value on a
+different thread. This has some limitations. If there are more than two threads working with this identity there is no way
+of choosing which thread to go. If you need more control, checkout the <a href="#_programmable_debugging">programmable debugging</a>
+section, specially the <code>find-expr-entry</code> function.</p>
+</li>
 </ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/controls_power_custom.png" alt="controls power custom">
-</div>
-</div>
-<div class="paragraph">
-<p>Clicking on the back and forward button will use the selected power stepping tool.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3776,7 +3783,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-15 10:28:45 -0300
+Last updated 2024-02-15 12:24:13 -0300
 </div>
 </div>
 </body>

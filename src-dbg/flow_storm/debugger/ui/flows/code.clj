@@ -503,9 +503,14 @@
         last-tentry (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at)]
     (jump-to-coord flow-id thread-id last-tentry)))
 
-(defn find-and-jump-same-val [flow-id thread-id search-params]
-  (when-let [next-tentry (runtime-api/find-expr-entry rt-api search-params)]
-    (jump-to-coord flow-id thread-id next-tentry)))
+(defn find-and-jump [current-flow-id current-thread-id search-params]
+  (when-let [{:keys [flow-id thread-id idx] :as next-tentry} (runtime-api/find-expr-entry rt-api search-params)]
+    (if (and (= current-flow-id flow-id) (= current-thread-id thread-id))
+      (jump-to-coord flow-id thread-id next-tentry)
+      (let [goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
+        (goto-loc {:flow-id   flow-id
+                   :thread-id thread-id
+                   :idx       idx})))))
 
 (defn- power-stepping-pane [flow-id thread-id]
   (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
@@ -514,37 +519,54 @@
                               (.setVisible show?)
                               (.setPrefWidth (if show? 200 0))))
         _ (show-custom-field false)
-        step-type-combo (combo-box {:items ["identity" "equality" "same-coord" "custom" "custom-same-coord"]
+        step-type-combo (combo-box {:items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord"]
                                     :on-change-fn (fn [_ new-val]
                                                     (case new-val
-                                                      "identity"     (show-custom-field false)
-                                                      "equality"     (show-custom-field false)
-                                                      "same-coord"   (show-custom-field false)
-                                                      "custom"       (show-custom-field true)
-                                                      "custom-same-coord" (show-custom-field true)))})
+                                                      "identity"              (show-custom-field false)
+                                                      "identity-other-thread" (show-custom-field false)
+                                                      "equality"              (show-custom-field false)
+                                                      "same-coord"            (show-custom-field false)
+                                                      "custom"                (show-custom-field true)
+                                                      "custom-same-coord"     (show-custom-field true)))})
         search-params (fn [backward?]
                         (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)
                               {:keys [idx result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
                               {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
+                              from-idx (if backward? (dec idx) (inc idx))
                               params (case step-type-val
-                                       "identity"          {:identity-val result}
-                                       "equality"          {:equality-val result}
-                                       "same-coord"        {:coord coord
-                                                            :form-id form-id}
-                                       "custom"            {:custom-pred-form (.getText custom-expression-txt)}
-                                       "custom-same-coord" {:custom-pred-form (.getText custom-expression-txt)
-                                                            :coord coord
-                                                            :form-id form-id})]
-                          (assoc params
-                                 :flow-id flow-id
-                                 :thread-id thread-id
-                                 :backward? backward?
-                                 :from-idx   (if backward? (dec idx) (inc idx)))))
+                                       "identity"              {:identity-val result
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx}
+                                       "identity-other-thread" {:identity-val result
+                                                                :from-idx 0
+                                                                :skip-threads #{thread-id}
+                                                                :backward? false}
+                                       "equality"              {:equality-val result
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx}
+                                       "same-coord"            {:coord coord
+                                                                :form-id form-id
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx}
+                                       "custom"                {:custom-pred-form (.getText custom-expression-txt)
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx}
+                                       "custom-same-coord"     {:custom-pred-form (.getText custom-expression-txt)
+                                                                :coord coord
+                                                                :form-id form-id
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx})]
+                          (assoc params :flow-id flow-id)))
         val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
-                                           :on-click (fn [] (find-and-jump-same-val flow-id thread-id (search-params true)))
+                                           :on-click (fn [] (find-and-jump flow-id thread-id (search-params true)))
                                            :tooltip "Find the prev expression that contains this value")
         val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
-                                           :on-click (fn [] (find-and-jump-same-val flow-id thread-id (search-params false)))
+                                           :on-click (fn [] (find-and-jump flow-id thread-id (search-params false)))
                                            :tooltip "Find the next expression that contains this value")
 
         power-stepping-pane (doto (h-box [val-prev-btn val-next-btn step-type-combo custom-expression-txt])

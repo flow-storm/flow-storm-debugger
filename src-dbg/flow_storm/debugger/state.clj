@@ -294,6 +294,9 @@
 (defn get-thread [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id]))
 
+(defn remove-thread [flow-id thread-id]
+  (swap! state update-in [:flows flow-id :flow/thrteads] dissoc thread-id))
+
 (defn current-timeline-entry [flow-id thread-id]
   (:thread/curr-timeline-entry (get-thread flow-id thread-id)))
 
