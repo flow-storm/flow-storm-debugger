@@ -87,7 +87,7 @@
 
   - `stack-for-frame`
   - `fn-call-stats`
-  - `find-timeline-entry`
+  - `find-expr-entry`
   
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
@@ -497,11 +497,11 @@
               (transient [])
               timeline-index))))
   ([flow-id thread-id fn-ns fn-name form-id]
-                      (find-fn-frames flow-id thread-id
-                                      (fn [fn-call]
-                                        (and (if form-id (= form-id (index-protos/get-form-id fn-call)) true)
-                                             (if fn-ns   (= fn-ns   (index-protos/get-fn-ns fn-call))   true)
-                                             (if fn-name (= fn-name (index-protos/get-fn-name fn-call)) true))))))
+   (find-fn-frames flow-id thread-id
+                   (fn [fn-call]
+                     (and (if form-id (= form-id (index-protos/get-form-id fn-call)) true)
+                          (if fn-ns   (= fn-ns   (index-protos/get-fn-ns fn-call))   true)
+                          (if fn-name (= fn-name (index-protos/get-fn-name fn-call)) true))))))
 
 (defn discard-flow [flow-id] 
   (let [discard-keys (some->> flow-thread-registry
@@ -556,9 +556,9 @@
                        :thread-id tid)))))
         (index-protos/all-threads flow-thread-registry)))
 
-(defn find-timeline-entry
+(defn find-expr-entry
 
-  "Find the first match of a timeline entry that matches criteria.
+  "Find the first match of a expr-trace or return-trace entry that matches criteria.
 
   Criteria which can be combined in any way :
 

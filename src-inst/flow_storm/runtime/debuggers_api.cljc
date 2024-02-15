@@ -151,11 +151,11 @@
   (some-> (index-api/find-flow-fn-call flow-id)
           reference-timeline-entry!))
 
-(defn find-timeline-entry [{:keys [identity-val equality-val] :as criteria}]
+(defn find-expr-entry [{:keys [identity-val equality-val] :as criteria}]
   (let [criteria (cond-> criteria
                    identity-val (update :identity-val deref-value)
                    equality-val (update :equality-val deref-value))]
-    (some-> (index-api/find-timeline-entry criteria)
+    (some-> (index-api/find-expr-entry criteria)
             reference-timeline-entry!)))
 
 (defn total-order-timeline []
@@ -444,7 +444,7 @@
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
              :find-fn-frames find-fn-frames
-             :find-timeline-entry find-timeline-entry
+             :find-expr-entry find-expr-entry
              :total-order-timeline total-order-timeline
              :thread-prints thread-prints
              :async-search-next-timeline-entry async-search-next-timeline-entry

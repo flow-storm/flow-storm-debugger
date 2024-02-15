@@ -1553,7 +1553,7 @@ Notice that each of these entries contains a flow-id and thread-id also.
 
 There are other utitities in the api ns that could be useful, some of the most interesting ones :
 
-  - `find-timeline-entry`
+  - `find-expr-entry`
   - `stack-for-frame`
   - `fn-call-stats`
 

@@ -54,12 +54,12 @@
     print-tokens))
 
 (defn- jump-to-record-here [flow-id thread-id form-id coord {:keys [backward? from-idx]}]
-  (when-let [tentry (runtime-api/find-timeline-entry rt-api {:flow-id   flow-id
-                                                             :thread-id thread-id
-                                                             :from-idx  from-idx
-                                                             :backward? backward?
-                                                             :coord     coord
-                                                             :form-id   form-id})]
+  (when-let [tentry (runtime-api/find-expr-entry rt-api {:flow-id   flow-id
+                                                         :thread-id thread-id
+                                                         :from-idx  from-idx
+                                                         :backward? backward?
+                                                         :coord     coord
+                                                         :form-id   form-id})]
     (jump-to-coord flow-id thread-id tentry)))
 
 (defn- add-to-printer
@@ -504,7 +504,7 @@
     (jump-to-coord flow-id thread-id last-tentry)))
 
 (defn find-and-jump-same-val [flow-id thread-id search-params]
-  (when-let [next-tentry (runtime-api/find-timeline-entry rt-api search-params)]
+  (when-let [next-tentry (runtime-api/find-expr-entry rt-api search-params)]
     (jump-to-coord flow-id thread-id next-tentry)))
 
 (defn- power-stepping-pane [flow-id thread-id]
