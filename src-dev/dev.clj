@@ -213,7 +213,7 @@
   (require 'dev-tester-12)
   (dev-tester-12/run)
 
-  (def tl (index-api/get-timeline 31))
+  (def tl (index-api/get-timeline 18))
 
   (->> tl
       (take 10)
@@ -234,5 +234,11 @@
   (->> total-timeline
        (take 10)
        (map index-api/as-immutable))
+
+  (index-api/find-fn-call-entry {:backward? true
+                                 :fn-name "factorial"})
+
+  (index-api/find-expr-entry {:backward? true
+                              :equality-val 42})
 
   )

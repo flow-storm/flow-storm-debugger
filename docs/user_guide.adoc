@@ -1553,9 +1553,10 @@ Notice that each of these entries contains a flow-id and thread-id also.
 
 There are other utitities in the api ns that could be useful, some of the most interesting ones :
 
-  - `find-expr-entry`
-  - `stack-for-frame`
-  - `fn-call-stats`
+- `find-expr-entry` useful for searching expressions and return values with different criteria.
+- `find-fn-call-entry` useful for searching functions calls with different criteria.
+- `stack-for-frame`
+- `fn-call-stats`
 
 Take a look at their docstrings for more info.
   

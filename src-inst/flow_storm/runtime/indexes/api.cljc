@@ -88,6 +88,7 @@
   - `stack-for-frame`
   - `fn-call-stats`
   - `find-expr-entry`
+  - `find-fn-call-entry`
   
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
@@ -556,15 +557,52 @@
                        :thread-id tid)))))
         (index-protos/all-threads flow-thread-registry)))
 
-(defn find-expr-entry
+(defn find-fn-call-entry
 
-  "Find the first match of a expr-trace or return-trace entry that matches criteria.
+  "Find the first match of a FnCallTrace entry that matches the criteria.
 
-  Criteria which can be combined in any way :
+  Criteria (can be combined in any way) :
 
   - flow-id, if not present will match any.
   - thread-id, if not present will match any.
-  - from-idx, where to start searching, defaults to 0.
+  - from-idx, where to start searching, defaults to: 0 or last when backward? is true.
+  - backward?, search backwards, default to false.
+  - fn-ns, the function namespace to match.
+  - fn-name, the function name to match.
+  - args-pred, a predicate of one argument that will receive the args vector.
+
+  Absent criteria that doesn't have a default value will always match."
+  
+  [{:keys [flow-id thread-id backward? from-idx form-id fn-ns fn-name args-pred] :as criteria}]
+  (let [search-pred (fn [entry-form-id tl-entry]
+                      (and (fn-call-trace/fn-call-trace? tl-entry)
+                           (if form-id      (= form-id entry-form-id)                    true)
+                           (if fn-ns (= (index-protos/get-fn-ns tl-entry) fn-ns)         true)
+                           (if fn-name (= (index-protos/get-fn-name tl-entry) fn-name)   true)
+                           (if args-pred (args-pred (index-protos/get-fn-args tl-entry)) true)))]
+    (some (fn [[fid tid]]
+            (when (and (or (not (contains? criteria :flow-id))
+                           (= flow-id fid))
+                       (or (not (contains? criteria :thread-id))
+                           (= thread-id tid)))
+              (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
+                    from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]
+                (when-let [entry (timeline-index/timeline-find-entry timeline-index
+                                                                     from-idx
+                                                                     backward?
+                                                                     search-pred)]
+                  (assoc entry :flow-id fid :thread-id tid)))))
+          (index-protos/all-threads flow-thread-registry))))
+
+(defn find-expr-entry
+
+  "Find the first match of a ExprTrace or ReturnTrace entry that matches criteria.
+  
+  Criteria (can be combined in any way) :
+
+  - flow-id, if not present will match any.
+  - thread-id, if not present will match any.
+  - from-idx, where to start searching, defaults to: 0 or last when backward? is true.
   - backward?, search backwards, default to false.
   - identity-val, search this val with identical? over expressions values.
   - equality-val, search this val with = over expressions values.
@@ -572,10 +610,10 @@
   - coord, a vector with a coordinate to match, like [3 1 2].
   - custom-pred-form, a string with a form to use as a custom predicate over expression values, like \"(fn [v] (map? v))\"
 
+  Absent criteria that doesn't have a default value will always match.
   "
   
-  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward?] :as criteria
-    :or {from-idx 0}}]
+  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward?] :as criteria}]
   
   (try
     (let [coord (when coord (utils/stringify-coord coord))
@@ -597,7 +635,8 @@
                              (= flow-id fid))
                          (or (not (contains? criteria :thread-id))
                              (= thread-id tid)))
-                (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
+                (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
+                      from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]                  
                   (when-let [entry (timeline-index/timeline-find-entry timeline-index
                                                                      from-idx
                                                                      backward?
