@@ -276,7 +276,7 @@
           (do
             (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
               (when (and tl-idx total-order-recording?)
-                (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx))))
+                (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx (get timeline-index tl-idx))))
             
             (when fn-call-stats-index
               (index-protos/add-fn-call fn-call-stats-index fn-ns fn-name form-id args)))
@@ -294,7 +294,7 @@
         ;; when not limited, go ahead
         (let [tl-idx (index-protos/add-fn-return timeline-index coord ret-val)]
           (when (and tl-idx total-order-recording?)
-            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx))))
+            (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx (get timeline-index tl-idx))))
 
         ;; if we are limited decrease the limit depth or remove it when it reaches to 0
         (do
@@ -312,7 +312,8 @@
           (let [unwind-trace (get timeline-index tl-idx)
                 fn-idx (index-protos/fn-call-idx unwind-trace)
                 {:keys [fn-ns fn-name]} (-> (get timeline-index fn-idx)
-                                            index-protos/as-immutable)
+                                            index-protos/as-immutable
+                                            (assoc :idx fn-idx))
                 throwable throwable
                 ev (events/make-function-unwinded-event {:flow-id flow-id
                                                          :thread-id thread-id
@@ -323,7 +324,7 @@
                                                          :ex-message (ex-message throwable)})]
 
             (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx)))
+              (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx (get timeline-index tl-idx)))
 
             (events/publish-event! ev)))
 
@@ -340,7 +341,7 @@
     (when (and timeline-index (not @thread-limited))      
       (let [tl-idx (index-protos/add-expr-exec timeline-index coord expr-val)]
         (when (and tl-idx total-order-recording?)
-          (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx)))))))
+          (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id tl-idx (get timeline-index tl-idx)))))))
 
 (defn add-bind-trace [flow-id thread-id coord symb-name symb-val]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
@@ -388,13 +389,13 @@
 
 (defn bindings [flow-id thread-id idx {:keys [all-frame?]}]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        {:keys [fn-call-idx] :as entry} (timeline-index/timeline-entry timeline-index idx :at)
+        entry (timeline-index/timeline-entry timeline-index idx :at)
+        fn-call-idx (or (:fn-call-idx entry) (:idx entry))
         frame-data (timeline-index/tree-frame-data timeline-index fn-call-idx {:include-binds? true})
-        [entry-coord entry-idx] (case (:type entry)
-                                  :fn-call   [[] fn-call-idx]
-                                  :fn-return [(:coord entry) (:idx entry)]
-                                  :fn-unwind [(:coord entry) (:idx entry)]
-                                  :expr      [(:coord entry) (:idx entry)])]
+        entry-idx (:idx entry)
+        entry-coord (if (= :fn-call (:type entry))
+                      []
+                      (:coord entry))]
     
     (cond->> (:bindings frame-data)
       (not all-frame?) (filter (fn [bind]
@@ -490,13 +491,13 @@
   ([flow-id thread-id pred]
    (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
      (persistent!
-      (reduce (fn [r tl-entry]
-                (if (and (fn-call-trace/fn-call-trace? tl-entry)
-                         (pred tl-entry))
-                  (conj! r (timeline-index/tree-frame-data timeline-index (index-protos/entry-idx tl-entry) {}))
-                  r))
-              (transient [])
-              timeline-index))))
+      (reduce-kv (fn [r tl-idx tl-entry]
+                   (if (and (fn-call-trace/fn-call-trace? tl-entry)
+                            (pred tl-entry))
+                     (conj! r (timeline-index/tree-frame-data timeline-index tl-idx {}))
+                     r))
+                 (transient [])
+                 timeline-index))))
   ([flow-id thread-id fn-ns fn-name form-id]
    (find-fn-frames flow-id thread-id
                    (fn [fn-call]
@@ -673,7 +674,7 @@
                        (let [scoord (str/join "," coord-vec)]
                          #?(:cljs scoord
                             :clj (.intern scoord)))))))
-        maybe-print-entry (fn [prints-so-far curr-fn-call tl-entry]
+        maybe-print-entry (fn [prints-so-far curr-fn-call tl-idx tl-entry]
                             (let [form-id (index-protos/get-form-id curr-fn-call)]
                               (if (contains? printers form-id)
                                 (let [coords-map (get printers form-id)
@@ -685,7 +686,7 @@
                                       (binding [*print-length* print-length
                                                 *print-level* print-level]
                                         (conj! prints-so-far {:text (utils/format format-str (pr-str val))
-                                                              :idx (index-protos/entry-idx tl-entry)})))
+                                                              :idx tl-idx})))
                                     
                                     ;; else skip if we aren't interested in this coord))
                                     prints-so-far))
@@ -706,10 +707,10 @@
              (recur (inc idx) (conj thread-stack tl-entry) prints)
 
              (fn-return-trace/fn-end-trace? tl-entry)
-             (recur (inc idx) (pop thread-stack) (maybe-print-entry prints (first thread-stack) tl-entry))
+             (recur (inc idx) (pop thread-stack) (maybe-print-entry prints (first thread-stack) idx tl-entry))
 
              (expr-trace/expr-trace? tl-entry)
-             (recur (inc idx) thread-stack (maybe-print-entry prints (first thread-stack) tl-entry)))))))))
+             (recur (inc idx) thread-stack (maybe-print-entry prints (first thread-stack) idx tl-entry)))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
@@ -730,11 +731,6 @@
     (->> (all-forms flow-id thread-id)
          (map #(dissoc % :form/flow-id ))
          pp/print-table)))
-
-(defn entry-idx
-  "Given a timeline entry of any kind return its possition in the timeline."
-  [entry]
-  (index-protos/entry-idx entry))
 
 (defn fn-call-idx
   "Given a timeline entry of any kind return the possition of the FnCallTrace entry

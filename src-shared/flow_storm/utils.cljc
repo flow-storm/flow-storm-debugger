@@ -323,3 +323,8 @@
   (float
    (/ (- n from)
       (- to from))))
+
+(defn fn-call-entry-idx [entry-map]
+  (if (= :fn-call (:type entry-map))
+    (:idx entry-map)
+    (:fn-call-idx entry-map)))

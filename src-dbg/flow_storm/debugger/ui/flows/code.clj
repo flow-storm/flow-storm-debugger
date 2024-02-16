@@ -403,6 +403,7 @@
       (form-paint-fn expr-executions (:coord entry)))))
 
 (defn jump-to-coord [flow-id thread-id next-tentry]
+  (println "@@@ jump-to-coord" [flow-id thread-id next-tentry])
   (try
     (when (:debug-mode? (dbg-state/debugger-config))
       (utils/log (str "Jump to " next-tentry)))
@@ -421,8 +422,8 @@
           curr-idx (:idx curr-tentry)
           next-idx (:idx next-tentry)
 
-          curr-fn-call-idx (:fn-call-idx curr-frame)
-          next-fn-call-idx (:fn-call-idx next-tentry)
+          curr-fn-call-idx (:idx curr-frame)
+          next-fn-call-idx (:idx next-tentry)
           changing-frame? (not= curr-fn-call-idx next-fn-call-idx)
           next-frame (if changing-frame?
                        (let [nfr (runtime-api/frame-data rt-api flow-id thread-id next-fn-call-idx {:include-exprs? true})]

@@ -99,8 +99,8 @@
 
   (stop-thread-registry [_])
 
-  (record-total-order-entry [_ flow-id thread-id entry]    
-    (total-order-timeline/add-entry total-order-timeline flow-id thread-id entry))
+  (record-total-order-entry [_ flow-id thread-id thread-timeline-idx entry]    
+    (total-order-timeline/add-entry total-order-timeline flow-id thread-id thread-timeline-idx entry))
 
   (total-order-timeline [_]
     total-order-timeline))

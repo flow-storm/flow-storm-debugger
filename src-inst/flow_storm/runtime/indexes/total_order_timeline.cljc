@@ -10,35 +10,37 @@
 (def ^:dynamic *printing-expr-val* false)
 
 (defprotocol TotalOrderTimelineP
-  (add-entry [_ flow-id thread-id entry])
+  (add-entry [_ flow-id thread-id thread-timeline-idx entry])
   (clear-all [_]))
 
-(deftype TotalOrderTimelineEntry [flow-id thread-id entry]
+(deftype TotalOrderTimelineEntry [flow-id thread-id thread-timeline-idx entry]
 
   index-protos/ImmutableP
   (as-immutable [_]
     (merge {:flow-id flow-id
-            :thread-id thread-id}
+            :thread-id thread-id
+            :idx thread-timeline-idx}
            (index-protos/as-immutable entry)))
   
   index-protos/TotalOrderTimelineEntryP
   
   (tote-flow-id [_] flow-id)
   (tote-thread-id [_] thread-id)  
-  (tote-entry [_] entry))
+  (tote-entry [_] entry)
+  (tote-thread-timeline-idx [_] thread-timeline-idx))
 
 (deftype TotalOrderTimeline [timeline]
 
   TotalOrderTimelineP
 
-  (add-entry [this flow-id thread-id entry]
+  (add-entry [this flow-id thread-id thread-timeline-idx entry]
     ;; HACKY: `build-detailed-timeline` will print expr-vals which because of laziness can fire
     ;; instrumented code that will try to add to the timeline under the same thread, which will end
     ;; in a java.util.ConcurrentModificationException
     ;; The *printing-expr-val* flag is to prevent this
     (when-not *printing-expr-val*      
       (locking this
-        (ml-add timeline (TotalOrderTimelineEntry. flow-id thread-id entry)))))
+        (ml-add timeline (TotalOrderTimelineEntry. flow-id thread-id thread-timeline-idx entry)))))
   
   (clear-all [_]
     (locking timeline
@@ -111,7 +113,7 @@
         (let [entry (index-protos/tote-entry tote)
               fid   (index-protos/tote-flow-id tote)
               tid   (index-protos/tote-thread-id tote)
-              tidx  (index-protos/entry-idx entry)]
+              tidx  (index-protos/tote-thread-timeline-idx entry)]
           (cond
             (fn-call-trace? entry)
             (recur r

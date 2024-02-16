@@ -16,7 +16,6 @@
 
 (defprotocol TimelineEntryP
   (entry-type [_])
-  (entry-idx [_])
   (fn-call-idx [_]))
 
 (defprotocol CoordableTimelineEntryP
@@ -65,7 +64,7 @@
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
-  (record-total-order-entry [_ flow-id thread-id entry])
+  (record-total-order-entry [_ flow-id thread-id thread-timeline-idx entry])
   (total-order-timeline [_])
   (discard-threads [_ flow-threads-ids])
   (start-thread-registry [_ callbacks])
@@ -99,4 +98,5 @@
 (defprotocol TotalOrderTimelineEntryP
   (tote-flow-id [_])
   (tote-thread-id [_])
-  (tote-entry [_]))
+  (tote-entry [_])
+  (tote-thread-timeline-idx [_]))

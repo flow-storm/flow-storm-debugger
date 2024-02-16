@@ -30,6 +30,8 @@
 
 (javafx.embed.swing.JFXPanel.)
 
+(set! *warn-on-reflection* true)
+
 (comment
   (add-tap (bound-fn* println))
   )
@@ -159,8 +161,9 @@
   ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
   (defn frame-similar-values [idx]
     (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
-          {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
+          {:keys [coord] :as entry} (index-api/timeline-entry flow-id thread-id idx :at)
+          fn-call-idx (utils/fn-call-entry-idx entry)
+          {:keys [expr-executions]} (index-api/frame-data flow-id thread-id (or fn-call-idx idx) {:include-exprs? true})]
 
       (->> expr-executions
            (reduce (fn [coll-vals expr-exec]
@@ -179,7 +182,8 @@
 
   (defn show-current []
     (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
+          {:keys [type fn-ns fn-name coord result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
+          fn-call-idx (utils/fn-call-entry-idx idx-entry)
           {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
           {:keys [form/form]} (index-api/get-form form-id)]
       (case type
@@ -206,7 +210,7 @@
   (step-prev))
 
 (comment
-
+(tap> {:a 1})
   (dev-tester/run)
   (dev-tester/run-parallel)
 
@@ -214,10 +218,10 @@
   (dev-tester-12/run)
 
   (def tl (index-api/get-timeline 18))
-
+  (prn tl)
   (->> tl
-      (take 10)
-      (map index-api/as-immutable))
+       (take 1000)
+      )
 
   (count tl)
   (take 10 tl)
@@ -240,5 +244,65 @@
 
   (index-api/find-expr-entry {:backward? true
                               :equality-val 42})
+
+  (let [p (promise)]
+    (.start
+     (Thread.
+      (fn []
+        (let [h @p
+              h' (-> h
+                     (update :n #(* % 1000))
+                     (update :n #(* % 2)))]
+          (println "FINISHED" h')))))
+
+    (.start
+     (Thread.
+      (fn []
+        (let [m {:n 42}
+              m' (update m :n inc)
+              m'' (update m' :n inc)]
+          (deliver p m'')
+          (+ (:n m'') 7))))))
+  (float (/ (* 4 1000000000) 1024 1024)) ; 1 billion traces, @4b/ref 3.8Gb
+  (float (/ (* 199300122 32) 1024 1024))
+  (+ 1 0.73 1.78 6.08)
+{:fn-call 23961069, ; ~ 0.1 48 bytes  T 1.00 Gb
+ :return  23960819, ; ~ 0.1 32 bytes  T 0.73 Gb
+ :unwind  250,      ; ~     32 bytes
+ :binding  58563876, ;      32 bytes  T 1.78 Gb
+ :expr    199300122 ; ~ 0.8 32 bytes  T 6.08 Gb
+ }
+;; -----------------------------------------------
+;;                                      9.6 Gb
+
+(import '[java.lang.ref SoftReference])
+ (println (clj-memory-meter.core/measure [] :shallow true))
+ (println (clj-memory-meter.core/measure (SoftReference. 4) :shallow true))
+(time
+ (loop [i 0
+        fn-call 0
+        return  0
+        unwind  0
+        expr    0
+        bind    0]
+   (if-not (< i (count tl))
+     {:fn-call fn-call
+      :expr    expr
+      :return  return
+      :unwind  unwind
+      :binding bind}
+     (let [e (get tl i)]
+       (cond
+         (instance? flow_storm.runtime.types.fn_call_trace.FnCallTrace e)
+         (recur (inc i) (inc fn-call) return unwind expr (+ bind (count (ia/get-fn-bindings e))))
+
+         (instance? flow_storm.runtime.types.fn_return_trace.FnReturnTrace e)
+         (recur (inc i) fn-call (inc return) unwind expr bind)
+
+         (instance? flow_storm.runtime.types.fn_return_trace.FnUnwindTrace e)
+         (recur (inc i) fn-call return (inc unwind) expr bind)
+
+         (instance? flow_storm.runtime.types.expr_trace.ExprTrace e)
+         (recur (inc i) fn-call return unwind (inc expr) bind))))))
 
   )

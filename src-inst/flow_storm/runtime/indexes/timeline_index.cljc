@@ -32,16 +32,16 @@
   (add-fn-call [this fn-ns fn-name form-id args]
     (locking this
       (let [tl-idx (ml-count timeline)
-            curr-fn-call (ms-peek build-stack)
-            parent-idx (when curr-fn-call (index-protos/entry-idx curr-fn-call))
+            {:keys [fn-call-idx]} (ms-peek build-stack)
+            parent-idx fn-call-idx 
             fn-call (fn-call-trace/make-fn-call-trace fn-ns
                                                       fn-name
                                                       form-id
-                                                      args
-                                                      tl-idx
+                                                      args                                                      
                                                       parent-idx)]
         
-        (ms-push build-stack fn-call)        
+        (ms-push build-stack {:fn-call-idx tl-idx
+                              :curr-fn-call fn-call})        
         (ml-add timeline fn-call)
         tl-idx)))
 
@@ -49,9 +49,9 @@
     (locking this
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [{:keys [fn-call-idx curr-fn-call]} (ms-peek build-stack)
               tl-idx (ml-count timeline)
-              fn-ret (fn-return-trace/make-fn-return-trace coord ret-val tl-idx (index-protos/entry-idx curr-fn-call))]
+              fn-ret (fn-return-trace/make-fn-return-trace coord ret-val fn-call-idx)]
           (index-protos/set-ret-idx curr-fn-call tl-idx)          
           (ml-add timeline fn-ret)
           (ms-pop build-stack)
@@ -61,12 +61,11 @@
     (locking this
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [{:keys [fn-call-idx curr-fn-call]} (ms-peek build-stack)
               tl-idx (ml-count timeline)
               fn-unwind (fn-return-trace/make-fn-unwind-trace coord
                                                               throwable
-                                                              tl-idx
-                                                              (index-protos/entry-idx curr-fn-call))]
+                                                              fn-call-idx)]
           (index-protos/set-ret-idx curr-fn-call tl-idx)
           (ml-add timeline fn-unwind)
           (ms-pop build-stack)
@@ -77,8 +76,8 @@
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
         (let [tl-idx (ml-count timeline)
-              curr-fn-call (ms-peek build-stack)
-              expr-exec (expr-trace/make-expr-trace coord expr-val tl-idx (index-protos/entry-idx curr-fn-call))]
+              {:keys [fn-call-idx]} (ms-peek build-stack)
+              expr-exec (expr-trace/make-expr-trace coord expr-val fn-call-idx)]
           (ml-add timeline expr-exec)
           tl-idx))))
   
@@ -86,7 +85,7 @@
     ;; discard all expressions when no FnCall has been made yet
     (locking this
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [{:keys [curr-fn-call]} (ms-peek build-stack)
               last-entry-idx (ml-count timeline)
               bind-trace (bind-trace/make-bind-trace symb-name symb-val coord last-entry-idx)]
           (index-protos/add-binding curr-fn-call bind-trace)))))
@@ -215,7 +214,10 @@
             (if (expr-trace/expr-trace? tle)
               
               ;; if expr collect it
-              (recur (inc idx) (conj! collected tle))
+              (recur (inc idx) (conj! collected (-> tle
+                                                    index-protos/as-immutable
+                                                    (assoc :idx idx
+                                                           :fn-call-idx idx))))
 
               ;; else if fn-call, jump over
               (if (fn-call-trace/fn-call-trace? tle)
@@ -343,7 +345,9 @@
                            :prev      (timeline-prev-idx timeline idx)
                            :at   idx)
               tl-entry (get timeline target-idx)]
-          (index-protos/as-immutable tl-entry)))))
+          (-> tl-entry
+              index-protos/as-immutable
+              (assoc :idx idx))))))
   
 (defn timeline-find-entry [timeline from-idx backward? pred]
   (locking timeline
@@ -359,13 +363,16 @@
                           (get timeline (index-protos/fn-call-idx tl-entry)))
                 form-id (index-protos/get-form-id fn-call)]
             (if (pred form-id tl-entry)
-              (index-protos/as-immutable tl-entry)
+              (-> tl-entry
+                  index-protos/as-immutable
+                  (assoc :idx i))
               (recur (next-idx i)))))))))
 
 (defn tree-frame-data [timeline fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
   (if (= fn-call-idx tree-root-idx)
     {:root? true}
     (locking timeline
+      
       (when (pos? (count timeline))
         (let [fn-call (get timeline fn-call-idx)
               _ (assert (fn-call-trace/fn-call-trace? fn-call) "Frame data should be called with a idx that correspond to a fn-call")
@@ -376,6 +383,7 @@
                        :args-vec (index-protos/get-fn-args fn-call)
                        :form-id (index-protos/get-form-id fn-call)
                        :fn-call-idx fn-call-idx
+                       :idx fn-call-idx
                        :parent-fn-call-idx (index-protos/get-parent-idx fn-call)}
               fr-data (cond-> fr-data
                         (nil? fn-return)                             (assoc :return/kind :waiting)
@@ -389,10 +397,14 @@
               fr-data (if include-exprs?
                         (let [expressions (fn-call-exprs timeline fn-call-idx)]
                           ;; expr-executions will contain also the fn-return at the end
-                          (assoc fr-data :expr-executions (cond-> (mapv index-protos/as-immutable expressions)
-                                                            fn-return (conj (index-protos/as-immutable fn-return)))))
+                          (assoc fr-data :expr-executions (cond-> expressions
+                                                            fn-return (conj (-> fn-return
+                                                                                index-protos/as-immutable
+                                                                                (assoc :idx fn-ret-idx))))))
                         fr-data)
               fr-data (if include-binds?
                         (assoc fr-data :bindings (map index-protos/as-immutable (index-protos/bindings fn-call)))
                         fr-data)]
+          (println "@@@ Getting data for " fn-call-idx)
+          (println "@@@ got" fr-data)
           fr-data)))))
