@@ -820,3 +820,20 @@
   
   [form coord]
   (hansel-utils/get-form-at-coord form coord))
+
+(defn fn-call-trace? [x]
+  (fn-call-trace/fn-call-trace? x))
+
+(defn expr-trace? [x]
+  (expr-trace/expr-trace? x))
+
+(defn fn-return-trace? [x]
+  (fn-return-trace/fn-return-trace? x))
+
+(defn fn-unwind-trace? [x]
+  (fn-return-trace/fn-unwind-trace? x))
+
+(defn fn-end-trace?
+  "Returns true if `x` is a `fn-return-trace?` or `fn-unwind-trace?`"
+  [x]
+  (fn-return-trace/fn-end-trace? x))
