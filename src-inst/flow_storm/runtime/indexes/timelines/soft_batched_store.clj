@@ -1,5 +1,5 @@
-(ns flow-storm.runtime.indexes.soft-batched-store
-  (:require [clojure.test :refer [deftest testing is]]
+(ns flow-storm.runtime.indexes.timelines.soft-batched-store
+  (:require [clojure.test :refer [deftest is]]
             [clojure.math :as math]
             [clojure.core.protocols :as core.protocols]
             [clojure.datafy :as d])

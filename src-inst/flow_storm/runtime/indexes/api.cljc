@@ -92,7 +92,8 @@
   
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.timeline-index :as timeline-index]            
+            [flow-storm.runtime.indexes.timelines.queries :as timeline-queries]            
+            [flow-storm.runtime.indexes.timelines.simple :refer [make-index]]            
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
@@ -217,7 +218,7 @@
     (index-protos/flow-exists? flow-thread-registry flow-id)))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
-  (let [thread-indexes {:timeline-index (timeline-index/make-index)
+  (let [thread-indexes {:timeline-index (make-index)
                         :fn-call-stats-index (fn-call-stats-index/make-index)
                         :fn-call-limits (atom @fn-call-limits)
                         :thread-limited (atom nil)}]    
@@ -374,11 +375,11 @@
 (defn timeline-entry [flow-id thread-id idx drift]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
     (when timeline-index
-      (timeline-index/timeline-entry timeline-index idx drift))))
+      (timeline-queries/timeline-entry timeline-index idx drift))))
 
 (defn frame-data [flow-id thread-id idx opts]  
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (timeline-index/tree-frame-data timeline-index idx opts)))
+    (timeline-queries/tree-frame-data timeline-index idx opts)))
 
 (defn- coord-in-scope? [scope-coord current-coord]
   (if (empty? scope-coord)
@@ -388,8 +389,8 @@
 
 (defn bindings [flow-id thread-id idx {:keys [all-frame?]}]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        {:keys [fn-call-idx] :as entry} (timeline-index/timeline-entry timeline-index idx :at)
-        frame-data (timeline-index/tree-frame-data timeline-index fn-call-idx {:include-binds? true})
+        {:keys [fn-call-idx] :as entry} (timeline-queries/timeline-entry timeline-index idx :at)
+        frame-data (timeline-queries/tree-frame-data timeline-index fn-call-idx {:include-binds? true})
         [entry-coord entry-idx] (case (:type entry)
                                   :fn-call   [[] fn-call-idx]
                                   :fn-return [(:coord entry) (:idx entry)]
@@ -422,7 +423,7 @@
 
   [flow-id thread-id fn-call-idx]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (timeline-index/tree-frame-data timeline-index fn-call-idx {})))
+    (timeline-queries/tree-frame-data timeline-index fn-call-idx {})))
 
 (defn callstack-node-childs
 
@@ -443,9 +444,9 @@
   
   [flow-id thread-id fn-call-idx]
   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        {:keys [fn-call-idx-path]} (timeline-index/tree-frame-data timeline-index fn-call-idx {:include-path? true})]
+        {:keys [fn-call-idx-path]} (timeline-queries/tree-frame-data timeline-index fn-call-idx {:include-path? true})]
     (reduce (fn [stack fidx]
-              (let [{:keys [fn-name fn-ns fn-call-idx form-id]} (timeline-index/tree-frame-data timeline-index fidx {})
+              (let [{:keys [fn-name fn-ns fn-call-idx form-id]} (timeline-queries/tree-frame-data timeline-index fidx {})
                     {:keys [form/def-kind multimethod/dispatch-val]} (get-form form-id)]
                 (conj stack (cond-> {:fn-name fn-name
                                      :fn-ns fn-ns
@@ -493,7 +494,7 @@
       (reduce (fn [r tl-entry]
                 (if (and (fn-call-trace/fn-call-trace? tl-entry)
                          (pred tl-entry))
-                  (conj! r (timeline-index/tree-frame-data timeline-index (index-protos/entry-idx tl-entry) {}))
+                  (conj! r (timeline-queries/tree-frame-data timeline-index (index-protos/entry-idx tl-entry) {}))
                   r))
               (transient [])
               timeline-index))))
@@ -530,7 +531,7 @@
 (defn find-fn-call [fq-fn-call-symb from-idx {:keys [backward?]}]  
   (some (fn [[flow-id thread-id]]
           (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-            (when-let [fn-call (timeline-index/timeline-find-entry
+            (when-let [fn-call (timeline-queries/timeline-find-entry
                                 timeline-index
                                 from-idx
                                 backward?
@@ -547,7 +548,7 @@
   (some (fn [[fid tid]]
           (when (= flow-id fid)
             (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
-              (when-let [fn-call (timeline-index/timeline-find-entry timeline-index
+              (when-let [fn-call (timeline-queries/timeline-find-entry timeline-index
                                                                    0
                                                                    false
                                                                    (fn [_ entry]
@@ -587,7 +588,7 @@
                            (= thread-id tid)))
               (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
                     from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]
-                (when-let [entry (timeline-index/timeline-find-entry timeline-index
+                (when-let [entry (timeline-queries/timeline-find-entry timeline-index
                                                                      from-idx
                                                                      backward?
                                                                      search-pred)]
@@ -640,7 +641,7 @@
                                    (skip-threads tid))))
                 (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
                       from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]                  
-                  (when-let [entry (timeline-index/timeline-find-entry timeline-index
+                  (when-let [entry (timeline-queries/timeline-find-entry timeline-index
                                                                      from-idx
                                                                      backward?
                                                                      search-pred)]

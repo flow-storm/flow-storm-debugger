@@ -15,7 +15,6 @@
             [hansel.api :as hansel]
             [flow-storm.api :as fs-api]
             [flow-storm.runtime.indexes.api :as index-api]
-            [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error log]]
             [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
@@ -241,4 +240,18 @@
   (index-api/find-expr-entry {:backward? true
                               :equality-val 42})
 
+  )
+
+(require '[clojure.datafy :refer [datafy]])
+(require '[flow-storm.runtime.indexes.timelines.soft-batched-store])
+(import '[flow_storm.runtime.indexes.timelines.soft_batched_store SoftBatchedStore])
+
+(extend-protocol flow-storm.runtime.values/SnapshotP
+
+  SoftBatchedStore
+  (snapshot-value [sbs]
+    (datafy sbs))
+
+  java.util.ArrayList
+  (snapshot-value [a] (into [] a))
   )

@@ -59,7 +59,7 @@ The timeline is the main recording structure, and what every FlowStorm functiona
 You can see a diagram of the timeline internal structure
 [here](https://raw.githubusercontent.com/flow-storm/flow-storm-debugger/master/docs/timeline.svg).
 
-It is currently implemented as `flow-storm.runtime.indexes.timeline-index/ExecutionTimelineTree` type, which internally
+It is currently implemented as `flow-storm.runtime.indexes.timelines.simple/ExecutionTimelineTree` type, which internally
 uses a mutable list. It would be simpler if this could be an immutable list but the decision was made because it needs
 to be fast to build, and without too much garbage generation, so we don't make the debuggee threads too slow. 
 With the current architecture transients can't be used because there isn't a trace that indicates that a thread is done,

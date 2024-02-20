@@ -23,7 +23,7 @@
    'flow-storm.api
    'flow-storm.runtime.debuggers-api
    'flow-storm.runtime.types.fn-call-trace
-   'flow-storm.runtime.indexes.timeline-index
+   'flow-storm.runtime.indexes.timelines.timeline-queries
    'flow-storm.runtime.indexes.api
    'flow-storm.runtime.indexes.protocols
    'flow-storm.runtime.types.fn-return-trace
