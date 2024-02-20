@@ -18,8 +18,8 @@
 
 (deftype SoftBatchedStore
     [^ArrayList                          soft-batches    ;; ArrayList<SoftReference> to batches (ArrayList)
-     ^:unsynchronized-mutable ^ArrayList building-batch  ;; ArrayList<Object>
-     ^:unsynchronized-mutable ^long      curr-idx
+     ^:unsynchronized-mutable ^objects   building-batch  ;; Object[]
+     ^:unsynchronized-mutable ^long      batch-sub-idx
      ^long                               batch-bits-cnt
      ^long                               batch-sub-idx-mask
      ^long                               batch-size
@@ -43,13 +43,14 @@
 
       ;; when the building-batch is full, add a new batch and move
       ;; the building to soft-batches
-      (when (> (inc (.size building-batch)) batch-size)
+      (when (> (inc batch-sub-idx) batch-size)
         (.add soft-batches (SoftReference. building-batch))
-        (set! building-batch (ArrayList.)))
+        (set! building-batch (object-array batch-size))
+        (set! batch-sub-idx 0))
 
       ;; add the o to the building-batch
-      (.add building-batch o)
-      (set! curr-idx (inc curr-idx))
+      (aset building-batch batch-sub-idx o)
+      (set! batch-sub-idx (inc batch-sub-idx))
       this))
 
   clojure.lang.ILookup
@@ -61,12 +62,12 @@
 
         ;; if the requested idx is on the building-batch
         (if (= (.size soft-batches) req-batch)
-          (.get building-batch req-batch-sub-idx)
+          (aget building-batch req-batch-sub-idx)
 
           ;; else let's look it in the soft-batches
           (let [^SoftReference sb-ref (.get soft-batches req-batch)]
-            (if-let [^ArrayList soft-batch-arr (.get sb-ref)]
-              (.get soft-batch-arr req-batch-sub-idx)
+            (if-let [^objects soft-batch-arr (.get sb-ref)]
+              (aget soft-batch-arr req-batch-sub-idx)
               ::cleared))))))
 
   (valAt [this idx not-found]
@@ -83,7 +84,7 @@
                              ::cleared) )
                          soft-batches)
      :building-batch (into [] building-batch)
-     :curr-idx curr-idx}))
+     :batch-sub-idx batch-sub-idx}))
 
 (defn make-soft-batched-store
 
@@ -93,7 +94,7 @@
 
   (let [batch-bits-cnt (log2 batch-size)]
     (SoftBatchedStore. (ArrayList.)
-                       (ArrayList.)
+                       (object-array batch-size)
                        0
                        batch-bits-cnt
                        (dec (bit-shift-left 1 batch-bits-cnt))
@@ -103,12 +104,12 @@
 (deftest building-batch-test
   (let [^SoftBatchedStore sbs (make-soft-batched-store 256)]
     (-> sbs
+        (append-obj :obj0)
         (append-obj :obj1)
-        (append-obj :obj2)
         (append-obj :obj2))
-    (is (= :obj1 (get sbs 0)))
-    (is (= :obj2 (get sbs 1)))
-    (is (= :obj3 (get sbs 2)))))
+    (is (= :obj0 (get sbs 0)))
+    (is (= :obj1 (get sbs 1)))
+    (is (= :obj2 (get sbs 2)))))
 
 (deftest soft-batches-test
   (let [^SoftBatchedStore sbs (make-soft-batched-store 256)
@@ -118,10 +119,10 @@
     (is (= :obj255 (get sbs 255)))
     (is (= :obj256 (get sbs 256)))
 
-    (let [{:keys [soft-batches building-batch]} (d/datafy sbs)]
+    (let [{:keys [soft-batches batch-sub-idx]} (d/datafy sbs)]
       (is (= 1   (count soft-batches)))
       (is (= 256 (count (first soft-batches))))
-      (is (= 4   (count building-batch))))))
+      (is (= 4   batch-sub-idx)))))
 
 (comment
   (float (/ (* 24 (math/pow 2 20)) 1024 1024)) ;; ~ 380 Mb batches
