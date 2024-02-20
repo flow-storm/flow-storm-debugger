@@ -570,32 +570,29 @@
   - fn-ns, the function namespace to match.
   - fn-name, the function name to match.
   - args-pred, a predicate of one argument that will receive the args vector.
-  - collect?, when true return a collection of all matches, otherwise return on first match. Defaults to false.
 
   Absent criteria that doesn't have a default value will always match."
   
-  [{:keys [flow-id thread-id backward? from-idx form-id fn-ns fn-name args-pred collect?] :as criteria}]
+  [{:keys [flow-id thread-id backward? from-idx form-id fn-ns fn-name args-pred] :as criteria}]
   (let [search-pred (fn [entry-form-id tl-entry]
                       (and (fn-call-trace/fn-call-trace? tl-entry)
                            (if form-id      (= form-id entry-form-id)                    true)
                            (if fn-ns (= (index-protos/get-fn-ns tl-entry) fn-ns)         true)
                            (if fn-name (= (index-protos/get-fn-name tl-entry) fn-name)   true)
-                           (if args-pred (args-pred (index-protos/get-fn-args tl-entry)) true)))
-        matcher (fn [[fid tid]]
-                  (when (and (or (not (contains? criteria :flow-id))
-                                 (= flow-id fid))
-                             (or (not (contains? criteria :thread-id))
-                                 (= thread-id tid)))
-                    (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
-                          from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]
-                      (when-let [entry (timeline-index/timeline-find-entry timeline-index
-                                                                           from-idx
-                                                                           backward?
-                                                                           search-pred)]
-                        (assoc entry :flow-id fid :thread-id tid)))))]
-    (if collect?
-      (keep matcher (index-protos/all-threads flow-thread-registry))
-      (some matcher (index-protos/all-threads flow-thread-registry)))))
+                           (if args-pred (args-pred (index-protos/get-fn-args tl-entry)) true)))]
+    (some (fn [[fid tid]]
+            (when (and (or (not (contains? criteria :flow-id))
+                           (= flow-id fid))
+                       (or (not (contains? criteria :thread-id))
+                           (= thread-id tid)))
+              (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
+                    from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]
+                (when-let [entry (timeline-index/timeline-find-entry timeline-index
+                                                                     from-idx
+                                                                     backward?
+                                                                     search-pred)]
+                  (assoc entry :flow-id fid :thread-id tid)))))
+          (index-protos/all-threads flow-thread-registry))))
 
 (defn find-expr-entry
 
@@ -613,12 +610,11 @@
   - coord, a vector with a coordinate to match, like [3 1 2].
   - custom-pred-form, a string with a form to use as a custom predicate over expression values, like \"(fn [v] (map? v))\"
   - skip-threads, a set of threads ids to skip.
-  - collect?, when true return a collection of all matches, otherwise return on first match. Defaults to false.
   
   Absent criteria that doesn't have a default value will always match.
   "
   
-  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward? skip-threads collect?] :as criteria}]
+  [{:keys [flow-id thread-id from-idx identity-val equality-val custom-pred-form coord form-id backward? skip-threads] :as criteria}]
   
   (try
     (let [coord (when coord (utils/stringify-coord coord))
@@ -634,24 +630,22 @@
                              (if equality-val (= (index-protos/get-expr-val tl-entry) equality-val)          true)
                              (if coord        (= coord (index-protos/get-coord-raw tl-entry))                true)
                              (if form-id      (= form-id entry-form-id)                                      true)
-                             (if custom-pred-fn (custom-pred-fn (index-protos/get-expr-val tl-entry))        true)))
-          matcher (fn [[fid tid]]
-                    (when (and (or (not (contains? criteria :flow-id))
-                                   (= flow-id fid))
-                               (or (not (contains? criteria :thread-id))
-                                   (= thread-id tid))
-                               (not (and (set? skip-threads)
-                                         (skip-threads tid))))
-                      (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
-                            from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]                  
-                        (when-let [entry (timeline-index/timeline-find-entry timeline-index
-                                                                             from-idx
-                                                                             backward?
-                                                                             search-pred)]
-                          (assoc entry :flow-id fid :thread-id tid)))))]
-      (if collect?
-        (keep matcher (index-protos/all-threads flow-thread-registry))
-        (some matcher (index-protos/all-threads flow-thread-registry))))
+                             (if custom-pred-fn (custom-pred-fn (index-protos/get-expr-val tl-entry))        true)))]
+      (some (fn [[fid tid]]
+              (when (and (or (not (contains? criteria :flow-id))
+                             (= flow-id fid))
+                         (or (not (contains? criteria :thread-id))
+                             (= thread-id tid))
+                         (not (and (set? skip-threads)
+                                   (skip-threads tid))))
+                (let [{:keys [timeline-index]} (get-thread-indexes fid tid)
+                      from-idx (or from-idx (if backward? (dec (count timeline-index)) 0))]                  
+                  (when-let [entry (timeline-index/timeline-find-entry timeline-index
+                                                                     from-idx
+                                                                     backward?
+                                                                     search-pred)]
+                    (assoc entry :flow-id fid :thread-id tid)))))
+            (index-protos/all-threads flow-thread-registry)))
     #?(:clj (catch Exception e (utils/log "Exception searching for timeline entry" (.getMessage e)))
        :cljs (catch js/Error e (utils/log "Exception searching for timeline entry" (.-message e))))))
 
