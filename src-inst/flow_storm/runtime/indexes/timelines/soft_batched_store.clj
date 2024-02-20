@@ -75,6 +75,13 @@
       (when (= ::cleared o)
         not-found)))
 
+  clojure.lang.Counted
+  (count
+    [this]
+    (locking this
+      (+ (* batch-size (.size soft-batches))
+         batch-sub-idx)))
+
   core.protocols/Datafiable
 
   (datafy [_]
@@ -109,13 +116,14 @@
         (append-obj :obj2))
     (is (= :obj0 (get sbs 0)))
     (is (= :obj1 (get sbs 1)))
-    (is (= :obj2 (get sbs 2)))))
+    (is (= :obj2 (get sbs 2)))
+    (is (= 3 (count sbs)))))
 
 (deftest soft-batches-test
   (let [^SoftBatchedStore sbs (make-soft-batched-store 256)
         _ (doseq [i (range 260)]
             (append-obj sbs (keyword (str "obj" i))))]
-
+    (is (= 260 (count sbs)))
     (is (= :obj255 (get sbs 255)))
     (is (= :obj256 (get sbs 256)))
 

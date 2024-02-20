@@ -53,7 +53,6 @@
   - `get-fn-args`
   - `get-fn-parent-idx`
   - `get-fn-ret-idx`
-  - `get-fn-bindings`
 
   You can also access the timeline as a tree by calling :
 
@@ -93,7 +92,8 @@
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.timelines.queries :as timeline-queries]            
-            [flow-storm.runtime.indexes.timelines.simple :refer [make-index]]            
+            #_[flow-storm.runtime.indexes.timelines.simple :refer [make-timeline]]            
+            [flow-storm.runtime.indexes.timelines.soft :refer [make-timeline]]            
             [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
@@ -218,7 +218,7 @@
     (index-protos/flow-exists? flow-thread-registry flow-id)))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
-  (let [thread-indexes {:timeline-index (make-index)
+  (let [thread-indexes {:timeline-index (make-timeline)
                         :fn-call-stats-index (fn-call-stats-index/make-index)
                         :fn-call-limits (atom @fn-call-limits)
                         :thread-limited (atom nil)}]    
@@ -787,21 +787,6 @@
   "Given a FnCallTrace timeline entry returns the index of its matching FnReturnTrace or FnUnwindTrace entry."
   [entry]
   (index-protos/get-ret-idx entry))
-
-(defn get-fn-bindings
-  "Given a FnCallTrace entry return its bindings."
-  [entry]
-  (index-protos/bindings entry))
-
-(defn get-bind-sym-name
-  "Given a BindTrace, return its symbol name."
-  [entry]
-  (index-protos/get-bind-sym-name entry))
-
-(defn get-bind-val
-  "Given a BindTrace, return its value."
-  [entry]
-  (index-protos/get-bind-val entry))
 
 (defn tote-flow-id
   [entry]

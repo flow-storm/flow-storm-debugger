@@ -64,6 +64,11 @@
    :clj (defn ml-clear [^ArrayList mlist]
           (.clear mlist)))
 
+#?(:cljs (defn ml-trim [mlist]
+           mlist)
+   :clj (defn ml-trim [^ArrayList mlist]
+          (.trimToSize mlist)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Mutable concurrent list ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

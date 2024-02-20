@@ -11,6 +11,9 @@
   (add-expr-exec [_ coord expr-val])  
   (add-bind [_ coord symb-name symb-val]))
 
+(defprotocol BindQueryP
+  (bindings [_ fn-call-idx]))
+
 (defprotocol TreeBuilderP
   (reset-build-stack [_]))
 
@@ -84,9 +87,7 @@
   (set-parent-idx [_ idx])
   (get-ret-idx [_])
   (set-ret-idx [_ idx])    
-  (add-binding [_ bind])
-  (set-idx [_ idx])
-  (bindings [_]))
+  (set-idx [_ idx]))
 
 (defprotocol BindTraceP
   (get-bind-sym-name [_])

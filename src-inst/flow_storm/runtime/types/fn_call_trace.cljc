@@ -1,6 +1,5 @@
 (ns flow-storm.runtime.types.fn-call-trace
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.utils :as index-utils]
             [flow-storm.utils :as utils]))
 
 (def nil-idx -1)
@@ -16,7 +15,6 @@
                               fnNs
      ^int                     formId     
                               fnArgs
-                              frameBindings
      ^:unsynchronized-mutable ^int thisIdx
      ^:unsynchronized-mutable ^int parentIdx
      ^:unsynchronized-mutable ^int retIdx]
@@ -39,11 +37,7 @@
     (set! parentIdx (int idx)))
   (set-idx [_ idx]
     (set! thisIdx (int idx)))
-  (add-binding [_ bind]
-    (index-utils/ml-add frameBindings bind))
-  (bindings [_]
-    (into [] frameBindings))
-
+  
   index-protos/TimelineEntryP
 
   (entry-type [_] :fn-call)
@@ -80,7 +74,6 @@
                  fn-ns
                  form-id
                  fn-args
-                 (index-utils/make-mutable-list)
                  this-idx
                  (or parent-idx nil-idx)
                  nil-idx))

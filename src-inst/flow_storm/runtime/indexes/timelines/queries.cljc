@@ -199,6 +199,6 @@
                                                             fn-return (conj (index-protos/as-immutable fn-return)))))
                         fr-data)
               fr-data (if include-binds?
-                        (assoc fr-data :bindings (map index-protos/as-immutable (index-protos/bindings fn-call)))
+                        (assoc fr-data :bindings (map index-protos/as-immutable (index-protos/bindings timeline fn-call-idx)))
                         fr-data)]
           fr-data)))))
