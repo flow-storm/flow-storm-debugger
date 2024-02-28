@@ -1,31 +1,43 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button button]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
-           [javafx.geometry Orientation Insets]
+           [javafx.geometry Orientation Insets Pos]
            [javafx.scene Node]
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
-(defn- functions-cell-factory [_ x]
-  (if (number? x)
-    (label (str x))
+(defn- show-function-calls [flow-id thread-id fn-call]
+  (let [{:keys [form-id fn-ns fn-name]} fn-call
+        [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
+        [fn-calls-lbl] (obj-lookup flow-id thread-id "function_calls_lbl")
+        fn-call-traces (runtime-api/find-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id)]
+    (.setText fn-calls-lbl (format "Calls for: %s/%s" fn-ns fn-name))
+    (clear)
+    (add-all fn-call-traces)))
 
-    (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} x
-          fn-lbl (case form-def-kind
-                   :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}))) form-def-kind)
-                   :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                   :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                   :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                   :deftype          (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                   :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
-                   (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))]
-      fn-lbl)))
+(defn- functions-cell-factory [flow-id thread-id _ {:keys [cell-type] :as cell-info}]
+  (case cell-type
+    :calls (doto (h-box [(button :label (str (:cnt cell-info))
+                            :classes ["btn-sm"]
+                            :on-click (fn [] (show-function-calls flow-id thread-id cell-info)))])
+             (.setAlignment Pos/CENTER_RIGHT))
+
+    :function (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} cell-info
+                    fn-lbl (case form-def-kind
+                             :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}))) form-def-kind)
+                             :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                             :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                             :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                             :deftype          (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                             :defn            (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
+                             (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind))]
+                fn-lbl)))
 
 (defn- uninstrument-items [items]
   (let [groups (->> items
@@ -50,25 +62,13 @@
           (runtime-api/eval-form rt-api form {:instrument? false
                                               :ns form-ns}))))))
 
-(defn- show-function-calls [flow-id thread-id selected-items]
-  (let [{:keys [form-id fn-ns fn-name]} (first selected-items)
-        [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
-        fn-call-traces (runtime-api/find-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id)]
-    (clear)
-    (add-all fn-call-traces)))
-
-(defn function-enter [flow-id thread-id selected-items]
-  ;; selected items contains rows like [{...fn-call...} cnt]
-  (let [selected-items (map first selected-items)]
-    (show-function-calls flow-id thread-id selected-items)))
-
 (defn- function-click [flow-id thread-id mev selected-items {:keys [table-view-pane]}]
   ;; selected items contains rows like [{...fn-call...} cnt]
   (let [selected-items (map first selected-items)]
     (cond
       (and (= MouseButton/PRIMARY (.getButton mev))
            (= 2 (.getClickCount mev)))
-      (show-function-calls flow-id thread-id selected-items)
+      (show-function-calls flow-id thread-id (first selected-items))
 
       (and (= MouseButton/SECONDARY (.getButton mev))
            (not (dbg-state/clojure-storm-env?)))
@@ -82,11 +82,11 @@
 
 (defn- create-fns-list-pane [flow-id thread-id]
   (let [{:keys [table-view-pane table-view] :as tv-data} (table-view
-                                               {:columns ["Functions" "Count"]
-                                                :cell-factory-fn functions-cell-factory
+                                               {:columns ["Functions" "Calls"]
+                                                :cell-factory-fn (partial functions-cell-factory flow-id thread-id)
                                                 :resize-policy :constrained
                                                 :on-click (partial function-click flow-id thread-id)
-                                                :on-enter (fn [sel-items] (function-enter flow-id thread-id sel-items))
+                                                :on-enter (fn [sel-items] (show-function-calls flow-id thread-id (ffirst sel-items)))
                                                 :selection-mode :multiple
                                                 :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
                                                                     (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
@@ -152,19 +152,26 @@
                                           (into [(label "Print args:")])
                                           h-box)
                                  (.setSpacing 8))
-        fn-call-list-pane (v-box [args-print-type-checks list-view-pane])]
+        fn-calls-lbl (label "")
+        fn-call-list-pane (doto (v-box [args-print-type-checks
+                                        fn-calls-lbl
+                                        list-view-pane])
+                            (.setSpacing 5))]
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
     (store-obj flow-id thread-id "function_calls_list" lv-data)
+    (store-obj flow-id thread-id "function_calls_lbl"  fn-calls-lbl)
+
     fn-call-list-pane))
 
 
 (defn update-functions-pane [flow-id thread-id]
   (let [fn-call-stats (->> (runtime-api/fn-call-stats rt-api flow-id thread-id)
                            (sort-by :cnt >)
-                           (map (fn [{:keys [cnt] :as fn-call}]
-                                  [fn-call cnt])))
+                           (map (fn [fn-call]
+                                  [(assoc fn-call :cell-type :function)
+                                   (assoc fn-call :cell-type :calls)])))
         [{:keys [add-all clear]}] (obj-lookup flow-id thread-id "functions_table_data")]
     (clear)
     (add-all fn-call-stats)))

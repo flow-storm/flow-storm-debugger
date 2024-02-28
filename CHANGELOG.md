@@ -5,7 +5,9 @@
 ### New Features
     
 ### Changes 
-        
+    
+    - Improved functions pane.
+    
 ### Bugs fixed
 
 ## 3.12.0 (15-02-2024)
