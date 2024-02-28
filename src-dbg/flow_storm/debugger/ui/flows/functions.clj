@@ -6,6 +6,7 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
+            [clojure.pprint :refer [cl-format]]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.geometry Orientation Insets Pos]
@@ -30,9 +31,9 @@
 
 (defn- functions-cell-factory [flow-id thread-id _ {:keys [cell-type] :as cell-info}]
   (case cell-type
-    :calls (doto (h-box [(button :label (str (:cnt cell-info))
-                            :classes ["btn-sm"]
-                            :on-click (fn [] (show-function-calls flow-id thread-id cell-info)))])
+    :calls (doto (h-box [(button :label (cl-format nil "~:d" (:cnt cell-info))
+                                 :classes ["btn-sm"]
+                                 :on-click (fn [] (show-function-calls flow-id thread-id cell-info)))])
              (.setAlignment Pos/CENTER_RIGHT))
 
     :function (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} cell-info
