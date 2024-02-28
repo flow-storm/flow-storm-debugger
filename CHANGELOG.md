@@ -7,6 +7,7 @@
 ### Changes 
     
     - Improved functions pane.
+    - Change stack double click behavior as per #150
     
 ### Bugs fixed
 

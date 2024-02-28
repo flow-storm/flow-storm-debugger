@@ -357,7 +357,7 @@
                                   (= 2 (.getClickCount mev)))
                          (jump-to-coord flow-id
                                         thread-id
-                                        (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)))))
+                                        (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :prev)))))
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false
                     :selection-mode :single
