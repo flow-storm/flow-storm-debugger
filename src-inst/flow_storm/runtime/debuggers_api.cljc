@@ -60,7 +60,7 @@
    :breakpoints (tracer/all-breakpoints)})
 
 (defn val-pprint [vref opts]
-  (rt-values/val-pprint vref opts))
+  (rt-values/val-pprint-ref vref opts))
 
 (defn shallow-val [vref]
   (rt-values/shallow-val vref))
@@ -138,9 +138,19 @@
           {}
           (index-api/all-threads)))
 
-(defn find-fn-frames [flow-id thread-id fn-ns fn-name form-id]  
-  (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)        
-        frames (into [] (map reference-frame-data!) fn-frames)]
+(defn collect-fn-frames [flow-id thread-id fn-ns fn-name form-id render-args]
+  (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
+        pprint-opts {:print-length 3
+                     :print-level  3
+                     :print-meta?  false
+                     :pprint?      false}
+        render-frame (fn [{:keys [args-vec ret throwable] :as fn-frame}]
+                       (cond-> fn-frame
+                         true      reference-frame-data!
+                         true      (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc pprint-opts :nth-elems render-args))))
+                         ret       (assoc :ret-str       (:val-str (rt-values/val-pprint ret pprint-opts)))
+                         throwable (assoc :throwable-str (ex-message throwable))))
+        frames (into [] (map render-frame) fn-frames)]
     frames))
 
 (defn find-fn-call [fq-fn-call-symb from-idx opts]
@@ -186,7 +196,7 @@
                                                            (fn-return-trace/fn-return-trace? tl-entry))
 
                                                      (let [result (index-protos/get-expr-val tl-entry)]
-                                                       (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
+                                                       (if (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
                                                                                                                   :print-level print-level
                                                                                                                   :pprint? false}))
                                                                           query-str)
@@ -230,7 +240,7 @@
                                
                                (let [result (index-protos/get-expr-val tl-entry)]
                                  
-                                 (if (str/includes? (:val-str (rt-values/val-pprint result {:print-length print-length
+                                 (if (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
                                                                                             :print-level print-level
                                                                                             :pprint? false}))
                                                     query-str)
@@ -443,7 +453,7 @@
              :callstack-node-childs callstack-node-childs
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
-             :find-fn-frames find-fn-frames
+             :collect-fn-frames collect-fn-frames
              :find-expr-entry find-expr-entry
              :total-order-timeline total-order-timeline
              :thread-prints thread-prints

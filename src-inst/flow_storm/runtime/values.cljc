@@ -145,9 +145,8 @@
     (pr-str (:ref/type v))
     (pr-str (type v))))
 
-(defn val-pprint [vref {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
-  (let [val (deref-value vref)
-        val-type (value-type val)
+(defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
+  (let [val-type (value-type val)
         print-fn #?(:clj (if pprint? pp/pprint print) 
                     :cljs (if (and pprint? (not print-meta?)) pp/pprint print)) ;; ClojureScript pprint doesn't support *print-meta*
         val-str (try
@@ -181,6 +180,10 @@
                              "Flow-storm error, value couldn't be pprinted")))]
     {:val-str val-str
      :val-type val-type}))
+
+(defn val-pprint-ref [vref opts]  
+  (let [val (deref-value vref)]
+    (val-pprint val opts)))
 
 (defn- maybe-ref! [x]
   (if (or (boolean? x)

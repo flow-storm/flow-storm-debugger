@@ -5,6 +5,7 @@
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
+            [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
            [javafx.geometry Orientation Insets Pos]
@@ -12,14 +13,20 @@
            [javafx.scene.control CheckBox SplitPane]
            [javafx.scene.input MouseButton]))
 
+(def max-args 9)
+
 (defn- show-function-calls [flow-id thread-id fn-call]
   (let [{:keys [form-id fn-ns fn-name]} fn-call
         [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
         [fn-calls-lbl] (obj-lookup flow-id thread-id "function_calls_lbl")
-        fn-call-traces (runtime-api/find-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id)]
+        [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_fn")
+        sel-args (selected-args-fn)
+        render-args (when (not= (count sel-args) max-args)
+                      sel-args)
+        fn-frames (runtime-api/collect-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id render-args)]
     (.setText fn-calls-lbl (format "Calls for: %s/%s" fn-ns fn-name))
     (clear)
-    (add-all fn-call-traces)))
+    (add-all fn-frames)))
 
 (defn- functions-cell-factory [flow-id thread-id _ {:keys [cell-type] :as cell-info}]
   (case cell-type
@@ -96,15 +103,37 @@
 
     table-view-pane))
 
-(def max-args 9)
-
-(defn- functions-calls-cell-factory [selected-args list-cell {:keys [args-vec]}]
-  (let [sel-args (selected-args)
-        args-vec-str (if (= (count sel-args) max-args)
-                       (:val-str (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false}))
-                       (:val-str (runtime-api/val-pprint rt-api args-vec {:print-length 4 :print-level 4 :pprint? false :nth-elems sel-args})))
-        args-lbl (label args-vec-str)]
-    (.setGraphic ^Node list-cell args-lbl)))
+(defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str] :as xx}]
+  (let [create-inspector (fn [vref]
+                           (value-inspector/create-inspector vref {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
+        args-node (doto (h-box [(button :label "args"
+                                   :classes ["def-btn" "btn-sm"]
+                                   :tooltip "Open this value in the value inspector."
+                                   :on-click (fn [] (create-inspector args-vec)))
+                                (label args-vec-str)])
+                    (.setSpacing 5))
+        ret-node (when ret-str
+                   (doto (h-box [(button :label "ret"
+                                    :classes ["def-btn" "btn-sm"]
+                                    :tooltip "Open this value in the value inspector."
+                                    :on-click (fn [] (create-inspector ret)))
+                                 (label ret-str)])
+                     (.setSpacing 5)))
+        throwable-node (when throwable-str
+                         (doto (h-box [(button :label "throw"
+                                          :classes ["def-btn" "btn-sm"]
+                                          :tooltip "Open this value in the value inspector."
+                                          :on-click (fn [] (create-inspector throwable)))
+                                       (label throwable-str "fail")])
+                           (.setSpacing 5)))
+        cell (doto (v-box [args-node
+                           (cond
+                             ret-str       ret-node
+                             throwable-str throwable-node)]
+                          "contrast-background")
+               (.setSpacing 5)
+               (.setPadding (Insets. 5)))]
+    (.setGraphic ^Node list-cell cell)))
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
@@ -137,14 +166,8 @@
                              (keep-indexed (fn [idx ^CheckBox cb]
                                              (when (.isSelected cb) idx)))))
         {:keys [list-view-pane] :as lv-data} (list-view {:editable? false
-                                                         :cell-factory-fn (partial functions-calls-cell-factory selected-args)
+                                                         :cell-factory-fn (partial functions-calls-cell-factory flow-id thread-id)
                                                          :on-click (partial function-call-click flow-id thread-id)
-                                                         :on-selection-change (fn [_ ret-entry]
-                                                                                (flow-cmp/update-return-pprint-pane flow-id
-                                                                                                                    thread-id
-                                                                                                                    "functions-calls-ret-val"
-                                                                                                                    ret-entry
-                                                                                                                    {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
                                                          :selection-mode :single})
         args-print-type-checks (doto (->> args-checks
                                           (map-indexed (fn [idx cb]
@@ -162,6 +185,7 @@
 
     (store-obj flow-id thread-id "function_calls_list" lv-data)
     (store-obj flow-id thread-id "function_calls_lbl"  fn-calls-lbl)
+    (store-obj flow-id thread-id "function_calls_selected_args_fn" selected-args)
 
     fn-call-list-pane))
 
@@ -184,9 +208,6 @@
                        (.setPadding (Insets. 10.0)))
         fns-list-pane (create-fns-list-pane flow-id thread-id)
         fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
-        fn-calls-ret-pane (flow-cmp/create-pprint-pane flow-id thread-id "functions-calls-ret-val")
-        right-split-pane (doto (SplitPane.)
-                           (.setOrientation (Orientation/VERTICAL)))
         split-pane (doto (SplitPane.)
                      (.setOrientation (Orientation/HORIZONTAL)))
         functions-pane (v-box [controls-box
@@ -195,15 +216,9 @@
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
     (VBox/setVgrow split-pane Priority/ALWAYS)
 
-    (-> right-split-pane
-        .getItems
-        (.addAll [fn-calls-list-pane fn-calls-ret-pane]))
-
-    (.setDividerPosition right-split-pane 0 0.7)
-
     (-> split-pane
         .getItems
-        (.addAll [fns-list-pane right-split-pane]))
+        (.addAll [fns-list-pane fn-calls-list-pane]))
 
     (update-functions-pane flow-id thread-id)
 

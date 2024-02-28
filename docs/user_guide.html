@@ -2416,8 +2416,8 @@ You can use the refresh button at the root to update it.</p>
 <p>Normal functions will be colored black, multimethods magenta and types/records protocols/interfaces implementations in green.</p>
 </div>
 <div class="paragraph">
-<p>Together with the <a href="#_call_stack_tree_tool">call stack tree</a> provide a high level overview of a flow thread execution and allows you to
-jump through time much quicker than single stepping.</p>
+<p>Together with the <a href="#_call_stack_tree_tool">call stack tree</a> it provides a high level overview of a thread execution, and allows you to
+jump through time much faster than single stepping.</p>
 </div>
 <div class="paragraph">
 <p>You can search over the functions list by using the bar at the top.</p>
@@ -2425,8 +2425,9 @@ jump through time much quicker than single stepping.</p>
 <div class="sect4">
 <h5 id="_function_calls"><a class="anchor" href="#_function_calls"></a><a class="link" href="#_function_calls">Function calls</a></h5>
 <div class="paragraph">
-<p>Double clicking on any function will display all function calls on the right sorted by time. Each line will show the arguments vector
-for each call, and you can use the check boxes at the top to hide some of them.</p>
+<p>Clicking on the calls counter of any function will display all function calls on the right sorted by time.
+Each line will show the arguments vector for each call, and their return value.
+Use the check boxes at the top to hide some of the arguments.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2434,7 +2435,10 @@ for each call, and you can use the check boxes at the top to hide some of them.<
 </div>
 </div>
 <div class="paragraph">
-<p>Clicking on any item will display the result of the call in the value pane, while double clicking on any item in the functions call list will move the debugger to that specific point in time.</p>
+<p>Double clicking on any row in the functions call list will jump to the stepper at that point in time.</p>
+</div>
+<div class="paragraph">
+<p>You can also use the <code>args</code> and <code>ret</code> buttons to open the values on the inspector.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3783,7 +3787,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-15 12:24:13 -0300
+Last updated 2024-02-28 10:13:45 -0300
 </div>
 </div>
 </body>

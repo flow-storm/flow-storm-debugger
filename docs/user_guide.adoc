@@ -1018,19 +1018,22 @@ image::user_guide_images/functions.png[]
 
 Normal functions will be colored black, multimethods magenta and types/records protocols/interfaces implementations in green.
 
-Together with the <<#_call_stack_tree_tool, call stack tree>> provide a high level overview of a flow thread execution and allows you to
-jump through time much quicker than single stepping.
+Together with the <<#_call_stack_tree_tool, call stack tree>> it provides a high level overview of a thread execution, and allows you to
+jump through time much faster than single stepping.
 
 You can search over the functions list by using the bar at the top.
 
 ==== Function calls
 
-Double clicking on any function will display all function calls on the right sorted by time. Each line will show the arguments vector
-for each call, and you can use the check boxes at the top to hide some of them.
+Clicking on the calls counter of any function will display all function calls on the right sorted by time.
+Each line will show the arguments vector for each call, and their return value.
+Use the check boxes at the top to hide some of the arguments.
 
 image::user_guide_images/function_calls.png[]
 
-Clicking on any item will display the result of the call in the value pane, while double clicking on any item in the functions call list will move the debugger to that specific point in time.
+Double clicking on any row in the functions call list will jump to the stepper at that point in time.
+
+You can also use the `args` and `ret` buttons to open the values on the inspector.
 
 ==== Un-instrumenting functions
 
