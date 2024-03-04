@@ -22,7 +22,7 @@ As you can see, all ClojureStorm repl commands are invoked by evaluating keyword
 called commands from now on.
 
 Try the :help command just to have a sense of what options are available, but don't focus too much
-on them since we are going to cover them later.
+on them now, we are going to cover them later.
 
 Then type :tut/next to continue.
 "
@@ -31,15 +31,15 @@ Then type :tut/next to continue.
    "
 Let's jump right into debugging some code, but first let's load the debugger UI.
 
-You can always start the FlowStorm UI by executing :dbg, and discard it by just closing
+You can always start the FlowStorm UI by executing :dbg, and discard it by closing
 the window. It will take a couple of seconds the first time, but should open almost instantly
 from there on.
 
-So go ahead and start the UI and I see you on the next slide!
+Go ahead and start the UI and I see you on the next slide!
 "
 
    "
-Great! Now we need some code to debug, so go ahead and evaluate the next expressions:
+Great! Now we need some code to debug. Go ahead and evaluate the next expressions:
 (you can copy and paste them one by one on the repl)
 
 ----------------------------------
@@ -100,13 +100,13 @@ Go and click the first one, which is the `call tree tool`, then move next.
 The `call tree tool` will show you a expandable overview of your recordings.
 
 Expand the one that says `(factorial 5)` and keep expanding it. It will show you
-a tree of functions calls with its arguments. You can click on any nodes and the
+a tree of functions calls with its arguments. You can click on any node and the
 bottom two panels will show you a pretty print of the arguments vector on the left
 and of the return value on the right.
 
 Note: You are going to see other repl evaluations also related to Clojure loading the UI namespaces.
 
-Note2: Once opened the tree will not auto-refresh. Use the refresh button at the root of the tree
+Note2: Once opened, the tree will not auto-refresh. Use the refresh button at the root of the tree
        to update it.
 
 Now let's say you are interested in stepping through the code of your factorial function.
@@ -196,11 +196,15 @@ You should see at least a table with :
                        `user/factorial`                    6
                        `user/iter-factorial`               1
 
-If you double click on the `user/factorial` one, it will show you a list of all the calls with their arguments.
-You can also use the checkboxes at the top to show/hide some of the arguments, which doesn't
-make sense on this case but can come handy on more noisy situations.
+If you double click on the `user/factorial` one, it will show you a list of all its recorded calls,
+together with their arguments, and return values.
 
-You can double click on any of the calls at the left to step over code at that specific point in time.
+You can also use the checkboxes at the top to show/hide some of the arguments, which doesn't
+make sense on this case since we have a single argument, but can be handy in more noisy situations.
+
+You can double click on any of the calls at the right to step over code at that specific point in time,
+or use the `args` or `ret` buttons to inspect the values if they have nested structure. We haven't
+look at the value inspector yet, but we will cover it soon.
 
 Give it a shot, double click on the call with arguments [4] to jump exactly to where (factorial 4) was called.
 
@@ -275,18 +279,20 @@ An exception should show! Something on the lines of :
 
 which is pretty confusing.
 
-You can quickly jump right before the last exception
-by executing :ex
+A new dropdown should appear at the top, showing all the recorded functions
+that throwed instead of returned.
 
-It should open the thread and point the debugger right before the exception happened.
-You can then step backwards and try to figure out where the bug is coming from.
+You can quickly jump right before the exception
+by selecting the last exception and do a step back.
 
-Let's se if you can figure it out!
+You can now step backwards and try to figure out where the bug is coming from.
+
+Give it a shot, try to see if you can figure it out!
 "
 
 
    "
-Before closing let's go over some of the important configuration options and commands
+Now let's go over some of the important configuration options and commands
 displayed by :help.
 
 - :rec and :stop
@@ -319,10 +325,10 @@ re-eval the clojure.* functions you are interested in and instrument them.
 
 
    "
-Before closing this are some tips I've found for using FlowStorm efficiently :
+Before finishing, this are some tips I've found for using FlowStorm efficiently :
 
 - Get rid of all the state (Ctrl-L) before executing the actions you are interested in recording
-- Use the jvm options described in :help to configure it so you don't record unnecessary stuff.
+- Use the jvm options described in :help to configure it, so you don't record unnecessary stuff.
 
 And that is all for the basics. If you find any issues or suggestions feel free
 to open a issue in https://github.com/flow-storm/flow-storm-debugger
@@ -338,7 +344,7 @@ All you have to do is to edit your deps.edn file and add a :dev alias with a con
             \"-Dclojure.storm.instrumentEnable=true\"
             \"-Dclojure.storm.instrumentOnlyPrefixes=YOUR-PROJECT-TOP-NS\"]}
 
-Cheers and Good luck!!
+Cheers and good luck!!
 "
 
    ])
