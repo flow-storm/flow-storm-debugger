@@ -104,7 +104,7 @@
 
     table-view-pane))
 
-(defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str] :as xx}]
+(defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str]}]
   (let [create-inspector (fn [vref]
                            (value-inspector/create-inspector vref {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
         args-node (doto (h-box [(button :label "args"

@@ -8,7 +8,8 @@
 
   (:require [flow-storm.state-management :refer [defstate]]
             [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s])
+  (:import [javafx.stage Stage]))
 
 (s/def ::timestamp                (s/nilable int?))
 (s/def ::print-level int?)
@@ -113,6 +114,9 @@
                                               :ui.object/id)
                                      (s/coll-of :ui.object/node)))
 
+(s/def ::jfx-stage #(instance? Stage %))
+(s/def :ui/jfx-stages (s/coll-of ::jfx-stage))
+
 (s/def :task/event-key keyword?)
 (s/def :task/id any?)
 (s/def ::pending-tasks-subscriptions (s/map-of (s/tuple :task/event-key :task/id)
@@ -165,6 +169,7 @@
                                 :ui/selected-theme
                                 :ui/extra-styles
                                 :ui/jfx-nodes-index
+                                :ui/jfx-stages
                                 ::pending-tasks-subscriptions
                                 ::connection-status
                                 ::local-mode?
@@ -188,6 +193,7 @@
    :local-mode? (boolean local?)
    :extra-styles styles
    :jfx-nodes-index {}
+   :jfx-stages []
    :pending-tasks-subscriptions {}
    :runtime-config nil
    :connection-status {:ws-ready? false
@@ -204,13 +210,6 @@
                      :debug-mode? false}
    :bookmarks {}
    :unwinds []})
-
-(def register-and-init-stage!
-
-  "Globally available function, setup by `flow-storm.debugger.ui.main/start-theming-system`
-   to register stages so they are themed and listen to theme changes"
-
-  nil)
 
 ;; so linter doesn't complain
 (declare state)
@@ -559,6 +558,33 @@
            (remove (fn [u]
                      (= flow-id (:flow-id u)))
                    unwinds))))
+
+;;;;;;;;;;;;;;;;
+;; JFX Stages ;;
+;;;;;;;;;;;;;;;;
+
+(defn jfx-stages []
+  (get @state :jfx-stages))
+
+(defn unregister-jfx-stage! [stg]
+  (swap! state update :jfx-stages (fn [stgs] (filterv #(not= % stg) stgs))))
+
+(defn main-jfx-stage! []
+  (-> state :jfx-stages first))
+
+(defn reset-theming []
+  (let [stages (jfx-stages)
+        new-stylesheets (current-stylesheets)]
+    (doseq [stage stages]
+      (let [scene (.getScene stage)
+            scene-stylesheets (.getStylesheets scene)]
+        (.clear scene-stylesheets)
+        (.addAll scene-stylesheets (into-array String new-stylesheets))))))
+
+(defn register-jfx-stage! [stg]
+  (swap! state update :jfx-stages conj stg)
+  (reset-theming))
+
 
 ;;;;;;;;;;;
 ;; Other ;;

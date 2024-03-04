@@ -175,7 +175,9 @@
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]
 
-      (dbg-state/register-and-init-stage! stage)
+      (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
+      (dbg-state/register-jfx-stage! stage)
+
 
       (-> stage .show))
 

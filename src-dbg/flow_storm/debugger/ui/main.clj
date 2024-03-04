@@ -261,20 +261,12 @@
     (catch Exception e
       (log-error "Couldn't start theme listener" e))))
 
-(defn reset-theming [stages]
-  (let [new-stylesheets (dbg-state/current-stylesheets)]
-    (doseq [stage stages]
-      (let [scene (.getScene stage)
-            scene-stylesheets (.getStylesheets scene)]
-        (.clear scene-stylesheets)
-        (.addAll scene-stylesheets (into-array String new-stylesheets))))))
-
 (defn- toggle-debug-mode []
   (dbg-state/toggle-debug-mode)
   (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
 (defn stop-ui []
-  (let [{:keys [stages theme-listener]} ui]
+  (let [{:keys [theme-listener]} ui]
 
     ;; remove the OS theme listener
     (when theme-listener
@@ -283,8 +275,7 @@
 
     ;; close all stages
     (when-not *killing-ui-from-window-close?*
-      (doseq [stage @stages]
-
+      (doseq [stage (dbg-state/jfx-stages)]
         (ui-utils/run-now (.close stage))))))
 
 (defn create-flow [{:keys [flow-id form-ns form timestamp]}]
@@ -343,20 +334,14 @@
                            ;; else stop just the debugger
                            ((resolve 'flow-storm.debugger.main/stop-debugger))))))))
 
-           stages (atom #{stage})
            theme-listener (when (= :auto (:theme config))
                             (start-theme-listener
                              (fn [dark?]
                                (dbg-state/set-theme (if dark? :dark :light))
-                               (reset-theming @stages))))]
+                               (dbg-state/reset-theming))))]
 
-       (alter-var-root #'dbg-state/register-and-init-stage!
-                       (constantly
-                        (fn [stg]
-                          (swap! stages conj stg)
-                          (reset-theming [stg]))))
-
-       (reset-theming @stages)
+       (dbg-state/register-jfx-stage! stage)
+       (dbg-state/reset-theming)
 
        (doto scene
          (.setOnKeyPressed (event-handler
@@ -378,18 +363,18 @@
                                 (key-combo-match? kev "t" [:ctrl])
                                 (do
                                   (dbg-state/rotate-theme)
-                                  (reset-theming @stages))
+                                  (dbg-state/reset-theming))
 
                                 (or (= (.getCode kev) KeyCode/ADD)
                                     (and shift? (= (.getCode kev) KeyCode/EQUALS)))
                                 (do
                                   (dbg-state/inc-font-size)
-                                  (reset-theming @stages))
+                                  (dbg-state/reset-theming))
 
                                 (= KeyCode/MINUS (.getCode kev))
                                 (do
                                   (dbg-state/dec-font-size)
-                                  (reset-theming @stages))
+                                  (dbg-state/reset-theming))
 
                                 (key-combo-match? kev "u" [:ctrl])
                                 (runtime-api/unblock-all-threads rt-api)
@@ -405,8 +390,7 @@
 
        (-> stage .show)
 
-       {:stages stages
-        :theme-listener theme-listener})
+       {:theme-listener theme-listener})
 
      (catch Exception e
        (log-error "UI Thread exception" e)))))

@@ -2,7 +2,7 @@
   (:require [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [icon-button table-view label]]
+             :refer [icon-button table-view label event-handler]]
             [clojure.string :as str]
             [flow-storm.utils :refer [log-error]])
   (:import [javafx.scene Scene]
@@ -65,7 +65,8 @@
                   (.setTitle "FlowStorm bookmarks ")
                   (.setScene scene))]
 
-      (dbg-state/register-and-init-stage! stage)
+      (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
+      (dbg-state/register-jfx-stage! stage)
 
       (-> stage .show))
 
