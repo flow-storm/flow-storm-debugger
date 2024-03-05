@@ -170,7 +170,9 @@
 
 (defn create-inspector [vref opts]
   (try
-    (let [scene (Scene. (create-inspector-pane vref opts) 1000 600)
+    (let [inspector-w 1000
+          inspector-h 600
+          scene (Scene. (create-inspector-pane vref opts) inspector-w inspector-h)
           stage (doto (Stage.)
                   (.setTitle "FlowStorm value inspector")
                   (.setScene scene))]
@@ -178,6 +180,7 @@
       (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
       (dbg-state/register-jfx-stage! stage)
 
+      (ui-utils/center-stage (dbg-state/main-jfx-stage) stage inspector-w inspector-h)
 
       (-> stage .show))
 

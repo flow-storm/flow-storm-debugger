@@ -12,6 +12,7 @@
            [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
+           [javafx.stage Screen]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
@@ -705,6 +706,34 @@
   (if thread-name
     (format "[%d] %s" thread-id thread-name)
     (format "thread-%d" thread-id)))
+
+(defn stage-screen-info [stage]
+  (let [screen (first
+                (Screen/getScreensForRectangle (.getX stage)
+                                               (.getY stage)
+                                               (.getWidth stage)
+                                               (.getHeight stage)))
+        bounds (.getBounds screen)
+        screen-width (.getWidth bounds)
+        screen-height (.getHeight bounds)]
+    {:screen-width screen-width
+     :screen-height screen-height
+     :screen-visual-center-x (+ (/ screen-width 2) (.getMinX bounds))
+     :screen-visual-center-y (+ (/ screen-height 2) (.getMinY bounds))}))
+
+(defn center-stage [reference-stg target-stg target-w target-h]
+  (let [ref-x (.getX reference-stg)
+        ref-y (.getY reference-stg)
+        ref-w (.getWidth reference-stg)
+        ref-h (.getHeight reference-stg)
+        ref-center-x (+ ref-x (/ ref-w 2))
+        ref-center-y (+ ref-y (/ ref-h 2))
+
+        tgt-x (- ref-center-x (/ target-w 2))
+        tgt-y (- ref-center-y (/ target-h 2))]
+
+    (.setX target-stg tgt-x)
+    (.setY target-stg tgt-y)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;

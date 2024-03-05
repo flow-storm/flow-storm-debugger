@@ -569,8 +569,8 @@
 (defn unregister-jfx-stage! [stg]
   (swap! state update :jfx-stages (fn [stgs] (filterv #(not= % stg) stgs))))
 
-(defn main-jfx-stage! []
-  (-> state :jfx-stages first))
+(defn main-jfx-stage []
+  (-> @state :jfx-stages first))
 
 (defn reset-theming []
   (let [stages (jfx-stages)

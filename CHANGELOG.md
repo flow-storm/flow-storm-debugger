@@ -8,6 +8,7 @@
     
     - Improved functions pane.
     - Change stack double click behavior as per #150
+    - Display bookmarks and inspector windows centered on main window
     
 ### Bugs fixed
 

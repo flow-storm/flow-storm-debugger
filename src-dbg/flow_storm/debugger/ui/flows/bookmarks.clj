@@ -60,13 +60,16 @@
 
 (defn show-bookmarks []
   (try
-    (let [scene (Scene. (create-bookmarks-pane) 800 400)
+    (let [bookmarks-w 800
+          bookmarks-h 400
+          scene (Scene. (create-bookmarks-pane) bookmarks-w bookmarks-h)
           stage (doto (Stage.)
                   (.setTitle "FlowStorm bookmarks ")
                   (.setScene scene))]
-
       (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
       (dbg-state/register-jfx-stage! stage)
+
+      (ui-utils/center-stage (dbg-state/main-jfx-stage) stage bookmarks-w bookmarks-h)
 
       (-> stage .show))
 
