@@ -8,6 +8,8 @@
         
 ### Bugs fixed
 
+    - Fix functions lists for nil returns
+
 ## 3.12.1 (05-03-2024)
 	
 ### New Features

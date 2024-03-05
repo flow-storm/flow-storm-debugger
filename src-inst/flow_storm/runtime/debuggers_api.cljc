@@ -145,11 +145,12 @@
                      :print-meta?  false
                      :pprint?      false}
         render-frame (fn [{:keys [args-vec ret throwable] :as fn-frame}]
-                       (cond-> fn-frame
-                         true      reference-frame-data!
-                         true      (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc pprint-opts :nth-elems render-args))))
-                         ret       (assoc :ret-str       (:val-str (rt-values/val-pprint ret pprint-opts)))
-                         throwable (assoc :throwable-str (ex-message throwable))))
+                       (let [fr (-> fn-frame
+                                    reference-frame-data!
+                                    (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc pprint-opts :nth-elems render-args)))))]
+                         (if throwable
+                           (assoc fr :throwable-str (ex-message throwable))
+                           (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret pprint-opts))))))
         frames (into [] (map render-frame) fn-frames)]
     frames))
 
