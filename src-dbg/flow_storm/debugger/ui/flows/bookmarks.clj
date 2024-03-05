@@ -23,7 +23,10 @@
 
 (defn bookmark-add [flow-id thread-id idx]
   (let [text (ui-utils/ask-text-dialog {:header "Add bookmark"
-                                        :body "Bookmark name:"})]
+                                        :body "Bookmark name:"
+                                        :width  800
+                                        :height 100
+                                        :center-on-stage (dbg-state/main-jfx-stage)})]
     (dbg-state/add-bookmark flow-id thread-id idx text)
     (update-bookmarks)))
 
@@ -69,7 +72,9 @@
       (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
       (dbg-state/register-jfx-stage! stage)
 
-      (ui-utils/center-stage (dbg-state/main-jfx-stage) stage bookmarks-w bookmarks-h)
+      (let [{:keys [x y]} (ui-utils/stage-center-box (dbg-state/main-jfx-stage) bookmarks-w bookmarks-h)]
+        (.setX stage x)
+        (.setY stage y))
 
       (-> stage .show))
 

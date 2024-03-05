@@ -19,7 +19,10 @@
 (defn def-val [val]
   (let [val-name (ui-utils/ask-text-dialog
                   {:header "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user "
-                   :body "Var name :"})]
+                   :body "Var name :"
+                   :width  500
+                   :height 100
+                   :center-on-stage (dbg-state/main-jfx-stage)})]
     (when-not (str/blank? val-name)
       (runtime-api/def-value rt-api (symbol val-name) val))))
 
@@ -180,7 +183,9 @@
       (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
       (dbg-state/register-jfx-stage! stage)
 
-      (ui-utils/center-stage (dbg-state/main-jfx-stage) stage inspector-w inspector-h)
+      (let [{:keys [x y]} (ui-utils/stage-center-box (dbg-state/main-jfx-stage) inspector-w inspector-h)]
+        (.setX stage x)
+        (.setY stage y))
 
       (-> stage .show))
 

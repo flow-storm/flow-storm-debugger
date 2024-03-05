@@ -1,5 +1,5 @@
 (ns flow-storm.debugger.ui.flows.general
-  (:require [flow-storm.debugger.state :refer [obj-lookup]]
+  (:require [flow-storm.debugger.state :as dbg-state :refer [obj-lookup]]
             [flow-storm.debugger.ui.utils :as ui-utils]))
 
 (defn select-thread-tool-tab [flow-id thread-id tool]
@@ -26,6 +26,7 @@
     (ui-utils/run-later
      (let [dialog (ui-utils/alert-dialog {:type msg-type
                                           :message msg
-                                          :buttons [:close]})]
+                                          :buttons [:close]
+                                          :center-on-stage (dbg-state/main-jfx-stage)})]
        (.show dialog)))
     (catch Exception _)))

@@ -72,6 +72,34 @@
         (.addAll ^objects (into-array Object cm-items)))
     cm))
 
+(defn stage-screen-info [stage]
+  (let [screen (first
+                (Screen/getScreensForRectangle (.getX stage)
+                                               (.getY stage)
+                                               (.getWidth stage)
+                                               (.getHeight stage)))
+        bounds (.getBounds screen)
+        screen-width (.getWidth bounds)
+        screen-height (.getHeight bounds)]
+    {:screen-width screen-width
+     :screen-height screen-height
+     :screen-visual-center-x (+ (/ screen-width 2) (.getMinX bounds))
+     :screen-visual-center-y (+ (/ screen-height 2) (.getMinY bounds))}))
+
+(defn stage-center-box [reference-stg target-w target-h]
+  (let [ref-x (.getX reference-stg)
+        ref-y (.getY reference-stg)
+        ref-w (.getWidth reference-stg)
+        ref-h (.getHeight reference-stg)
+        ref-center-x (+ ref-x (/ ref-w 2))
+        ref-center-y (+ ref-y (/ ref-h 2))
+
+        tgt-x (- ref-center-x (/ target-w 2))
+        tgt-y (- ref-center-y (/ target-h 2))]
+
+    {:x tgt-x
+     :y tgt-y}))
+
 (defn ensure-node-visible-in-scroll-pane [^ScrollPane scroll-pane ^Node node y-perc]
   (let [scroll-pane-content (.getContent scroll-pane)
 
@@ -317,7 +345,7 @@
 
     t))
 
-(defn alert-dialog [{:keys [type message buttons]
+(defn alert-dialog [{:keys [type message buttons center-on-stage]
                      :or {type :none}}]
   (let [alert-type (get {:error        Alert$AlertType/ERROR
                          :confirmation Alert$AlertType/CONFIRMATION
@@ -331,8 +359,26 @@
                                        :close  ButtonType/CLOSE
                                        :cancel ButtonType/CANCEL}
                                       b)))
-                         (into-array ButtonType))]
-    (Alert. alert-type message buttons-vec)))
+                         (into-array ButtonType))
+        alert-width  700
+        alert-height 100
+        alert (Alert. alert-type message buttons-vec)]
+
+    (.setResizable alert true)
+
+    (when center-on-stage
+      (let [dialog-pane (.getDialogPane alert)
+            {:keys [x y]} (stage-center-box center-on-stage alert-width alert-height)]
+
+        (doto dialog-pane
+          (.setPrefWidth alert-width)
+          (.setPrefHeight alert-height))
+
+        (doto alert
+          (.setX x)
+          (.setY y))))
+
+    alert))
 
 (defn progress-indicator [size]
   (doto (ProgressIndicator.)
@@ -683,11 +729,23 @@
                      fqfn)]
      (set-clipboard clip-text))))
 
-(defn ask-text-dialog [{:keys [header body]}]
+(defn ask-text-dialog [{:keys [header body width height center-on-stage]}]
   (let [tdiag (doto (TextInputDialog.)
                 (.setHeaderText header)
                 (.setContentText body))]
+
+    (when (and width height)
+      (let [dialog-pane (.getDialogPane tdiag)]
+        (.setPrefWidth dialog-pane width)
+        (.setPrefHeight dialog-pane height)))
+
+    (when (and width height center-on-stage)
+      (let [{:keys [x y]} (stage-center-box center-on-stage width height)]
+        (.setX tdiag x)
+        (.setY tdiag y)))
+
     (.showAndWait tdiag)
+
     (-> tdiag .getEditor .getText)))
 
 (defn key-combo-match?
@@ -706,34 +764,6 @@
   (if thread-name
     (format "[%d] %s" thread-id thread-name)
     (format "thread-%d" thread-id)))
-
-(defn stage-screen-info [stage]
-  (let [screen (first
-                (Screen/getScreensForRectangle (.getX stage)
-                                               (.getY stage)
-                                               (.getWidth stage)
-                                               (.getHeight stage)))
-        bounds (.getBounds screen)
-        screen-width (.getWidth bounds)
-        screen-height (.getHeight bounds)]
-    {:screen-width screen-width
-     :screen-height screen-height
-     :screen-visual-center-x (+ (/ screen-width 2) (.getMinX bounds))
-     :screen-visual-center-y (+ (/ screen-height 2) (.getMinY bounds))}))
-
-(defn center-stage [reference-stg target-stg target-w target-h]
-  (let [ref-x (.getX reference-stg)
-        ref-y (.getY reference-stg)
-        ref-w (.getWidth reference-stg)
-        ref-h (.getHeight reference-stg)
-        ref-center-x (+ ref-x (/ ref-w 2))
-        ref-center-y (+ ref-y (/ ref-h 2))
-
-        tgt-x (- ref-center-x (/ target-w 2))
-        tgt-y (- ref-center-y (/ target-h 2))]
-
-    (.setX target-stg tgt-x)
-    (.setY target-stg tgt-y)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;
