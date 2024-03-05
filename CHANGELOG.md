@@ -5,6 +5,14 @@
 ### New Features
     
 ### Changes 
+        
+### Bugs fixed
+
+## 3.12.1 (05-03-2024)
+	
+### New Features
+    
+### Changes 
     
     - Improved functions pane.
     - Change stack double click behavior as per #150
