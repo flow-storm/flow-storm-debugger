@@ -747,48 +747,47 @@ pre.rouge {
 <li><a href="#_thread_breakpoints">11. Thread breakpoints</a></li>
 <li><a href="#_limiting_recording">12. Limiting recording</a></li>
 <li><a href="#_the_tool_bar">13. The tool bar</a></li>
-<li><a href="#_debug_cmd_line_programs_clj_x_clj_m_etc">14. Debug cmd line programs (clj -X, clj -m, etc)</a></li>
-<li><a href="#_programmable_debugging">15. Programmable debugging</a>
+<li><a href="#_programmable_debugging">14. Programmable debugging</a>
 <ul class="sectlevel3">
-<li><a href="#_timelines">15.1. Timelines</a></li>
-<li><a href="#_forms">15.2. Forms</a></li>
-<li><a href="#_multi_thread_timeline">15.3. Multi-thread timeline</a></li>
-<li><a href="#_other_utilities">15.4. Other utilities</a></li>
+<li><a href="#_timelines">14.1. Timelines</a></li>
+<li><a href="#_forms">14.2. Forms</a></li>
+<li><a href="#_multi_thread_timeline">14.3. Multi-thread timeline</a></li>
+<li><a href="#_other_utilities">14.4. Other utilities</a></li>
 </ul>
 </li>
-<li><a href="#_dealing_with_mutable_values">16. Dealing with mutable values</a></li>
-<li><a href="#_dealing_with_too_many_traces">17. Dealing with too many traces</a></li>
-<li><a href="#_controlling_instrumentation">18. Controlling instrumentation</a>
+<li><a href="#_dealing_with_mutable_values">15. Dealing with mutable values</a></li>
+<li><a href="#_debugging_infinite_looprecursion">16. Debugging infinite loop/recursion</a></li>
+<li><a href="#_controlling_instrumentation">17. Controlling instrumentation</a>
 <ul class="sectlevel3">
-<li><a href="#_controlling_instrumentation_in_clojurestorm">18.1. Controlling instrumentation in ClojureStorm</a></li>
-<li><a href="#_controlling_instrumentation_in_clojurescriptstorm">18.2. Controlling instrumentation in ClojureScriptStorm</a></li>
+<li><a href="#_controlling_instrumentation_in_clojurestorm">17.1. Controlling instrumentation in ClojureStorm</a></li>
+<li><a href="#_controlling_instrumentation_in_clojurescriptstorm">17.2. Controlling instrumentation in ClojureScriptStorm</a></li>
 </ul>
 </li>
-<li><a href="#_styling_and_theming">19. Styling and theming</a></li>
-<li><a href="#_key_bindings">20. Key bindings</a>
+<li><a href="#_styling_and_theming">18. Styling and theming</a></li>
+<li><a href="#_key_bindings">19. Key bindings</a>
 <ul class="sectlevel3">
-<li><a href="#_general">20.1. General</a></li>
-<li><a href="#_flows">20.2. Flows</a></li>
+<li><a href="#_general">19.1. General</a></li>
+<li><a href="#_flows">19.2. Flows</a></li>
 </ul>
 </li>
-<li><a href="#_debugging_react_native_applications">21. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">22. Working on Windows with WSL2</a></li>
-<li><a href="#_editorsides_integration">23. Editors/IDEs integration</a>
+<li><a href="#_debugging_react_native_applications">20. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">21. Working on Windows with WSL2</a></li>
+<li><a href="#_editorsides_integration">22. Editors/IDEs integration</a>
 <ul class="sectlevel3">
-<li><a href="#_emacs">23.1. Emacs</a></li>
-<li><a href="#_vscode">23.2. VSCode</a></li>
-<li><a href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a></li>
+<li><a href="#_emacs">22.1. Emacs</a></li>
+<li><a href="#_vscode">22.2. VSCode</a></li>
+<li><a href="#_intellij_idea_cursive">22.3. IntelliJ IDEA (Cursive)</a></li>
 </ul>
 </li>
-<li><a href="#_tutorials_and_demos">24. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">25. Troubleshooting</a>
+<li><a href="#_tutorials_and_demos">23. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">24. Troubleshooting</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">25.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">25.2. Run verbose</a></li>
-<li><a href="#_run_with_jdk_11">25.3. Run with JDK 11</a></li>
+<li><a href="#_instrument_verbose">24.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">24.2. Run verbose</a></li>
+<li><a href="#_run_with_jdk_11">24.3. Run with JDK 11</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -2951,38 +2950,7 @@ global limits definitions.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debug_cmd_line_programs_clj_x_clj_m_etc"><a class="anchor" href="#_debug_cmd_line_programs_clj_x_clj_m_etc"></a><a class="link" href="#_debug_cmd_line_programs_clj_x_clj_m_etc">14. Debug cmd line programs (clj -X, clj -m, etc)</a></h3>
-<div class="paragraph">
-<p>If you run any Clojure programs from the command line, by using <code>clj -X &#8230;&#8203;</code>, <code>clj -m &#8230;&#8203;</code> etc,
-you can use <code>flow-storm.api/cli-run</code> as a trampoline, to start a debugger, instrument everything you are interested in an then
-run you original command.</p>
-</div>
-<div class="paragraph">
-<p>As an example, let&#8217;s say you are compiling ClojureScript code like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sdeps</span> <span class="s1">'{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"}}}'</span> <span class="se">\</span>
-    <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-t</span> nodejs ./org/foo/myscript.cljs</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>you can then run and debug the execution of the same command like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="se">\</span>
-	<span class="nt">-X</span> flow-storm.api/cli-run :instrument-ns <span class="s1">'#{"cljs."}'</span>           <span class="se">\</span>
-                              :profile <span class="s1">':light'</span>                     <span class="se">\</span>
-                              :require-before <span class="s1">'#{"cljs.repl.node"}'</span> <span class="se">\</span>
-							  :excluding-ns <span class="s1">'#{"cljs.vendor.cognitect.transit"}'</span> <span class="se">\</span>
-                              :fn-symb <span class="s1">'cljs.main/-main'</span>            <span class="se">\</span>
-                              :fn-args <span class="s1">'["-t" "nodejs" "./org/foo/myscript.cljs"]'</span><span class="p">;</span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">15. Programmable debugging</a></h3>
+<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">14. Programmable debugging</a></h3>
 <div class="paragraph">
 <p><em>FlowStorm</em> gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
 These allows you to explore your recordings using Clojure and write small programs to analyze
@@ -3009,7 +2977,7 @@ require on your repl in order to work with your recordings.</p>
 which you will need for accessing them from the repl.</p>
 </div>
 <div class="sect3">
-<h4 id="_timelines"><a class="anchor" href="#_timelines"></a><a class="link" href="#_timelines">15.1. Timelines</a></h4>
+<h4 id="_timelines"><a class="anchor" href="#_timelines"></a><a class="link" href="#_timelines">14.1. Timelines</a></h4>
 <div class="paragraph">
 <p>Let&#8217;s say you want to explore recordings on thread 32. You can retrieve its timeline by calling <code>ia/get-timeline</code> like this :</p>
 </div>
@@ -3162,7 +3130,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_forms"><a class="anchor" href="#_forms"></a><a class="link" href="#_forms">15.2. Forms</a></h4>
+<h4 id="_forms"><a class="anchor" href="#_forms"></a><a class="link" href="#_forms">14.2. Forms</a></h4>
 <div class="paragraph">
 <p>You can retrieve forms by form id with <code>get-form</code> and then use <code>get-sub-form-at-coord</code> and a coordinate.</p>
 </div>
@@ -3205,7 +3173,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_multi_thread_timeline"><a class="anchor" href="#_multi_thread_timeline"></a><a class="link" href="#_multi_thread_timeline">15.3. Multi-thread timeline</a></h4>
+<h4 id="_multi_thread_timeline"><a class="anchor" href="#_multi_thread_timeline"></a><a class="link" href="#_multi_thread_timeline">14.3. Multi-thread timeline</a></h4>
 <div class="paragraph">
 <p>If you have recorded a multi-thread timeline, you can retrieve it with <code>total-order-timeline</code> like this :</p>
 </div>
@@ -3245,7 +3213,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_other_utilities"><a class="anchor" href="#_other_utilities"></a><a class="link" href="#_other_utilities">15.4. Other utilities</a></h4>
+<h4 id="_other_utilities"><a class="anchor" href="#_other_utilities"></a><a class="link" href="#_other_utilities">14.4. Other utilities</a></h4>
 <div class="paragraph">
 <p>There are other utitities in the api ns that could be useful, some of the most interesting ones :</p>
 </div>
@@ -3271,7 +3239,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">16. Dealing with mutable values</a></h3>
+<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">15. Dealing with mutable values</a></h3>
 <div class="paragraph">
 <p><em>FlowStorm</em> will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :</p>
@@ -3340,33 +3308,29 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dealing_with_too_many_traces"><a class="anchor" href="#_dealing_with_too_many_traces"></a><a class="link" href="#_dealing_with_too_many_traces">17. Dealing with too many traces</a></h3>
+<h3 id="_debugging_infinite_looprecursion"><a class="anchor" href="#_debugging_infinite_looprecursion"></a><a class="link" href="#_debugging_infinite_looprecursion">16. Debugging infinite loop/recursion</a></h3>
 <div class="paragraph">
-<p>If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
-too many traces, making everything slow and where your only option is to restart it.</p>
+<p>If you are tracing some code that ends up in a infinite loop the debugger will choke on
+too many traces, making everything slow and where your only option is probably to restart it.</p>
 </div>
 <div class="paragraph">
-<p>For preventing this <em>FlowStorm</em> provides a couple of tools :</p>
-</div>
-<div class="paragraph">
-<p><strong>If you are using vanilla FlowStorm</strong> there is <code>:thread-trace-limit</code>, you can use it like this :</p>
+<p>For preventing this <em>FlowStorm</em> provides fuse, called thread trace limit.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="o">^</span><span class="p">{</span><span class="no">:thread-trace-limit</span><span class="w"> </span><span class="mi">200</span><span class="p">}</span><span class="w"> </span><span class="c1">;; set our fuse at 200</span><span class="w">
-</span><span class="p">(</span><span class="nb">loop</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="w">
-  </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w">
-    </span><span class="mi">42</span><span class="w"> </span><span class="c1">;; we will never reach here</span><span class="w">
-    </span><span class="p">(</span><span class="nf">recur</span><span class="w"> </span><span class="n">i</span><span class="p">)))</span></code></pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fsa</span><span class="p">])</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">fsa/set-thread-trace-limit</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span><span class="w"> </span><span class="c1">;; To set a limit of 1000</span><span class="w">
+</span><span class="p">(</span><span class="nf">fsa/set-thread-trace-limit</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">    </span><span class="c1">;; To disable it</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>the infinite loop will be cut after 200 iterations by a thread-trace-limit exceeded exception, and you will have the traces on
-the debugger to figure out what went wrong.</p>
+<p>After the limit is set, if you run any code that generates more than a 1000 traces the code will stop at trace 1000 with
+a thread-trace-limit exception, and you will have the recordings so far available.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_controlling_instrumentation"><a class="anchor" href="#_controlling_instrumentation"></a><a class="link" href="#_controlling_instrumentation">18. Controlling instrumentation</a></h3>
+<h3 id="_controlling_instrumentation"><a class="anchor" href="#_controlling_instrumentation"></a><a class="link" href="#_controlling_instrumentation">17. Controlling instrumentation</a></h3>
 <div class="paragraph">
 <p>If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> it is important to learn how to control what gets instrumented and
 how to uninstrument things.</p>
@@ -3403,7 +3367,7 @@ namespaces to skip. All these together allows you to instrument you whole app bu
 repl. This is slightly different between Clojure and ClojureScript.</p>
 </div>
 <div class="sect3">
-<h4 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">18.1. Controlling instrumentation in ClojureStorm</a></h4>
+<h4 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">17.1. Controlling instrumentation in ClojureStorm</a></h4>
 <div class="paragraph">
 <p>You can disable/enable instrumentation by evaluating the keys <code>:noinst</code> and  <code>:inst</code> on your repl.
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
@@ -3429,7 +3393,7 @@ in after enabling/disabling instrumentation.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_controlling_instrumentation_in_clojurescriptstorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurescriptstorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurescriptstorm">18.2. Controlling instrumentation in ClojureScriptStorm</a></h4>
+<h4 id="_controlling_instrumentation_in_clojurescriptstorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurescriptstorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurescriptstorm">17.2. Controlling instrumentation in ClojureScriptStorm</a></h4>
 <div class="paragraph">
 <p>You can add,remove and check your prefixes and also enable/disable instrumentation in ClojureScript with your Clojure
 repl (not the Cljs one) by calling :</p>
@@ -3459,7 +3423,7 @@ which should fire a recompilation.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">19. Styling and theming</a></h3>
+<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">18. Styling and theming</a></h3>
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code>, <code>:title</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -3489,9 +3453,9 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">20. Key bindings</a></h3>
+<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">19. Key bindings</a></h3>
 <div class="sect3">
-<h4 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">20.1. General</a></h4>
+<h4 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">19.1. General</a></h4>
 <div class="ulist">
 <ul>
 <li>
@@ -3531,7 +3495,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">20.2. Flows</a></h4>
+<h4 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">19.2. Flows</a></h4>
 <div class="ulist">
 <ul>
 <li>
@@ -3587,7 +3551,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">21. Debugging react native applications</a></h3>
+<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">20. Debugging react native applications</a></h3>
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
 </div>
@@ -3618,7 +3582,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">22. Working on Windows with WSL2</a></h3>
+<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">21. Working on Windows with WSL2</a></h3>
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -3667,24 +3631,24 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">23. Editors/IDEs integration</a></h3>
+<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">22. Editors/IDEs integration</a></h3>
 <div class="sect3">
-<h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">23.1. Emacs</a></h4>
+<h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">22.1. Emacs</a></h4>
 <div class="paragraph">
 <p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">23.2. VSCode</a></h4>
+<h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">22.2. VSCode</a></h4>
 
 </div>
 <div class="sect3">
-<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a></h4>
+<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">22.3. IntelliJ IDEA (Cursive)</a></h4>
 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">24. Tutorials and demos</a></h3>
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">23. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -3721,16 +3685,16 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">25. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">24. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">25.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">24.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">25.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">24.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -3742,7 +3706,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">25.3. Run with JDK 11</a></h4>
+<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">24.3. Run with JDK 11</a></h4>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -3760,7 +3724,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></h3>
 <div class="paragraph">
 <p>For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :</p>
 </div>
@@ -3787,7 +3751,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-02-28 10:13:45 -0300
+Last updated 2024-03-06 10:33:56 -0300
 </div>
 </div>
 </body>

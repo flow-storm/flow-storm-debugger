@@ -1343,33 +1343,6 @@ From left to right :
 - Open the bookmarks window.
 - Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
 
-== Debug cmd line programs (clj -X, clj -m, etc)
-
-If you run any Clojure programs from the command line, by using `clj -X ...`, `clj -m ...` etc, 
-you can use `flow-storm.api/cli-run` as a trampoline, to start a debugger, instrument everything you are interested in an then
-run you original command.
-
-As an example, let's say you are compiling ClojureScript code like this :
-
-[,bash]
-----
-clj -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"}}}' \
-    -M -m cljs.main -t nodejs ./org/foo/myscript.cljs
-----
-
-you can then run and debug the execution of the same command like this :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {org.clojure/clojurescript {:mvn/version "1.11.57"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}' \
-	-X flow-storm.api/cli-run :instrument-ns '#{"cljs."}'           \
-                              :profile ':light'                     \
-                              :require-before '#{"cljs.repl.node"}' \
-							  :excluding-ns '#{"cljs.vendor.cognitect.transit"}' \
-                              :fn-symb 'cljs.main/-main'            \
-                              :fn-args '["-t" "nodejs" "./org/foo/myscript.cljs"]';
-----
-
 == Programmable debugging
 
 _FlowStorm_ gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
@@ -1614,26 +1587,23 @@ If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snap
 so no need to implement `flow-storm.runtime.values/snapshot-value`
 ====
 
-== Dealing with too many traces
+== Debugging infinite loop/recursion
 
-If you are tracing some code that ends up in a infinite loop the debugger will probably choke on
-too many traces, making everything slow and where your only option is to restart it.
+If you are tracing some code that ends up in a infinite loop the debugger will choke on
+too many traces, making everything slow and where your only option is probably to restart it.
 
-For preventing this _FlowStorm_ provides a couple of tools :
-
-*If you are using vanilla FlowStorm* there is `:thread-trace-limit`, you can use it like this :
+For preventing this _FlowStorm_ provides fuse, called thread trace limit.
 
 [,clojure]
 ----
-#rtrace ^{:thread-trace-limit 200} ;; set our fuse at 200
-(loop [i 0]
-  (if (> i 100)
-    42 ;; we will never reach here
-    (recur i)))
+(require '[flow-storm.api :as fsa])
+
+(fsa/set-thread-trace-limit 1000) ;; To set a limit of 1000
+(fsa/set-thread-trace-limit 0)    ;; To disable it
 ----
 
-the infinite loop will be cut after 200 iterations by a thread-trace-limit exceeded exception, and you will have the traces on
-the debugger to figure out what went wrong.
+After the limit is set, if you run any code that generates more than a 1000 traces the code will stop at trace 1000 with
+a thread-trace-limit exception, and you will have the recordings so far available.
 
 == Controlling instrumentation
 

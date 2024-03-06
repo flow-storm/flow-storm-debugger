@@ -88,7 +88,15 @@
 
 
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
-(def set-thread-trace-limit dbg-api/set-thread-trace-limit)
+
+(defn set-thread-trace-limit
+
+  "Set a trace limit to all threads. When the limit is positive, if any thread timeline goes
+  beyond the limit the thread code will throw an exception."
+
+  [limit]
+  (dbg-api/set-thread-trace-limit limit))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;
