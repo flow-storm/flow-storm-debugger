@@ -1,6 +1,7 @@
 (ns flow-storm.api
   (:require [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.taps :as rt-taps]
+            [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.values :as rt-values]
@@ -27,3 +28,5 @@
 
   []
   (rest (.split (.-stack (js/Error.)) "\n")))
+
+(def set-thread-trace-limit dbg-api/set-thread-trace-limit)

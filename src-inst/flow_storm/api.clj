@@ -88,6 +88,7 @@
 
 
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
+(def set-thread-trace-limit dbg-api/set-thread-trace-limit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;

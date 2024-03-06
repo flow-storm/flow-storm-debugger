@@ -291,6 +291,8 @@
   (tracer/set-recording enable?)
   (rt-events/publish-event! (rt-events/make-recording-updated-event enable?)))
 
+(def set-thread-trace-limit tracer/set-thread-trace-limit)
+
 (defn toggle-recording []
   (if (tracer/recording?)
     (set-recording false)

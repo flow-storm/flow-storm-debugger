@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Implemented thread trace limit as a fuse for infinite loops/recursion
     
 ### Changes 
         

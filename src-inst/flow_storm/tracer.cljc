@@ -11,6 +11,7 @@
 (def recording (atom true))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
+(def thread-trace-limit nil)
 
 (defn set-recording [x]
   (if x
@@ -24,6 +25,12 @@
 
 (defn set-total-order-recording [x]
   (reset! total-order-recording (boolean x)))
+
+(defn set-thread-trace-limit [limit]
+  #?(:clj
+     (alter-var-root #'thread-trace-limit (constantly limit))
+     :cljs
+     (set! thread-trace-limit limit)))
 
 (defn total-order-recording? []
   @total-order-recording)
@@ -123,8 +130,12 @@
             ;; before blocking, let's make sure the thread exists
             (indexes-api/get-or-create-thread-indexes flow-id thread-id thread-name form-id)
             (block-this-thread flow-id [fn-ns fn-name]))))
+
+     (when (and thread-trace-limit
+                (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))
+       (throw (ex-info "thread-trace-limit exceeded" {})))
      
-     (when @recording            
+     (when @recording       
        (let [args (mapv snapshot-reference fn-args)]
          (indexes-api/add-fn-call-trace
           flow-id
@@ -147,8 +158,14 @@
      return))
   
   ([flow-id return coord _] ;; for using with storm
-   (when @recording
+         
+   (when @recording     
      (let [thread-id (utils/get-current-thread-id)]
+
+       (when (and thread-trace-limit
+                  (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))
+         (throw (ex-info "thread-trace-limit exceeded" {})))
+       
        (indexes-api/add-fn-return-trace
         flow-id
         thread-id
@@ -158,43 +175,45 @@
 
 (defn trace-fn-unwind
   ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id thread-trace-limit]} *runtime-ctx*
-         thread-id (utils/get-current-thread-id)]
-
-     (when thread-trace-limit
-       (when (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit)
-         (throw (ex-info "thread-trace-limit exceeded" {}))))
-
+   (let [{:keys [flow-id]} *runtime-ctx*]
+     
      (trace-fn-unwind flow-id throwable (stringify-coord coor) form-id)))
   
-  ([flow-id throwable coord _] ;; for using with storm  
-   (let [thread-id (utils/get-current-thread-id)]
+  ([flow-id throwable coord _] ;; for using with storm
+   (when @recording
+     (let [thread-id (utils/get-current-thread-id)]
+
+       (when (and thread-trace-limit
+                  (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))
+         (throw (ex-info "thread-trace-limit exceeded" {})))
+       
        (indexes-api/add-fn-unwind-trace
         flow-id
         thread-id      
         coord
         (snapshot-reference throwable)
-        @total-order-recording))))
+        @total-order-recording)))))
 
 (defn trace-expr-exec
   
   "Send expression execution trace."
   
   ([{:keys [result coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id thread-trace-limit]} *runtime-ctx*
-         thread-id (utils/get-current-thread-id)]
-
-     (when thread-trace-limit
-       (when (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit)
-         (throw (ex-info "thread-trace-limit exceeded" {}))))
+   (let [{:keys [flow-id]} *runtime-ctx*]     
 
      (trace-expr-exec flow-id result (stringify-coord coor) form-id))
    
    result)
 
   ([flow-id result coord _]  ;; for using with storm
+      
    (when @recording
      (let [thread-id (utils/get-current-thread-id)]
+
+       (when (and thread-trace-limit
+                  (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))
+         (throw (ex-info "thread-trace-limit exceeded" {})))
+       
        (indexes-api/add-expr-exec-trace      
         flow-id
         thread-id      
@@ -212,8 +231,14 @@
      (trace-bind flow-id (stringify-coord coor) (name symb) val)))
 
   ([flow-id coord sym-name val]  ;; for using with storm
+      
    (when @recording
      (let [thread-id (utils/get-current-thread-id)]
+
+       (when thread-trace-limit
+         (when (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit)
+           (throw (ex-info "thread-trace-limit exceeded" {}))))
+       
        (indexes-api/add-bind-trace      
         flow-id
         thread-id
