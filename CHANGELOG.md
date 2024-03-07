@@ -5,6 +5,17 @@
 ### New Features
 
     - Implemented thread trace limit as a fuse for infinite loops/recursion
+    - All possibly expensive slow operations are now cancellable. This includes :
+      - List functions calls
+      - List prints with the printer
+      - Values search
+      - Multi-thread timeline
+      - All power stepping tools
+      - Quick jump
+    - All functions that collect from the timeline will report as they run, no need to wait to the end. This includes :
+      - List functions calls
+      - List prints with the printer
+      - Multi-thread timeline
     
 ### Changes 
         

@@ -9,7 +9,8 @@
   Events will be dispatched after a dispatch-fn is set with `set-dispatch-fn`"
 
   (:require [flow-storm.state-management :refer [defstate]]
-            [flow-storm.utils :as utils])
+            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.utils :as utils :refer [log]])
   (:import [java.util.concurrent ArrayBlockingQueue TimeUnit]))
 
 (declare start-events-queue)
@@ -27,28 +28,39 @@
   (when-let [queue (:queue events-queue)]
     (.put ^ArrayBlockingQueue queue e)))
 
-(defn set-dispatch-fn [dispatch-fn]
-  (reset! (:dispatch-fn events-queue) dispatch-fn))
+(defn add-dispatch-fn [fn-key dispatch-fn]
+  (swap! (:dispatch-fns events-queue) assoc fn-key dispatch-fn))
+
+(defn rm-dispatch-fn [fn-key]
+  (swap! (:dispatch-fns events-queue) dissoc fn-key))
 
 (defn start-events-queue []
   (let [events-queue (ArrayBlockingQueue. 1000)
-        dispatch-fn (atom nil)
+        dispatch-fns (atom {})
         dispatch-thread (Thread.
                          (fn []
                            (try
                              ;; don't do anything until we have a dispatch-fn
                              (while (and (not (.isInterrupted (Thread/currentThread)))
-                                         (not @dispatch-fn))
-                               (utils/log "Waiting for dispatch-fn before dispatching events")
+                                         (empty? @dispatch-fns))
+                               (utils/log "Waiting for a dispatch-fn before dispatching events")
                                (Thread/sleep wait-for-system-started-interval))
 
                              ;; start the dispatch loop
-                             (let [dispatch @dispatch-fn]
-                               (loop [ev nil]
-                                 (when-not (.isInterrupted (Thread/currentThread))
+                             (loop [ev nil]
+                               (when-not (.isInterrupted (Thread/currentThread))
+                                 (try
                                    (when ev
-                                     (dispatch ev))
-                                   (recur (.poll events-queue queue-poll-interval TimeUnit/MILLISECONDS)))))
+
+                                     (when (and (:debug-mode? (dbg-state/debugger-config))
+                                                (not (= (first ev) :heap-info-update)))
+                                       (log (format "Processing event: %s" ev)))
+
+                                    (doseq [dispatch (vals @dispatch-fns)]
+                                      (dispatch ev)))
+                                   (catch Exception e
+                                     (utils/log-error (str "Error dispatching event" ev) e)))
+                                 (recur (.poll events-queue queue-poll-interval TimeUnit/MILLISECONDS))))
                              (catch java.lang.InterruptedException _
                                (utils/log "Events thread interrupted"))
                              (catch Exception e
@@ -59,7 +71,7 @@
     (.start dispatch-thread)
     {:interrupt-fn interrupt-fn
      :queue events-queue
-     :dispatch-fn dispatch-fn}))
+     :dispatch-fns dispatch-fns}))
 
 (defn stop-events-queue []
   (when-let [stop-fn (:interrupt-fn events-queue)]

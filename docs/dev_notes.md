@@ -63,7 +63,7 @@ It is currently implemented as `flow-storm.runtime.indexes.timeline-index/Execut
 uses a mutable list. It would be simpler if this could be an immutable list but the decision was made because it needs
 to be fast to build, and without too much garbage generation, so we don't make the debuggee threads too slow. 
 With the current architecture transients can't be used because there isn't a trace that indicates that a thread is done,
-so it can be persisted. Maybe it can be done in the future if some kind of batching by time is implemented.
+so it can't be persisted. Maybe it can be done in the future if some kind of batching by time is implemented.
 
 All objects that represent traces are defined by types in `flow-storm.runtime.types.*` instead of maps. This is to
 reduce memory footprint.
@@ -179,7 +179,26 @@ If there is nothing subscribed to runtime events the events will accumulate insi
 This is to capture events fired by recording when the __debugger__ is still not connected.
 
 On the __debugger__ side they will accumulate on `flow-storm.debugger.events-queue` and will be dispatched by a
-specialized thread.
+specialized thread. Most events are processed by `flow-storm.debugger.events-processor/process-event` but any part 
+of the __debugger__ can listen to __runtime__ events by adding a callback with `flow-storm.debugger.events-queue/add-dispatch-fn`.
+
+### Tasks
+
+Most of the __runtime__ functionality the __debugger__ calls is called synchronously, but there are some functions where doing 
+like this leads to suboptimal UX. This are most functionality that needs to search or collect on the timeline. For big recordings
+this could take a long time. 
+For this reason, functions that loop on the timeline run under tasks. This are looping process that run async, can report progress 
+and can be interrupted.
+
+All the functions that run tasks ends up in `-task`, like `search-next-timeline-entry-task`.
+From the __debugger__, for calling a task function `flow-storm.debugger.ui.tasks/submit-task` can be used.
+
+On the __runtime__ side, there are a couple of utilities that make implementing this interruptible loopings easies : 
+
+- `flow-storm.runtime.debuggers-api/submit-batched-collect-interruptible-task` (for collecting functionality that traverse the entire timeline)
+- `flow-storm.runtime.debuggers-api/submit-find-interruptible-task` (for looping through first match)
+
+There 
 
 ### Remote debugging
 

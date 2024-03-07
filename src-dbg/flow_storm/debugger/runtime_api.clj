@@ -57,11 +57,15 @@
   (callstack-node-childs [_ node])
   (callstack-node-frame [_ node])
   (fn-call-stats [_ flow-id thread-id])
-  (collect-fn-frames [_ flow-id thread-id fn-ns fn-name form-id render-args])
-  (find-expr-entry [_ criteria])
-  (total-order-timeline [_])
-  (thread-prints [_ print-cfg])
-  (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts])
+
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args])
+  (interrupt-all-tasks [_])
+  (start-task [_ task-id])
+
+  (find-expr-entry-task [_ criteria])
+  (total-order-timeline-task [_])
+  (thread-prints-task [_ print-cfg])
+  (search-next-timeline-entry-task [_ flow-id thread-id query-str from-idx opts])
   (discard-flow [_ flow-id])
 
   (def-value [_ var-symb val-ref])
@@ -78,7 +82,6 @@
 
   (eval-form [_ form-str opts])
 
-  (interrupt-all-tasks [_])
   (clear-recordings [_])
   (clear-api-cache [_])
   (all-flows-threads [_])
@@ -93,7 +96,7 @@
   (toggle-recording [_])
   (set-total-order-recording [_ x])
   (all-fn-call-stats [_])
-  (find-fn-call [_ fq-fn-call-symb from-idx opts]))
+  (find-fn-call-task [_ fq-fn-call-symb from-idx opts]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -156,11 +159,15 @@
   (callstack-node-childs [_ node] (api-call :local "callstack-node-childs" [node]))
   (callstack-node-frame [_ node] (api-call :local "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
-  (collect-fn-frames [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :local "collect-fn-frames" [flow-id thread-id fn-ns fn-name form-id render-args]))
-  (find-expr-entry [_ criteria] (api-call :local "find-expr-entry" [criteria]))
-  (total-order-timeline [_] (api-call :local "total-order-timeline" []))
-  (thread-prints [_ print-cfg] (api-call :local "thread-prints" [print-cfg]))
-  (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :local "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
+
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :local "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args]))
+  (start-task [_ task-id] (api-call :local "start-task" [task-id]))
+  (interrupt-all-tasks [_] (api-call :local "interrupt-all-tasks" []))
+
+  (find-expr-entry-task [_ criteria] (api-call :local "find-expr-entry-task" [criteria]))
+  (total-order-timeline-task [_] (api-call :local "total-order-timeline-task" []))
+  (thread-prints-task [_ print-cfg] (api-call :local "thread-prints-task" [print-cfg]))
+  (search-next-timeline-entry-task [_ flow-id thread-id query-str from-idx opts] (api-call :local "search-next-timeline-entry-task" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
   (tap-value [_ vref] (api-call :local "tap-value" [vref]))
@@ -217,9 +224,6 @@
                 ;; so when re-evaluating a var (probably a function) store and restore its meta
                 (when v (reset-meta! v vmeta))))))))))
 
-  (interrupt-all-tasks [_]
-    (api-call :local "interrupt-all-tasks" []))
-
   (clear-recordings [_]
     (api-call :local "clear-recordings" []))
 
@@ -256,8 +260,8 @@
   (all-fn-call-stats [_]
     (api-call :local "all-fn-call-stats" []))
 
-  (find-fn-call [_ fq-fn-call-symb from-idx opts]
-    (api-call :local "find-fn-call" [fq-fn-call-symb from-idx opts])))
+  (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
+    (api-call :local "find-fn-call-task" [fq-fn-call-symb from-idx opts])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -279,11 +283,15 @@
   (callstack-node-childs [_ node] (api-call :remote "callstack-node-childs" [node]))
   (callstack-node-frame [_ node] (api-call :remote "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :remote "fn-call-stats" [flow-id thread-id]))
-  (collect-fn-frames [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :remote "collect-fn-frames" [flow-id thread-id fn-ns fn-name form-id render-args]))
-  (find-expr-entry [_ criteria] (api-call :remote "find-expr-entry" [criteria]))
-  (total-order-timeline [_] (api-call :remote "total-order-timeline" []))
-  (thread-prints [_ print-cfg] (api-call :remote "thread-prints" [print-cfg]))
-  (async-search-next-timeline-entry [_ flow-id thread-id query-str from-idx opts] (api-call :remote "async-search-next-timeline-entry" [flow-id thread-id query-str from-idx opts]))
+
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :remote "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args]))
+  (start-task [_ task-id] (api-call :remote "start-task" [task-id]))
+  (interrupt-all-tasks [_] (api-call :remote "interrupt-all-tasks" []))
+
+  (find-expr-entry-task [_ criteria] (api-call :remote "find-expr-entry-task" [criteria]))
+  (total-order-timeline-task [_] (api-call :remote "total-order-timeline-task" []))
+  (thread-prints-task [_ print-cfg] (api-call :remote "thread-prints-task" [print-cfg]))
+  (search-next-timeline-entry-task [_ flow-id thread-id query-str from-idx opts] (api-call :remote "search-next-timeline-entry-task" [flow-id thread-id query-str from-idx opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]
     (case (dbg-state/env-kind)
@@ -352,9 +360,6 @@
         (safe-eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
 
-  (interrupt-all-tasks [_]
-    (api-call :remote "interrupt-all-tasks" []))
-
   (clear-recordings [_]
     (api-call :remote "clear-recordings" []))
 
@@ -393,8 +398,8 @@
   (all-fn-call-stats [_]
     (api-call :remote "all-fn-call-stats" []))
 
-  (find-fn-call [_ fq-fn-call-symb from-idx opts]
-    (api-call :remote "find-fn-call" [fq-fn-call-symb from-idx opts]))
+  (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
+    (api-call :remote "find-fn-call-task" [fq-fn-call-symb from-idx opts]))
 
   Closeable
   (close [_] (stop-repl))

@@ -4,6 +4,7 @@
              :refer [button label list-view h-box v-box]]
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.ui.flows.general :as ui-general])
@@ -22,10 +23,13 @@
      (clear))))
 
 (defn find-and-jump-tap-val [vref]
-  (when-let [tentry (runtime-api/find-expr-entry rt-api {:from-idx 0
-                                                         :identity-val vref})]
-    (ui-general/select-main-tools-tab :flows)
-    (flows-screen/goto-location tentry)))
+  (tasks/submit-task runtime-api/find-expr-entry-task
+                     [{:from-idx 0
+                       :identity-val vref}]
+                     {:on-finished (fn [{:keys [result]}]
+                                     (when result
+                                       (ui-general/select-main-tools-tab :flows)
+                                       (flows-screen/goto-location result)))}))
 
 (defn main-pane []
   (let [{:keys [list-view-pane] :as lv-data}

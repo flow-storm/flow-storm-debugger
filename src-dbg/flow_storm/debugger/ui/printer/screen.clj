@@ -4,6 +4,7 @@
              :refer [label list-view check-box text-field table-view h-box border-pane
                      icon-button combo-box combo-box-set-items]]
             [flow-storm.utils :as utils]
+            [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
             [flow-storm.debugger.ui.flows.general :refer [show-message]]
@@ -122,13 +123,16 @@
         refresh-btn (icon-button :icon-name "mdi-reload"
                                  :on-click (fn []
                                              (if-let [[flow-id thread-id] (selected-fid-tid)]
-                                               (let [print-outs (runtime-api/thread-prints rt-api {:flow-id   flow-id
-                                                                                                   :thread-id thread-id
-                                                                                                   :printers  (prepare-printers (dbg-state/printers))})]
+                                               (do
                                                  (clear)
-                                                 (add-all (into []
-                                                                (map (fn [po] (assoc po :flow-id flow-id :thread-id thread-id)))
-                                                                print-outs)))
+                                                 (tasks/submit-task runtime-api/thread-prints-task
+                                                                    [{:flow-id   flow-id
+                                                                      :thread-id thread-id
+                                                                      :printers  (prepare-printers (dbg-state/printers))}]
+                                                                    {:on-progress (fn [{:keys [batch]}]
+                                                                                    (add-all (into []
+                                                                                                   (map (fn [po] (assoc po :flow-id flow-id :thread-id thread-id)))
+                                                                                                   batch)))}))
 
                                                (show-message "You need to select a thread first" :error)))
                                  :tooltip "Re print everything")

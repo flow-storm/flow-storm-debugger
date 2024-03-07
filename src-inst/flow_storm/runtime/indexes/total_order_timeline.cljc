@@ -100,59 +100,52 @@
 (defn make-total-order-timeline []
   (TotalOrderTimeline. (make-mutable-list)))
 
-(defn build-detailed-timeline [total-order-timeline forms-registry]
-  (locking total-order-timeline
-    (loop [[tote & r] total-order-timeline
-           threads-stacks {}
-           timeline-ret (transient [])]
-      (if-not tote
-        (persistent! timeline-ret)
-        
-        (let [entry (index-protos/tote-entry tote)
-              fid   (index-protos/tote-flow-id tote)
-              tid   (index-protos/tote-thread-id tote)
-              tidx  (index-protos/entry-idx entry)]
-          (cond
-            (fn-call-trace? entry)
-            (recur r
-                   (update threads-stacks tid conj entry)
-                   (conj! timeline-ret {:type                :fn-call
-                                        :flow-id             fid
-                                        :thread-id           tid
-                                        :thread-timeline-idx tidx
-                                        :fn-ns               (index-protos/get-fn-ns entry)
-                                        :fn-name             (index-protos/get-fn-name entry)}))
-            
-            (fn-end-trace? entry)
-            (recur r
-                   (update threads-stacks tid pop)
-                   (conj! timeline-ret {:type                (if (fn-return-trace/fn-return-trace? entry)
-                                                               :fn-return
-                                                               :fn-unwind)
-                                        :flow-id             fid
-                                        :thread-id           tid
-                                        :thread-timeline-idx tidx}))
-            
-            (expr-trace? entry)
-            (let [[curr-fn-call] (get threads-stacks tid)
-                  form-id (index-protos/get-form-id curr-fn-call)
-                  form-data (index-protos/get-form forms-registry form-id)
-                  coord (index-protos/get-coord-vec entry)
-                  expr-val (index-protos/get-expr-val entry)]
-              
-              (recur r
-                     threads-stacks
-                     (conj! timeline-ret {:type                :expr-exec
-                                          :flow-id             fid
-                                          :thread-id           tid
-                                          :thread-timeline-idx tidx
-                                          :expr-str            (binding [*print-length* 5
-                                                                         *print-level*  3]
-                                                                 (pr-str
-                                                                  (hansel-utils/get-form-at-coord (:form/form form-data)
-                                                                                                  coord)))
-                                          :expr-type (pr-str (type expr-val))
-                                          :expr-val-str  (binding [*print-length* 3
-                                                                   *print-level*  2
-                                                                   *printing-expr-val* true]
-                                                           (pr-str expr-val))})))))))))
+(defn detailed-timeline-transd [forms-registry]
+  (let [threads-stacks (atom {})]
+    (map (fn [tote]
+           (let [entry (index-protos/tote-entry tote)
+                 fid   (index-protos/tote-flow-id tote)
+                 tid   (index-protos/tote-thread-id tote)
+                 tidx  (index-protos/entry-idx entry)]
+             (cond
+               (fn-call-trace? entry)
+               (do
+                 (swap! threads-stacks update tid conj entry)
+                 {:type                :fn-call
+                  :flow-id             fid
+                  :thread-id           tid
+                  :thread-timeline-idx tidx
+                  :fn-ns               (index-protos/get-fn-ns entry)
+                  :fn-name             (index-protos/get-fn-name entry)})
+               
+               (fn-end-trace? entry)
+               (do
+                 (swap! threads-stacks update tid pop)
+                 {:type                (if (fn-return-trace/fn-return-trace? entry)
+                                         :fn-return
+                                         :fn-unwind)
+                  :flow-id             fid
+                  :thread-id           tid
+                  :thread-timeline-idx tidx})
+               
+               (expr-trace? entry)
+               (let [[curr-fn-call] (get @threads-stacks tid)
+                     form-id (index-protos/get-form-id curr-fn-call)
+                     form-data (index-protos/get-form forms-registry form-id)
+                     coord (index-protos/get-coord-vec entry)
+                     expr-val (index-protos/get-expr-val entry)]
+                 
+                 {:type                :expr-exec
+                  :flow-id             fid
+                  :thread-id           tid
+                  :thread-timeline-idx tidx
+                  :expr-str            (binding [*print-length* 5
+                                                 *print-level*  3]
+                                         (pr-str
+                                          (hansel-utils/get-form-at-coord (:form/form form-data)
+                                                                          coord)))
+                  :expr-type (pr-str (type expr-val))
+                  :expr-val-str  (binding [*print-length* 3
+                                           *print-level*  2
+                                           *printing-expr-val* true]
+                                   (pr-str expr-val))})))))))

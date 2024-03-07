@@ -44,11 +44,15 @@
 (defn make-task-submitted-event [task-id]
   [:task-submitted {:task-id task-id}])
 
-(defn make-task-result-event [task-id result]
-  [:task-result {:task-id task-id :result result}])
+(defn make-task-progress-event [task-id task-data]
+  [:task-progress (assoc task-data :task-id task-id)])
 
-(defn make-task-progress-event [task-id progress]
-  [:task-progress {:task-id task-id :progress progress}])
+(defn make-task-finished-event
+  ([task-id]
+   (make-task-finished-event task-id nil))
+  ([task-id result]
+   [:task-finished (cond-> {:task-id task-id}
+                       result (assoc :result result))]))
 
 (defn make-heap-info-update-event [heap-info]
   [:heap-info-update heap-info])

@@ -9,8 +9,7 @@
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
-            [flow-storm.utils :refer [log]]
-            [flow-storm.debugger.state :as dbg-state :refer [dispatch-task-event]]))
+            [flow-storm.debugger.state :as dbg-state]))
 
 (defn- var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
@@ -47,12 +46,8 @@
 (defn- task-submitted-event [_]
   (ui-main/set-task-cancel-btn-enable true))
 
-(defn- task-result-event [{:keys [task-id result]}]
-  (dispatch-task-event :result task-id result)
+(defn- task-finished-event [_]
   (ui-main/set-task-cancel-btn-enable false))
-
-(defn- task-progress-event [{:keys [task-id progress]}]
-  (dispatch-task-event :progress task-id progress))
 
 (defn- heap-info-update-event [ev-args-map]
   (ui-main/update-heap-indicator ev-args-map))
@@ -83,9 +78,7 @@
     (flows-screen/update-exceptions-combo)))
 
 (defn process-event [[ev-type ev-args-map]]
-  (when (and (:debug-mode? (dbg-state/debugger-config))
-             (not (= ev-type :heap-info-update)))
-    (log (format "Processing event: %s" [ev-type ev-args-map])))
+
   (case ev-type
     :var-instrumented (var-instrumented-event ev-args-map)
     :var-uninstrumented (var-uninstrumented-event ev-args-map)
@@ -94,13 +87,16 @@
     :flow-created (flow-created-event ev-args-map)
     :threads-updated (threads-updated-event ev-args-map)
     :tap (tap-event ev-args-map)
+
     :task-submitted (task-submitted-event ev-args-map)
-    :task-result (task-result-event ev-args-map)
-    :task-progress (task-progress-event ev-args-map)
+    :task-finished (task-finished-event ev-args-map)
+
     :heap-info-update (heap-info-update-event ev-args-map)
     :goto-location (goto-location-event ev-args-map)
     :show-doc (show-doc-event ev-args-map)
     :break-installed (break-installed-event ev-args-map)
     :break-removed (break-removed-event ev-args-map)
     :recording-updated (recording-updated-event ev-args-map)
-    :function-unwinded-event (function-unwinded-event ev-args-map)))
+    :function-unwinded-event (function-unwinded-event ev-args-map)
+    nil ;; events-processor doesn't handle every event, specially tasks processing
+    ))

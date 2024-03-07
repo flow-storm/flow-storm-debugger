@@ -6,6 +6,7 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
+            [flow-storm.debugger.ui.tasks :as tasks]
             [clojure.pprint :refer [cl-format]]
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]
@@ -19,15 +20,18 @@
 (defn- show-function-calls [flow-id thread-id fn-call]
   (let [{:keys [form-id fn-ns fn-name]} fn-call
         [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
+        _ (clear)
         [fn-calls-lbl] (obj-lookup flow-id thread-id "function_calls_lbl")
         [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_fn")
         sel-args (selected-args-fn)
         render-args (when (not= (count sel-args) max-args)
-                      sel-args)
-        fn-frames (runtime-api/collect-fn-frames rt-api flow-id thread-id fn-ns fn-name form-id render-args)]
-    (.setText fn-calls-lbl (format "Calls for: %s/%s" fn-ns fn-name))
-    (clear)
-    (add-all fn-frames)))
+                      sel-args)]
+
+    (tasks/submit-task runtime-api/collect-fn-frames-task
+                       [flow-id thread-id fn-ns fn-name form-id render-args]
+                       {:on-progress (fn [{:keys [batch]}] (add-all batch))})
+
+    (.setText fn-calls-lbl (format "Calls for: %s/%s" fn-ns fn-name))))
 
 (defn- functions-cell-factory [flow-id thread-id _ {:keys [cell-type] :as cell-info}]
   (case cell-type

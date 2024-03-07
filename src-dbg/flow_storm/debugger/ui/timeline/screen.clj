@@ -2,15 +2,17 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label table-view h-box border-pane icon-button event-handler thread-label]]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.runtime-api :as rt-api :refer [rt-api]]
             [clojure.string :as str]
+            [clojure.set :as set]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
-            [flow-storm.debugger.ui.flows.screen :as flows-screen])
+            [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.events-queue :as events-queue])
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.control TableRow CheckBox]
            [javafx.scene.input MouseButton]))
 
-(def thread-colors ["#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"])
+(def thread-possible-colors #{"#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"})
 
 (defn set-recording-check [recording?]
   (let [[record-btn] (obj-lookup "total-order-record-btn")]
@@ -50,26 +52,39 @@
         record-btn (doto (CheckBox.)
                      (.setSelected false))
         _ (.setOnAction record-btn
-           (event-handler [_] (runtime-api/set-total-order-recording rt-api (.isSelected record-btn))))
+           (event-handler [_] (rt-api/set-total-order-recording rt-api (.isSelected record-btn))))
         refresh-btn (icon-button :icon-name "mdi-reload"
                                  :on-click (fn []
-                                             (let [timeline (runtime-api/total-order-timeline rt-api)
-                                                   thread-ids (->> timeline
-                                                                   (map :thread-id)
-                                                                   (into #{}))
-                                                   thread-color (zipmap thread-ids thread-colors)]
-                                               (->> timeline
-                                                    (mapv (fn [{:keys [thread-timeline-idx type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
-                                                            (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)
-                                                                  idx thread-timeline-idx]
-                                                              (with-meta
-                                                                (case type
-                                                                  :fn-call   [(thread-label thread-id name) idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
-                                                                  :fn-return [(thread-label thread-id name) idx "RETURN"                         ""       expr-val-str expr-type]
-                                                                  :fn-unwind [(thread-label thread-id name) idx "UNWIND"                         ""       "" expr-type]
-                                                                  :expr-exec [(thread-label thread-id name) idx ""                               expr-str expr-val-str expr-type])
-                                                                (assoc tl-entry :color (thread-color thread-id))))))
-                                                    add-all)))
+                                             (let [thread-selected-colors (atom {})
+                                                   timeline-task-id (rt-api/total-order-timeline-task rt-api)
+                                                   thread-color (fn [thread-id]
+                                                                  (if-let [color (get @thread-selected-colors thread-id)]
+                                                                    color
+                                                                    (let [new-color (first (set/difference thread-possible-colors
+                                                                                                           (into #{} (vals @thread-selected-colors))))]
+                                                                      (swap! thread-selected-colors assoc thread-id new-color)
+                                                                      new-color)))]
+                                               (events-queue/add-dispatch-fn
+                                                :tote-timeline
+                                                (fn [[ev-type {:keys [task-id batch]}]]
+                                                  (when (= timeline-task-id task-id)
+                                                    (case ev-type
+                                                      :task-progress (ui-utils/run-later
+                                                                       (->> batch
+                                                                            (mapv (fn [{:keys [thread-timeline-idx type thread-id fn-ns fn-name expr-str expr-type expr-val-str] :as tl-entry}]
+                                                                                    (let [{:keys [thread/name]} (dbg-state/get-thread-info thread-id)
+                                                                                          idx thread-timeline-idx]
+                                                                                      (with-meta
+                                                                                        (case type
+                                                                                          :fn-call   [(thread-label thread-id name) idx  (format "%s/%s" fn-ns fn-name)  ""       ""           ""]
+                                                                                          :fn-return [(thread-label thread-id name) idx "RETURN"                         ""       expr-val-str expr-type]
+                                                                                          :fn-unwind [(thread-label thread-id name) idx "UNWIND"                         ""       "" expr-type]
+                                                                                          :expr-exec [(thread-label thread-id name) idx ""                               expr-str expr-val-str expr-type])
+                                                                                        (assoc tl-entry :color (thread-color thread-id))))))
+                                                                            add-all))
+                                                      :task-finished (events-queue/rm-dispatch-fn :tote-timeline)
+                                                      nil))))
+                                               (rt-api/start-task rt-api timeline-task-id)))
                                  :tooltip "Refresh the content of the timeline")
         main-pane (border-pane
                    {:top (doto (h-box [refresh-btn (label "Enable:") record-btn] "controls-box")

@@ -25,6 +25,7 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
+            [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
@@ -196,8 +197,11 @@
                                                     (map (fn [[fq-fn-name cnt]]
                                                            {:text (format "%s (%d)" fq-fn-name cnt)
                                                             :on-select (fn []
-                                                                         (let [fn-call (runtime-api/find-fn-call rt-api (symbol fq-fn-name) 0 {})]
-                                                                           (flows-screen/goto-location fn-call)))}))
+                                                                         (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                            [(symbol fq-fn-name) 0 {}]
+                                                                                            {:on-finished (fn [{:keys [result]}]
+                                                                                                            (when result
+                                                                                                              (flows-screen/goto-location result)))}))}))
                                                     (runtime-api/all-fn-call-stats rt-api))))])
                                (.setAlignment Pos/CENTER_LEFT))
         format-exception-item (fn [{:keys [idx fn-ns fn-name ex-type]}]
@@ -230,7 +234,10 @@
 (defn set-task-cancel-btn-enable [enable?]
   (ui-utils/run-later
    (let [[task-cancel-btn] (obj-lookup "task-cancel-btn")]
-     (.setDisable task-cancel-btn (not enable?)))))
+     (.setDisable task-cancel-btn (not enable?))
+     (if enable?
+       (ui-utils/add-class task-cancel-btn "attention")
+       (ui-utils/rm-class task-cancel-btn "attention")))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later

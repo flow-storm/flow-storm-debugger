@@ -8,6 +8,7 @@
             [flow-storm.runtime.values :as rt-values :refer [reference-value! deref-value]]
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
+            [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
             #?@(:clj [[flow-storm.mem-reporter :as mem-reporter]])
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
@@ -29,28 +30,134 @@
   "A map from task-id -> interrupt-ch"
   (atom {}))
 
-(defn- submit-interruptible-task! [f args]
-  (let [task-id (str (utils/rnd-uuid))        
-        on-progress (fn [progress] (rt-events/publish-event! (rt-events/make-task-progress-event task-id progress)))
-        on-result (fn [res]
-                    ;; TODO: there is a race condition here, if the result of the task
-                    ;; finishes faster than we when able to return the task id and
-                    ;; the remote connection add a listener to it
-                    (log (utils/format "Task %s finished " task-id))
-                    (rt-events/publish-event! (rt-events/make-task-result-event task-id res)))
-        interrupt-fn (apply f (-> [] (into args) (into [on-progress on-result])))]
-    (swap! interruptible-tasks assoc task-id interrupt-fn)    
-    (log (utils/format "Submited interruptible task with task-id: %s" task-id))
-    (rt-events/publish-event! (rt-events/make-task-submitted-event task-id))
-    task-id))
-
-(defn interrupt-task [task-id]  
-  (let [int-fn (get @interruptible-tasks task-id)]
-    (int-fn)))
-
 (defn interrupt-all-tasks []
-  (doseq [int-fn (vals @interruptible-tasks)]
-    (int-fn)))
+  (doseq [[task-id {:keys [interrupt-task]}] @interruptible-tasks]
+    (interrupt-task)
+    (swap! interruptible-tasks dissoc task-id)))
+
+(defn start-task [task-id]
+  (let [{:keys [start-task]} (get @interruptible-tasks task-id)]
+    (start-task)))
+
+(defn- transduce-sub-range
+
+  "Given a coll return the sub range [from to] transduced with xf."
+
+  [coll from to xf]
+  
+  (when (<= 0 from to (count coll))
+    ;; this locking is here to support the timeline which is mutable,
+    ;; but I think the timeline should expose a way of iterating sub sequences
+    (locking coll 
+      (let [rf (fn
+                 ([acc] (persistent! acc))
+                 ([acc tle] (conj! acc tle)))
+            f (xf rf)]
+        (loop [i from
+               batch-res (transient [])]
+          (if (< i to)
+            (let [tl (get coll i)
+                  batch-res' (f batch-res tl)]
+              (if (reduced? batch-res')
+                batch-res'
+                (recur (inc i) batch-res')))
+            (f batch-res)))))))
+
+(defn- async-interruptible-batched-collect
+
+  "Process coll with xf in batches of size batch-size. Returns a function
+  which can be used to interrupt the collection processing between batches.
+  on-batch should be a callback of 1 arg, that will be called with the result
+  of processing each batch.
+  on-end will be called with no args for signaling the end."
+
+  [coll batch-size xf {:keys [on-batch on-end]}]
+
+  (let [interrupted? (atom false)
+        interrupt-task (fn interrupt-task [] (reset! interrupted? true))
+        start-task (fn start-task []
+                     (let [collect-next-batch (fn collect-next-batch [from]
+                                                (if-not @interrupted?
+                                                  (if (< from (count coll))
+                                                    (let [to (min (+ from batch-size) (count coll))
+                                                          batch-res (transduce-sub-range coll from to xf)]
+                                                      (if (reduced? batch-res)
+                                                        (do
+                                                          (on-batch (deref batch-res))
+                                                          (on-end))
+                                                        (do
+                                                          (on-batch batch-res)
+                                                          #?(:clj (recur to)
+                                                             :cljs (js/setTimeout collect-next-batch 0 to)))))
+                                                    (on-end))
+
+                                                  ;; if we are interrupted call on-end
+                                                  (on-end))
+                                                )]
+                       (collect-next-batch 0)))]
+    {:interrupt-task interrupt-task
+     :start-task     start-task}))
+
+(def collect-batch-size 10000)
+
+(defn submit-interruptible-task [{:keys [task-id start-task interrupt-task]}]
+  (interrupt-all-tasks)  
+  (swap! interruptible-tasks assoc task-id {:start-task (fn []
+                                                          #?(:clj (future (start-task))
+                                                             :cljs (start-task))
+                                                          (println (utils/format "Task %s started" task-id)))
+                                            :interrupt-task (fn []                                                              
+                                                              (interrupt-task)
+                                                              (println (utils/format "Task %s interrupted" task-id)))})
+  (rt-events/publish-event! (rt-events/make-task-submitted-event task-id))
+  task-id)
+
+(defn submit-batched-collect-interruptible-task
+
+  "Submits a timeline entry collection tasks. Uses the xf transducer to collect entries.
+  Doesn't start the task. Returns a task id.
+  You can start it by calling `start-task` and interrupt it with `interrupt-task` providing the returned task id.
+  Progress, match and end will be reported through the event system via task-progress-event and task-finished-event.
+  task-progress-event will be called after each batch and carry {:batch []} which are collected entries for the batch
+  just processed. Interruption can only happen between batches. Batch size is `collect-batch-size`."
+  
+  [timeline xf]
+  (let [task-id (str (utils/rnd-uuid))
+        task (async-interruptible-batched-collect timeline
+                                                  collect-batch-size
+                                                  xf
+                                                  {:on-batch (fn [batch]                                                          
+                                                               (rt-events/publish-event! (rt-events/make-task-progress-event task-id {:batch batch})))
+                                                   :on-end (fn []
+                                                             (rt-events/publish-event! (rt-events/make-task-finished-event task-id))
+                                                             (swap! interruptible-tasks dissoc task-id))})]
+    (submit-interruptible-task (assoc task :task-id task-id))))
+
+(defn submit-find-interruptible-task
+  
+  "Submits a timelines find entry tasks. Returns a task id.
+  Doesn't start the task.
+  You can start it by calling `start-task` and interrupt it with `interrupt-task` providing the
+  returned task id.
+  Progress, match and end will be reported through the event system via task-progress-event and task-finished-event."
+  
+  [pred config {:keys [result-transform]}]
+  (let [task-id (str (utils/rnd-uuid))
+        result-transform (or result-transform identity)
+        {:keys [start interrupt]} (index-api/timelines-async-interruptible-find-entry
+                                   pred
+                                   config
+                                   {:on-progress (fn [perc]
+                                                   (rt-events/publish-event! (rt-events/make-task-progress-event task-id {:progress perc})))
+                                    :on-match (fn [match-val]
+                                                (rt-events/publish-event! (rt-events/make-task-finished-event task-id (result-transform match-val)))
+                                                (swap! interruptible-tasks dissoc task-id))
+                                    :on-end (fn []
+                                              (rt-events/publish-event! (rt-events/make-task-finished-event task-id))
+                                              (swap! interruptible-tasks dissoc task-id))})]
+    (submit-interruptible-task {:task-id task-id
+                                :start-task start
+                                :interrupt-task interrupt})))
 
 (defn runtime-config []
   {:env-kind #?(:clj :clj :cljs :cljs)
@@ -138,133 +245,79 @@
           {}
           (index-api/all-threads)))
 
-(defn collect-fn-frames [flow-id thread-id fn-ns fn-name form-id render-args]
-  (let [fn-frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name form-id)
-        pprint-opts {:print-length 3
-                     :print-level  3
-                     :print-meta?  false
-                     :pprint?      false}
-        render-frame (fn [{:keys [args-vec ret throwable] :as fn-frame}]
-                       (let [fr (-> fn-frame
-                                    reference-frame-data!
-                                    (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc pprint-opts :nth-elems render-args)))))]
-                         (if throwable
-                           (assoc fr :throwable-str (ex-message throwable))
-                           (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret pprint-opts))))))
-        frames (into [] (map render-frame) fn-frames)]
-    frames))
+(defn render-fn-frames-transd
 
-(defn find-fn-call [fq-fn-call-symb from-idx opts]
-  (some-> (index-api/find-fn-call fq-fn-call-symb from-idx opts)
-          reference-timeline-entry!))
+  "Given render-args a vector of args indexes to render returns a transducer
+  that will render fn-frames."
+  
+  [render-args]
+  (let [print-opts {:print-length 3
+                    :print-level  3
+                    :print-meta?  false
+                    :pprint?      false}]
+    (map (fn [{:keys [args-vec ret throwable] :as fn-frame}]
+           (let [fr (-> fn-frame
+                        reference-frame-data!
+                        (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc print-opts :nth-elems render-args)))))]
+             (if throwable
+               (assoc fr :throwable-str (ex-message throwable))
+               (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret print-opts)))))))))
+
+(defn collect-fn-frames-task [flow-id thread-id fn-ns fn-name form-id render-args]  
+  (let [timeline (index-api/get-timeline flow-id thread-id)
+        xf (comp (index-api/fn-calls-transd fn-ns fn-name form-id)
+                 (index-api/frame-data-transd timeline)
+                 (render-fn-frames-transd render-args))]    
+    (submit-batched-collect-interruptible-task timeline xf)))
+
+(defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward?]}]
+  (let [criteria {:fn-ns (namespace fq-fn-call-symb)
+                  :fn-name (name fq-fn-call-symb)
+                  :from-idx from-idx
+                  :backward? backward?}]
+    (submit-find-interruptible-task (index-api/build-find-fn-call-entry-predicate criteria)
+                                    criteria                                    
+                                    {:result-transform reference-timeline-entry!})))
 
 (defn find-flow-fn-call [flow-id]
   (some-> (index-api/find-flow-fn-call flow-id)
           reference-timeline-entry!))
 
-(defn find-expr-entry [{:keys [identity-val equality-val] :as criteria}]
+(defn find-expr-entry-task [{:keys [identity-val equality-val] :as criteria}]
   (let [criteria (cond-> criteria
                    identity-val (update :identity-val deref-value)
-                   equality-val (update :equality-val deref-value))]
-    (some-> (index-api/find-expr-entry criteria)
-            reference-timeline-entry!)))
+                   equality-val (update :equality-val deref-value)
+                   true         (assoc  :needs-form-id? true))]
+    
+    (submit-find-interruptible-task (index-api/build-find-expr-entry-predicate criteria)
+                                    criteria                                    
+                                    {:result-transform reference-timeline-entry!})))
 
-(defn total-order-timeline []
-  (index-api/detailed-total-order-timeline))
+(defn total-order-timeline-task []
+  (let [timeline (index-api/total-order-timeline)
+        xf (total-order-timeline/detailed-timeline-transd index-api/forms-registry)]    
+    (submit-batched-collect-interruptible-task timeline xf)))
 
-(defn thread-prints [print-cfg]
-  (index-api/thread-prints print-cfg))
+(defn thread-prints-task [{:keys [flow-id thread-id printers]}]
+  (let [timeline (index-api/get-timeline flow-id thread-id)
+        xf (index-api/thread-prints-transd printers)]    
+    (submit-batched-collect-interruptible-task timeline xf)))
 
-;; NOTE: this is duplicated for Clojure and ClojureScript so I could get rid of core.async in the runtime part
-;;       so it can be AOT compiled without too many issues
-#?(:clj
-   (defn async-search-next-timeline-entry* [flow-id thread-id query-str from-idx {:keys [print-length print-level] :or {print-level 2 print-length 10}} on-progress on-result]     
-     (let [thread (Thread.
-                   (fn []
-                     (try
-                       (let [{:keys [timeline-index]} (index-api/get-thread-indexes flow-id thread-id)                             
-                             found-entry (locking timeline-index
-                                           (let [total-entries (count timeline-index)]
-                                             (loop [idx from-idx]
-                                               (when (and (< idx total-entries)
-                                                          (not (.isInterrupted (Thread/currentThread))))
-                                                 (let [tl-entry (get timeline-index idx)]
+(defn search-next-timeline-entry-task [flow-id thread-id query-str from-idx {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
+  (submit-find-interruptible-task (fn search-next-timeline-entry-pred [_ tl-entry]
+                                    (when (or (expr-trace/expr-trace? tl-entry)
+                                              (fn-return-trace/fn-return-trace? tl-entry))
 
-                                                   (when (and on-progress (zero? (mod idx 10000)))
-                                                     (on-progress (* 100 (utils/inverse-lerp from-idx total-entries idx))))
-
-                                                   (if (or (expr-trace/expr-trace? tl-entry)
-                                                           (fn-return-trace/fn-return-trace? tl-entry))
-
-                                                     (let [result (index-protos/get-expr-val tl-entry)]
-                                                       (if (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
-                                                                                                                  :print-level print-level
-                                                                                                                  :pprint? false}))
-                                                                          query-str)
-
-                                                         ;; if matches, finish the loop the found idx
-                                                         tl-entry
-
-                                                         ;; else, keep looping
-                                                         (recur (inc idx))))
-
-                                                     ;; else
-                                                     (recur (inc idx))))))))
-                             result (some-> found-entry
-                                            index-protos/as-immutable
-                                            reference-timeline-entry!)]                         
-                         (on-result result))
-                       (catch java.lang.InterruptedException _
-                         (utils/log "FlowStorm search thread interrupted")))))
-           interrupt-fn (fn [] (.interrupt thread))]
-       (.setName thread "FlowStorm Search")
-       (.start thread)
-       interrupt-fn)))
-
-#?(:cljs   
-   (defn async-search-next-timeline-entry* [flow-id thread-id query-str from-idx {:keys [print-length print-level] :or {print-level 2 print-length 10}} on-progress on-result]     
-     (let [interrupted (atom false)
-           interrupt-fn (fn [] (reset! interrupted true))
-           {:keys [timeline-index]} (index-api/get-thread-indexes flow-id thread-id)           
-           total-entries (count timeline-index)
-           search-next (fn search-next [idx]
-                         (if (and (< idx total-entries)
-                                  (not @interrupted))                        
-
-                           (let [tl-entry (get timeline-index idx)]
-                             
-                             (when (and on-progress (zero? (mod idx 10000)))
-                               (on-progress (* 100 (utils/inverse-lerp from-idx total-entries idx))))
-
-                             (if (or (expr-trace/expr-trace? tl-entry)
-                                     (fn-return-trace/fn-return-trace? tl-entry))
-                               
-                               (let [result (index-protos/get-expr-val tl-entry)]
-                                 
-                                 (if (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
-                                                                                            :print-level print-level
-                                                                                            :pprint? false}))
-                                                    query-str)
-
-                                   ;; if matches, finish the loop with the found entry
-                                   (on-result (some-> tl-entry
-                                                      index-protos/as-immutable
-                                                      reference-timeline-entry!))
-
-                                   ;; else, keep looping
-                                   (js/setTimeout search-next 0 (inc idx))))
-
-                               ;; else
-                               (js/setTimeout search-next 0 (inc idx))))
-
-                           ;; else didn't found it or was interrupted, in any case call on-result with nil
-                           (on-result nil)
-                           ))]
-       (search-next from-idx)
-       interrupt-fn)))
-
-(defn async-search-next-timeline-entry [& args]
-  (submit-interruptible-task! async-search-next-timeline-entry* args))
+                                      (let [result (index-protos/get-expr-val tl-entry)]
+                                        (when (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
+                                                                                                         :print-level print-level
+                                                                                                         :pprint? false}))
+                                                             query-str)
+                                          tl-entry))))                                  
+                                  {:from-idx from-idx
+                                   :flow-id flow-id
+                                   :thread-id thread-id}
+                                  {:result-transform reference-timeline-entry!}))
 
 (def discard-flow index-api/discard-flow)
 
@@ -456,15 +509,21 @@
              :callstack-node-childs callstack-node-childs
              :callstack-node-frame callstack-node-frame
              :fn-call-stats fn-call-stats
-             :collect-fn-frames collect-fn-frames
-             :find-expr-entry find-expr-entry
-             :total-order-timeline total-order-timeline
-             :thread-prints thread-prints
-             :async-search-next-timeline-entry async-search-next-timeline-entry
+
+             ;; collectors tasks
+             :collect-fn-frames-task collect-fn-frames-task
+             :total-order-timeline-task total-order-timeline-task
+             :thread-prints-task thread-prints-task
+
+             ;; finders tasks
+             :search-next-timeline-entry-task search-next-timeline-entry-task
+             :find-expr-entry-task find-expr-entry-task
+             :find-fn-call-task find-fn-call-task
+
              :discard-flow discard-flow             
              :tap-value tap-value
-             :interrupt-task interrupt-task
              :interrupt-all-tasks interrupt-all-tasks
+             :start-task start-task
              :clear-recordings clear-recordings
              :flow-threads-info flow-threads-info
              :all-flows-threads all-flows-threads
@@ -472,7 +531,6 @@
              :toggle-recording toggle-recording
              :set-total-order-recording set-total-order-recording
              :all-fn-call-stats all-fn-call-stats
-             :find-fn-call find-fn-call
              :ping ping
              #?@(:clj
                  [:def-value def-value

@@ -474,17 +474,6 @@
              []
              (get-in @state [:bookmarks])))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Pending tasks sub-system ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn subscribe-to-task-event [event-key task-id callback]
-  (swap! state assoc-in [:pending-tasks-subscriptions [event-key task-id]] callback))
-
-(defn dispatch-task-event [event-key task-id data]
-  (when-let [cb (get-in @state [:pending-tasks-subscriptions [event-key task-id]])]
-    (cb data)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Navigation undo system ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;

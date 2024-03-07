@@ -6,8 +6,9 @@
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
-            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup subscribe-to-task-event]]
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.tasks :as tasks]
             [hansel.utils :refer [get-form-at-coord]])
   (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField TextInputDialog]
            [javafx.scene Node]
@@ -54,13 +55,16 @@
     print-tokens))
 
 (defn- jump-to-record-here [flow-id thread-id form-id coord {:keys [backward? from-idx]}]
-  (when-let [tentry (runtime-api/find-expr-entry rt-api {:flow-id   flow-id
-                                                         :thread-id thread-id
-                                                         :from-idx  from-idx
-                                                         :backward? backward?
-                                                         :coord     coord
-                                                         :form-id   form-id})]
-    (jump-to-coord flow-id thread-id tentry)))
+  (tasks/submit-task runtime-api/find-expr-entry-task
+                     [{:flow-id   flow-id
+                       :thread-id thread-id
+                       :from-idx  from-idx
+                       :backward? backward?
+                       :coord     coord
+                       :form-id   form-id}]
+                     {:on-finished (fn [{:keys [result]}]
+                                     (when result
+                                       (jump-to-coord flow-id thread-id result)))}))
 
 (defn- add-to-printer
 
@@ -504,13 +508,17 @@
     (jump-to-coord flow-id thread-id last-tentry)))
 
 (defn find-and-jump [current-flow-id current-thread-id search-params]
-  (when-let [{:keys [flow-id thread-id idx] :as next-tentry} (runtime-api/find-expr-entry rt-api search-params)]
-    (if (and (= current-flow-id flow-id) (= current-thread-id thread-id))
-      (jump-to-coord flow-id thread-id next-tentry)
-      (let [goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
-        (goto-loc {:flow-id   flow-id
-                   :thread-id thread-id
-                   :idx       idx})))))
+  (tasks/submit-task runtime-api/find-expr-entry-task
+                     [search-params]
+                     {:on-finished (fn [{:keys [result]}]
+                                     (when result
+                                       (let [{:keys [flow-id thread-id idx] :as next-tentry} result]
+                                         (if (and (= current-flow-id flow-id) (= current-thread-id thread-id))
+                                           (jump-to-coord flow-id thread-id next-tentry)
+                                           (let [goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
+                                             (goto-loc {:flow-id   flow-id
+                                                        :thread-id thread-id
+                                                        :idx       idx}))))))}))
 
 (defn- power-stepping-pane [flow-id thread-id]
   (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
@@ -653,36 +661,23 @@
         search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
                                          :class "tree-search")
         search (fn []
-                 (.setDisable search-btn true)
                  (.setText search-progress-lbl "% 0.0 %%")
-                 (let [task-id (runtime-api/async-search-next-timeline-entry
-                                rt-api
-                                flow-id
-                                thread-id
-                                (.getText search-txt)
-                                (inc (dbg-state/current-idx flow-id thread-id))
-                                {:print-level (Integer/parseInt (.getText search-lvl-txt))
-                                 :print-length (Integer/parseInt (.getText search-len-txt))})]
+                 (tasks/submit-task runtime-api/search-next-timeline-entry-task
+                                    [flow-id
+                                     thread-id
+                                     (.getText search-txt)
+                                     (inc (dbg-state/current-idx flow-id thread-id))
+                                     {:print-level (Integer/parseInt (.getText search-lvl-txt))
+                                      :print-length (Integer/parseInt (.getText search-len-txt))}]
+                                    {:on-finished (fn [{:keys [result]}]
+                                                    (if result
+                                                      (ui-utils/run-later
+                                                        (.setText search-progress-lbl "")
+                                                        (jump-to-coord flow-id thread-id result))
 
-                   (subscribe-to-task-event :progress
-                                            task-id
-                                            (fn [progress-perc]
-                                              (ui-utils/run-later
-                                                (.setText search-progress-lbl (format "%.2f %%" (double progress-perc))))))
-
-                   (subscribe-to-task-event :result
-                                            task-id
-                                            (fn [tl-entry]
-
-                                              (if tl-entry
-
-                                                (ui-utils/run-later
-                                                  (.setText search-progress-lbl "")
-                                                  (jump-to-coord flow-id thread-id tl-entry))
-
-                                                (ui-utils/run-later (.setText search-progress-lbl "No match found")))
-
-                                              (ui-utils/run-later (.setDisable search-btn false))))))]
+                                                      (ui-utils/run-later (.setText search-progress-lbl "No match found"))))
+                                     :on-progress (fn [{:keys [progress]}]
+                                                    (.setText search-progress-lbl (format "%.2f %%" (double progress))))}))]
 
     (.setOnAction search-btn (event-handler [_] (search)))
 

@@ -142,4 +142,4 @@
 
   ;; we set the events dispatch-fn afater `state-management/start` returns because
   ;; we know the UI is ready to start processing events
-  (events-queue/set-dispatch-fn events-processor/process-event))
+  (events-queue/add-dispatch-fn :events-processor events-processor/process-event))

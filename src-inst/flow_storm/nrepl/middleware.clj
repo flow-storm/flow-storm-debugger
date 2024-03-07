@@ -1,5 +1,6 @@
 (ns flow-storm.nrepl.middleware
   (:require [flow-storm.runtime.debuggers-api :as debuggers-api]
+            [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.types :refer [make-value-ref]]
             [nrepl.misc :refer [response-for] :as misc]
             [nrepl.middleware :as middleware :refer [set-descriptor!]]
@@ -31,10 +32,24 @@
                 {:status :done
                  :trace-cnt cnt})})
 
+(defn find-fn-call* [fq-fn-call-symb from-idx backward]
+  (let [criteria {:from-idx from-idx
+                  :backward? backward
+                  :fn-ns (namespace fq-fn-call-symb)
+                  :fn-name (name fq-fn-call-symb)}
+        result (promise)
+        {:keys [start]} (index-api/timelines-async-interruptible-find-entry (index-api/build-find-fn-call-entry-predicate criteria)
+                                                                            criteria
+                                                                            {:on-match (fn [m] (deliver result m))
+                                                                             :on-end   (fn []  (deliver result nil))})]
+    (start)
+    (when-let [entry @result]
+      (debuggers-api/reference-timeline-entry! entry))))
+
 (defn find-fn-call [{:keys [fq-fn-symb from-idx backward]}]
-  {:code `(debuggers-api/find-fn-call (symbol ~fq-fn-symb)
-                                      ~from-idx
-                                      {:backward? ~(Boolean/parseBoolean backward)})
+  {:code `(find-fn-call* (symbol ~fq-fn-symb)
+                         ~from-idx
+                         ~(Boolean/parseBoolean backward))
    :post-proc (fn [fn-call]
                 {:status :done
                  :fn-call (value-ref->int fn-call :fn-args)})})
@@ -297,3 +312,53 @@
                 :returns {"functions" "A collection of maps like {:keys [fq-fn-name cnt]}"}}}})))
 
 (set-descriptor! #'wrap-flow-storm descriptor)
+
+
+(comment
+  ;; For testing middlewares
+
+  (let [p (promise)
+        h (wrap-flow-storm (constantly true))]
+    (with-redefs [t/send (fn [_ rsp] (deliver p rsp))]
+
+      #_(h {:op "flow-storm-trace-count"
+          :flow-id nil
+          :thread-id 32})
+
+      #_(h {:op "flow-storm-find-fn-call"
+            :fq-fn-symb "dev-tester/factorial"})
+
+      #_(h {:op "flow-storm-find-flow-fn-call"
+          :flow-id nil})
+
+      #_(h {:op "flow-storm-get-form"
+            :form-id -798068730})
+
+      #_(h {:op "flow-storm-timeline-entry"
+          :flow-id nil
+          :thread-id 32
+          :idx 3
+            :drift "at"})
+
+      #_(h {:op "flow-storm-frame-data"
+          :flow-id nil
+          :thread-id 32
+            :fn-call-idx 0})
+
+      #_(h {:op "flow-storm-pprint"
+            :val-ref 5})
+
+      #_(h {:op "flow-storm-bindings"
+            :flow-id nil
+            :thread-id 32
+            :idx 8
+            :all-frame "true"})
+
+      #_(h {:op "flow-storm-toggle-recording"})
+
+      (h {:op "flow-storm-recorded-functions"})
+
+      #_(h {:op "flow-storm-clear-recordings"})
+
+      (deref p 1000 :no-response)))
+  )

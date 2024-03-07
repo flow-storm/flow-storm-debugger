@@ -150,7 +150,10 @@
   (.add (.getStyleClass node) class))
 
 (defn rm-class [^Node node class]
-  (.remove (.getStyleClass node) class))
+  (.removeIf (.getStyleClass node)
+             (proxy [Predicate] []
+               (test [c]
+                 (= c class)))))
 
 (defn clear-classes [^Node node]
   (.clear (.getStyleClass node)))

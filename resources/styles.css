@@ -95,9 +95,14 @@
 }
 
 .fail {
-	-fx-background-color: -fx-theme-fail;
+	-fx-background-color: -fx-theme-attention;
 	-fx-text-fill: #323232;
 }
+
+.attention {
+	-fx-background-color: -fx-theme-attention;
+	-fx-text-fill: #323232; 
+} 
 
 .tree-search {
 	-fx-background-insets: 1 0 1 0;
