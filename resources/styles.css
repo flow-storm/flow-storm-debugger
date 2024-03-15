@@ -310,3 +310,11 @@
 .contrast-background {
     -fx-background-color: -fx-theme-base2;
 }
+
+.list-view .list-cell:selected {
+    -fx-background-color: -fx-theme-list-selection;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: -fx-theme-list-selection;
+}

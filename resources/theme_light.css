@@ -33,6 +33,7 @@
 	-fx-theme-breakpoint:                         #ff0000;
 	-fx-theme-breakpoint-continue:                #369658;
     -fx-theme-form-highlight:                     #BBBBBB;
+    -fx-theme-list-selection:                     #afbbc4;
 }
 
 .root {
