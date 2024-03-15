@@ -18,7 +18,9 @@
       - Multi-thread timeline
     
 ### Changes 
-        
+    
+    - Change Exceptions from a ComboBox to MenuButton
+    
 ### Bugs fixed
 
 ## 3.12.2 (05-03-2024)

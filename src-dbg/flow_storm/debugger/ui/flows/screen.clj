@@ -6,7 +6,7 @@
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label icon tab-pane tab list-view icon-button h-box v-box
-                                                               key-combo-match? combo-box-set-items]]
+                                                               key-combo-match?]]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.input MouseButton]
            [javafx.scene.control SingleSelectionModel SplitPane Tab]
@@ -14,15 +14,7 @@
            [javafx.beans.value ChangeListener]))
 
 (declare create-or-focus-thread-tab)
-
-(defn update-exceptions-combo []
-  (let [unwinds (dbg-state/get-fn-unwinds)
-        [ex-combo] (obj-lookup "exceptions-combo")
-        [ex-box] (obj-lookup "exceptions-box")]
-    (ui-utils/clear-classes ex-box)
-    (when (zero? (count unwinds))
-      (ui-utils/add-class ex-box "hidden-pane"))
-    (combo-box-set-items ex-combo unwinds)))
+(declare update-exceptions-combo)
 
 (defn remove-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -271,6 +263,21 @@
   (flow-code/jump-to-coord flow-id
                            thread-id
                            (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))
+
+(defn update-exceptions-combo []
+  (let [unwinds (dbg-state/get-fn-unwinds)
+        [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
+        [ex-box] (obj-lookup "exceptions-box")]
+    (ui-utils/clear-classes ex-box)
+    (when (zero? (count unwinds))
+      (ui-utils/add-class ex-box "hidden-pane"))
+    (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type]}]
+                       {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
+                        :on-click (fn [_]
+                                    (goto-location {:flow-id flow-id
+                                                    :thread-id thread-id
+                                                    :idx idx}))})
+                     unwinds))))
 
 (defn main-pane []
   (let [t-pane (tab-pane {:closing-policy :all-tabs

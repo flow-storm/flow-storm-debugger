@@ -21,7 +21,7 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane
-                     key-combo-match? combo-box]]
+                     key-combo-match? menu-button]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
@@ -204,17 +204,9 @@
                                                                                                               (flows-screen/goto-location result)))}))}))
                                                     (runtime-api/all-fn-call-stats rt-api))))])
                                (.setAlignment Pos/CENTER_LEFT))
-        format-exception-item (fn [{:keys [idx fn-ns fn-name ex-type]}]
-                                (format "%d - %s/%s %s" idx fn-ns fn-name ex-type))
-        exceptions-combo (combo-box {:on-change-fn (fn [_ {:keys [flow-id thread-id idx] :as to-item}]
-                                                     (when to-item
-                                                       (flows-screen/goto-location {:flow-id flow-id
-                                                                                    :thread-id thread-id
-                                                                                    :idx idx})))
-                                     :cell-factory-fn (fn [_ item] (doto (label (format-exception-item item))
-                                                                     (.setTooltip (ui-utils/tool-tip (or (:ex-message item) "")))))
-                                     :button-factory-fn (fn [_ item] (label (format-exception-item item)))})
-        exceptions-box (doto (h-box [(label "Exceptions:") exceptions-combo]
+
+        exceptions-menu-data (menu-button {:items []})
+        exceptions-box (doto (h-box [(:menu-button exceptions-menu-data)]
                                     "hidden-pane")
                          (.setAlignment Pos/CENTER_LEFT))
         tools [clear-btn
@@ -227,7 +219,7 @@
 
     (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-combo" exceptions-combo)
+    (store-obj "exceptions-menu-data" exceptions-menu-data)
     (store-obj "record-btn" record-btn)
     (ToolBar. (into-array Node tools))))
 

@@ -7,7 +7,7 @@
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
   (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
-            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton MenuItem
             ComboBox CheckBox TextInputDialog]
            [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination]
            [javafx.scene.layout HBox VBox BorderPane]
@@ -253,6 +253,26 @@
     (.setEditable ta editable?)
 
     ta))
+
+(defn menu-button [{:keys [items]}]
+  (let [mb (MenuButton. "Exceptions")
+        clear-items (fn [] (-> mb .getItems .clear))
+        add-item (fn [{:keys [text on-click] :as item}]
+                   (let [mi (doto (MenuItem. text)
+                              (.setOnAction (event-handler [_]
+                                              (on-click item))))]
+                     (-> mb .getItems (.add mi))))
+        set-items (fn [new-items]
+                    (clear-items)
+                    (doseq [item new-items]
+                      (add-item item)))]
+
+    (set-items items)
+
+    {:menu-button mb
+     :set-items set-items
+     :clear-items clear-items
+     :add-item add-item}))
 
 (defn combo-box-set-items [^ComboBox cbox items]
   (let [observable-list (FXCollections/observableArrayList)]
