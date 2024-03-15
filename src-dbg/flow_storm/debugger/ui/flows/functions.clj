@@ -99,6 +99,7 @@
                                                 :resize-policy :constrained
                                                 :on-click (partial function-click flow-id thread-id)
                                                 :on-enter (fn [sel-items] (show-function-calls flow-id thread-id (ffirst sel-items)))
+                                                :on-selection-change (fn [_ sel-item] (show-function-calls flow-id thread-id (first sel-item)))
                                                 :selection-mode :multiple
                                                 :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
                                                                     (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]

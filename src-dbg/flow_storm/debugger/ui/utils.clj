@@ -537,7 +537,7 @@
   `items` a collection of data items for the table. Each one should be a vector with the same amount "
 
   [{:keys [columns cell-factory-fn row-update-fn items selection-mode search-predicate
-           on-click on-enter resize-policy columns-width-percs]
+           on-click on-enter resize-policy columns-width-percs on-selection-change]
     :or {selection-mode :multiple
          resize-policy :unconstrained}}]
 
@@ -603,6 +603,13 @@
                (let [^TableRow this this]
                  (proxy-super updateItem item empty?)
                  (row-update-fn this item))))))))
+
+    (when on-selection-change
+      (-> table-selection
+          .selectedItemProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed [_ old-val new-val]
+                            (on-selection-change old-val new-val))))))
 
     (.clear (.getColumns tv))
     (.addAll (.getColumns tv) ^objects (into-array Object columns))

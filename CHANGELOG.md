@@ -20,6 +20,7 @@
 ### Changes 
     
     - Change Exceptions from a ComboBox to MenuButton
+    - Functions calls auto update on selection
     
 ### Bugs fixed
 
