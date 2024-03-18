@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button button]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button button
+                                                               check-box]]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -17,27 +18,22 @@
 
 (def max-args 9)
 
-(defn- show-function-calls [flow-id thread-id fn-call]
-  (let [{:keys [form-id fn-ns fn-name]} fn-call
-        [{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
-        _ (clear)
-        [fn-calls-lbl] (obj-lookup flow-id thread-id "function_calls_lbl")
-        [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_fn")
-        sel-args (selected-args-fn)
-        render-args (when (not= (count sel-args) max-args)
-                      sel-args)]
+(defn- update-function-calls [flow-id thread-id]
+  (when-let [{:keys [form-id fn-ns fn-name]} (dbg-state/get-selected-function-list-fn flow-id thread-id)]
+    (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
+          _ (clear)
+          [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_fn")
+          sel-args (selected-args-fn)
+          render-args (when (not= (count sel-args) max-args)
+                        sel-args)]
 
-    (tasks/submit-task runtime-api/collect-fn-frames-task
-                       [flow-id thread-id fn-ns fn-name form-id render-args]
-                       {:on-progress (fn [{:keys [batch]}] (add-all batch))})
+      (tasks/submit-task runtime-api/collect-fn-frames-task
+                         [flow-id thread-id fn-ns fn-name form-id render-args]
+                         {:on-progress (fn [{:keys [batch]}] (add-all batch))}))))
 
-    (.setText fn-calls-lbl (format "Calls for: %s/%s" fn-ns fn-name))))
-
-(defn- functions-cell-factory [flow-id thread-id _ {:keys [cell-type] :as cell-info}]
+(defn- functions-cell-factory [_ {:keys [cell-type] :as cell-info}]
   (case cell-type
-    :calls (doto (h-box [(button :label (cl-format nil "~:d" (:cnt cell-info))
-                                 :classes ["btn-sm"]
-                                 :on-click (fn [] (show-function-calls flow-id thread-id cell-info)))])
+    :calls (doto (h-box [(label (cl-format nil "~:d" (:cnt cell-info)))])
              (.setAlignment Pos/CENTER_RIGHT))
 
     :function (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} cell-info
@@ -74,14 +70,10 @@
           (runtime-api/eval-form rt-api form {:instrument? false
                                               :ns form-ns}))))))
 
-(defn- function-click [flow-id thread-id mev selected-items {:keys [table-view-pane]}]
+(defn- function-click [mev selected-items {:keys [table-view-pane]}]
   ;; selected items contains rows like [{...fn-call...} cnt]
   (let [selected-items (map first selected-items)]
     (cond
-      (and (= MouseButton/PRIMARY (.getButton mev))
-           (= 2 (.getClickCount mev)))
-      (show-function-calls flow-id thread-id (first selected-items))
-
       (and (= MouseButton/SECONDARY (.getButton mev))
            (not (dbg-state/clojure-storm-env?)))
       (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
@@ -95,11 +87,12 @@
 (defn- create-fns-list-pane [flow-id thread-id]
   (let [{:keys [table-view-pane table-view] :as tv-data} (table-view
                                                {:columns ["Functions" "Calls"]
-                                                :cell-factory-fn (partial functions-cell-factory flow-id thread-id)
+                                                :cell-factory-fn functions-cell-factory
                                                 :resize-policy :constrained
-                                                :on-click (partial function-click flow-id thread-id)
-                                                :on-enter (fn [sel-items] (show-function-calls flow-id thread-id (ffirst sel-items)))
-                                                :on-selection-change (fn [_ sel-item] (show-function-calls flow-id thread-id (first sel-item)))
+                                                :on-click function-click
+                                                :on-selection-change (fn [_ sel-item]
+                                                                       (dbg-state/set-selected-function-list-fn flow-id thread-id (first sel-item))
+                                                                       (update-function-calls flow-id thread-id))
                                                 :selection-mode :multiple
                                                 :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
                                                                     (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
@@ -112,12 +105,13 @@
 (defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str]}]
   (let [create-inspector (fn [vref]
                            (value-inspector/create-inspector vref {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
-        args-node (doto (h-box [(button :label "args"
-                                   :classes ["def-btn" "btn-sm"]
-                                   :tooltip "Open this value in the value inspector."
-                                   :on-click (fn [] (create-inspector args-vec)))
-                                (label args-vec-str)])
-                    (.setSpacing 5))
+        args-node (when-not (str/blank? args-vec-str)
+                    (doto (h-box [(button :label "args"
+                                          :classes ["def-btn" "btn-sm"]
+                                          :tooltip "Open this value in the value inspector."
+                                          :on-click (fn [] (create-inspector args-vec)))
+                                  (label args-vec-str)])
+                      (.setSpacing 5)))
         ret-node (when ret-str
                    (doto (h-box [(button :label "ret"
                                     :classes ["def-btn" "btn-sm"]
@@ -132,10 +126,11 @@
                                           :on-click (fn [] (create-inspector throwable)))
                                        (label throwable-str "fail")])
                            (.setSpacing 5)))
-        cell (doto (v-box [args-node
-                           (cond
-                             ret-str       ret-node
-                             throwable-str throwable-node)]
+        ret-kind-node (cond
+                        ret-str       ret-node
+                        throwable-str throwable-node)
+        cell (doto (v-box (conj (if args-node [args-node] [])
+                                ret-kind-node)
                           "contrast-background")
                (.setSpacing 5)
                (.setPadding (Insets. 5)))]
@@ -164,7 +159,7 @@
                                     (.getScreenY mev))))))
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
-  (let [args-checks (repeatedly max-args (fn [] (doto (CheckBox.)
+  (let [args-checks (repeatedly max-args (fn [] (doto (check-box {:on-change (fn [_] (update-function-calls flow-id thread-id))})
                                                   (.setSelected true)
                                                   (.setFocusTraversable false))))
         selected-args (fn []
@@ -181,16 +176,13 @@
                                           (into [(label "Print args:")])
                                           h-box)
                                  (.setSpacing 8))
-        fn-calls-lbl (label "")
         fn-call-list-pane (doto (v-box [args-print-type-checks
-                                        fn-calls-lbl
                                         list-view-pane])
                             (.setSpacing 5))]
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
     (store-obj flow-id thread-id "function_calls_list" lv-data)
-    (store-obj flow-id thread-id "function_calls_lbl"  fn-calls-lbl)
     (store-obj flow-id thread-id "function_calls_selected_args_fn" selected-args)
 
     fn-call-list-pane))

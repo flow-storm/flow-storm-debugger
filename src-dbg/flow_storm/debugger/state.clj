@@ -50,6 +50,12 @@
 
 (s/def :thread.ui.callstack-tree-hidden-fns/ref (s/keys :req-un [:flow-storm/fn-name
                                                                  :flow-storm/fn-ns]))
+
+(s/def :thread.ui/selected-functions-list-fn (s/nilable
+                                              (s/keys :req-un [:flow-storm/fn-name
+                                                               :flow-storm/fn-ns
+                                                               :flow-storm/form-id])))
+
 (s/def :thread.ui/callstack-tree-hidden-fns (s/coll-of :thread.ui.callstack-tree-hidden-fns/ref))
 
 (s/def :navigation-history/history (s/coll-of :flow-storm/timeline-entry))
@@ -68,7 +74,8 @@
                                   :thread/curr-timeline-entry
                                   :thread/navigation-history]
                             :opt [:thread/curr-frame
-                                  :thread.ui/callstack-tree-hidden-fns]))
+                                  :thread.ui/callstack-tree-hidden-fns
+                                  :thread.ui/selected-functions-list-fn]))
 
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
@@ -574,6 +581,15 @@
   (swap! state update :jfx-stages conj stg)
   (reset-theming))
 
+;;;;;;;;;;;;;;;;;;;;
+;; Functions list ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(defn set-selected-function-list-fn [flow-id thread-id fn-call]
+  (swap! state assoc-in [:flows flow-id :flow/threads thread-id :thread.ui/selected-functions-list-fn] fn-call))
+
+(defn get-selected-function-list-fn [flow-id thread-id]
+  (get-in @state [:flows flow-id :flow/threads thread-id :thread.ui/selected-functions-list-fn]))
 
 ;;;;;;;;;;;
 ;; Other ;;
