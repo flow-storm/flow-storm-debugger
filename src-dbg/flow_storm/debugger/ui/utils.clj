@@ -351,8 +351,10 @@
 
 (defn text-field
   ([params] (text-field params nil))
-  ([{:keys [initial-text on-return-key on-change align]} class]
+  ([{:keys [initial-text on-return-key on-change align prompt-text]} class]
    (let [tf (TextField. "")]
+     (when prompt-text
+       (.setPromptText tf prompt-text))
      (when class
        (add-class tf class))
      (when initial-text

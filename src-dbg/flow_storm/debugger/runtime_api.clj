@@ -96,7 +96,8 @@
   (toggle-recording [_])
   (set-total-order-recording [_ x])
   (all-fn-call-stats [_])
-  (find-fn-call-task [_ fq-fn-call-symb from-idx opts]))
+  (find-fn-call-task [_ fq-fn-call-symb from-idx opts])
+  (set-thread-trace-limit [_ limit]))
 
 (defn cached-apply [cache cache-key f args]
   (let [res (get @cache cache-key :flow-storm/cache-miss)]
@@ -261,7 +262,10 @@
     (api-call :local "all-fn-call-stats" []))
 
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
-    (api-call :local "find-fn-call-task" [fq-fn-call-symb from-idx opts])))
+    (api-call :local "find-fn-call-task" [fq-fn-call-symb from-idx opts]))
+
+  (set-thread-trace-limit [_ limit]
+    (api-call :local "set-thread-trace-limit" [limit])))
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; For Clojure repl ;;
@@ -400,6 +404,9 @@
 
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
     (api-call :remote "find-fn-call-task" [fq-fn-call-symb from-idx opts]))
+
+  (set-thread-trace-limit [_ limit]
+    (api-call :remote "set-thread-trace-limit" [limit]))
 
   Closeable
   (close [_] (stop-repl))

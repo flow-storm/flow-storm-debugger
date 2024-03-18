@@ -531,6 +531,7 @@
              :toggle-recording toggle-recording
              :set-total-order-recording set-total-order-recording
              :all-fn-call-stats all-fn-call-stats
+             :set-thread-trace-limit set-thread-trace-limit
              :ping ping
              #?@(:clj
                  [:def-value def-value

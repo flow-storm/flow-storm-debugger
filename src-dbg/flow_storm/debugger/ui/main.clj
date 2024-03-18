@@ -35,7 +35,8 @@
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.state-management :refer [defstate]]
-            [flow-storm.debugger.docs])
+            [flow-storm.debugger.docs]
+            [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
            [javafx.stage Stage]
@@ -214,6 +215,16 @@
   (dbg-state/toggle-debug-mode)
   (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
+(defn- ask-and-set-threads-limit []
+  (let [limit (ui-utils/ask-text-dialog
+               {:header "Set threads trace limit. FlowStorm will stop recording threads which hit the provided trace limit."
+                :body "Limit :"
+                :width  500
+                :height 100
+                :center-on-stage (dbg-state/main-jfx-stage)})]
+    (when-not (str/blank? limit)
+      (runtime-api/set-thread-trace-limit rt-api (Integer/parseInt limit)))))
+
 (defn- build-menu-bar []
   (let [mb (MenuBar.)
         view-menu (ui-utils/make-menu {:label "_View"
@@ -249,11 +260,14 @@
                                                   {:text "Unblock all threads"
                                                    :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
                                                    :accel {:mods [:ctrl]
-                                                           :key-code KeyCode/U}}]})]
+                                                           :key-code KeyCode/U}}]})
+        config-menu (ui-utils/make-menu {:label "_Config"
+                                         :items [{:text "Set threads limit"
+                                                  :on-click (fn [] (ask-and-set-threads-limit))}]})]
 
     (-> mb
         .getMenus
-        (.addAll [view-menu actions-menu]))
+        (.addAll [view-menu actions-menu config-menu]))
     mb))
 
 (defn- build-top-bar-pane []
