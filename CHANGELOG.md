@@ -16,7 +16,8 @@
       - List functions calls
       - List prints with the printer
       - Multi-thread timeline
-    
+      - Add a menu bar to help with discoverability
+      
 ### Changes 
     
     - Change Exceptions from a ComboBox to MenuButton

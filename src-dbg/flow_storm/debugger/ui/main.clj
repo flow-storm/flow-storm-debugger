@@ -20,7 +20,7 @@
 
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label icon-button event-handler h-box progress-indicator progress-bar tab tab-pane border-pane
+             :refer [label icon-button event-handler h-box v-box progress-indicator progress-bar tab tab-pane border-pane
                      key-combo-match? menu-button]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
@@ -40,7 +40,7 @@
            [javafx.scene Scene Node]
            [javafx.stage Stage]
            [javafx.geometry Pos]
-           [javafx.scene.control ToolBar]
+           [javafx.scene.control ToolBar MenuBar]
            [javafx.application Platform]
            [javafx.scene.input KeyCode]))
 
@@ -180,16 +180,6 @@
                                      :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                      :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
                                      :disable true)
-        clear-btn (icon-button :icon-name  "mdi-delete-forever"
-                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                               :on-click (fn [] (clear-all)))
-        unblock-threads-btn (icon-button :icon-name "mdi-run"
-                                         :tooltip "Unblock all blocked threads if any (Ctrl-u)"
-                                         :on-click (fn [] (runtime-api/unblock-all-threads rt-api)))
-        open-book-btn (ui-utils/icon-button :icon-name "mdi-book"
-                                            :on-click (fn []
-                                                        (bookmarks/show-bookmarks))
-                                            :tooltip "Open bookmarks")
         quick-jump-textfield (doto (h-box [(label "Quick jump:")
                                            (ui-utils/autocomplete-textfield
                                             (fn []
@@ -209,11 +199,8 @@
         exceptions-box (doto (h-box [(:menu-button exceptions-menu-data)]
                                     "hidden-pane")
                          (.setAlignment Pos/CENTER_LEFT))
-        tools [clear-btn
+        tools [record-btn
                task-cancel-btn
-               record-btn
-               unblock-threads-btn
-               open-book-btn
                quick-jump-textfield
                exceptions-box]]
 
@@ -222,6 +209,56 @@
     (store-obj "exceptions-menu-data" exceptions-menu-data)
     (store-obj "record-btn" record-btn)
     (ToolBar. (into-array Node tools))))
+
+(defn- toggle-debug-mode []
+  (dbg-state/toggle-debug-mode)
+  (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
+
+(defn- build-menu-bar []
+  (let [mb (MenuBar.)
+        view-menu (ui-utils/make-menu {:label "_View"
+                                       :items [{:text "Bookmarks"
+                                                :on-click (fn [] (bookmarks/show-bookmarks))}
+                                               {:text "Toggle theme"
+                                                :on-click (fn []
+                                                            (dbg-state/rotate-theme)
+                                                            (dbg-state/reset-theming))
+                                                :accel {:mods [:ctrl]
+                                                        :key-code KeyCode/T}}
+                                               {:text "Increase font size"
+                                                :on-click (fn []
+                                                            (dbg-state/inc-font-size)
+                                                            (dbg-state/reset-theming))
+                                                :accel {:mods [:ctrl :shift]
+                                                        :key-code KeyCode/EQUALS}}
+                                               {:text "Decrease font size"
+                                                :on-click (fn []
+                                                            (dbg-state/dec-font-size)
+                                                            (dbg-state/reset-theming))
+                                                :accel {:mods [:ctrl]
+                                                        :key-code KeyCode/MINUS}}
+                                               {:text "Toggle debug mode"
+                                                :on-click (fn [] (toggle-debug-mode))
+                                                :accel {:mods [:ctrl]
+                                                        :key-code KeyCode/D}}]})
+        actions-menu (ui-utils/make-menu {:label "_Actions"
+                                          :items [{:text "Clear recordings"
+                                                   :on-click (fn [] (clear-all))
+                                                   :accel {:mods [:ctrl]
+                                                           :key-code KeyCode/L}}
+                                                  {:text "Unblock all threads"
+                                                   :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
+                                                   :accel {:mods [:ctrl]
+                                                           :key-code KeyCode/U}}]})]
+
+    (-> mb
+        .getMenus
+        (.addAll [view-menu actions-menu]))
+    mb))
+
+(defn- build-top-bar-pane []
+  (v-box [(build-menu-bar)
+          (build-tool-bar-pane)]))
 
 (defn set-task-cancel-btn-enable [enable?]
   (ui-utils/run-later
@@ -241,7 +278,7 @@
         "mdi-record")))))
 
 (defn- build-main-pane []
-  (let [mp (border-pane {:top (build-tool-bar-pane)
+  (let [mp (border-pane {:top (build-top-bar-pane)
                          :center (main-tabs-pane)
                          :bottom (bottom-box)})]
     (ui-utils/add-class mp "main-pane")
@@ -259,10 +296,6 @@
       listener)
     (catch Exception e
       (log-error "Couldn't start theme listener" e))))
-
-(defn- toggle-debug-mode []
-  (dbg-state/toggle-debug-mode)
-  (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
 (defn stop-ui []
   (let [{:keys [theme-listener]} ui]
@@ -345,38 +378,12 @@
        (doto scene
          (.setOnKeyPressed (event-handler
                             [kev]
-                            (let [key-name (.getName (.getCode kev))
-                                  shift? (.isShiftDown kev)]
+                            (let [key-name (.getName (.getCode kev))]
 
                               (cond
 
                                 (key-combo-match? kev "g" [:ctrl])
                                 (runtime-api/interrupt-all-tasks rt-api)
-
-                                (key-combo-match? kev "l" [:ctrl])
-                                (clear-all)
-
-                                (key-combo-match? kev "d" [:ctrl])
-                                (toggle-debug-mode)
-
-                                (key-combo-match? kev "t" [:ctrl])
-                                (do
-                                  (dbg-state/rotate-theme)
-                                  (dbg-state/reset-theming))
-
-                                (or (= (.getCode kev) KeyCode/ADD)
-                                    (and shift? (= (.getCode kev) KeyCode/EQUALS)))
-                                (do
-                                  (dbg-state/inc-font-size)
-                                  (dbg-state/reset-theming))
-
-                                (= KeyCode/MINUS (.getCode kev))
-                                (do
-                                  (dbg-state/dec-font-size)
-                                  (dbg-state/reset-theming))
-
-                                (key-combo-match? kev "u" [:ctrl])
-                                (runtime-api/unblock-all-threads rt-api)
 
                                 (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab :flows)
                                 (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)

@@ -5,11 +5,11 @@
   (:require [flow-storm.utils :refer [log-error]]
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
-  (:import [javafx.scene.control Button ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
+  (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton MenuItem
             ComboBox CheckBox TextInputDialog]
-           [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination]
+           [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination KeyCodeCombination]
            [javafx.scene.layout HBox VBox BorderPane]
            [javafx.geometry Side Pos]
            [javafx.stage Screen]
@@ -61,6 +61,11 @@
 (defmacro event-handler [arg & body]
   `(event-handler* (fn ~(symbol "event-handler-fn") ~arg ~@body)))
 
+(defn- mod-k->key-comb [m]
+  (case m
+    :shift KeyCombination/SHIFT_DOWN
+    :ctrl  KeyCombination/CONTROL_DOWN))
+
 (defn make-context-menu [items]
   (let [cm (ContextMenu.)
         cm-items (->> items
@@ -71,6 +76,25 @@
         .getItems
         (.addAll ^objects (into-array Object cm-items)))
     cm))
+
+(defn make-menu [{:keys [label items]}]
+  (let [menu (Menu. label)
+        menu-items (->> items
+                        (mapv (fn [{:keys [text on-click accel]}]
+                                (let [mi (MenuItem. text)]
+                                  (.setOnAction mi (event-handler [_] (on-click)))
+                                  (when accel
+                                    (.setAccelerator mi (KeyCodeCombination.
+                                                         (:key-code accel)
+                                                         (into-array KeyCombination$Modifier (mapv mod-k->key-comb (:mods accel))))))
+                                  mi))))]
+
+    (.setMnemonicParsing menu true)
+
+    (-> menu
+        .getItems
+        (.addAll ^objects (into-array Object menu-items)))
+    menu))
 
 (defn stage-screen-info [stage]
   (let [screen (first
@@ -783,11 +807,7 @@
   `key-name` should be a stirng with the key name.
   `modifiers` should be a collection of modifiers like :ctrl, :shift"
   [kev key-name modifiers]
-  (let [mod-k->key-comb (fn [m]
-                          (case m
-                            :shift KeyCombination/SHIFT_DOWN
-                            :ctrl  KeyCombination/CONTROL_DOWN))
-        k (KeyCharacterCombination. key-name  (into-array KeyCombination$Modifier (mapv mod-k->key-comb modifiers)))]
+  (let [k (KeyCharacterCombination. key-name  (into-array KeyCombination$Modifier (mapv mod-k->key-comb modifiers)))]
     (.match k kev)))
 
 (defn thread-label [thread-id thread-name]
