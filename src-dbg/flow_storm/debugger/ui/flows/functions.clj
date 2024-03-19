@@ -22,13 +22,13 @@
   (when-let [{:keys [form-id fn-ns fn-name]} (dbg-state/get-selected-function-list-fn flow-id thread-id)]
     (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "function_calls_list")
           _ (clear)
-          [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_fn")
-          sel-args (selected-args-fn)
+          [selected-args-fn] (obj-lookup flow-id thread-id "function_calls_selected_args_and_ret_fn")
+          {:keys [sel-args ret?]} (selected-args-fn)
           render-args (when (not= (count sel-args) max-args)
                         sel-args)]
 
       (tasks/submit-task runtime-api/collect-fn-frames-task
-                         [flow-id thread-id fn-ns fn-name form-id render-args]
+                         [flow-id thread-id fn-ns fn-name form-id render-args ret?]
                          {:on-progress (fn [{:keys [batch]}] (add-all batch))}))))
 
 (defn- functions-cell-factory [_ {:keys [cell-type] :as cell-info}]
@@ -129,8 +129,9 @@
         ret-kind-node (cond
                         ret-str       ret-node
                         throwable-str throwable-node)
-        cell (doto (v-box (conj (if args-node [args-node] [])
-                                ret-kind-node)
+        cell (doto (v-box (cond-> []
+                            args-node     (conj args-node)
+                            ret-kind-node (conj ret-kind-node))
                           "contrast-background")
                (.setSpacing 5)
                (.setPadding (Insets. 5)))]
@@ -162,10 +163,7 @@
   (let [args-checks (repeatedly max-args (fn [] (doto (check-box {:on-change (fn [_] (update-function-calls flow-id thread-id))})
                                                   (.setSelected true)
                                                   (.setFocusTraversable false))))
-        selected-args (fn []
-                        (->> args-checks
-                             (keep-indexed (fn [idx ^CheckBox cb]
-                                             (when (.isSelected cb) idx)))))
+
         {:keys [list-view-pane] :as lv-data} (list-view {:editable? false
                                                          :cell-factory-fn (partial functions-calls-cell-factory flow-id thread-id)
                                                          :on-click (partial function-call-click flow-id thread-id)
@@ -176,14 +174,24 @@
                                           (into [(label "Print args:")])
                                           h-box)
                                  (.setSpacing 8))
+        ret-check (doto (check-box {:on-change (fn [_] (update-function-calls flow-id thread-id))})
+                    (.setSelected true)
+                    (.setFocusTraversable false))
         fn-call-list-pane (doto (v-box [args-print-type-checks
+                                        (h-box [(label "Print ret?") ret-check])
                                         list-view-pane])
-                            (.setSpacing 5))]
+                            (.setSpacing 5))
+
+        selected-args-and-ret (fn []
+                                {:sel-args (->> args-checks
+                                                (keep-indexed (fn [idx ^CheckBox cb]
+                                                                (when (.isSelected cb) idx))))
+                                 :ret? (.isSelected ret-check)})]
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
     (store-obj flow-id thread-id "function_calls_list" lv-data)
-    (store-obj flow-id thread-id "function_calls_selected_args_fn" selected-args)
+    (store-obj flow-id thread-id "function_calls_selected_args_and_ret_fn" selected-args-and-ret)
 
     fn-call-list-pane))
 

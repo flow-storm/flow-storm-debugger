@@ -17,6 +17,7 @@
       - List prints with the printer
       - Multi-thread timeline
       - Add a menu bar to help with discoverability
+      - Add functions calls ret render checkbox that update on change
       
 ### Changes 
     

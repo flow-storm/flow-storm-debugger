@@ -250,7 +250,7 @@
   "Given render-args a vector of args indexes to render returns a transducer
   that will render fn-frames."
   
-  [render-args]
+  [render-args render-ret?]
   (let [print-opts {:print-length 3
                     :print-level  3
                     :print-meta?  false
@@ -259,15 +259,18 @@
            (let [fr (-> fn-frame
                         reference-frame-data!
                         (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc print-opts :nth-elems render-args)))))]
-             (if throwable
-               (assoc fr :throwable-str (ex-message throwable))
-               (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret print-opts)))))))))
+             
+             (if render-ret?
+               (if throwable
+                 (assoc fr :throwable-str (ex-message throwable))
+                 (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret print-opts))))
+               fr))))))
 
-(defn collect-fn-frames-task [flow-id thread-id fn-ns fn-name form-id render-args]  
+(defn collect-fn-frames-task [flow-id thread-id fn-ns fn-name form-id render-args render-ret?]  
   (let [timeline (index-api/get-timeline flow-id thread-id)
         xf (comp (index-api/fn-calls-transd fn-ns fn-name form-id)
                  (index-api/frame-data-transd timeline)
-                 (render-fn-frames-transd render-args))]    
+                 (render-fn-frames-transd render-args render-ret?))]    
     (submit-batched-collect-interruptible-task timeline xf)))
 
 (defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward?]}]

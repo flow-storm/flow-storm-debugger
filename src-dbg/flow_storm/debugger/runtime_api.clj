@@ -58,7 +58,7 @@
   (callstack-node-frame [_ node])
   (fn-call-stats [_ flow-id thread-id])
 
-  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args])
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args render-ret?])
   (interrupt-all-tasks [_])
   (start-task [_ task-id])
 
@@ -161,7 +161,7 @@
   (callstack-node-frame [_ node] (api-call :local "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :local "fn-call-stats" [flow-id thread-id]))
 
-  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :local "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args]))
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args render-ret?] (api-call :local "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args render-ret?]))
   (start-task [_ task-id] (api-call :local "start-task" [task-id]))
   (interrupt-all-tasks [_] (api-call :local "interrupt-all-tasks" []))
 
@@ -288,7 +288,7 @@
   (callstack-node-frame [_ node] (api-call :remote "callstack-node-frame" [node]))
   (fn-call-stats [_ flow-id thread-id] (api-call :remote "fn-call-stats" [flow-id thread-id]))
 
-  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args] (api-call :remote "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args]))
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args render-ret?] (api-call :remote "collect-fn-frames-task" [flow-id thread-id fn-ns fn-name form-id render-args render-ret?]))
   (start-task [_ task-id] (api-call :remote "start-task" [task-id]))
   (interrupt-all-tasks [_] (api-call :remote "interrupt-all-tasks" []))
 
