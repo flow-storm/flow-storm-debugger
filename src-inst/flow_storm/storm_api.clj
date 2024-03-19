@@ -36,6 +36,13 @@
   (println "  (flow-storm.runtime.indexes.api/add-fn-call-limit \"org.my-app\" \"fn1\" 10)")
   (println "  (flow-storm.runtime.indexes.api/rm-fn-call-limit \"org.my-app\" \"fn1\")")
   (println "  (flow-storm.runtime.indexes.api/get-fn-call-limits)")
+  (println)
+  (println "Change instrumentation prefixes : \n")
+  (println "  (clojure.storm.Emitter/addInstrumentationOnlyPrefix \"org.my-lib\")")
+  (println "  (clojure.storm.Emitter/removeInstrumentationOnlyPrefix \"org.my-lib\")")
+  (println "  (clojure.storm.Emitter/addInstrumentationSkipPrefix \"org.my-lib\")")
+  (println "  (clojure.storm.Emitter/removeInstrumentationSkipPrefix \"org.my-lib\")")
+
   (println))
 
 (defn maybe-execute-flow-storm-specials [input]
