@@ -271,12 +271,14 @@
     (ui-utils/clear-classes ex-box)
     (when (zero? (count unwinds))
       (ui-utils/add-class ex-box "hidden-pane"))
-    (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type]}]
+
+    (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
                        {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
                         :on-click (fn [_]
                                     (goto-location {:flow-id flow-id
                                                     :thread-id thread-id
-                                                    :idx idx}))})
+                                                    :idx idx}))
+                        :tooltip ex-message})
                      unwinds))))
 
 (defn main-pane []

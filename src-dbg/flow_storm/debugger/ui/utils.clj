@@ -281,10 +281,13 @@
 (defn menu-button [{:keys [items]}]
   (let [mb (MenuButton. "Exceptions")
         clear-items (fn [] (-> mb .getItems .clear))
-        add-item (fn [{:keys [text on-click] :as item}]
-                   (let [mi (doto (MenuItem. text)
+        add-item (fn [{:keys [text on-click tooltip] :as item}]
+                   (let [mi-lbl (label text)
+                         mi (doto (MenuItem. nil mi-lbl)
                               (.setOnAction (event-handler [_]
                                               (on-click item))))]
+                     (when tooltip
+                       (.setTooltip mi-lbl (tool-tip tooltip)))
                      (-> mb .getItems (.add mi))))
         set-items (fn [new-items]
                     (clear-items)
