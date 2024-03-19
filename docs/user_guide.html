@@ -685,7 +685,7 @@ pre.rouge {
 <li><a href="#_docker">2.1. Docker</a></li>
 </ul>
 </li>
-<li><a href="#_instrument_code">3. Instrument code</a>
+<li><a href="#_instrument_code_vanilla_only">3. Instrument code (vanilla only)</a>
 <ul class="sectlevel3">
 <li><a href="#_instrument_from_the_repl">3.1. Instrument from the repl</a>
 <ul class="sectlevel4">
@@ -1669,7 +1669,7 @@ that the debugger websocket server is running on the default port.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_instrument_code"><a class="anchor" href="#_instrument_code"></a><a class="link" href="#_instrument_code">3. Instrument code</a></h3>
+<h3 id="_instrument_code_vanilla_only"><a class="anchor" href="#_instrument_code_vanilla_only"></a><a class="link" href="#_instrument_code_vanilla_only">3. Instrument code (vanilla only)</a></h3>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1679,7 +1679,7 @@ that the debugger websocket server is running on the default port.</p>
 <td class="content">
 <div class="title">ClojureStorm</div>
 <div class="paragraph">
-<p>Instructions here only apply to vanilla <em>FlowStorm</em>. If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em>
+<p>Instructions here only apply to vanilla <em>FlowStorm</em>. If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> (recommended)
 this is done automatically for you, so just skip this section.</p>
 </div>
 </td>
@@ -1894,7 +1894,7 @@ and then clicking <code>Fully instrument this form</code>.</p>
 <div class="sect2">
 <h3 id="_flows_tool"><a class="anchor" href="#_flows_tool"></a><a class="link" href="#_flows_tool">4. Flows tool</a></h3>
 <div class="paragraph">
-<p>The <code>Flows</code> tab contains a bunch of tools for analyzing all traced executions flows.</p>
+<p>The <code>Flows</code> tab contains a bunch of tools for analyzing all recorded executions.</p>
 </div>
 <div class="paragraph">
 <p>Flows are identified by a flow-id and can be started by running a form with <code>#rtrace</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, etc,.
@@ -2322,15 +2322,11 @@ you to mark execution positions so you can come back to them later.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can bookmark the current position by pressing the bookmark button. It will ask you the bookmark description.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/bookmarks_open_btn.png" alt="bookmarks open btn">
-</div>
+<p>You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
+It will ask you the bookmark description.</p>
 </div>
 <div class="paragraph">
-<p>Use the button open button to open the bookmarks panel.</p>
+<p>You can find you bookmarks on the top menu <code>View &#8594; Bookmarks</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2929,19 +2925,10 @@ global limits definitions.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Clean all. Will clean all flows, taps and every value the debugger is retaining.</p>
-</li>
-<li>
-<p>Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.</p>
-</li>
-<li>
 <p>Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.</p>
 </li>
 <li>
-<p>Unblock all breakpoint blocked threads if any.</p>
-</li>
-<li>
-<p>Open the bookmarks window.</p>
+<p>Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.</p>
 </li>
 <li>
 <p>Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.</p>
@@ -3751,7 +3738,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-06 10:33:56 -0300
+Last updated 2024-03-19 12:01:37 -0300
 </div>
 </div>
 </body>

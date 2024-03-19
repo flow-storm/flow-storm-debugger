@@ -608,12 +608,12 @@ clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "
 If you run you process inside a docker container, here is a basic template for using _FlowStorm_ with it
 https://github.com/flow-storm/docker-flow-storm-basic
 
-== Instrument code
+== Instrument code (vanilla only)
 
 [NOTE]
 .ClojureStorm
 ====
-Instructions here only apply to vanilla _FlowStorm_. If you are using _ClojureStorm_ or _ClojureScriptStorm_
+Instructions here only apply to vanilla _FlowStorm_. If you are using _ClojureStorm_ or _ClojureScriptStorm_ (recommended)
 this is done automatically for you, so just skip this section.
 ====
 
@@ -742,7 +742,7 @@ and then clicking `Fully instrument this form`.
 
 == Flows tool
 
-The `Flows` tab contains a bunch of tools for analyzing all traced executions flows.
+The `Flows` tab contains a bunch of tools for analyzing all recorded executions.
 
 Flows are identified by a flow-id and can be started by running a form with `#rtrace`, `#rtrace1`, `#rtrace2`, etc,.
 If you run a flow twice with the same flow id, the first one is going to be replaced.
@@ -968,11 +968,10 @@ you to mark execution positions so you can come back to them later.
 
 image::user_guide_images/bookmarks_add_btn.png[]
 
-You can bookmark the current position by pressing the bookmark button. It will ask you the bookmark description.
+You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
+It will ask you the bookmark description.
 
-image::user_guide_images/bookmarks_open_btn.png[]
-
-Use the button open button to open the bookmarks panel.
+You can find you bookmarks on the top menu `View -> Bookmarks`.
 
 image::user_guide_images/bookmarks.png[]
 
@@ -1336,11 +1335,8 @@ image::user_guide_images/toolbar.png[]
 
 From left to right :
 
-- Clean all. Will clean all flows, taps and every value the debugger is retaining.
-- Cancel current running task. If the debugger is taking too long with something and you want to cancel it use this button.
 - Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
-- Unblock all breakpoint blocked threads if any.
-- Open the bookmarks window.
+- Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
 - Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
 
 == Programmable debugging
