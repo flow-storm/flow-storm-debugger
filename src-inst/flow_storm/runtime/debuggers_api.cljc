@@ -105,7 +105,7 @@
   (swap! interruptible-tasks assoc task-id {:start-task (fn []
                                                           #?(:clj (future (start-task))
                                                              :cljs (start-task))
-                                                          (println (utils/format "Task %s started" task-id)))
+                                                          #_(println (utils/format "Task %s started" task-id)))
                                             :interrupt-task (fn []                                                              
                                                               (interrupt-task)
                                                               (println (utils/format "Task %s interrupted" task-id)))})
