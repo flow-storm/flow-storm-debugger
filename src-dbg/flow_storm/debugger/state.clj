@@ -551,9 +551,10 @@
 (defn remove-unwinds [flow-id]
   (swap! state update :unwinds
          (fn [unwinds]
-           (remove (fn [u]
-                     (= flow-id (:flow-id u)))
-                   unwinds))))
+           (->> unwinds
+                (remove (fn [u]
+                          (= flow-id (:flow-id u))))
+                (into [])))))
 
 ;;;;;;;;;;;;;;;;
 ;; JFX Stages ;;
