@@ -1586,20 +1586,23 @@ so no need to implement `flow-storm.runtime.values/snapshot-value`
 == Debugging infinite loop/recursion
 
 If you are tracing some code that ends up in a infinite loop the debugger will choke on
-too many traces, making everything slow and where your only option is probably to restart it.
+too many traces, making everything slow and your only option is probably to restart it.
 
-For preventing this _FlowStorm_ provides fuse, called thread trace limit.
+For preventing this, _FlowStorm_ provides a fuse/breaker, called thread trace limit.
+It is off by default but you can enable it from the Config menu.
 
-[,clojure]
-----
-(require '[flow-storm.api :as fsa])
+image::user_guide_images/thread_trace_limit_menu.png[]
 
-(fsa/set-thread-trace-limit 1000) ;; To set a limit of 1000
-(fsa/set-thread-trace-limit 0)    ;; To disable it
-----
+image::user_guide_images/thread_trace_limit_dialog.png[]
 
-After the limit is set, if you run any code that generates more than a 1000 traces the code will stop at trace 1000 with
-a thread-trace-limit exception, and you will have the recordings so far available.
+Let's say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and stop recording.
+Your code will continue execution as normal, which you can break using
+your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.
+
+You can set a limit of 0 to disable it again.
+
+This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.
 
 == Controlling instrumentation
 

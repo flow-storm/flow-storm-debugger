@@ -3298,22 +3298,33 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 <h3 id="_debugging_infinite_looprecursion"><a class="anchor" href="#_debugging_infinite_looprecursion"></a><a class="link" href="#_debugging_infinite_looprecursion">16. Debugging infinite loop/recursion</a></h3>
 <div class="paragraph">
 <p>If you are tracing some code that ends up in a infinite loop the debugger will choke on
-too many traces, making everything slow and where your only option is probably to restart it.</p>
+too many traces, making everything slow and your only option is probably to restart it.</p>
 </div>
 <div class="paragraph">
-<p>For preventing this <em>FlowStorm</em> provides fuse, called thread trace limit.</p>
+<p>For preventing this, <em>FlowStorm</em> provides a fuse/breaker, called thread trace limit.
+It is off by default but you can enable it from the Config menu.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fsa</span><span class="p">])</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">fsa/set-thread-trace-limit</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span><span class="w"> </span><span class="c1">;; To set a limit of 1000</span><span class="w">
-</span><span class="p">(</span><span class="nf">fsa/set-thread-trace-limit</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">    </span><span class="c1">;; To disable it</span></code></pre>
+<img src="user_guide_images/thread_trace_limit_menu.png" alt="thread trace limit menu">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/thread_trace_limit_dialog.png" alt="thread trace limit dialog">
 </div>
 </div>
 <div class="paragraph">
-<p>After the limit is set, if you run any code that generates more than a 1000 traces the code will stop at trace 1000 with
-a thread-trace-limit exception, and you will have the recordings so far available.</p>
+<p>Let&#8217;s say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and stop recording.
+Your code will continue execution as normal, which you can break using
+your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.</p>
+</div>
+<div class="paragraph">
+<p>You can set a limit of 0 to disable it again.</p>
+</div>
+<div class="paragraph">
+<p>This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.</p>
 </div>
 </div>
 <div class="sect2">
@@ -3738,7 +3749,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-19 12:01:37 -0300
+Last updated 2024-03-19 15:57:01 -0300
 </div>
 </div>
 </body>
