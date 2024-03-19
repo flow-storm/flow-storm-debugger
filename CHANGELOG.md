@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+      
+### Changes 
+       
+### Bugs fixed
+
+## 3.13.0 (19-03-2024)
+	
+### New Features
 
     - Implemented thread trace limit as a fuse for infinite loops/recursion
     - All possibly expensive slow operations are now cancellable. This includes :
