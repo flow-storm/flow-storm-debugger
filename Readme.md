@@ -27,9 +27,9 @@ FlowStorm latest stable releases :
 ClojureStorm latest stable releases : 
 
 - Clojure 1.12.0
-  - `[com.github.flow-storm/clojure "1.12.0-alpha4_14"]`
+  - `[com.github.flow-storm/clojure "1.12.0-alpha9"]`
 - Clojure 1.11.1
-  - `[com.github.flow-storm/clojure "1.11.1-19"]`
+  - `[com.github.flow-storm/clojure "1.11.2"]`
 
 ClojureScriptStorm latest stable releases : 
 

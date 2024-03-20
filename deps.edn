@@ -24,7 +24,7 @@
                         :extra-deps {thheller/shadow-cljs {:mvn/version "2.27.4"
                                                            :exclusions [org.clojure/clojurescript]}
                                      ;; bring ClojureScriptStorm
-                                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-1"}
+                                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-2"}
                                      ;; add FlowStorm runtime dep
                                      com.github.flow-storm/flow-storm-inst {:local/root "." #_#_:mvn/version "RELEASE"}
                                      cider/cider-nrepl {:mvn/version "0.28.3"}
@@ -35,7 +35,7 @@
                                    "-Dflowstorm.startRecording=false"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.11.1-19"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-alpha9"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"
                               ;;"-Dflowstorm.startRecording=false"
