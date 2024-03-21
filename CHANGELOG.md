@@ -7,6 +7,7 @@
 ### Changes 
 
     - Bring back the clear recordings button to the toolbar
+    - A faster search system for ClojureScript (for every functionality that searches on the timeline)
     
 ### Bugs fixed
 

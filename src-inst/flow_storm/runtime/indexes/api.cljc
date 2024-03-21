@@ -551,6 +551,101 @@
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id nil)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
 
+(defn make-fid-tid-timelines
+
+  "Returns a collection of [flow-id thread-id timeline] that matches the optional criteria.
+  skip-threads can be a set of thread ids."
+  
+  [{:keys [flow-id thread-id skip-threads] :as criteria}]
+  (->> (all-threads)
+       (keep (fn [[fid tid]]
+               (when (and (or (not (contains? criteria :flow-id))
+                              (= flow-id fid))
+                          (or (not (contains? criteria :thread-id))
+                              (= thread-id tid))
+                          (not (and (set? skip-threads)
+                                    (skip-threads tid))))                                                          
+                 [fid tid (get-timeline fid tid)])))))
+
+(defn async-interruptible-batched-process-timelines
+
+  "Process timelines with xf in batches of size batch-size. Returns a map {:keys [start interrupt]}
+  with two functions which can be used to interrupt the collection processing between batches.
+  on-batch should be a callback of 3 args, that will be called with the
+  flow-id thread-id and the result of processing each batch with xf.
+  on-end will be called with no args for signaling the end.
+  
+  fid-tid-timelines are the subset of timelines to be processed and
+  can be built using `make-fid-tid-timelines`"
+
+  [xf fid-tid-timelines {:keys [on-batch on-end]}]
+
+  (let [batch-size 10000
+        interrupted? (atom false)
+        interrupt (fn interrupt [] (reset! interrupted? true))
+        start (fn start []
+                     (let [process-next-batch (fn process-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] from-idx]
+                                                (if (or @interrupted?
+                                                        (nil? timeline))
+                                                  
+                                                  (on-end)
+
+                                                  ;; else keep collecting
+                                                  (let [to-idx (min (+ from-idx batch-size) (count timeline))
+                                                        batch-res (locking timeline
+                                                                    ;; this locking because the timeline is mutable,
+                                                                    ;; but maybe the timeline should expose a way of iterating sub sequences
+                                                                    (utils/transduce-sub-range timeline from-idx to-idx xf))]
+                                                    (if (reduced? batch-res)
+                                                      
+                                                      ;; if the xf marks a reduced? report what we have so far and end everything
+                                                      (do 
+                                                        (on-batch flow-id thread-id (deref batch-res))
+                                                        (on-end))
+
+                                                      ;; else report the batch and keep collecting
+                                                      (do
+                                                        (on-batch flow-id thread-id batch-res)
+                                                        (if (= to-idx (count timeline))
+
+                                                          ;; if the batch we just processed was the last one of the timeline,
+                                                          ;; change timelines
+                                                          #?(:clj (recur rtimelines 0)
+                                                             :cljs (js/setTimeout process-next-batch 0 rtimelines 0))
+
+                                                          ;; else keep collecting from the current timeline
+                                                          #?(:clj (recur work-timelines to-idx)
+                                                             :cljs (js/setTimeout process-next-batch 0 work-timelines to-idx))))))))]
+                       
+                       (process-next-batch fid-tid-timelines 0)))]
+    {:interrupt interrupt
+     :start     start}))
+
+
+(defn find-in-timeline-sub-range
+
+  "Given a timeline tryies to find a entry using pred but only between
+  from-idx to to-idx. It can also search backwards.
+  pred should be a fn of two args (fn [form-id entry]). When needs-form-id?
+  is false (default) form-id will be nil. Done for perf reasons."
+  
+  [timeline from-idx to-idx pred {:keys [backward? needs-form-id?]}]
+  (let [next-idx (if backward? dec inc)]
+    ;; this locking because the timeline is mutable,
+    ;; but maybe the timeline should expose a way of iterating sub sequences    
+    (locking timeline
+      (loop [idx from-idx]
+        (when-not (= idx to-idx)
+          (let [entry (get timeline idx)
+               form-id (when needs-form-id?
+                         (let [fn-call (if (fn-call-trace/fn-call-trace? entry)
+                                         entry
+                                         (get timeline (index-protos/fn-call-idx entry)))]
+                           (index-protos/get-form-id fn-call)))]
+            (if-let [r (pred form-id entry)]
+             r
+             (recur (next-idx idx)))))))))
+
 (defn timelines-async-interruptible-find-entry
 
   "Search all timelines entries with pred.
@@ -569,71 +664,54 @@
   - on-end, a fn of zero args that will be called for signaling that the search reached the end with no matches  
 
   Returns a map of {:keys [start interrupt]}, two functions of zero args you should call to start the process
-  or interrupt it while it is running.
-  "
+  or interrupt it while it is running."
 
-  [pred {:keys [from-idx backward? flow-id thread-id skip-threads needs-form-id?] :as config} {:keys [on-progress on-match on-end]}]
+  [pred fid-tid-timelines {:keys [from-idx backward? needs-form-id?]} {:keys [on-progress on-match on-end]}]
 
-  (let [interrupted? (atom false)        
-        next-idx (if backward? dec inc)
-        entries-cnt (->> (all-threads)
-                         (mapv (fn [[fid tid]]
-                                 (count (get-timeline fid tid))))
-                         (reduce +))
-        overall-i (volatile! 0)
-        report-progress (fn [] (on-progress (int (* 100 (/ @overall-i entries-cnt)))))
+  (let [batch-size 10000
+        total-batches (->> (all-threads)
+                           (mapv (fn [[fid tid]]
+                                   (quot (count (get-timeline fid tid))
+                                         batch-size)))
+                           (reduce +))
+        batches-processed (volatile! 0)
+        interrupted? (atom false)
         interrupt (fn [] (reset! interrupted? true))
-        process-thread? (fn [fid tid]
-                          (and (or (not (contains? config :flow-id))
-                                   (= flow-id fid))
-                               (or (not (contains? config :thread-id))
-                                   (= thread-id tid))
-                               (not (and (set? skip-threads)
-                                         (skip-threads tid)))))
         start (fn []
-                (let [search-timelines (fn search-timelines [[[tfid ttid timeline] & rest-timelines]]
-                                         (if-not timeline
-                                           (on-end)
-                                           
-                                           (locking timeline
-                                             (let [from-idx (or from-idx (if backward? (dec (count timeline)) 0))
-                                                   search-next-entry
-                                                   (fn search-next-entry [i]
-                                                     (if-not @interrupted?
-                                                       (if (<= 0 i (dec (count timeline)))
-                                                         
-                                                         ;; we still have timeline, keep searching
-                                                         (let [entry (get timeline i)
-                                                               form-id (when needs-form-id?
-                                                                         (let [fn-call (if (fn-call-trace/fn-call-trace? entry)
-                                                                                         entry
-                                                                                         (get timeline (index-protos/fn-call-idx entry)))]
-                                                                           (index-protos/get-form-id fn-call)))]
-                                                           (if-let [result (pred form-id entry)]
-                                                             (on-match (-> result
-                                                                           index-protos/as-immutable
-                                                                           (assoc :flow-id tfid
-                                                                                  :thread-id ttid)))
-                                                             (do
-                                                               (when on-progress (report-progress))
-                                                               (vswap! overall-i inc)                                                        
-                                                               #?(:clj  (recur (next-idx i))
-                                                                  :cljs (js/setTimeout search-next-entry 0 (next-idx i))))))
+                (let [find-next-batch (fn find-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] curr-idx]
+                                        (if (or @interrupted?
+                                                (nil? timeline))
+                                          
+                                          (on-end)
 
-                                                         ;; we finished the timeline, keep goind with the rest of them                                                         
-                                                         #?(:clj (trampoline search-timelines rest-timelines)
-                                                            :cljs (js/setTimeout search-timelines 0 rest-timelines)))
+                                          ;; else keep searching
+                                          (let [to-idx (if backward?
+                                                         (max (- curr-idx batch-size) 0)
+                                                         (min (+ curr-idx batch-size) (count timeline)))
+                                                entry (find-in-timeline-sub-range timeline curr-idx to-idx pred {:backward? backward? :needs-form-id? needs-form-id?})]
+                                            (if entry
+                                              
+                                              ;; if we found the entry report the match and finish
+                                              (on-match (-> entry
+                                                            index-protos/as-immutable
+                                                            (assoc :flow-id flow-id
+                                                                   :thread-id thread-id)))
+                                              
+                                              ;; else report progress and continue searching
+                                              (do
+                                                (on-progress (int (* 100 (/ @batches-processed total-batches))))
+                                                (if (or (and (not backward?) (= to-idx (count timeline)))
+                                                        (and backward?       (= to-idx 0)))
 
-                                                       ;; when interrupted call on-end and finish
-                                                       (on-end)))]
-                                               (search-next-entry from-idx)))))]
-                  (if (and (contains? config :flow-id)
-                           thread-id)
-                    (search-timelines [[flow-id thread-id (get-timeline flow-id thread-id)]])
-                    (search-timelines (->> (all-threads)
-                                           (keep (fn [[fid tid]]                                                   
-                                                   (when (process-thread? fid tid)
-                                                     [fid tid (get-timeline fid tid)]))))))))]
+                                                  ;; if the batch we just searched was the last one of the timeline,
+                                                  ;; change timelines
+                                                  #?(:clj (recur rtimelines from-idx)
+                                                     :cljs (js/setTimeout find-next-batch 0 rtimelines from-idx))
+
+                                                  ;; else keep collecting from the current timeline
+                                                  #?(:clj (recur work-timelines to-idx)
+                                                     :cljs (js/setTimeout find-next-batch 0 work-timelines to-idx))))))))]
+                  (find-next-batch fid-tid-timelines from-idx)))]
     {:interrupt interrupt
      :start start}))
 
@@ -679,6 +757,7 @@
      (let [result-prom (promise)
            {:keys [start]} (timelines-async-interruptible-find-entry
                             (build-find-fn-call-entry-predicate criteria)
+                            (make-fid-tid-timelines criteria)
                             criteria
                             {:on-match (fn [m] (deliver result-prom m))
                              :on-end   (fn []  (deliver result-prom nil))})]
@@ -726,6 +805,7 @@
      (let [result-prom (promise)
            {:keys [start]} (timelines-async-interruptible-find-entry
                             (build-find-expr-entry-predicate criteria)
+                            (make-fid-tid-timelines criteria)
                             criteria
                             {:on-match (fn [m] (deliver result-prom m))
                              :on-end   (fn []  (deliver result-prom nil))})]

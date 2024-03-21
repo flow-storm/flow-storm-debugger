@@ -663,10 +663,10 @@
         search (fn []
                  (.setText search-progress-lbl "% 0.0 %%")
                  (tasks/submit-task runtime-api/search-next-timeline-entry-task
-                                    [flow-id
-                                     thread-id
-                                     (.getText search-txt)
-                                     (inc (dbg-state/current-idx flow-id thread-id))
+                                    [{:flow-id flow-id
+                                      :thread-id thread-id
+                                      :query-str (.getText search-txt)
+                                      :from-idx (inc (dbg-state/current-idx flow-id thread-id))}
                                      {:print-level (Integer/parseInt (.getText search-lvl-txt))
                                       :print-length (Integer/parseInt (.getText search-len-txt))}]
                                     {:on-finished (fn [{:keys [result]}]

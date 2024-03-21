@@ -323,3 +323,24 @@
   (float
    (/ (- n from)
       (- to from))))
+
+(defn transduce-sub-range
+
+  "Given a coll return the sub range [from to] transduced with xf."
+
+  [coll from to xf]
+  
+  (when (<= 0 from to (count coll))    
+    (let [rf (fn
+               ([acc] (persistent! acc))
+               ([acc tle] (conj! acc tle)))
+          f (xf rf)]
+      (loop [i from
+             batch-res (transient [])]
+        (if (< i to)
+          (let [tl (get coll i)
+                batch-res' (f batch-res tl)]
+            (if (reduced? batch-res')
+              batch-res'
+              (recur (inc i) batch-res')))
+          (f batch-res))))))
