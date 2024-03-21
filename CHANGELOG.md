@@ -5,6 +5,14 @@
 ### New Features
       
 ### Changes 
+            
+### Bugs fixed
+
+## 3.13.1 (21-03-2024)
+	
+### New Features
+      
+### Changes 
 
     - Bring back the clear recordings button to the toolbar
     - A faster search system for ClojureScript (for every functionality that searches on the timeline)
