@@ -5,7 +5,9 @@
 ### New Features
       
 ### Changes 
-       
+
+    - Bring back the clear recordings button to the toolbar
+    
 ### Bugs fixed
 
 ## 3.13.0 (19-03-2024)

@@ -181,6 +181,9 @@
                                      :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                      :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
                                      :disable true)
+        clear-btn (icon-button :icon-name  "mdi-delete-forever"
+                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
+                               :on-click (fn [] (clear-all)))
         quick-jump-textfield (doto (h-box [(label "Quick jump:")
                                            (ui-utils/autocomplete-textfield
                                             (fn []
@@ -201,6 +204,7 @@
                                     "hidden-pane")
                          (.setAlignment Pos/CENTER_LEFT))
         tools [record-btn
+               clear-btn
                task-cancel-btn
                quick-jump-textfield
                exceptions-box]]
