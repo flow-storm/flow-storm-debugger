@@ -63,42 +63,72 @@
                 (recur (inc i) batch-res')))
             (f batch-res)))))))
 
-(defn- async-interruptible-batched-collect
+(defn- make-fid-tid-timelines
 
-  "Process coll with xf in batches of size batch-size. Returns a function
+  "Utility function for calling `submit-async-interruptible-batched-process-timelines-task`.
+  When called with no args will return a collection of [flow-id thread-id timeline] for every
+  recorded timeline.
+  flows-threads-set should be set of touples like #{[flow-id thread-id]} to restrict the timelines to those."
+  
+  ([] (make-fid-tid-timelines nil))
+  
+  ([flows-threads-set]
+   (->> (index-api/all-threads)
+        (keep (fn [[fid tid :as fid-tid]]
+                (when (or (nil? flows-threads-set)
+                          (contains? flows-threads-set fid-tid))                                                          
+                  [fid tid (index-api/get-timeline fid tid)]))))))
+
+(defn- async-interruptible-batched-process-timelines
+
+  "Process timelines with xf in batches of size batch-size. Returns a function
   which can be used to interrupt the collection processing between batches.
-  on-batch should be a callback of 1 arg, that will be called with the result
-  of processing each batch.
-  on-end will be called with no args for signaling the end."
+  on-batch should be a callback of 3 args, that will be called with the
+  flow-id thread-id and the result of processing each batch with xf.
+  on-end will be called with no args for signaling the end.
+  
+  fid-tid-timelines are the subset of timelines to be processed and
+  can be built using `make-fid-tid-timelines`"
 
-  [coll batch-size xf {:keys [on-batch on-end]}]
+  [xf fid-tid-timelines {:keys [on-batch on-end]}]
 
-  (let [interrupted? (atom false)
+  (let [batch-size 10000
+        interrupted? (atom false)
         interrupt-task (fn interrupt-task [] (reset! interrupted? true))
         start-task (fn start-task []
-                     (let [collect-next-batch (fn collect-next-batch [from]
-                                                (if-not @interrupted?
-                                                  (if (< from (count coll))
-                                                    (let [to (min (+ from batch-size) (count coll))
-                                                          batch-res (transduce-sub-range coll from to xf)]
-                                                      (if (reduced? batch-res)
-                                                        (do
-                                                          (on-batch (deref batch-res))
-                                                          (on-end))
-                                                        (do
-                                                          (on-batch batch-res)
-                                                          #?(:clj (recur to)
-                                                             :cljs (js/setTimeout collect-next-batch 0 to)))))
-                                                    (on-end))
+                     (let [process-next-batch (fn process-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] from-idx]
+                                                (if (or @interrupted?
+                                                        (nil? timeline))
+                                                  
+                                                  (on-end)
 
-                                                  ;; if we are interrupted call on-end
-                                                  (on-end))
-                                                )]
-                       (collect-next-batch 0)))]
+                                                  ;; else keep collecting
+                                                  (let [to-idx (min (+ from-idx batch-size) (count timeline))
+                                                        batch-res (transduce-sub-range timeline from-idx to-idx xf)]
+                                                    (if (reduced? batch-res)
+                                                      
+                                                      ;; if the xf marks a reduced? report what we have so far and end everything
+                                                      (do 
+                                                        (on-batch flow-id thread-id (deref batch-res))
+                                                        (on-end))
+
+                                                      ;; else report the batch and keep collecting
+                                                      (do
+                                                        (on-batch flow-id thread-id batch-res)
+                                                        (if (= to-idx (count timeline))
+
+                                                          ;; if the batch we just processed was the last one of the timeline,
+                                                          ;; change timelines
+                                                          #?(:clj (recur rtimelines 0)
+                                                             :cljs (js/setTimeout process-next-batch 0 rtimelines 0))
+
+                                                          ;; else keep collecting from the current timeline
+                                                          #?(:clj (recur work-timelines to-idx)
+                                                             :cljs (js/setTimeout process-next-batch 0 work-timelines to-idx))))))))]
+                       
+                       (process-next-batch fid-tid-timelines 0)))]
     {:interrupt-task interrupt-task
      :start-task     start-task}))
-
-(def collect-batch-size 10000)
 
 (defn submit-interruptible-task [{:keys [task-id start-task interrupt-task]}]
   (interrupt-all-tasks)  
@@ -112,25 +142,30 @@
   (rt-events/publish-event! (rt-events/make-task-submitted-event task-id))
   task-id)
 
-(defn submit-batched-collect-interruptible-task
+(defn submit-async-interruptible-batched-process-timelines-task
 
-  "Submits a timeline entry collection tasks. Uses the xf transducer to collect entries.
+  "Submits a timelines batched processing task. Uses the xf transducer to collect entries.
   Doesn't start the task. Returns a task id.
   You can start it by calling `start-task` and interrupt it with `interrupt-task` providing the returned task id.
-  Progress, match and end will be reported through the event system via task-progress-event and task-finished-event.
-  task-progress-event will be called after each batch and carry {:batch []} which are collected entries for the batch
-  just processed. Interruption can only happen between batches. Batch size is `collect-batch-size`."
+  Progress and end will be reported through the event system via task-progress-event and task-finished-event.
+  task-progress-event will be called after each batch and carry {:keys [flow-id thread-id batch]} which are collected entries for the batch
+  just processed. Interruption can only happen between batches.
   
-  [timeline xf]
+  fid-tid-timelines are the subset of timelines to be processed and
+  can be built using `make-fid-tid-timelines`"
+  
+  [fid-tid-timelines xf]
   (let [task-id (str (utils/rnd-uuid))
-        task (async-interruptible-batched-collect timeline
-                                                  collect-batch-size
-                                                  xf
-                                                  {:on-batch (fn [batch]                                                          
-                                                               (rt-events/publish-event! (rt-events/make-task-progress-event task-id {:batch batch})))
-                                                   :on-end (fn []
-                                                             (rt-events/publish-event! (rt-events/make-task-finished-event task-id))
-                                                             (swap! interruptible-tasks dissoc task-id))})]
+        task (async-interruptible-batched-process-timelines              
+              xf
+              fid-tid-timelines
+              {:on-batch (fn [flow-id thread-id batch]                                                          
+                           (rt-events/publish-event! (rt-events/make-task-progress-event task-id {:flow-id flow-id
+                                                                                                  :thread-id thread-id
+                                                                                                  :batch batch})))
+               :on-end (fn []
+                         (rt-events/publish-event! (rt-events/make-task-finished-event task-id))
+                         (swap! interruptible-tasks dissoc task-id))})]
     (submit-interruptible-task (assoc task :task-id task-id))))
 
 (defn submit-find-interruptible-task
@@ -271,7 +306,7 @@
         xf (comp (index-api/fn-calls-transd fn-ns fn-name form-id)
                  (index-api/frame-data-transd timeline)
                  (render-fn-frames-transd render-args render-ret?))]    
-    (submit-batched-collect-interruptible-task timeline xf)))
+    (submit-async-interruptible-batched-process-timelines-task (make-fid-tid-timelines #{[flow-id thread-id]}) xf)))
 
 (defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward?]}]
   (let [criteria {:fn-ns (namespace fq-fn-call-symb)
@@ -299,12 +334,11 @@
 (defn total-order-timeline-task []
   (let [timeline (index-api/total-order-timeline)
         xf (total-order-timeline/detailed-timeline-transd index-api/forms-registry)]    
-    (submit-batched-collect-interruptible-task timeline xf)))
+    (submit-async-interruptible-batched-process-timelines-task [[nil nil timeline]] xf)))
 
 (defn thread-prints-task [{:keys [flow-id thread-id printers]}]
-  (let [timeline (index-api/get-timeline flow-id thread-id)
-        xf (index-api/thread-prints-transd printers)]    
-    (submit-batched-collect-interruptible-task timeline xf)))
+  (let [xf (index-api/thread-prints-transd printers)]    
+    (submit-async-interruptible-batched-process-timelines-task (make-fid-tid-timelines #{[flow-id thread-id]}) xf)))
 
 (defn search-next-timeline-entry-task [flow-id thread-id query-str from-idx {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
   (submit-find-interruptible-task (fn search-next-timeline-entry-pred [_ tl-entry]
