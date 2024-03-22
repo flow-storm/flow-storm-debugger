@@ -1792,7 +1792,9 @@ You can add this two jvm options to tell FlowStorm how to open forms in files an
     - flowstorm.jarEditorCommand : a command with optional \<<JAR>>, \<<FILE>> and \<<LINE>> placeholders
     - flowstorm.fileEditorCommand : a command with optional \<<FILE>> and \<<LINE>> placeholders
 
-If you define those, clicking on your forms namespaces link should run the provided commands.
+If you define those, clicking on your forms namespaces link in the code tool should run the provided commands.
+On expressions sub-forms that contains line meta you should also be able to right click and select "Open in editor"
+which should open the file at that specific line (useful for long forms).
 
 Here are some known setups for most common editors :
 

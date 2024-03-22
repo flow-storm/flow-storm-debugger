@@ -30,8 +30,10 @@
 
   [form]
   (let [curr-coord (::coord (meta form))
+        curr-line (:line (meta form))
         tok (if curr-coord
-              {:coord curr-coord}
+              {:coord curr-coord
+               :line curr-line}
               {})]
     (cond
       (or (seq? form) (vector? form) (set? form))
@@ -131,7 +133,7 @@
 
   "Given a form, returns a vector of tokens to pretty print it.
   Tokens can be any of :
-  - {:kind :text, :text STRING, :idx-from INT, :len INT :coord COORD}
+  - {:kind :text, :text STRING, :idx-from INT, :len INT :coord COORD :line :LINE}
   - {:kind :sp}
   - {:kind :nl}"
 
@@ -151,7 +153,6 @@
         pre-tokens (form-tokens form)
 
         ;; interleave in pre-tokens newlines and space tokens found by the pprinter
-
         final-tokens (loop [[{:keys [text] :as text-tok} & next-tokens] pre-tokens
                             i 0
                             final-toks []]
@@ -202,11 +203,11 @@
 
 (defn- next-span [^ArrayDeque ptokens-q]
   (when-not (.isEmpty ptokens-q)
-    (let [{:keys [coord kind len interesting? text]} (.pop ptokens-q)]
+    (let [{:keys [coord kind len interesting? text line]} (.pop ptokens-q)]
       (cond
 
         (= kind :text)
-        {:coord coord, :len len, :interesting? interesting?, :text text}
+        {:coord coord, :len len, :interesting? interesting?, :text text, :line line}
 
         (= kind :nl)
         {:len (+ 1 (read-contiguous-spaces ptokens-q)) :tab? true}

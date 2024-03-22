@@ -185,6 +185,10 @@
                                                                       (cond-> [{:text "Add to prints"
                                                                                 :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
 
+                                                                        (:line clicked-span)
+                                                                        (into [{:text "Open in editor"
+                                                                                :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}])
+
                                                                         (not (dbg-state/clojure-storm-env?))
                                                                         (into [{:text "Fully instrument this form"
                                                                                 :on-click (fn []
