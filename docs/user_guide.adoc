@@ -941,12 +941,26 @@ Custom power stepping is only supported in Clojure now.
 
 ==== Searching
 
-You can use the search box under the controls to search for the next expression (starting at your current step) which its string
-serialization contains your search text.
+You can use the search tool to search over all your recorded values. Find the search tool on the toolbar (the magnifier glass)
+or under `View -> Search`.
 
-You can use the print-level and print-length fields to control how deep this serialization will be made. If these numbers are big
-and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
-and you can always use Ctrl-g to stop the search if it is taking too long.
+image::user_guide_images/search.png[]
+
+The first row let us constrain our search to a specific Flow or Thread and also let us select one of two
+types of searches.
+
+`Search by pr-str` let us provide a query string, a print-level and a print length and it will walk the specified
+timelines doing a `pr-str` over each recorded value and collect every entry where our query string is found inside the printed value.
+With bigger print-level/print-length you search deeper into values but it is also slower.
+
+`Search by predicate` let us provide a predicate that will be applied over each recorded values to collect them.
+You can put whatever Clojure code you like here like `(fn [v] (map? v))` to search over all recorded maps.
+
+After configuring your search, click on the magnifier glass on the first row (next to the search type selection) to
+run the search. You should start seeing results as the match and you can always cancel the search by the normal
+means.
+
+Double clicking on any of the search results will take you to that point in time.
 
 ==== Loops
 

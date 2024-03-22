@@ -65,7 +65,7 @@
   (find-expr-entry-task [_ criteria])
   (total-order-timeline-task [_])
   (thread-prints-task [_ print-cfg])
-  (search-next-timeline-entry-task [_ criteria opts])
+  (search-collect-timelines-entries-task [_ criteria opts])
   (discard-flow [_ flow-id])
 
   (def-value [_ var-symb val-ref])
@@ -168,7 +168,7 @@
   (find-expr-entry-task [_ criteria] (api-call :local "find-expr-entry-task" [criteria]))
   (total-order-timeline-task [_] (api-call :local "total-order-timeline-task" []))
   (thread-prints-task [_ print-cfg] (api-call :local "thread-prints-task" [print-cfg]))
-  (search-next-timeline-entry-task [_ criteria opts] (api-call :local "search-next-timeline-entry-task" [criteria opts]))
+  (search-collect-timelines-entries-task [_ criteria opts] (api-call :local "search-collect-timelines-entries-task" [criteria opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
   (tap-value [_ vref] (api-call :local "tap-value" [vref]))
@@ -295,7 +295,7 @@
   (find-expr-entry-task [_ criteria] (api-call :remote "find-expr-entry-task" [criteria]))
   (total-order-timeline-task [_] (api-call :remote "total-order-timeline-task" []))
   (thread-prints-task [_ print-cfg] (api-call :remote "thread-prints-task" [print-cfg]))
-  (search-next-timeline-entry-task [_ criteria opts] (api-call :remote "search-next-timeline-entry-task" [criteria opts]))
+  (search-collect-timelines-entries-task [_ criteria opts] (api-call :remote "search-collect-timelines-entries-task" [criteria opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref]
     (case (dbg-state/env-kind)
