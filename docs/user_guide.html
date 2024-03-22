@@ -2261,13 +2261,34 @@ section, specially the <code>find-expr-entry</code> function.</p>
 <div class="sect4">
 <h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
 <div class="paragraph">
-<p>You can use the search box under the controls to search for the next expression (starting at your current step) which its string
-serialization contains your search text.</p>
+<p>You can use the search tool to search over all your recorded values. Find the search tool on the toolbar (the magnifier glass)
+or under <code>View &#8594; Search</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/search.png" alt="search">
+</div>
 </div>
 <div class="paragraph">
-<p>You can use the print-level and print-length fields to control how deep this serialization will be made. If these numbers are big
-and you are searching over lots of nested data it will take some time. The search progress will be displayed at the right
-and you can always use Ctrl-g to stop the search if it is taking too long.</p>
+<p>The first row let us constrain our search to a specific Flow or Thread and also let us select one of two
+types of searches.</p>
+</div>
+<div class="paragraph">
+<p><code>Search by pr-str</code> let us provide a query string, a print-level and a print length and it will walk the specified
+timelines doing a <code>pr-str</code> over each recorded value and collect every entry where our query string is found inside the printed value.
+With bigger print-level/print-length you search deeper into values but it is also slower.</p>
+</div>
+<div class="paragraph">
+<p><code>Search by predicate</code> let us provide a predicate that will be applied over each recorded values to collect them.
+You can put whatever Clojure code you like here like <code>(fn [v] (map? v))</code> to search over all recorded maps.</p>
+</div>
+<div class="paragraph">
+<p>After configuring your search, click on the magnifier glass on the first row (next to the search type selection) to
+run the search. You should start seeing results as the match and you can always cancel the search by the normal
+means.</p>
+</div>
+<div class="paragraph">
+<p>Double clicking on any of the search results will take you to that point in time.</p>
 </div>
 </div>
 <div class="sect4">
@@ -3918,7 +3939,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-26 12:18:05 -0300
+Last updated 2024-03-26 16:48:57 -0300
 </div>
 </div>
 </body>

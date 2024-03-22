@@ -190,7 +190,7 @@ this could take a long time.
 For this reason, functions that loop on the timeline run under tasks. This are looping process that run async, can report progress 
 and can be interrupted.
 
-All the functions that run tasks ends up in `-task`, like `search-next-timeline-entry-task`.
+All the functions that run tasks ends up in `-task`, like `search-collect-timelines-entries-task`.
 From the __debugger__, for calling a task function `flow-storm.debugger.ui.tasks/submit-task` can be used.
 
 On the __runtime__ side, there are a couple of utilities that make implementing this interruptible loopings easies : 

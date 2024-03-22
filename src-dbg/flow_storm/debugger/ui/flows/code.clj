@@ -655,53 +655,12 @@
 
 
 (defn- create-controls-first-row-pane [flow-id thread-id]
-  (let [bookmarks-and-nav-pane (create-bookmarks-and-nav-pane flow-id thread-id)
-        search-txt (doto (TextField.)
-                     (.setPromptText "Search"))
-        search-lvl-txt (doto (TextField. "2")
-                         (.setPrefWidth 50)
-                         (.setAlignment Pos/CENTER))
-        search-len-txt (doto (TextField. "10")
-                         (.setPrefWidth 50)
-                         (.setAlignment Pos/CENTER))
-        search-progress-lbl (label "")
+  (let [bookmarks-and-nav-pane (create-bookmarks-and-nav-pane flow-id thread-id)]
 
-        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
-                                         :class "tree-search")
-        search (fn []
-                 (.setText search-progress-lbl "% 0.0 %%")
-                 (tasks/submit-task runtime-api/search-next-timeline-entry-task
-                                    [{:flow-id flow-id
-                                      :thread-id thread-id
-                                      :query-str (.getText search-txt)
-                                      :from-idx (inc (dbg-state/current-idx flow-id thread-id))}
-                                     {:print-level (Integer/parseInt (.getText search-lvl-txt))
-                                      :print-length (Integer/parseInt (.getText search-len-txt))}]
-                                    {:on-finished (fn [{:keys [result]}]
-                                                    (if result
-                                                      (ui-utils/run-later
-                                                        (.setText search-progress-lbl "")
-                                                        (jump-to-coord flow-id thread-id result))
-
-                                                      (ui-utils/run-later (.setText search-progress-lbl "No match found"))))
-                                     :on-progress (fn [{:keys [progress]}]
-                                                    (.setText search-progress-lbl (format "%.2f %%" (double progress))))}))]
-
-    (.setOnAction search-btn (event-handler [_] (search)))
-
-    (.setOnKeyReleased search-txt (event-handler
-                                   [kev]
-                                   (when (= (.getCode kev) KeyCode/ENTER)
-                                     (search))))
-
-    (border-pane {:left bookmarks-and-nav-pane
-                  :right (doto (h-box [search-txt
-                                       search-btn
-                                       (label "*print-level* : ") search-lvl-txt
-                                       (label "*print-length* : ") search-len-txt
-                                       search-progress-lbl])
-                           (.setSpacing 3.0))}
-                 "thread-controls-pane")))
+    (doto (h-box [bookmarks-and-nav-pane
+                         (power-stepping-pane flow-id thread-id)]
+                 "thread-controls-pane")
+      (.setSpacing 20.0))))
 
 (defn- create-controls-second-row-pane [flow-id thread-id]
   (let [prev-over-btn (ui-utils/icon-button :icon-name "mdi-debug-step-over"
@@ -727,10 +686,10 @@
         controls-box (doto (h-box [prev-over-btn prev-btn out-btn next-btn next-over-btn])
                        (.setSpacing 2.0))]
 
-    (border-pane {:left controls-box
-                  :center (trace-pos-pane flow-id thread-id)
-                  :right (power-stepping-pane flow-id thread-id)}
-                 "thread-controls-pane")))
+    (doto (h-box [controls-box
+             (trace-pos-pane flow-id thread-id)]
+                 "thread-controls-pane")
+      (.setSpacing 20.0))))
 
 (defn- create-forms-pane [flow-id thread-id]
   (let [forms-box (doto (v-box [])

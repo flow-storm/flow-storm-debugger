@@ -254,20 +254,44 @@
      (index-api/make-fid-tid-timelines {:flow-id flow-id :thread-id thread-id})
      xf)))
 
-(defn search-next-timeline-entry-task [{:keys [query-str from-idx] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
-  (submit-find-interruptible-task (fn search-next-timeline-entry-pred [_ tl-entry]
-                                    (when (or (expr-trace/expr-trace? tl-entry)
-                                              (fn-return-trace/fn-return-trace? tl-entry))
+(defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str from-idx] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
+  (let [collector-xf (case search-type
+                       :pr-str (keep (fn [tl-entry]
+                                       (when (or (expr-trace/expr-trace? tl-entry)
+                                                 (fn-return-trace/fn-return-trace? tl-entry))
 
-                                      (let [result (index-protos/get-expr-val tl-entry)]
-                                        (when (str/includes? (:val-str (rt-values/val-pprint-ref result {:print-length print-length
-                                                                                                         :print-level print-level
-                                                                                                         :pprint? false}))
-                                                             query-str)
-                                          tl-entry))))
-                                  (index-api/make-fid-tid-timelines criteria)
-                                  {:from-idx from-idx}
-                                  {:result-transform reference-timeline-entry!}))
+                                         (let [result (index-protos/get-expr-val tl-entry)
+                                               pprint-val (:val-str (rt-values/val-pprint-ref result {:print-length print-length
+                                                                                                      :print-level print-level
+                                                                                                      :pprint? false}))]
+                                           (when (str/includes? pprint-val query-str)
+                                             (-> tl-entry
+                                                 index-protos/as-immutable
+                                                 reference-timeline-entry!
+                                                 (assoc :entry-preview pprint-val)))))))
+                       :custorm-predicate #?(:clj (let [custom-pred-fn (try
+                                                                         (eval (read-string predicate-code-str))
+                                                                         (catch Exception e (constantly false)))]
+                                                    (keep (fn [tl-entry]                                                            
+                                                            (try
+                                                              (when (or (expr-trace/expr-trace? tl-entry)
+                                                                        (fn-return-trace/fn-return-trace? tl-entry))
+
+                                                                (let [result (index-protos/get-expr-val tl-entry)]
+                                                                  (when (custom-pred-fn result) 
+                                                                    
+                                                                    (let [pprint-val (:val-str (rt-values/val-pprint-ref result {:print-length 3
+                                                                                                                                 :print-level 3
+                                                                                                                                 :pprint? false}))]
+                                                                      (-> tl-entry
+                                                                          index-protos/as-immutable
+                                                                          reference-timeline-entry!
+                                                                          (assoc :entry-preview pprint-val))))))
+                                                              (catch Exception _ nil)))))
+                                             :cljs identity))]
+    (submit-async-interruptible-batched-process-timelines-task
+     (index-api/make-fid-tid-timelines criteria)   
+     collector-xf)))
 
 (def discard-flow index-api/discard-flow)
 
@@ -466,7 +490,7 @@
              :thread-prints-task thread-prints-task
 
              ;; finders tasks
-             :search-next-timeline-entry-task search-next-timeline-entry-task
+             :search-collect-timelines-entries-task search-collect-timelines-entries-task
              :find-expr-entry-task find-expr-entry-task
              :find-fn-call-task find-fn-call-task
 

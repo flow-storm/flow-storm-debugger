@@ -31,6 +31,7 @@
             [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
             [flow-storm.debugger.ui.printer.screen :as printer-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
+            [flow-storm.debugger.ui.flows.search :as search]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
@@ -184,6 +185,9 @@
         clear-btn (icon-button :icon-name  "mdi-delete-forever"
                                :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
                                :on-click (fn [] (clear-all)))
+        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
+                                         :tooltip "Open the search window"
+                                         :on-click (fn [] (search/search-window)))
         quick-jump-textfield (doto (h-box [(label "Quick jump:")
                                            (ui-utils/autocomplete-textfield
                                             (fn []
@@ -206,6 +210,7 @@
         tools [record-btn
                clear-btn
                task-cancel-btn
+               search-btn
                quick-jump-textfield
                exceptions-box]]
 
@@ -236,6 +241,8 @@
         view-menu (ui-utils/make-menu {:label "_View"
                                        :items [{:text "Bookmarks"
                                                 :on-click (fn [] (bookmarks/show-bookmarks))}
+                                               {:text "Search"
+                                                :on-click (fn [] (search/search-window))}
                                                {:text "Toggle theme"
                                                 :on-click (fn []
                                                             (dbg-state/rotate-theme)

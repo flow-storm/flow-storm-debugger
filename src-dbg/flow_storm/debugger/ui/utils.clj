@@ -8,16 +8,15 @@
   (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton MenuItem
-            ComboBox CheckBox TextInputDialog]
+            ComboBox CheckBox TextInputDialog SplitPane]
            [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination KeyCodeCombination]
-           [javafx.scene.layout HBox VBox BorderPane]
-           [javafx.geometry Side Pos]
+           [javafx.scene.layout HBox VBox BorderPane Priority Region]
+           [javafx.geometry Side Pos Orientation]
            [javafx.stage Screen]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
            [javafx.scene Node]
-           [javafx.scene.layout HBox Priority VBox Region]
            [javafx.util Duration]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
@@ -260,6 +259,21 @@
 
      bp)))
 
+(defn split [& {:keys [type childs sizes]}]
+  (let [sp (SplitPane.)]
+    (.setOrientation sp (case type
+                          :vertical   (Orientation/VERTICAL)
+                          :horizontal (Orientation/HORIZONTAL)))
+    (-> sp
+        .getItems
+        (.addAll childs))
+    (->> sizes
+         (map-indexed (fn [i perc]
+                        (.setDividerPosition sp i perc)))
+         doall)
+
+    sp))
+
 (defn label
   ([text] (label text nil))
   ([text class]
@@ -268,11 +282,18 @@
        (add-class lbl class))
      lbl)))
 
-(defn text-area [text {:keys [:editable?] :or {editable? true}}]
+(defn text-area [text {:keys [editable? on-change] :or {editable? true}}]
   (let [ta (TextArea.)]
 
     (when text
       (.setText ta text))
+
+    (when on-change
+      (-> ta
+          .textProperty
+          (.addListener (proxy [ChangeListener] []
+                          (changed  [_ _ new-text]
+                            (on-change new-text))))))
 
     (.setEditable ta editable?)
 
