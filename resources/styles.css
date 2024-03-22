@@ -59,6 +59,12 @@
 	-fx-cursor: hand;
 }
 
+.link-lbl-no-color {
+    -fx-underline: true;
+	-fx-cursor: hand;
+}
+
+
 .light {
 	-fx-opacity: 0.3;
 }

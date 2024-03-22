@@ -772,22 +772,42 @@ pre.rouge {
 </li>
 <li><a href="#_debugging_react_native_applications">20. Debugging react native applications</a></li>
 <li><a href="#_working_on_windows_with_wsl2">21. Working on Windows with WSL2</a></li>
-<li><a href="#_editorsides_integration">22. Editors/IDEs integration</a>
+<li><a href="#_opening_forms_in_editors">22. Opening forms in editors</a>
 <ul class="sectlevel3">
 <li><a href="#_emacs">22.1. Emacs</a></li>
 <li><a href="#_vscode">22.2. VSCode</a></li>
-<li><a href="#_intellij_idea_cursive">22.3. IntelliJ IDEA (Cursive)</a></li>
+<li><a href="#_intellij">22.3. IntelliJ</a></li>
+<li><a href="#_vim">22.4. Vim</a></li>
 </ul>
 </li>
-<li><a href="#_tutorials_and_demos">23. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">24. Troubleshooting</a>
+<li><a href="#_editorsides_integration">23. Editors/IDEs integration</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_verbose">24.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">24.2. Run verbose</a></li>
-<li><a href="#_run_with_jdk_11">24.3. Run with JDK 11</a></li>
+<li><a href="#_emacs_2">23.1. Emacs</a>
+<ul class="sectlevel4">
+<li><a href="#_opening_forms">Opening forms</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></li>
+<li><a href="#_vscode_2">23.2. VSCode</a>
+<ul class="sectlevel4">
+<li><a href="#_opening_forms_2">Opening forms</a></li>
+</ul>
+</li>
+<li><a href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a>
+<ul class="sectlevel4">
+<li><a href="#_opening_forms_3">Opening forms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_tutorials_and_demos">24. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">25. Troubleshooting</a>
+<ul class="sectlevel3">
+<li><a href="#_instrument_verbose">25.1. Instrument verbose</a></li>
+<li><a href="#_run_verbose">25.2. Run verbose</a></li>
+<li><a href="#_run_with_jdk_11">25.3. Run with JDK 11</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -3629,24 +3649,114 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">22. Editors/IDEs integration</a></h3>
+<h3 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">22. Opening forms in editors</a></h3>
+<div class="paragraph">
+<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>flowstorm.jarEditorCommand : a command with optional &lt;&lt;JAR&gt;&gt;, &lt;&lt;FILE&gt;&gt; and &lt;&lt;LINE&gt;&gt; placeholders</p>
+</li>
+<li>
+<p>flowstorm.fileEditorCommand : a command with optional &lt;&lt;FILE&gt;&gt; and &lt;&lt;LINE&gt;&gt; placeholders</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you define those, clicking on your forms namespaces link should run the provided commands.</p>
+</div>
+<div class="paragraph">
+<p>Here are some known setups for most common editors :</p>
+</div>
 <div class="sect3">
 <h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">22.1. Emacs</a></h4>
-<div class="paragraph">
-<p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
+</span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span></code></pre>
+</div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">22.2. VSCode</a></h4>
-
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=code --goto &lt;&lt;FILE&gt;&gt;:&lt;&lt;LINE&gt;&gt;"</span></code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">22.3. IntelliJ IDEA (Cursive)</a></h4>
-
+<h4 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">22.3. IntelliJ</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=idea --line &lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">22.4. Vim</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=vim +&lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">23. Tutorials and demos</a></h3>
+<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">23. Editors/IDEs integration</a></h3>
+<div class="sect3">
+<h4 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">23.1. Emacs</a></h4>
+<div class="paragraph">
+<p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
+</div>
+<div class="sect4">
+<h5 id="_opening_forms"><a class="anchor" href="#_opening_forms"></a><a class="link" href="#_opening_forms">Opening forms</a></h5>
+<div class="paragraph">
+<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
+</div>
+<div class="paragraph">
+<p>If something doesn&#8217;t work try the command on your shell first, maybe you need the full path to the binary.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">23.2. VSCode</a></h4>
+<div class="sect4">
+<h5 id="_opening_forms_2"><a class="anchor" href="#_opening_forms_2"></a><a class="link" href="#_opening_forms_2">Opening forms</a></h5>
+<div class="paragraph">
+<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
+</div>
+<div class="paragraph">
+<p>If the files are inside a jar you can put any command here using the <a href="#JAR">[JAR]</a>, <a href="#FILE">[FILE]</a>, and <a href="#LINE">[LINE]</a> placeholders that
+will be executed by FlowStorm to open it. I don&#8217;t know any for VSCode, if you know how to do it please submit a PR.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.jarEditorCommand="</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a></h4>
+<div class="sect4">
+<h5 id="_opening_forms_3"><a class="anchor" href="#_opening_forms_3"></a><a class="link" href="#_opening_forms_3">Opening forms</a></h5>
+<div class="paragraph">
+<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
+</div>
+<div class="paragraph">
+<p>"-Dflowstorm.jarEditorCommand="
+"-Dflowstorm.fileEditorCommand="</p>
+</div>
+<div class="paragraph">
+<p>If something doesn&#8217;t work try the command on your shell first, maybe you need the full path to the binary.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">24. Tutorials and demos</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -3683,16 +3793,16 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">24. Troubleshooting</a></h3>
+<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">25. Troubleshooting</a></h3>
 <div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">24.1. Instrument verbose</a></h4>
+<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">25.1. Instrument verbose</a></h4>
 <div class="paragraph">
 <p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
 by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">24.2. Run verbose</a></h4>
+<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">25.2. Run verbose</a></h4>
 <div class="paragraph">
 <p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
@@ -3704,7 +3814,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">24.3. Run with JDK 11</a></h4>
+<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">25.3. Run with JDK 11</a></h4>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -3722,7 +3832,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">25. Internals, diagrams and documentation</a></h3>
+<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></h3>
 <div class="paragraph">
 <p>For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :</p>
 </div>
@@ -3749,7 +3859,7 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-19 15:57:01 -0300
+Last updated 2024-03-22 11:43:09 -0300
 </div>
 </div>
 </body>

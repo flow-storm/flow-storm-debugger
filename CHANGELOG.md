@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Add support to open forms in editors
       
 ### Changes 
             

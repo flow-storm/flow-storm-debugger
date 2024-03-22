@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.flows.code
   (:require [clojure.pprint :as pp]
             [flow-storm.form-pprinter :as form-pprinter]
+            [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor]]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box border-pane]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
@@ -258,10 +259,13 @@
                            maybe-unwrap-runi-tokens))
         [forms-box] (obj-lookup flow-id thread-id "forms_box")
         code-text (form-pprinter/to-string print-tokens)
-        ns-label (doto (label (if-let [form-line (some-> form :form/form meta :line)]
-                                (format "%s:%d" (:form/ns form) form-line)
-                                (:form/ns form)))
-                   (.setFont (Font. 10)))
+        ns-label (let [form-line (some-> form :form/form meta :line)]
+                   (doto (label (if form-line
+                                  (format "%s:%d" (:form/ns form) form-line)
+                                  (:form/ns form))
+                                "link-lbl-no-color")
+                     (.setOnMouseClicked (event-handler [_] (open-form-in-editor form)))
+                     (.setFont (Font. 10))))
 
         form-header (doto (h-box [ns-label])
                           (.setAlignment (Pos/TOP_RIGHT)))

@@ -2,7 +2,7 @@
 
   "Mostly javaFx Utilities for building the UI"
 
-  (:require [flow-storm.utils :refer [log-error]]
+  (:require [flow-storm.utils :as utils :refer [log-error]]
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
   (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
@@ -819,6 +819,7 @@
   (if thread-name
     (format "[%d] %s" thread-id thread-name)
     (format "thread-%d" thread-id)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Node index ids builders ;;
