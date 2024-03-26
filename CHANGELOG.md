@@ -5,6 +5,7 @@
 ### New Features
 
     - Add support to open forms in editors
+    - Add an option to set threads limit to throw
       
 ### Changes 
             

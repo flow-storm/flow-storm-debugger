@@ -220,14 +220,16 @@
   (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
 (defn- ask-and-set-threads-limit []
-  (let [limit (ui-utils/ask-text-dialog
-               {:header "Set threads trace limit. FlowStorm will stop recording threads which hit the provided trace limit."
-                :body "Limit :"
-                :width  500
-                :height 100
-                :center-on-stage (dbg-state/main-jfx-stage)})]
-    (when-not (str/blank? limit)
-      (runtime-api/set-thread-trace-limit rt-api (Integer/parseInt limit)))))
+  (let [{:keys [text bool]} (ui-utils/ask-text-and-bool-dialog
+                             {:header "Set threads trace limit. FlowStorm will stop recording threads which hit the provided trace limit."
+                              :body "Limit :"
+                              :width  500
+                              :height 100
+                              :center-on-stage (dbg-state/main-jfx-stage)
+                              :bool-msg "Throw on limit?"})]
+
+    (when-not (str/blank? text)
+      (runtime-api/set-thread-trace-limit rt-api {:limit (Integer/parseInt text) :break? bool}))))
 
 (defn- build-menu-bar []
   (let [mb (MenuBar.)

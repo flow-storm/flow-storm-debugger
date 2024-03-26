@@ -807,6 +807,31 @@
 
     (-> tdiag .getEditor .getText)))
 
+(defn ask-text-and-bool-dialog [{:keys [header body width height center-on-stage bool-msg]}]
+  (let [tdiag (doto (TextInputDialog.)
+                (.setHeaderText header)
+                (.setContentText body))
+        checkb (CheckBox.)]
+
+    (when bool-msg
+      (.add (.getContent (.getDialogPane tdiag)) (label bool-msg) 0 2)
+      (.add (.getContent (.getDialogPane tdiag)) checkb 1 2))
+
+    (when (and width height)
+      (let [dialog-pane (.getDialogPane tdiag)]
+        (.setPrefWidth dialog-pane width)
+        (.setPrefHeight dialog-pane height)))
+
+    (when (and width height center-on-stage)
+      (let [{:keys [x y]} (stage-center-box center-on-stage width height)]
+        (.setX tdiag x)
+        (.setY tdiag y)))
+
+    (.showAndWait tdiag)
+
+    {:text (-> tdiag .getEditor .getText)
+     :bool (.isSelected checkb)}))
+
 (defn key-combo-match?
   "Return true if the keyboard event `kev` matches the `key-name` and `modifiers`.
   `key-name` should be a stirng with the key name.
