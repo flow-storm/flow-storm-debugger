@@ -82,8 +82,8 @@
                                                              (.setDisable pr-str-params-box true)
                                                              (.setDisable custom-pred-params-box false)
                                                              (swap! criteria assoc :search-type  :custorm-predicate))))
-        pred-or-prn-combo (combo-box {:items ["Search by pr-str"
-                                              "Search by predicate"]
+        pred-or-prn-combo (combo-box {:items (cond-> ["Search by pr-str"]
+                                               (= :clj (dbg-state/env-kind)) (into ["Search by predicate"]))
                                       :on-change-fn change-pred-or-prn-combo})
 
         gral-row-box (doto (h-box [(label "Flow:")   flow-combo
