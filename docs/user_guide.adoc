@@ -78,11 +78,12 @@ evaluate the `:tut/basics` keyword on it for a tour of the basics.
 After the tutorial you would want to add and configure it for your projects, so here are the basics :
 
 If your project is using deps.edn, your deps.edn file should look like this :
-[,clojure]
+[%nowrap,clojure]
 ----
 {:paths ["src"]
  :deps {}
- :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
+ :aliases {:dev {;; for disabling the official compiler
+                 :classpath-overrides {org.clojure/clojure nil} 
                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"}
                               com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}
                  :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
@@ -100,18 +101,68 @@ although you can still do it if you need it. There are also other options you ca
 
 If your project uses lein, your project.clj file should look something like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 (defproject my.project "1.0.0"
   :profiles {:dev {:dependencies [[com.github.flow-storm/clojure "RELEASE"]
                                   [com.github.flow-storm/flow-storm-dbg "RELEASE"] ]
-                   :exclusions [org.clojure/clojure] ;; for disabling the official compiler
-                   :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
+                   ;; for disabling the official compiler
+                   :exclusions [org.clojure/clojure] 
+                   :jvm-opts ["-Dclojure.storm.instrumentEnable=true"                   
                               "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}
   :main foo.core)
 ----
 
 with `YOUR_INSTRUMENTATION_STRING` as described above.
+
+===== A global configuration
+
+By using the `-Dclojure.storm.instrumentAutoPrefixes=true` JVM property it is possible to create a global `deps.edn` alias
+or `lein profile` so you don't have to modify each of your projects in order to use __FlowStorm__.
+
+This is convenient when you are working with multiple projects or when teams don't want to add personal tooling to project files.
+
+For example you can modify your ~/.clojure/deps.edn like this :
+
+[%nowrap,clojure]
+----
+{:aliases {...
+           :1.12-storm
+           {:classpath-overrides {org.clojure/clojure nil}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-alpha9_1"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "3.13.1"}}
+            :jvm-opts ["-Dflowstorm.startRecording=false"
+                       "-Dclojure.storm.instrumentEnable=true"
+                       "-Dclojure.storm.instrumentAutoPrefixes=true"
+                       ;; with whatever editor you have
+                       "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+                       "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+                       ]}}}
+----
+
+With this configuration, whenever you add a `:1.12-storm` to the starting command of any `deps.edn` project you
+will have your debugging environment and every namespace that shows in folders outside jars instrumented.
+Those will also include `:local/root` references!
+
+As soon as you start the repl you can run `:help` to see what instrumentation prefixes where automatically added,
+and use the instructions there to finetune them.
+
+If you are using leiningen instead, you can modify your ~/.lein/profiles.clj like this :
+
+[%nowrap,clojure]
+----
+{:flowstorm
+ {:dependencies [[com.github.flow-storm/clojure "1.12.0-alpha9_1"]
+                 [com.github.flow-storm/flow-storm-dbg "3.13.1"]]
+  :exclusions [org.clojure/clojure]
+  :jvm-opts ["-Dflowstorm.startRecording=false"
+             "-Dclojure.storm.instrumentEnable=true"
+             "-Dclojure.storm.instrumentAutoPrefixes=true"
+             ;; with whatever editor you have
+             "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}}
+----
+
 
 [NOTE]
 .lein dependencies
@@ -153,7 +204,7 @@ If you are a https://leiningen.org/[lein] user add the dependency to your projec
 
 Then require the api namespace and start the debugger :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to require
 
@@ -164,7 +215,7 @@ You should now see a empty debugger window.
 
 Let's debug something :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
 ----
@@ -233,7 +284,7 @@ This is because there is currently no way to swap the ClojureScript compiler in 
 
 First, make your shadow-cljs.edn looks something like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 {:deps {:aliases [:dev]}
  :nrepl {:port 9000}
@@ -250,7 +301,7 @@ is the first one.
 
 Then, modify your `deps.edn` dev profile to look like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 {...
  :aliases
@@ -333,7 +384,7 @@ Let's say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to 
 
 First you need to add _FlowStorm_ dependency to your project dependencies, like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 $ cat shadow-cljs.edn
 
@@ -388,7 +439,7 @@ And that is all you need, the debugger GUI will pop up and everything will be re
 
 Try tracing some code from the repl :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 cljs.user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
 ----
@@ -478,7 +529,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 `my_app.main_storm_preload.cljs`
 
-[,clojure]
+[%nowrap,clojure]
 ----
 (ns my-app.main-storm-preload
   (:require [cljs.storm.tracer]
@@ -492,7 +543,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 `my_app.webworker_storm_preload.cljs`
 
-[,clojure]
+[%nowrap,clojure]
 ----
 (ns my-app.webworker-storm-preload
   (:require [cljs.storm.tracer]
@@ -507,7 +558,7 @@ You do this by writing different preloads for each of your builds, and then usin
 They are the same as `flow-storm.storm-preload` just with different port numbers.
 
 Now you can configure your shadow-cljs.edn like this :
-[,clojure]
+[%nowrap,clojure]
 ----
 {...
  :builds
@@ -540,7 +591,7 @@ First we need to generate a deps.edn by running `bb print-deps > deps.edn`
 
 Then modify the resulting deps.edn to add the FlowStorm alias like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 {...
  :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
@@ -559,7 +610,7 @@ start the debugger UI.
 Then eval the entire file to compile everything. To start the server in this example you will have to remove the wrapping
 that is basically only allowing the server to run if we are running from babashka, like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 (when true #_(= *file* (System/getProperty "babashka.file"))
   ...)
@@ -1457,7 +1508,7 @@ You can retrieve forms by form id with `get-form` and then use `get-sub-form-at-
 
 Here is a little example :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 ;; retrieve some expression entry into expr
 user> (def expr (-> timeline
