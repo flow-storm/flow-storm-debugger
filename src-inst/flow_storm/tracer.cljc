@@ -1,6 +1,5 @@
 (ns flow-storm.tracer
-  (:require [flow-storm.utils :as utils :refer [stringify-coord]]
-            [hansel.instrument.runtime :refer [*runtime-ctx*]]
+  (:require [flow-storm.utils :as utils :refer [stringify-coord]]            
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]))
 
@@ -11,6 +10,7 @@
 (def recording (atom true))
 (def breakpoints (atom #{}))
 (def blocked-threads (atom #{}))
+(def current-flow-id (atom 0))
 (def thread-trace-limit 0)
 (def throw-on-trace-limit? false)
 
@@ -26,6 +26,12 @@
 
 (defn set-total-order-recording [x]
   (reset! total-order-recording (boolean x)))
+
+(defn set-current-flow-id [flow-id]
+  (reset! current-flow-id flow-id))
+
+(defn get-current-flow-id []
+  @current-flow-id)
 
 (defn set-thread-trace-limit [{:keys [limit break?]}]
   #?(:clj     
@@ -83,19 +89,6 @@
 (defn all-breakpoints []
   @breakpoints)
 
-(defn trace-flow-init-trace
-
-  "Send flow initialization trace"
-  
-  [{:keys [flow-id form-ns form]}]
-  (when @recording
-    (let [trace {:trace/type :flow-init
-                 :flow-id flow-id
-                 :ns form-ns
-                 :form form
-                 :timestamp (utils/get-monotonic-timestamp)}]
-      (indexes-api/add-flow-init-trace trace))))
-
 (defn trace-form-init
 
   "Send form initialization trace only once for each thread."
@@ -120,11 +113,11 @@
   
   ([{:keys [form-id ns fn-name fn-args]}] ;; for using with hansel
    
-   (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-fn-call flow-id ns fn-name fn-args form-id)))
+   (trace-fn-call nil ns fn-name fn-args form-id))
   
-  ([flow-id fn-ns fn-name fn-args form-id]  ;; for using with storm
-   (let [thread-id (utils/get-current-thread-id)
+  ([_ fn-ns fn-name fn-args form-id]  ;; for using with storm
+   (let [flow-id @current-flow-id
+         thread-id (utils/get-current-thread-id)
          thread-name (utils/get-current-thread-name)]
      
      #?(:clj
@@ -161,14 +154,14 @@
   
   ([{:keys [return coor form-id]}]  ;; for using with hansel
    
-   (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-fn-return flow-id return (stringify-coord coor) form-id)
-     return))
+   (trace-fn-return nil return (stringify-coord coor) form-id)
+   return)
   
-  ([flow-id return coord _] ;; for using with storm
+  ([_ return coord _] ;; for using with storm
 
    (when @recording     
-     (let [thread-id (utils/get-current-thread-id)
+     (let [flow-id @current-flow-id
+           thread-id (utils/get-current-thread-id)
            limit-hit? (and (pos? thread-trace-limit)
                            (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))]
 
@@ -185,14 +178,13 @@
 
 (defn trace-fn-unwind
   ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id]} *runtime-ctx*]
-     
-     (trace-fn-unwind flow-id throwable (stringify-coord coor) form-id)))
+   (trace-fn-unwind nil throwable (stringify-coord coor) form-id))
   
-  ([flow-id throwable coord _] ;; for using with storm
+  ([_ throwable coord _] ;; for using with storm
 
    (when @recording
-     (let [thread-id (utils/get-current-thread-id)
+     (let [flow-id @current-flow-id
+           thread-id (utils/get-current-thread-id)
            limit-hit? (and (pos? thread-trace-limit)
                            (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))]
 
@@ -212,16 +204,16 @@
   "Send expression execution trace."
   
   ([{:keys [result coor form-id]}]  ;; for using with hansel   
-   (let [{:keys [flow-id]} *runtime-ctx*]     
 
-     (trace-expr-exec flow-id result (stringify-coord coor) form-id))
+   (trace-expr-exec nil result (stringify-coord coor) form-id)
    
    result)
 
-  ([flow-id result coord _]  ;; for using with storm
+  ([_ result coord _]  ;; for using with storm
 
    (when @recording          
-     (let [thread-id (utils/get-current-thread-id)
+     (let [flow-id @current-flow-id
+           thread-id (utils/get-current-thread-id)
            limit-hit? (and (pos? thread-trace-limit)
                            (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))]
 
@@ -242,15 +234,15 @@
   
   ([{:keys [symb val coor]}] ;; for using with hansel
 
-   (let [{:keys [flow-id]} *runtime-ctx*]
-     (trace-bind flow-id (stringify-coord coor) (name symb) val)))
+   (trace-bind nil (stringify-coord coor) (name symb) val))
 
-  ([flow-id coord sym-name val]  ;; for using with storm
+  ([_ coord sym-name val]  ;; for using with storm
 
    
    (when @recording
      
-     (let [thread-id (utils/get-current-thread-id)
+     (let [flow-id @current-flow-id
+           thread-id (utils/get-current-thread-id)
            limit-hit? (and (pos? thread-trace-limit)
                            (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))]
 

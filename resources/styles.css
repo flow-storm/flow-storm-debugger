@@ -20,6 +20,23 @@
 	-fx-background-color: linear-gradient(to top, -fx-base, derive(-fx-base,30%));
 }
 
+.button {
+	-fx-background-color: -fx-theme-button1-background;
+    -fx-text-fill: -fx-theme-button1-text;    
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: -fx-theme-list-selection;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: -fx-theme-list-selection;
+}
+
+.combo-box .label {
+    -fx-text-fill: -fx-theme-button2-text;
+}
+
 .tab {
     -fx-opacity: 0.5;
     -fx-text-fill: -fx-theme-button1-text;
@@ -37,10 +54,6 @@
 	-fx-text-fill: -fx-theme-selected-main-tools-tab-text;
 }
 
-.button {
-	-fx-background-color: -fx-theme-button1-background;
-    -fx-text-fill: -fx-theme-button1-text;    
-}
 
 .button.thread-continue-btn {
     -fx-background-color: -fx-theme-breakpoint-continue;
@@ -315,12 +328,4 @@
 
 .contrast-background {
     -fx-background-color: -fx-theme-base2;
-}
-
-.list-view .list-cell:selected {
-    -fx-background-color: -fx-theme-list-selection;
-}
-
-.table-view .table-row-cell:selected {
-    -fx-background-color: -fx-theme-list-selection;
 }

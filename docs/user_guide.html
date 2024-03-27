@@ -660,154 +660,118 @@ pre.rouge {
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
-<ul class="sectlevel2">
+<ul class="sectlevel1">
 <li><a href="#_quick_start">1. Quick start</a>
-<ul class="sectlevel3">
+<ul class="sectlevel2">
 <li><a href="#_clojure">1.1. Clojure</a>
-<ul class="sectlevel4">
-<li><a href="#_clojurestorm">ClojureStorm</a></li>
-<li><a href="#_vanilla_flowstorm">Vanilla FlowStorm</a></li>
+<ul class="sectlevel3">
+<li><a href="#_clojurestorm">1.1.1. ClojureStorm</a></li>
+<li><a href="#_vanilla_flowstorm">1.1.2. Vanilla FlowStorm</a></li>
 </ul>
 </li>
 <li><a href="#_clojurescript">1.2. ClojureScript</a>
-<ul class="sectlevel4">
-<li><a href="#_clojurescriptstorm_with_shadow_cljs">ClojureScriptStorm with shadow-cljs</a></li>
-<li><a href="#_clojurescriptstorm_with_cljs_main">ClojureScriptStorm with cljs.main</a></li>
-<li><a href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></li>
-<li><a href="#_multiple_clojurescript_builds">Multiple ClojureScript builds</a></li>
+<ul class="sectlevel3">
+<li><a href="#_clojurescriptstorm_with_shadow_cljs">1.2.1. ClojureScriptStorm with shadow-cljs</a></li>
+<li><a href="#_clojurescriptstorm_with_cljs_main">1.2.2. ClojureScriptStorm with cljs.main</a></li>
+<li><a href="#_clojurescript_vanilla_flowstorm">1.2.3. ClojureScript vanilla FlowStorm</a></li>
+<li><a href="#_multiple_clojurescript_builds">1.2.4. Multiple ClojureScript builds</a></li>
 </ul>
 </li>
 <li><a href="#_babashka">1.3. Babashka</a></li>
 </ul>
 </li>
-<li><a href="#_remote_debugging">2. Remote debugging</a>
+<li><a href="#_the_tool_bar">2. The tool bar</a></li>
+<li><a href="#_flows_tool">3. Flows tool</a>
+<ul class="sectlevel2">
+<li><a href="#_code_tool">3.1. Code tool</a>
 <ul class="sectlevel3">
-<li><a href="#_docker">2.1. Docker</a></li>
+<li><a href="#_code_stepping">3.1.1. Code stepping</a></li>
+<li><a href="#_power_stepping">3.1.2. Power stepping</a></li>
+<li><a href="#_searching">3.1.3. Searching</a></li>
+<li><a href="#_loops">3.1.4. Loops</a></li>
+<li><a href="#_exceptions_debugging">3.1.5. Exceptions debugging</a></li>
+<li><a href="#_locals">3.1.6. Locals</a></li>
+<li><a href="#_stack">3.1.7. Stack</a></li>
+<li><a href="#_value_panels">3.1.8. Value panels</a></li>
 </ul>
 </li>
-<li><a href="#_instrument_code_vanilla_only">3. Instrument code (vanilla only)</a>
+<li><a href="#_bookmarks">3.2. Bookmarks</a></li>
+<li><a href="#_call_stack_tree_tool">3.3. Call Stack tree tool</a></li>
+<li><a href="#_functions_tool">3.4. Functions tool</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_from_the_repl">3.1. Instrument from the repl</a>
-<ul class="sectlevel4">
-<li><a href="#_instrument_any_form_with_trace">Instrument any form with #trace</a></li>
-<li><a href="#_run_code_with_rtrace">Run code with #rtrace</a></li>
-<li><a href="#_instrument_namespaces">Instrument namespaces</a></li>
-<li><a href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></li>
-<li><a href="#_un_instrument_code">Un-instrument code</a></li>
+<li><a href="#_function_calls">3.4.1. Function calls</a></li>
 </ul>
 </li>
-<li><a href="#_instrument_with_the_browser">3.2. Instrument with the browser</a>
-<ul class="sectlevel4">
-<li><a href="#_instrument_vars">Instrument vars</a></li>
-<li><a href="#_instrument_namespaces_2">Instrument namespaces</a></li>
-<li><a href="#_un_instrument_code_2">Un-instrument code</a></li>
 </ul>
 </li>
-<li><a href="#_fully_instrument_a_form_from_the_code_view">3.3. Fully instrument a form from the code view</a></li>
+<li><a href="#_browser_tool">4. Browser tool</a></li>
+<li><a href="#_taps_tool">5. Taps tool</a></li>
+<li><a href="#_timeline_tool">6. Timeline tool</a></li>
+<li><a href="#_printer_tool">7. Printer tool</a></li>
+<li><a href="#_value_inspector">8. Value inspector</a></li>
+<li><a href="#_thread_breakpoints">9. Thread breakpoints</a></li>
+<li><a href="#_programmable_debugging">10. Programmable debugging</a>
+<ul class="sectlevel2">
+<li><a href="#_timelines">10.1. Timelines</a></li>
+<li><a href="#_forms">10.2. Forms</a></li>
+<li><a href="#_multi_thread_timeline">10.3. Multi-thread timeline</a></li>
+<li><a href="#_other_utilities">10.4. Other utilities</a></li>
 </ul>
 </li>
-<li><a href="#_flows_tool">4. Flows tool</a>
+<li><a href="#_remote_debugging">11. Remote debugging</a>
+<ul class="sectlevel2">
+<li><a href="#_docker">11.1. Docker</a></li>
+</ul>
+</li>
+<li><a href="#_dealing_with_too_many_traces">12. Dealing with too many traces</a></li>
+<li><a href="#_dealing_with_mutable_values">13. Dealing with mutable values</a></li>
+<li><a href="#_controlling_instrumentation">14. Controlling instrumentation</a>
+<ul class="sectlevel2">
+<li><a href="#_controlling_instrumentation_in_clojurestorm">14.1. Controlling instrumentation in ClojureStorm</a></li>
+<li><a href="#_controlling_instrumentation_in_clojurescriptstorm">14.2. Controlling instrumentation in ClojureScriptStorm</a></li>
+<li><a href="#_instrumentation_in_vanilla_flowstorm">14.3. Instrumentation in Vanilla FlowStorm</a>
 <ul class="sectlevel3">
-<li><a href="#_code_tool">4.1. Code tool</a>
-<ul class="sectlevel4">
-<li><a href="#_code_stepping">Code stepping</a></li>
-<li><a href="#_power_stepping">Power stepping</a></li>
-<li><a href="#_searching">Searching</a></li>
-<li><a href="#_loops">Loops</a></li>
-<li><a href="#_exceptions_debugging">Exceptions debugging</a></li>
-<li><a href="#_locals">Locals</a></li>
-<li><a href="#_stack">Stack</a></li>
-<li><a href="#_value_panels">Value panels</a></li>
-<li><a href="#_bookmarks">Bookmarks</a></li>
-<li><a href="#_re_running_a_flow">Re running a flow</a></li>
-</ul>
-</li>
-<li><a href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a></li>
-<li><a href="#_functions_tool">4.3. Functions tool</a>
-<ul class="sectlevel4">
-<li><a href="#_function_calls">Function calls</a></li>
-<li><a href="#_un_instrumenting_functions">Un-instrumenting functions</a></li>
+<li><a href="#_instrument_any_form_with_trace">14.3.1. Instrument any form with #trace</a></li>
+<li><a href="#_run_code_with_rtrace">14.3.2. Run code with #rtrace</a></li>
+<li><a href="#_instrument_namespaces">14.3.3. Instrument namespaces</a></li>
+<li><a href="#_what_cant_be_instrumented">14.3.4. What can&#8217;t be instrumented?</a></li>
+<li><a href="#_un_instrument_code">14.3.5. Un-instrument code</a></li>
+<li><a href="#_instrument_with_the_browser">14.3.6. Instrument with the browser</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#_browser_tool">5. Browser tool</a></li>
-<li><a href="#_taps_tool">6. Taps tool</a></li>
-<li><a href="#_docs_tool">7. Docs tool</a>
-<ul class="sectlevel3">
-<li><a href="#_generating_docs">7.1. Generating docs</a></li>
-<li><a href="#_publishing_docs">7.2. Publishing docs</a></li>
-<li><a href="#_consuming_docs">7.3. Consuming docs</a></li>
-<li><a href="#_tips">7.4. TIPS</a></li>
+<li><a href="#_styling_and_theming">15. Styling and theming</a></li>
+<li><a href="#_key_bindings">16. Key bindings</a>
+<ul class="sectlevel2">
+<li><a href="#_general">16.1. General</a></li>
+<li><a href="#_flows">16.2. Flows</a></li>
 </ul>
 </li>
-<li><a href="#_timeline_tool">8. Timeline tool</a></li>
-<li><a href="#_printer_tool">9. Printer tool</a></li>
-<li><a href="#_value_inspector">10. Value inspector</a></li>
-<li><a href="#_thread_breakpoints">11. Thread breakpoints</a></li>
-<li><a href="#_limiting_recording">12. Limiting recording</a></li>
-<li><a href="#_the_tool_bar">13. The tool bar</a></li>
-<li><a href="#_programmable_debugging">14. Programmable debugging</a>
-<ul class="sectlevel3">
-<li><a href="#_timelines">14.1. Timelines</a></li>
-<li><a href="#_forms">14.2. Forms</a></li>
-<li><a href="#_multi_thread_timeline">14.3. Multi-thread timeline</a></li>
-<li><a href="#_other_utilities">14.4. Other utilities</a></li>
+<li><a href="#_debugging_react_native_applications">17. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></li>
+<li><a href="#_opening_forms_in_editors">19. Opening forms in editors</a>
+<ul class="sectlevel2">
+<li><a href="#_emacs">19.1. Emacs</a></li>
+<li><a href="#_vscode">19.2. VSCode</a></li>
+<li><a href="#_intellij">19.3. IntelliJ</a></li>
+<li><a href="#_vim">19.4. Vim</a></li>
 </ul>
 </li>
-<li><a href="#_dealing_with_mutable_values">15. Dealing with mutable values</a></li>
-<li><a href="#_debugging_infinite_looprecursion">16. Debugging infinite loop/recursion</a></li>
-<li><a href="#_controlling_instrumentation">17. Controlling instrumentation</a>
-<ul class="sectlevel3">
-<li><a href="#_controlling_instrumentation_in_clojurestorm">17.1. Controlling instrumentation in ClojureStorm</a></li>
-<li><a href="#_controlling_instrumentation_in_clojurescriptstorm">17.2. Controlling instrumentation in ClojureScriptStorm</a></li>
+<li><a href="#_editorsides_integration">20. Editors/IDEs integration</a>
+<ul class="sectlevel2">
+<li><a href="#_emacs_2">20.1. Emacs</a></li>
+<li><a href="#_vscode_2">20.2. VSCode</a></li>
+<li><a href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></li>
 </ul>
 </li>
-<li><a href="#_styling_and_theming">18. Styling and theming</a></li>
-<li><a href="#_key_bindings">19. Key bindings</a>
-<ul class="sectlevel3">
-<li><a href="#_general">19.1. General</a></li>
-<li><a href="#_flows">19.2. Flows</a></li>
+<li><a href="#_tutorials_and_demos">21. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">22. Troubleshooting</a>
+<ul class="sectlevel2">
+<li><a href="#_run_with_jdk_11">22.1. Run with JDK 11</a></li>
 </ul>
 </li>
-<li><a href="#_debugging_react_native_applications">20. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">21. Working on Windows with WSL2</a></li>
-<li><a href="#_opening_forms_in_editors">22. Opening forms in editors</a>
-<ul class="sectlevel3">
-<li><a href="#_emacs">22.1. Emacs</a></li>
-<li><a href="#_vscode">22.2. VSCode</a></li>
-<li><a href="#_intellij">22.3. IntelliJ</a></li>
-<li><a href="#_vim">22.4. Vim</a></li>
-</ul>
-</li>
-<li><a href="#_editorsides_integration">23. Editors/IDEs integration</a>
-<ul class="sectlevel3">
-<li><a href="#_emacs_2">23.1. Emacs</a>
-<ul class="sectlevel4">
-<li><a href="#_opening_forms">Opening forms</a></li>
-</ul>
-</li>
-<li><a href="#_vscode_2">23.2. VSCode</a>
-<ul class="sectlevel4">
-<li><a href="#_opening_forms_2">Opening forms</a></li>
-</ul>
-</li>
-<li><a href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a>
-<ul class="sectlevel4">
-<li><a href="#_opening_forms_3">Opening forms</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#_tutorials_and_demos">24. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">25. Troubleshooting</a>
-<ul class="sectlevel3">
-<li><a href="#_instrument_verbose">25.1. Instrument verbose</a></li>
-<li><a href="#_run_verbose">25.2. Run verbose</a></li>
-<li><a href="#_run_with_jdk_11">25.3. Run with JDK 11</a></li>
-</ul>
-</li>
-<li><a href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></li>
+<li><a href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -822,8 +786,9 @@ pre.rouge {
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_quick_start"><a class="anchor" href="#_quick_start"></a><a class="link" href="#_quick_start">1. Quick start</a></h3>
+<div class="sect1">
+<h2 id="_quick_start"><a class="anchor" href="#_quick_start"></a><a class="link" href="#_quick_start">1. Quick start</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Before you start check <em>FlowStorm</em> minimum requirements.</p>
 </div>
@@ -849,15 +814,15 @@ pre.rouge {
 </tr>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_clojure"><a class="anchor" href="#_clojure"></a><a class="link" href="#_clojure">1.1. Clojure</a></h4>
+<div class="sect2">
+<h3 id="_clojure"><a class="anchor" href="#_clojure"></a><a class="link" href="#_clojure">1.1. Clojure</a></h3>
 <div class="paragraph">
 <p>There are two ways of using <em>FlowStorm</em> for Clojure :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>With <a href="#_clojurestorm">ClojureStorm</a> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically</p>
+<p>With <a href="#_clojurestorm">ClojureStorm</a> (recommended) : Swap your Clojure compiler at dev time by ClojureStorm and get everything instrumented automatically</p>
 </li>
 <li>
 <p><a href="#_vanilla_flowstorm">Vanilla FlowStorm</a> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms</p>
@@ -870,8 +835,8 @@ pre.rouge {
 <div class="paragraph">
 <p>You use it by swapping the official Clojure compiler by <em>ClojureStorm</em> at dev time, using dev aliases or profiles.</p>
 </div>
-<div class="sect4">
-<h5 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">ClojureStorm</a></h5>
+<div class="sect3">
+<h4 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">1.1.1. ClojureStorm</a></h4>
 <div class="paragraph">
 <p>This is the newest and simplest way of using <em>FlowStorm</em>. It requires you to swap your official Clojure compiler by <em>ClojureStorm</em> only at dev time.</p>
 </div>
@@ -885,10 +850,10 @@ your repl with a different alias or lein profile.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
+<pre class="rouge highlight nowrap"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
 clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}'</span> <span class="nt">-A</span>:dev
 
-<span class="p">;;</span> on windows
+<span class="p">;;</span> on Windows
 clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
 </div>
 </div>
@@ -980,8 +945,8 @@ although you can still do it if you need it. There are also other options you ca
 <div class="paragraph">
 <p>with <code>YOUR_INSTRUMENTATION_STRING</code> as described above.</p>
 </div>
-<div class="sect5">
-<h6 id="_a_global_configuration"><a class="anchor" href="#_a_global_configuration"></a><a class="link" href="#_a_global_configuration">A global configuration</a></h6>
+<div class="sect4">
+<h5 id="_a_global_configuration"><a class="anchor" href="#_a_global_configuration"></a><a class="link" href="#_a_global_configuration">A global configuration</a></h5>
 <div class="paragraph">
 <p>By using the <code>-Dclojure.storm.instrumentAutoPrefixes=true</code> JVM property it is possible to create a global <code>deps.edn</code> alias
 or <code>lein profile</code> so you don&#8217;t have to modify each of your projects in order to use <em>FlowStorm</em>.</p>
@@ -1050,35 +1015,19 @@ Moving to lein latest version should work ok even if your global :dependencies c
 </tr>
 </table>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">#rtrace and #trace</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_vanilla_flowstorm"><a class="anchor" href="#_vanilla_flowstorm"></a><a class="link" href="#_vanilla_flowstorm">1.1.2. Vanilla FlowStorm</a></h4>
 <div class="paragraph">
-<p>When using <em>FlowStorm</em> with <em>ClojureStorm</em> it is a error to use #trace or #rtrace. They aren&#8217;t needed since
-everything you declared in <code>clojure.storm.instrumentOnlyPrefixes</code> will be automatically instrumented.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_vanilla_flowstorm"><a class="anchor" href="#_vanilla_flowstorm"></a><a class="link" href="#_vanilla_flowstorm">Vanilla FlowStorm</a></h5>
-<div class="paragraph">
-<p>If you use <a href="https://clojure.org/guides/deps_and_cli">clojure cli</a> you can start a repl with the <em>FlowStorm</em> dependency loaded like this :</p>
+<p>If you use the <a href="https://clojure.org/guides/deps_and_cli">clojure cli</a> you can start a repl with the <em>FlowStorm</em> dependency loaded like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
+<pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
 clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span>
 
-<span class="p">;;</span> on windows
+<span class="p">;;</span> on Windows
 clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span></code></pre>
 </div>
 </div>
@@ -1123,32 +1072,18 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="nb">inc</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="c1">;; #rtrace will instrument and run some code</span></code></pre>
 </div>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/quick_start.png" alt="quick start">
-</div>
+<div class="paragraph">
+<p>After running it, you should get the return value of the expression (as if #rtrace wasn&#8217;t there),
+but now you will also have the debugger UI showing your recordings.</p>
 </div>
 <div class="paragraph">
-<p>After running it, you should get the return value of the expression (as if #rtrace wasn&#8217;t there).
-The debugger thread list (the one on the left) shows all the threads it has recordings for.
-Double clicking on it should open the "thread exploring tools" for that thread in a new tab.</p>
-</div>
-<div class="paragraph">
-<p>This guide will cover all the tools in more detail but if you are interested in code stepping for example
-you will find it in the <code>code stepping tool</code> at the bottom left corner of the thread tab, the one that has the <code>()</code> icon.
-Clicking on it will show you something like the picture above.</p>
-</div>
-<div class="paragraph">
-<p>Go ahead and use the stepping controls to step over the code.</p>
-</div>
-<div class="paragraph">
-<p>Now that everything seems to be working move on and explore the many features <em>FlowStorm</em> provides. There are many ways of instrumenting
-your code, and many ways to explore its executions.</p>
+<p>From here you probably want to check out the <a href="#_flows_tool">Flows tool</a> which contains a lot of information
+about exploring your recordings.</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h4>
+<div class="sect2">
+<h3 id="_clojurescript"><a class="anchor" href="#_clojurescript"></a><a class="link" href="#_clojurescript">1.2. ClojureScript</a></h3>
 <div class="paragraph">
 <p>Debugging ClojureScript is a case of remote debugging in <em>FlowStorm</em>. This means the debugger
 will run in a separate process and connect to the debuggee (your browser or nodejs runtime) via a websocket and optionally
@@ -1189,8 +1124,8 @@ Currently only shadow-cljs repl over nrepl is supported.</p>
 </tr>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_clojurescriptstorm_with_shadow_cljs"><a class="anchor" href="#_clojurescriptstorm_with_shadow_cljs"></a><a class="link" href="#_clojurescriptstorm_with_shadow_cljs">ClojureScriptStorm with shadow-cljs</a></h5>
+<div class="sect3">
+<h4 id="_clojurescriptstorm_with_shadow_cljs"><a class="anchor" href="#_clojurescriptstorm_with_shadow_cljs"></a><a class="link" href="#_clojurescriptstorm_with_shadow_cljs">1.2.1. ClojureScriptStorm with shadow-cljs</a></h4>
 <div class="admonitionblock important">
 <table>
 <tr>
@@ -1329,8 +1264,8 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </table>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_clojurescriptstorm_with_cljs_main"><a class="anchor" href="#_clojurescriptstorm_with_cljs_main"></a><a class="link" href="#_clojurescriptstorm_with_cljs_main">ClojureScriptStorm with cljs.main</a></h5>
+<div class="sect3">
+<h4 id="_clojurescriptstorm_with_cljs_main"><a class="anchor" href="#_clojurescriptstorm_with_cljs_main"></a><a class="link" href="#_clojurescriptstorm_with_cljs_main">1.2.2. ClojureScriptStorm with cljs.main</a></h4>
 <div class="paragraph">
 <p>You can use <em>FlowStorm</em> and <em>ClojureScriptStorm</em> with cljs.main.</p>
 </div>
@@ -1362,8 +1297,8 @@ still make that work by wrapping the expression on a fn and immediately calling 
 <p>And now refresh your browser page so your browser app connects to the UI.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_clojurescript_vanilla_flowstorm"><a class="anchor" href="#_clojurescript_vanilla_flowstorm"></a><a class="link" href="#_clojurescript_vanilla_flowstorm">ClojureScript vanilla FlowStorm</a></h5>
+<div class="sect3">
+<h4 id="_clojurescript_vanilla_flowstorm"><a class="anchor" href="#_clojurescript_vanilla_flowstorm"></a><a class="link" href="#_clojurescript_vanilla_flowstorm">1.2.3. ClojureScript vanilla FlowStorm</a></h4>
 <div class="paragraph">
 <p>Let&#8217;s say you are using <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> to start a ClojureScript repl.</p>
 </div>
@@ -1547,8 +1482,8 @@ once it is connected.</p>
 <p>Here is a repo you can use if you want to try <em>FlowStorm</em> with shadow-cljs <a href="https://github.com/flow-storm/shadow-flow-storm-basic" class="bare">https://github.com/flow-storm/shadow-flow-storm-basic</a></p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_multiple_clojurescript_builds"><a class="anchor" href="#_multiple_clojurescript_builds"></a><a class="link" href="#_multiple_clojurescript_builds">Multiple ClojureScript builds</a></h5>
+<div class="sect3">
+<h4 id="_multiple_clojurescript_builds"><a class="anchor" href="#_multiple_clojurescript_builds"></a><a class="link" href="#_multiple_clojurescript_builds">1.2.4. Multiple ClojureScript builds</a></h4>
 <div class="paragraph">
 <p>You can setup FlowStorm to debug multiple ClojureScript builds. This can be useful when your application is made up of multiple parts,
 like when you have web workers.</p>
@@ -1645,8 +1580,8 @@ know which debugger instance is connected to which application.</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_babashka"><a class="anchor" href="#_babashka"></a><a class="link" href="#_babashka">1.3. Babashka</a></h4>
+<div class="sect2">
+<h3 id="_babashka"><a class="anchor" href="#_babashka"></a><a class="link" href="#_babashka">1.3. Babashka</a></h3>
 <div class="paragraph">
 <p>You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.</p>
 </div>
@@ -1696,313 +1631,82 @@ that is basically only allowing the server to run if we are running from babashk
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">2. Remote debugging</a></h3>
-<div class="paragraph">
-<p>You can remotely debug any Clojure application the exposes a nrepl server.</p>
 </div>
+<div class="sect1">
+<h2 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">2. The tool bar</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
-<code>flow-storm-inst</code> instead of <code>flow-storm-dbg</code>, being the former a slimmed down version of the later one that
-doesn&#8217;t contain some libraries used only by the UI, but using the full <code>flow-storm-dbg</code> is also ok.</p>
+<p>The toolbar as well as the menu provides quick access to some general commands.</p>
 </div>
-<div class="paragraph">
-<p>The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :</p>
-</div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">ssh <span class="nt">-L</span> 9000:localhost:9000 <span class="nt">-R</span> 7722:localhost:7722 my-debuggee-box.com</code></pre>
+<img src="user_guide_images/toolbar.png" alt="toolbar">
 </div>
 </div>
 <div class="paragraph">
-<p>assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and
-that the debugger websocket server is running on the default port.</p>
-</div>
-<div class="paragraph">
-<p>After the tunnel is established, you can run you debugger UI like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and that is it.</p>
-</div>
-<div class="paragraph">
-<p>If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host <span class="s1">'"YOUR-APP-BOX-IP-ADDRESS"'</span> :debugger-host <span class="s1">'"YOUR-BOX-IP-ADDRESS"'</span> :ws-port WS-SERVER-PORT</code></pre>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_docker"><a class="anchor" href="#_docker"></a><a class="link" href="#_docker">2.1. Docker</a></h4>
-<div class="paragraph">
-<p>If you run you process inside a docker container, here is a basic template for using <em>FlowStorm</em> with it
-<a href="https://github.com/flow-storm/docker-flow-storm-basic" class="bare">https://github.com/flow-storm/docker-flow-storm-basic</a></p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_instrument_code_vanilla_only"><a class="anchor" href="#_instrument_code_vanilla_only"></a><a class="link" href="#_instrument_code_vanilla_only">3. Instrument code (vanilla only)</a></h3>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">ClojureStorm</div>
-<div class="paragraph">
-<p>Instructions here only apply to vanilla <em>FlowStorm</em>. If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> (recommended)
-this is done automatically for you, so just skip this section.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Code instrumentation in <em>FlowStorm</em> is done by rewriting your code, in a way that doesn&#8217;t change its behavior
-but when executed will trace everything the code is doing.</p>
-</div>
-<div class="paragraph">
-<p>You can instrument code from the <a href="#_browser_tool">browser tool</a> or the repl.</p>
-</div>
-<div class="sect3">
-<h4 id="_instrument_from_the_repl"><a class="anchor" href="#_instrument_from_the_repl"></a><a class="link" href="#_instrument_from_the_repl">3.1. Instrument from the repl</a></h4>
-<div class="sect4">
-<h5 id="_instrument_any_form_with_trace"><a class="anchor" href="#_instrument_any_form_with_trace"></a><a class="link" href="#_instrument_any_form_with_trace">Instrument any form with #trace</a></h5>
-<div class="paragraph">
-<p>You can instrument any top level form at the repl by writing <code>#trace</code> before it, like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">trace</span><span class="w">
-</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">]</span><span class="w">
-  </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">))</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and then evaluating the form.</p>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">important</dt>
-<dd>
-<p><code>#trace</code> is meant to be used with forms that don&#8217;t run immediately, like: defn, defmethod, extend-type, etc.
-Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (range 10))</code>.</p>
-</dd>
-</dl>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_run_code_with_rtrace"><a class="anchor" href="#_run_code_with_rtrace"></a><a class="link" href="#_run_code_with_rtrace">Run code with #rtrace</a></h5>
-<div class="paragraph">
-<p><code>#rtrace</code> is useful in two situations :</p>
-</div>
-<div class="paragraph">
-<p>First, when instrumenting and running a simple form at the repl, like:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">filter</span><span class="w"> </span><span class="n">odd?</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="p">))</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Second, when you want to run a form with a certain flow id (see <a href="#_flows_tool">flows</a>).</p>
-</div>
-<div class="paragraph">
-<p><code>#rtrace</code> by default will instrument and run the form with flow id 0, but you can use
-<code>#rtrace0</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, <code>#rtrace3</code>, <code>#rtrace4</code>, <code>#rtrace5</code> to trace with flows ids [0..5].</p>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">Instrument namespaces</a></h5>
-<div class="paragraph">
-<p><em>FlowStorm</em> allows you to instrument entire namespaces by providing <code>flow-storm.api/instrument-namespaces-clj</code>.</p>
-</div>
-<div class="paragraph">
-<p>You call it like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">instrument-namespaces-clj</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">"org.my-app.core"</span><span class="w"> </span><span class="s">"cljs."</span><span class="p">})</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The first argument is a set of namespaces prefixes to instrument. In the previous example it means
-instrument all namespaces starting with <code>org.my-app.core</code>, and all starting with <code>cljs.</code></p>
-</div>
-<div class="paragraph">
-<p>The second argument can be a map supporting the following options :</p>
+<p>In the first row from left to right :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>:excluding-ns</code> a set of strings with namespaces that should be excluded</p>
+<p>Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.</p>
 </li>
 <li>
-<p><code>:disable</code> a set containing any of #{<code>:expr</code> <code>:binding</code> <code>:anonymous-fn</code>} useful for disabling unnecessary traces in code that generate too many</p>
+<p>Discard all recordings so far.</p>
 </li>
 <li>
-<p><code>:verbose?</code> when true show more logging</p>
+<p>Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.</p>
+</li>
+<li>
+<p>Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.</p>
+</li>
+<li>
+<p>This will not always be visible but if your recordings contains any exceptions they will be shown here.</p>
 </li>
 </ul>
 </div>
-</div>
-<div class="sect4">
-<h5 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">What can&#8217;t be instrumented?</a></h5>
 <div class="paragraph">
-<p>These are some limitations when instrumenting forms :</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Very big forms can&#8217;t be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
-When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying <code>Instrumented expression is too large for the Clojure compiler</code>
-and <em>FlowStorm</em> automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
-</li>
-<li>
-<p>Functions that call recur without a loop</p>
-</li>
-<li>
-<p>Functions that return recursive lazy sequences. Like <code>(fn foo [] (lazy-seq (&#8230;&#8203; (foo))))</code></p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_un_instrument_code"><a class="anchor" href="#_un_instrument_code"></a><a class="link" href="#_un_instrument_code">Un-instrument code</a></h5>
-<div class="paragraph">
-<p>Un-instrumenting code that has been instrumented with <code>#trace</code> or <code>#ctrace</code> is straight forward, just remove the tag and re evaluate the form.</p>
-</div>
-<div class="paragraph">
-<p>To un-instrument entire namespaces you can use <code>flow-storm.api/uninstrument-namespaces-clj</code> which accept a set of namespaces prefixes.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_instrument_with_the_browser"><a class="anchor" href="#_instrument_with_the_browser"></a><a class="link" href="#_instrument_with_the_browser">3.2. Instrument with the browser</a></h4>
-<div class="paragraph">
-<p>Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
-and weren&#8217;t loaded from a file.</p>
-</div>
-<div class="sect4">
-<h5 id="_instrument_vars"><a class="anchor" href="#_instrument_vars"></a><a class="link" href="#_instrument_vars">Instrument vars</a></h5>
-<div class="paragraph">
-<p>Using the browser you can navigate to the var you are interested in and then use the instrument button to instrument it.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/browser_var_instrumentation.png" alt="browser var instrumentation">
-</div>
-</div>
-<div class="paragraph">
-<p>There are two ways of instrumenting a var :</p>
+<p>On the second row we have :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Instrument (instrument just the var source code)</p>
-</li>
-<li>
-<p>Instrument recursively (recursively instrument the var and all vars referred by it)</p>
+<p>The recording flow selection system. Checkout the <a href="#_flows_tool">flows tool</a> for more info.</p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_instrument_namespaces_2"><a class="anchor" href="#_instrument_namespaces_2"></a><a class="link" href="#_instrument_namespaces_2">Instrument namespaces</a></h5>
-<div class="paragraph">
-<p>Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in
-and then a right click should show you a menu with two instrumentation commands.</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/browser_ns_instrumentation.png" alt="browser ns instrumentation">
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>Instrument namespace :light</code> - record function arguments and return values (not expressions, no bindings tracing)</p>
-</li>
-<li>
-<p><code>Instrument namespace :full</code> fully instrument everything</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Light instrumentation is useful when you know the functions generate too many traces, so you can opt to trace just functions
-calls and returns. You can then <a href="#_fully_instrument_a_form_from_the_code_view">fully instrument</a> whatever functions you are interested in.</p>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_un_instrument_code_2"><a class="anchor" href="#_un_instrument_code_2"></a><a class="link" href="#_un_instrument_code_2">Un-instrument code</a></h5>
-<div class="paragraph">
-<p>The bottom panel shows all instrumented vars and namespaces.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/browser_uninstrument.png" alt="browser uninstrument">
-</div>
-</div>
-<div class="paragraph">
-<p>You can un-instrument them temporarily with the enable/disable checkbox or
-permanently with the del button.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_fully_instrument_a_form_from_the_code_view"><a class="anchor" href="#_fully_instrument_a_form_from_the_code_view"></a><a class="link" href="#_fully_instrument_a_form_from_the_code_view">3.3. Fully instrument a form from the code view</a></h4>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/fully_instrument_form.png" alt="fully instrument form">
-</div>
-</div>
-<div class="paragraph">
-<p>If you have instrumented a form with the <a href="#_instrument_namespaces_2">:light profile</a> you can fully instrument it by right clicking on the current form
-and then clicking <code>Fully instrument this form</code>.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_flows_tool"><a class="anchor" href="#_flows_tool"></a><a class="link" href="#_flows_tool">4. Flows tool</a></h3>
+<div class="sect1">
+<h2 id="_flows_tool"><a class="anchor" href="#_flows_tool"></a><a class="link" href="#_flows_tool">3. Flows tool</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The <code>Flows</code> tab contains a bunch of tools for analyzing all recorded executions.</p>
 </div>
 <div class="paragraph">
-<p>Flows are identified by a flow-id and can be started by running a form with <code>#rtrace</code>, <code>#rtrace1</code>, <code>#rtrace2</code>, etc,.
-If you run a flow twice with the same flow id, the first one is going to be replaced.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">ClojureStorm</div>
-<div class="paragraph">
-<p>Currently, working with different flows in parallel is only supported in Vanilla FlowStorm.
-If you are using ClojureStorm or ClojureScriptStorm the only flow you will see is the funnel flow.</p>
-</div>
-</td>
-</tr>
-</table>
+<p>First of all, what are Flows?</p>
 </div>
 <div class="paragraph">
-<p>A flow will happen in one or more threads. A separate tab will show for each thread.</p>
+<p>A Flow is a "execution flow" recording unit. The only purpose of a flow is to group recording activity.
+This grouping allows us for example to run some code and record it under "flow-0", then modify our code, run it again, and
+record this second run (or flow) under "flow-1". Now we can access both recordings separately.</p>
 </div>
 <div class="paragraph">
-<p>For example if we trace a form that spawns multiple threads :</p>
+<p>You can use the <code>Recording on</code> combo-box on the toolbar to select under what flow new recordings are going to be stored.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">pmap</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">5</span><span class="p">)))</span></code></pre>
+<div class="paragraph">
+<p>Whenever there is something recorded for a flow, a new tab with the flow name will appear.</p>
 </div>
+<div class="paragraph">
+<p>Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a list of threads
+we have recordings for. This threads inside flows will be referred sometimes as timelines, since they are a sequence of recording steps.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Flows</code> tool is all about exploring your recorded timelines.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say for example we have selected to record under <code>flow-1</code> and run some multi threaded code.
+We are going to see something like this :</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2010,7 +1714,23 @@ If you are using ClojureStorm or ClojureScriptStorm the only flow you will see i
 </div>
 </div>
 <div class="paragraph">
-<p>the <code>(&#8594; (pmap &#8230;&#8203; (range 5)))</code> form will run on the <code>main</code> thread</p>
+<p>There is a lot going on in the screenshot above, but the most important are :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>we have configured FlowStorm to record under <code>flow-1</code></p>
+</li>
+<li>
+<p>we have recorded stuff under <code>flow-1</code> and <code>flow-0</code></p>
+</li>
+<li>
+<p>we are currently looking <code>flow-1</code> which contains recorded activity in 5 different threads</p>
+</li>
+<li>
+<p>we have opened the first thread, and we are exploring it in the code stepper</p>
+</li>
+</ul>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2018,18 +1738,13 @@ If you are using ClojureStorm or ClojureScriptStorm the only flow you will see i
 </div>
 </div>
 <div class="paragraph">
-<p>while the <code>(fn [i] (* i i))</code>. executions will be distributed in the <code>clojure-agent-send-off-pool-*</code> since <code>clojure.core/pmap</code> is backed by a thread pool.</p>
+<p>This second image shows us exploring the second thread on the <code>flow-1</code> list.</p>
 </div>
 <div class="paragraph">
-<p>Anything instrumented that isn&#8217;t run under #rtrace will end up in the funnel flow, which accumulates all traces that don&#8217;t contain any flow-id.</p>
+<p>There are currently 3 tools to explore the recorded timelines, which we are going to describe next.</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/funnel_flow.png" alt="funnel flow">
-</div>
-</div>
-<div class="sect3">
-<h4 id="_code_tool"><a class="anchor" href="#_code_tool"></a><a class="link" href="#_code_tool">4.1. Code tool</a></h4>
+<div class="sect2">
+<h3 id="_code_tool"><a class="anchor" href="#_code_tool"></a><a class="link" href="#_code_tool">3.1. Code tool</a></h3>
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/code_tool_tab.png" alt="code tool tab">
@@ -2039,8 +1754,8 @@ If you are using ClojureStorm or ClojureScriptStorm the only flow you will see i
 <p>The code tool is the second of the <code>Flows</code> tab. It provides most of the functionality found in a traditional debugger.
 You can use it to step over each expression, visualize values, locals and more.</p>
 </div>
-<div class="sect4">
-<h5 id="_code_stepping"><a class="anchor" href="#_code_stepping"></a><a class="link" href="#_code_stepping">Code stepping</a></h5>
+<div class="sect3">
+<h4 id="_code_stepping"><a class="anchor" href="#_code_stepping"></a><a class="link" href="#_code_stepping">3.1.1. Code stepping</a></h4>
 <div class="paragraph">
 <p>The code tool allows you to step and "travel throught time" in two ways:</p>
 </div>
@@ -2105,9 +1820,6 @@ for this thread so far. Write any number (less than total_steps) on the text box
 </ul>
 </div>
 <div class="paragraph">
-<p>The last stepping controls to the right are the <a href="#_power_stepping">power stepping</a> controls.</p>
-</div>
-<div class="paragraph">
 <p>On the first row we have more controls, also for moving around in time.</p>
 </div>
 <div class="paragraph">
@@ -2125,10 +1837,7 @@ for this thread so far. Write any number (less than total_steps) on the text box
 <p>Add a <a href="#_bookmarks">bookmark</a></p>
 </li>
 <li>
-<p>Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.</p>
-</li>
-<li>
-<p>The <a href="#_searching">value search</a> tool</p>
+<p>The last stepping controls to the right are the <a href="#_power_stepping">power stepping</a> controls.</p>
 </li>
 </ul>
 </div>
@@ -2197,8 +1906,8 @@ recorded at that coordinate (if any) and move the stepper to that point in time.
 which will search backwards from the current position.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_power_stepping"><a class="anchor" href="#_power_stepping"></a><a class="link" href="#_power_stepping">Power stepping</a></h5>
+<div class="sect3">
+<h4 id="_power_stepping"><a class="anchor" href="#_power_stepping"></a><a class="link" href="#_power_stepping">3.1.2. Power stepping</a></h4>
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/controls_power_custom.png" alt="controls power custom">
@@ -2258,8 +1967,8 @@ section, specially the <code>find-expr-entry</code> function.</p>
 </table>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">Searching</a></h5>
+<div class="sect3">
+<h4 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">3.1.3. Searching</a></h4>
 <div class="paragraph">
 <p>You can use the search tool to search over all your recorded values. Find the search tool on the toolbar (the magnifier glass)
 or under <code>View &#8594; Search</code>.</p>
@@ -2291,8 +2000,8 @@ means.</p>
 <p>Double clicking on any of the search results will take you to that point in time.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_loops"><a class="anchor" href="#_loops"></a><a class="link" href="#_loops">Loops</a></h5>
+<div class="sect3">
+<h4 id="_loops"><a class="anchor" href="#_loops"></a><a class="link" href="#_loops">3.1.4. Loops</a></h4>
 <div class="paragraph">
 <p>When clicking on a highlighted form two things can happen :</p>
 </div>
@@ -2313,8 +2022,8 @@ and clicking on them will make the debugger jump to that specific point in time.
 </div>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_exceptions_debugging"><a class="anchor" href="#_exceptions_debugging"></a><a class="link" href="#_exceptions_debugging">Exceptions debugging</a></h5>
+<div class="sect3">
+<h4 id="_exceptions_debugging"><a class="anchor" href="#_exceptions_debugging"></a><a class="link" href="#_exceptions_debugging">3.1.5. Exceptions debugging</a></h4>
 <div class="paragraph">
 <p><code>FlowStorm</code> will report all functions that didn&#8217;t return because an exception unwind the stack, even
 when that exception was captured further and it didn&#8217;t bubble up.</p>
@@ -2332,8 +2041,8 @@ together with the exceptions types. If you hover the mouse over any of them, a t
 <p>Clicking on any of them will position the stepper at that point in time so you can explore what happened before.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_locals"><a class="anchor" href="#_locals"></a><a class="link" href="#_locals">Locals</a></h5>
+<div class="sect3">
+<h4 id="_locals"><a class="anchor" href="#_locals"></a><a class="link" href="#_locals">3.1.6. Locals</a></h4>
 <div class="paragraph">
 <p>The locals panel will always show the locals bounded for the current point in time.</p>
 </div>
@@ -2366,8 +2075,8 @@ together with the exceptions types. If you hover the mouse over any of them, a t
 This is useful for trying things at your editor as described here <a href="https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required" class="bare">https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required</a></p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_stack"><a class="anchor" href="#_stack"></a><a class="link" href="#_stack">Stack</a></h5>
+<div class="sect3">
+<h4 id="_stack"><a class="anchor" href="#_stack"></a><a class="link" href="#_stack">3.1.7. Stack</a></h4>
 <div class="paragraph">
 <p>The stack panel will always show the current stacktrace. Be aware that the stacktrace
 only include functions calls that had been recorded, so if you aren&#8217;t recording everything
@@ -2382,8 +2091,8 @@ there will be gaps.</p>
 <p>Double clicking on any of the stack entries will make the debugger jump to that point in time.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_value_panels"><a class="anchor" href="#_value_panels"></a><a class="link" href="#_value_panels">Value panels</a></h5>
+<div class="sect3">
+<h4 id="_value_panels"><a class="anchor" href="#_value_panels"></a><a class="link" href="#_value_panels">3.1.8. Value panels</a></h4>
 <div class="paragraph">
 <p>Value panels show in many places in <em>FlowStorm</em>.</p>
 </div>
@@ -2398,8 +2107,8 @@ there will be gaps.</p>
 <div class="paragraph">
 <p>You can configure the print-level and print-meta for the pretty printing by using the controls at the top.</p>
 </div>
-<div class="sect5">
-<h6 id="_define_value_for_repl"><a class="anchor" href="#_define_value_for_repl"></a><a class="link" href="#_define_value_for_repl">Define value for repl</a></h6>
+<div class="sect4">
+<h5 id="_define_value_for_repl"><a class="anchor" href="#_define_value_for_repl"></a><a class="link" href="#_define_value_for_repl">Define value for repl</a></h5>
 <div class="paragraph">
 <p>Use the <code>def</code> button to define a var pointing to the current inspector value.</p>
 </div>
@@ -2408,8 +2117,9 @@ there will be gaps.</p>
 </div>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_bookmarks"><a class="anchor" href="#_bookmarks"></a><a class="link" href="#_bookmarks">Bookmarks</a></h5>
+</div>
+<div class="sect2">
+<h3 id="_bookmarks"><a class="anchor" href="#_bookmarks"></a><a class="link" href="#_bookmarks">3.2. Bookmarks</a></h3>
 <div class="paragraph">
 <p>Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
 you to mark execution positions so you can come back to them later.</p>
@@ -2435,16 +2145,8 @@ It will ask you the bookmark description.</p>
 <p>Double clicking on any bookmark will make the debugger jump back to its position.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_re_running_a_flow"><a class="anchor" href="#_re_running_a_flow"></a><a class="link" href="#_re_running_a_flow">Re running a flow</a></h5>
-<div class="paragraph">
-<p>Every time you run a form with #rtrace <em>FlowStorm</em> keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
-since it allows you to re run the form with a single click.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_call_stack_tree_tool"><a class="anchor" href="#_call_stack_tree_tool"></a><a class="link" href="#_call_stack_tree_tool">4.2. Call Stack tree tool</a></h4>
+<div class="sect2">
+<h3 id="_call_stack_tree_tool"><a class="anchor" href="#_call_stack_tree_tool"></a><a class="link" href="#_call_stack_tree_tool">3.3. Call Stack tree tool</a></h3>
 <div class="paragraph">
 <p>The call stack tree tool is the first one of the <code>Flows</code> tab. It allows you to see the execution flow by expanding its call stack tree.</p>
 </div>
@@ -2487,8 +2189,8 @@ You can use the refresh button at the root to update it.</p>
 <p>There are also two <a href="#_value_panels">value panels</a> at the bottom that show the arguments and return value for the currently selected function call.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_functions_tool"><a class="anchor" href="#_functions_tool"></a><a class="link" href="#_functions_tool">4.3. Functions tool</a></h4>
+<div class="sect2">
+<h3 id="_functions_tool"><a class="anchor" href="#_functions_tool"></a><a class="link" href="#_functions_tool">3.4. Functions tool</a></h3>
 <div class="paragraph">
 <p>The functions tool is the third one of the <code>Flows</code> tab.</p>
 </div>
@@ -2515,8 +2217,8 @@ jump through time much faster than single stepping.</p>
 <div class="paragraph">
 <p>You can search over the functions list by using the bar at the top.</p>
 </div>
-<div class="sect4">
-<h5 id="_function_calls"><a class="anchor" href="#_function_calls"></a><a class="link" href="#_function_calls">Function calls</a></h5>
+<div class="sect3">
+<h4 id="_function_calls"><a class="anchor" href="#_function_calls"></a><a class="link" href="#_function_calls">3.4.1. Function calls</a></h4>
 <div class="paragraph">
 <p>Clicking on the calls counter of any function will display all function calls on the right sorted by time.
 Each line will show the arguments vector for each call, and their return value.
@@ -2534,32 +2236,26 @@ Use the check boxes at the top to hide some of the arguments.</p>
 <p>You can also use the <code>args</code> and <code>ret</code> buttons to open the values on the inspector.</p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_un_instrumenting_functions"><a class="anchor" href="#_un_instrumenting_functions"></a><a class="link" href="#_un_instrumenting_functions">Un-instrumenting functions</a></h5>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_browser_tool"><a class="anchor" href="#_browser_tool"></a><a class="link" href="#_browser_tool">4. Browser tool</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Since the functions tool shows all the functions sorted by how many time they have been called it is a good tool to
-see where most of your traces are coming from. If you want to reduce the number of traces, to make let&#8217;s say, search faster,
-you can right click on any function to un instrument it. You will have to <a href="#_re_running_a_flow">re run the flow</a> after.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_browser_tool"><a class="anchor" href="#_browser_tool"></a><a class="link" href="#_browser_tool">5. Browser tool</a></h3>
-<div class="paragraph">
-<p>The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and also instrument/un-instrument them.</p>
+<p>The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and if you are a Vanilla FlowStorm user
+you can also use it to <a href="#_instrument_with_the_browser">instrument functions</a> .</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/browser.png" alt="browser">
 </div>
 </div>
-<div class="paragraph">
-<p>See <a href="#_instrument_with_the_browser">instrument with the browser</a> for more info.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_taps_tool"><a class="anchor" href="#_taps_tool"></a><a class="link" href="#_taps_tool">6. Taps tool</a></h3>
+<div class="sect1">
+<h2 id="_taps_tool"><a class="anchor" href="#_taps_tool"></a><a class="link" href="#_taps_tool">5. Taps tool</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Use the taps tool to visualize your <code>tap&gt;</code>.</p>
 </div>
@@ -2607,137 +2303,10 @@ Use the <code>clear</code> button to clear the list.</p>
 <p>There is also <code>#tap-stack-trace</code>. It will tap the current stack trace.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_docs_tool"><a class="anchor" href="#_docs_tool"></a><a class="link" href="#_docs_tool">7. Docs tool</a></h3>
-<div class="paragraph">
-<p>Generate projects functions documentation by sampling their executions.</p>
 </div>
-<div class="sect3">
-<h4 id="_generating_docs"><a class="anchor" href="#_generating_docs"></a><a class="link" href="#_generating_docs">7.1. Generating docs</a></h4>
-<div class="paragraph">
-<p>Let&#8217;s say we want to generate documentation for datascript(<a href="https://github.com/tonsky/datascript/" class="bare">https://github.com/tonsky/datascript/</a>).</p>
-</div>
-<div class="paragraph">
-<p>First we clone the repo. Then we can generate it by calling <code>flow-storm.api/cli-doc</code>.</p>
-</div>
-<div class="paragraph">
-<p>For convenience we are going to create a script <code>document.sh</code> like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash"><span class="c">#!/bin/bash</span>
-
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="se">\</span>
-    <span class="nt">-X</span>:test flow-storm.api/cli-doc <span class="se">\</span>
-    :result-name <span class="s1">'"datascript-flow-docs-1.4.0"'</span> <span class="se">\</span>
-    :print-unsampled? <span class="nb">true</span> <span class="se">\</span>
-    :instrument-ns <span class="s1">'#{"datascript"}'</span> <span class="se">\</span>
-    :fn-symb <span class="s1">'datascript.test/test-clj'</span> <span class="se">\</span>
-    :fn-args <span class="s1">'[]'</span> <span class="se">\</span>
-    :examples-pprint? <span class="nb">true</span> <span class="se">\</span>
-    :examples-print-length 2 <span class="se">\</span>
-    :examples-print-level 3</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The idea behind <code>flow-storm.api/cli-doc</code> is to act as a trampoline, so it will instrument our code base as specified by <code>:instrument-ns</code>
-then call whatever function provided by <code>:fn-symb</code> and <code>:fn-args</code>.</p>
-</div>
-<div class="paragraph">
-<p>For this case we are going to instrument every namespace that starts with "datascript" and then run <code>datascript.test/test-clj</code> without arguments.</p>
-</div>
-<div class="paragraph">
-<p>For the rest of the options check <code>flow-storm.api/cli-doc</code> doc string.</p>
-</div>
-<div class="paragraph">
-<p>It will output 3 useful things :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data</p>
-</li>
-<li>
-<p>the coverage percentage (how many fns were sampled over the instrumented ones)</p>
-</li>
-<li>
-<p>unsampled fns, which are all the functions that were instrumented but the test never called</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>So if you are running your tests, as a bonus you will get your test "coverage" and a list of functions your
-tests aren&#8217;t exercising, you should see something like this after it finishes :</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/flow_docs_cli.png" alt="flow docs cli">
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_publishing_docs"><a class="anchor" href="#_publishing_docs"></a><a class="link" href="#_publishing_docs">7.2. Publishing docs</a></h4>
-<div class="paragraph">
-<p>Given the docs are already in jar format you can publish them to your local repo or any maven repo (like Clojars)
-with the usual mvn utilities.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_consuming_docs"><a class="anchor" href="#_consuming_docs"></a><a class="link" href="#_consuming_docs">7.3. Consuming docs</a></h4>
-<div class="paragraph">
-<p><em>FlowStorm</em> debugger provides a way of visualizing whatever docs you have on your classpath.</p>
-</div>
-<div class="paragraph">
-<p>For this you can add the docs and <em>FlowStorm</em> to your classpaths as usual, like :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>or if you want to use the documentation I already generated and uploaded to my clojars group try :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} com.github.flow-storm/datascript-flow-docs {:mvn/version "1.4.0"}}}'</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>and now we can run the debugger :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-api</span><span class="p">])</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">fs-api/local-connect</span><span class="p">)</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The documentation will be available under the Docs tool.</p>
-</div>
-<div class="paragraph">
-<p>You can search and click over all the functions you have loaded from all your imported docs to see the details.</p>
-</div>
-<div class="paragraph">
-<p>Currently it shows fns meta, arguments, returns, and call examples.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/flow_docs_browser.png" alt="flow docs browser">
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_tips"><a class="anchor" href="#_tips"></a><a class="link" href="#_tips">7.4. TIPS</a></h4>
-<div class="paragraph">
-<p>If you are using the emacs integration you can do <code>C-c C-f d</code> (flow-storm-show-current-var-doc) to show the current function documentation
-in the debugger.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_timeline_tool"><a class="anchor" href="#_timeline_tool"></a><a class="link" href="#_timeline_tool">8. Timeline tool</a></h3>
+<div class="sect1">
+<h2 id="_timeline_tool"><a class="anchor" href="#_timeline_tool"></a><a class="link" href="#_timeline_tool">6. Timeline tool</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>You can use this tool to record, display and navigate a total order of your recordings in a timeline, in the order they executed.
 This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.</p>
@@ -2795,8 +2364,10 @@ if you try it on big recordings.</p>
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_printer_tool"><a class="anchor" href="#_printer_tool"></a><a class="link" href="#_printer_tool">9. Printer tool</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_printer_tool"><a class="anchor" href="#_printer_tool"></a><a class="link" href="#_printer_tool">7. Printer tool</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p><em>FlowStorm</em> has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
 inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
@@ -2849,8 +2420,10 @@ be added after a space at the end.</p>
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">10. Value inspector</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">8. Value inspector</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Use the value inspector to explore any data.</p>
 </div>
@@ -2896,8 +2469,10 @@ forward and backwards in the execution the current selected value.</p>
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_thread_breakpoints"><a class="anchor" href="#_thread_breakpoints"></a><a class="link" href="#_thread_breakpoints">11. Thread breakpoints</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_thread_breakpoints"><a class="anchor" href="#_thread_breakpoints"></a><a class="link" href="#_thread_breakpoints">9. Thread breakpoints</a></h2>
+<div class="sectionbody">
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/thread_breaks.png" alt="thread breaks">
@@ -2972,70 +2547,10 @@ provide a predicate it will default to <code>(constantly true)</code></p>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_limiting_recording"><a class="anchor" href="#_limiting_recording"></a><a class="link" href="#_limiting_recording">12. Limiting recording</a></h3>
-<div class="paragraph">
-<p>When recording an application execution (specially when using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em>) is common to find some
-high frequency functions adding a lot of noise to your recordings. For example a mouse-move event processing will generate a lot of
-recordings while you use your app.</p>
 </div>
-<div class="paragraph">
-<p>Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
-when it isn&#8217;t, you can try functions call limiting.</p>
-</div>
-<div class="paragraph">
-<p>There are a couple of ways to limit your functions calls by thread.</p>
-</div>
-<div class="paragraph">
-<p>The first one is by adding the <code>flowstorm.threadFnCallLimits</code> JVM prop.</p>
-</div>
-<div class="paragraph">
-<p>For example, you can add <code>"-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4"</code> so every time the system starts, limits will be set for
-<code>org.my-app/fn1</code> and <code>org.my-app/fn2</code>. The number next to them is the limit. When a function reaches the limit <em>FlowStorm</em> will stop recording calls
-to it and all the functions down its callstack.</p>
-</div>
-<div class="paragraph">
-<p>You can also modify the limits from your repl, by calling <code>flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]</code>.
-In ClojureScript you need to call them via your cljs repl.</p>
-</div>
-<div class="paragraph">
-<p>All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
-the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.</p>
-</div>
-<div class="paragraph">
-<p>When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
-global limits definitions.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_the_tool_bar"><a class="anchor" href="#_the_tool_bar"></a><a class="link" href="#_the_tool_bar">13. The tool bar</a></h3>
-<div class="paragraph">
-<p>The toolbar provides quick access to some general commands :</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/toolbar.png" alt="toolbar">
-</div>
-</div>
-<div class="paragraph">
-<p>From left to right :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.</p>
-</li>
-<li>
-<p>Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.</p>
-</li>
-<li>
-<p>Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">14. Programmable debugging</a></h3>
+<div class="sect1">
+<h2 id="_programmable_debugging"><a class="anchor" href="#_programmable_debugging"></a><a class="link" href="#_programmable_debugging">10. Programmable debugging</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p><em>FlowStorm</em> gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
 These allows you to explore your recordings using Clojure and write small programs to analyze
@@ -3061,8 +2576,8 @@ require on your repl in order to work with your recordings.</p>
 <p>Now from the UI, you can get the thread-id of your recordings (the number next to the thread name)
 which you will need for accessing them from the repl.</p>
 </div>
-<div class="sect3">
-<h4 id="_timelines"><a class="anchor" href="#_timelines"></a><a class="link" href="#_timelines">14.1. Timelines</a></h4>
+<div class="sect2">
+<h3 id="_timelines"><a class="anchor" href="#_timelines"></a><a class="link" href="#_timelines">10.1. Timelines</a></h3>
 <div class="paragraph">
 <p>Let&#8217;s say you want to explore recordings on thread 32. You can retrieve its timeline by calling <code>ia/get-timeline</code> like this :</p>
 </div>
@@ -3214,8 +2729,8 @@ performance you can access entries information without creating a immutable map 
 <p>Take a look at their docstrings for more info.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_forms"><a class="anchor" href="#_forms"></a><a class="link" href="#_forms">14.2. Forms</a></h4>
+<div class="sect2">
+<h3 id="_forms"><a class="anchor" href="#_forms"></a><a class="link" href="#_forms">10.2. Forms</a></h3>
 <div class="paragraph">
 <p>You can retrieve forms by form id with <code>get-form</code> and then use <code>get-sub-form-at-coord</code> and a coordinate.</p>
 </div>
@@ -3257,8 +2772,8 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_multi_thread_timeline"><a class="anchor" href="#_multi_thread_timeline"></a><a class="link" href="#_multi_thread_timeline">14.3. Multi-thread timeline</a></h4>
+<div class="sect2">
+<h3 id="_multi_thread_timeline"><a class="anchor" href="#_multi_thread_timeline"></a><a class="link" href="#_multi_thread_timeline">10.3. Multi-thread timeline</a></h3>
 <div class="paragraph">
 <p>If you have recorded a multi-thread timeline, you can retrieve it with <code>total-order-timeline</code> like this :</p>
 </div>
@@ -3297,8 +2812,8 @@ performance you can access entries information without creating a immutable map 
 <p>Notice that each of these entries contains a flow-id and thread-id also.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_other_utilities"><a class="anchor" href="#_other_utilities"></a><a class="link" href="#_other_utilities">14.4. Other utilities</a></h4>
+<div class="sect2">
+<h3 id="_other_utilities"><a class="anchor" href="#_other_utilities"></a><a class="link" href="#_other_utilities">10.4. Other utilities</a></h3>
 <div class="paragraph">
 <p>There are other utitities in the api ns that could be useful, some of the most interesting ones :</p>
 </div>
@@ -3323,8 +2838,129 @@ performance you can access entries information without creating a immutable map 
 </div>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">11. Remote debugging</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can remotely debug any Clojure application the exposes a nrepl server.</p>
+</div>
+<div class="paragraph">
+<p>In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
+<code>flow-storm-inst</code> instead of <code>flow-storm-dbg</code>, being the former a slimmed down version of the later one that
+doesn&#8217;t contain some libraries used only by the UI, but using the full <code>flow-storm-dbg</code> is also ok.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">ssh <span class="nt">-L</span> 9000:localhost:9000 <span class="nt">-R</span> 7722:localhost:7722 my-debuggee-box.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and
+that the debugger websocket server is running on the default port.</p>
+</div>
+<div class="paragraph">
+<p>After the tunnel is established, you can run you debugger UI like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and that is it.</p>
+</div>
+<div class="paragraph">
+<p>If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host <span class="s1">'"YOUR-APP-BOX-IP-ADDRESS"'</span> :debugger-host <span class="s1">'"YOUR-BOX-IP-ADDRESS"'</span> :ws-port WS-SERVER-PORT</code></pre>
+</div>
+</div>
 <div class="sect2">
-<h3 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">15. Dealing with mutable values</a></h3>
+<h3 id="_docker"><a class="anchor" href="#_docker"></a><a class="link" href="#_docker">11.1. Docker</a></h3>
+<div class="paragraph">
+<p>If you run you process inside a docker container, here is a basic template for using <em>FlowStorm</em> with it
+<a href="https://github.com/flow-storm/docker-flow-storm-basic" class="bare">https://github.com/flow-storm/docker-flow-storm-basic</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dealing_with_too_many_traces"><a class="anchor" href="#_dealing_with_too_many_traces"></a><a class="link" href="#_dealing_with_too_many_traces">12. Dealing with too many traces</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When recording an application&#8217;s execution (specially when using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em>) it could happen
+that your process starts running out of heap. This section documents some tools FlowStorm provides to deal with this situations.</p>
+</div>
+<div class="paragraph">
+<p>Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
+when it isn&#8217;t, here are some other options.</p>
+</div>
+<div class="paragraph">
+<p>A common situation is to see some high frequency functions adding a lot of noise to your recordings. For example a MouseMove event processing
+will generate a lot of recordings while you use your app. There are a couple of ways to limit your functions calls by thread. You can identify
+this kind of functions with the <a href="#_functions_tool">functions tool</a>.</p>
+</div>
+<div class="paragraph">
+<p>One tool you can use in this situations is the <code>flowstorm.threadFnCallLimits</code> JVM prop.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can add <code>"-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4"</code> so every time the system starts, limits will be set for
+<code>org.my-app/fn1</code> and <code>org.my-app/fn2</code>. The number next to them is the limit. When a function reaches the limit <em>FlowStorm</em> will stop recording calls
+to it and all the functions down its callstack.</p>
+</div>
+<div class="paragraph">
+<p>You can also modify the limits from your repl, by calling <code>flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]</code>.
+In ClojureScript you need to call them via your cljs repl api.</p>
+</div>
+<div class="paragraph">
+<p>All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
+the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.</p>
+</div>
+<div class="paragraph">
+<p>When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
+global limits definitions.</p>
+</div>
+<div class="paragraph">
+<p>If you are tracing some code that ends up in a infinite loop the debugger will choke on
+too many traces, making everything slow and your only option is probably to restart it.</p>
+</div>
+<div class="paragraph">
+<p>For preventing this, <em>FlowStorm</em> provides a fuse/breaker, called thread trace limit.
+It is off by default but you can enable it from the Config menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/thread_trace_limit_menu.png" alt="thread trace limit menu">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/thread_trace_limit_dialog.png" alt="thread trace limit dialog">
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and stop recording.
+Your code will continue execution as normal, which you can break using
+your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.</p>
+</div>
+<div class="paragraph">
+<p>You can set a limit of 0 to disable it again.</p>
+</div>
+<div class="paragraph">
+<p>This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dealing_with_mutable_values"><a class="anchor" href="#_dealing_with_mutable_values"></a><a class="link" href="#_dealing_with_mutable_values">13. Dealing with mutable values</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p><em>FlowStorm</em> will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :</p>
@@ -3392,41 +3028,10 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_debugging_infinite_looprecursion"><a class="anchor" href="#_debugging_infinite_looprecursion"></a><a class="link" href="#_debugging_infinite_looprecursion">16. Debugging infinite loop/recursion</a></h3>
-<div class="paragraph">
-<p>If you are tracing some code that ends up in a infinite loop the debugger will choke on
-too many traces, making everything slow and your only option is probably to restart it.</p>
 </div>
-<div class="paragraph">
-<p>For preventing this, <em>FlowStorm</em> provides a fuse/breaker, called thread trace limit.
-It is off by default but you can enable it from the Config menu.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/thread_trace_limit_menu.png" alt="thread trace limit menu">
-</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/thread_trace_limit_dialog.png" alt="thread trace limit dialog">
-</div>
-</div>
-<div class="paragraph">
-<p>Let&#8217;s say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
-record those first 1000 traces and stop recording.
-Your code will continue execution as normal, which you can break using
-your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.</p>
-</div>
-<div class="paragraph">
-<p>You can set a limit of 0 to disable it again.</p>
-</div>
-<div class="paragraph">
-<p>This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_controlling_instrumentation"><a class="anchor" href="#_controlling_instrumentation"></a><a class="link" href="#_controlling_instrumentation">17. Controlling instrumentation</a></h3>
+<div class="sect1">
+<h2 id="_controlling_instrumentation"><a class="anchor" href="#_controlling_instrumentation"></a><a class="link" href="#_controlling_instrumentation">14. Controlling instrumentation</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> it is important to learn how to control what gets instrumented and
 how to uninstrument things.</p>
@@ -3462,8 +3067,8 @@ namespaces to skip. All these together allows you to instrument you whole app bu
 <p>The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
 repl. This is slightly different between Clojure and ClojureScript.</p>
 </div>
-<div class="sect3">
-<h4 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">17.1. Controlling instrumentation in ClojureStorm</a></h4>
+<div class="sect2">
+<h3 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">14.1. Controlling instrumentation in ClojureStorm</a></h3>
 <div class="paragraph">
 <p>You can disable/enable instrumentation by evaluating the keys <code>:noinst</code> and  <code>:inst</code> on your repl.
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
@@ -3488,8 +3093,8 @@ in after enabling/disabling instrumentation.</p>
 <p>You can also check your current prefixes by evaluating the <code>:help</code> keyword at the repl.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_controlling_instrumentation_in_clojurescriptstorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurescriptstorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurescriptstorm">17.2. Controlling instrumentation in ClojureScriptStorm</a></h4>
+<div class="sect2">
+<h3 id="_controlling_instrumentation_in_clojurescriptstorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurescriptstorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurescriptstorm">14.2. Controlling instrumentation in ClojureScriptStorm</a></h3>
 <div class="paragraph">
 <p>You can add,remove and check your prefixes and also enable/disable instrumentation in ClojureScript with your Clojure
 repl (not the Cljs one) by calling :</p>
@@ -3517,9 +3122,221 @@ parameter for this. If you provide <code>src</code> for example, it will walk th
 which should fire a recompilation.</p>
 </div>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">18. Styling and theming</a></h3>
+<h3 id="_instrumentation_in_vanilla_flowstorm"><a class="anchor" href="#_instrumentation_in_vanilla_flowstorm"></a><a class="link" href="#_instrumentation_in_vanilla_flowstorm">14.3. Instrumentation in Vanilla FlowStorm</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureStorm</div>
+<div class="paragraph">
+<p>Instructions here only apply to vanilla <em>FlowStorm</em>. If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> (recommended)
+this is done automatically for you, so just skip this section.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Code instrumentation in <em>FlowStorm</em> is done by rewriting your code, in a way that doesn&#8217;t change its behavior
+but when executed will trace everything the code is doing.</p>
+</div>
+<div class="sect3">
+<h4 id="_instrument_any_form_with_trace"><a class="anchor" href="#_instrument_any_form_with_trace"></a><a class="link" href="#_instrument_any_form_with_trace">14.3.1. Instrument any form with #trace</a></h4>
+<div class="paragraph">
+<p>You can instrument any top level form at the repl by writing <code>#trace</code> before it, like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">trace</span><span class="w">
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then evaluating the form.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">important</dt>
+<dd>
+<p><code>#trace</code> is meant to be used with forms that don&#8217;t run immediately, like: defn, defmethod, extend-type, etc.
+Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (range 10))</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_run_code_with_rtrace"><a class="anchor" href="#_run_code_with_rtrace"></a><a class="link" href="#_run_code_with_rtrace">14.3.2. Run code with #rtrace</a></h4>
+<div class="paragraph">
+<p><code>#rtrace</code> is useful in two situations :</p>
+</div>
+<div class="paragraph">
+<p>First, when instrumenting and running a simple form at the repl, like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="o">#</span><span class="n">rtrace</span><span class="w"> </span><span class="p">(</span><span class="nb">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">filter</span><span class="w"> </span><span class="n">odd?</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="nb">+</span><span class="p">))</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">14.3.3. Instrument namespaces</a></h4>
+<div class="paragraph">
+<p><em>FlowStorm</em> allows you to instrument entire namespaces by providing <code>flow-storm.api/instrument-namespaces-clj</code>.</p>
+</div>
+<div class="paragraph">
+<p>You call it like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">instrument-namespaces-clj</span><span class="w"> </span><span class="o">#</span><span class="p">{</span><span class="s">"org.my-app.core"</span><span class="w"> </span><span class="s">"cljs."</span><span class="p">})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first argument is a set of namespaces prefixes to instrument. In the previous example it means
+instrument all namespaces starting with <code>org.my-app.core</code>, and all starting with <code>cljs.</code></p>
+</div>
+<div class="paragraph">
+<p>The second argument can be a map supporting the following options :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>:excluding-ns</code> a set of strings with namespaces that should be excluded</p>
+</li>
+<li>
+<p><code>:disable</code> a set containing any of #{<code>:expr</code> <code>:binding</code> <code>:anonymous-fn</code>} useful for disabling unnecessary traces in code that generate too many</p>
+</li>
+<li>
+<p><code>:verbose?</code> when true show more logging</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">14.3.4. What can&#8217;t be instrumented?</a></h4>
+<div class="paragraph">
+<p>These are some limitations when instrumenting forms :</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Very big forms can&#8217;t be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
+When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying <code>Instrumented expression is too large for the Clojure compiler</code>
+and <em>FlowStorm</em> automatically tries to instrument it with a lighter profile, by disabling some instrumentation.</p>
+</li>
+<li>
+<p>Functions that call recur without a loop</p>
+</li>
+<li>
+<p>Functions that return recursive lazy sequences. Like <code>(fn foo [] (lazy-seq (&#8230;&#8203; (foo))))</code></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_un_instrument_code"><a class="anchor" href="#_un_instrument_code"></a><a class="link" href="#_un_instrument_code">14.3.5. Un-instrument code</a></h4>
+<div class="paragraph">
+<p>Un-instrumenting code that has been instrumented with <code>#trace</code> or <code>#ctrace</code> is straight forward, just remove the tag and re evaluate the form.</p>
+</div>
+<div class="paragraph">
+<p>To un-instrument entire namespaces you can use <code>flow-storm.api/uninstrument-namespaces-clj</code> which accept a set of namespaces prefixes.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_instrument_with_the_browser"><a class="anchor" href="#_instrument_with_the_browser"></a><a class="link" href="#_instrument_with_the_browser">14.3.6. Instrument with the browser</a></h4>
+<div class="paragraph">
+<p>Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
+and weren&#8217;t loaded from a file.</p>
+</div>
+<div class="sect4">
+<h5 id="_instrument_vars"><a class="anchor" href="#_instrument_vars"></a><a class="link" href="#_instrument_vars">Instrument vars</a></h5>
+<div class="paragraph">
+<p>Using the browser you can navigate to the var you are interested in and then use the instrument button to instrument it.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_var_instrumentation.png" alt="browser var instrumentation">
+</div>
+</div>
+<div class="paragraph">
+<p>There are two ways of instrumenting a var :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Instrument (instrument just the var source code)</p>
+</li>
+<li>
+<p>Instrument recursively (recursively instrument the var and all vars referred by it)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_instrument_namespaces_2"><a class="anchor" href="#_instrument_namespaces_2"></a><a class="link" href="#_instrument_namespaces_2">Instrument namespaces</a></h5>
+<div class="paragraph">
+<p>Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in
+and then a right click should show you a menu with two instrumentation commands.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_ns_instrumentation.png" alt="browser ns instrumentation">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Instrument namespace :light</code> - record function arguments and return values (not expressions, no bindings tracing)</p>
+</li>
+<li>
+<p><code>Instrument namespace :full</code> fully instrument everything</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Light instrumentation is useful when you know the functions generate too many traces, so you can opt to trace just functions
+calls and returns. You can then <a href="#_fully_instrument_a_form_from_the_code_view">fully instrument</a> whatever functions you are interested in.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_un_instrument_code_2"><a class="anchor" href="#_un_instrument_code_2"></a><a class="link" href="#_un_instrument_code_2">Un-instrument code</a></h5>
+<div class="paragraph">
+<p>The bottom panel shows all instrumented vars and namespaces.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_uninstrument.png" alt="browser uninstrument">
+</div>
+</div>
+<div class="paragraph">
+<p>You can un-instrument them temporarily with the enable/disable checkbox or
+permanently with the del button.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_fully_instrument_a_form_from_the_code_view"><a class="anchor" href="#_fully_instrument_a_form_from_the_code_view"></a><a class="link" href="#_fully_instrument_a_form_from_the_code_view">Fully instrument a form from the code view</a></h5>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/fully_instrument_form.png" alt="fully instrument form">
+</div>
+</div>
+<div class="paragraph">
+<p>If you have instrumented a form with the <a href="#_instrument_namespaces_2">:light profile</a> you can fully instrument it by right clicking on the current form
+and then clicking <code>Fully instrument this form</code>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">15. Styling and theming</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
 with the <code>:styles</code>, <code>:title</code> and <code>:theme</code> keywords. If <code>:styles</code> points to a css file it will be used to overwrite the default styles, in case you
@@ -3548,10 +3365,12 @@ distinguish between multiple debugger instances.</p>
 <p>You can overwrite all the styles defined here <a href="https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/styles.css" class="bare">https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/styles.css</a></p>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">16. Key bindings</a></h2>
+<div class="sectionbody">
 <div class="sect2">
-<h3 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">19. Key bindings</a></h3>
-<div class="sect3">
-<h4 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">19.1. General</a></h4>
+<h3 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">16.1. General</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -3590,8 +3409,8 @@ distinguish between multiple debugger instances.</p>
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">19.2. Flows</a></h4>
+<div class="sect2">
+<h3 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">16.2. Flows</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -3646,8 +3465,10 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">20. Debugging react native applications</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">17. Debugging react native applications</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
 </div>
@@ -3677,8 +3498,10 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">21. Working on Windows with WSL2</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>For those using WSL2 on Windows. You&#8217;ll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.</p>
 </div>
@@ -3726,8 +3549,10 @@ can start a debugger and connect to it by running :</p>
 </ol>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">22. Opening forms in editors</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">19. Opening forms in editors</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :</p>
 </div>
@@ -3749,8 +3574,8 @@ which should open the file at that specific line (useful for long forms).</p>
 <div class="paragraph">
 <p>Here are some known setups for most common editors :</p>
 </div>
-<div class="sect3">
-<h4 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">22.1. Emacs</a></h4>
+<div class="sect2">
+<h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">19.1. Emacs</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
@@ -3758,24 +3583,24 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">22.2. VSCode</a></h4>
+<div class="sect2">
+<h3 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">19.2. VSCode</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=code --goto &lt;&lt;FILE&gt;&gt;:&lt;&lt;LINE&gt;&gt;"</span></code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">22.3. IntelliJ</a></h4>
+<div class="sect2">
+<h3 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">19.3. IntelliJ</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=idea --line &lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">22.4. Vim</a></h4>
+<div class="sect2">
+<h3 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">19.4. Vim</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=vim +&lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
@@ -3783,118 +3608,39 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">20. Editors/IDEs integration</a></h2>
+<div class="sectionbody">
 <div class="sect2">
-<h3 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">23. Editors/IDEs integration</a></h3>
-<div class="sect3">
-<h4 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">23.1. Emacs</a></h4>
+<h3 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">20.1. Emacs</a></h3>
 <div class="paragraph">
 <p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
 </div>
-<div class="sect4">
-<h5 id="_opening_forms"><a class="anchor" href="#_opening_forms"></a><a class="link" href="#_opening_forms">Opening forms</a></h5>
-<div class="paragraph">
-<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
-</div>
-<div class="paragraph">
-<p>If something doesn&#8217;t work try the command on your shell first, maybe you need the full path to the binary.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">23.2. VSCode</a></h4>
-<div class="sect4">
-<h5 id="_opening_forms_2"><a class="anchor" href="#_opening_forms_2"></a><a class="link" href="#_opening_forms_2">Opening forms</a></h5>
-<div class="paragraph">
-<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
-</div>
-<div class="paragraph">
-<p>If the files are inside a jar you can put any command here using the <a href="#JAR">[JAR]</a>, <a href="#FILE">[FILE]</a>, and <a href="#LINE">[LINE]</a> placeholders that
-will be executed by FlowStorm to open it. I don&#8217;t know any for VSCode, if you know how to do it please submit a PR.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.jarEditorCommand="</span></code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">23.3. IntelliJ IDEA (Cursive)</a></h4>
-<div class="sect4">
-<h5 id="_opening_forms_3"><a class="anchor" href="#_opening_forms_3"></a><a class="link" href="#_opening_forms_3">Opening forms</a></h5>
-<div class="paragraph">
-<p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.</p>
-</div>
-<div class="paragraph">
-<p>"-Dflowstorm.jarEditorCommand="
-"-Dflowstorm.fileEditorCommand="</p>
-</div>
-<div class="paragraph">
-<p>If something doesn&#8217;t work try the command on your shell first, maybe you need the full path to the binary.</p>
-</div>
-</div>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">24. Tutorials and demos</a></h3>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://www.youtube.com/watch?v=2nH59edD5Uo">Show me your REPL episode</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=PbGVTVs1yiU">Debugging Clojure with FlowStorm</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=jMYl32lnMhI">Debugging ClojureScript with FlowStorm</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=A3AzlqNwUXc">Presentation at London Clojurians</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=YnpQMrkj4v8">Flows basics</a></p>
-</li>
-<li>
-<p><a href="https://youtu.be/YnpQMrkj4v8?t=332">Instrumenting libraries</a></p>
-</li>
-<li>
-<p><a href="https://youtu.be/YnpQMrkj4v8?t=533">Debugging the ClojureScript compiler</a></p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=cnLwRzxrKDk">Browser</a></p>
-</li>
-<li>
-<p><a href="https://youtu.be/cnLwRzxrKDk?t=103">Def button</a></p>
-</li>
-<li>
-<p><a href="https://youtu.be/cnLwRzxrKDk?t=133">Conditional tracing</a></p>
-</li>
-</ul>
-</div>
+<h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">20.2. VSCode</a></h3>
+
 </div>
 <div class="sect2">
-<h3 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">25. Troubleshooting</a></h3>
-<div class="sect3">
-<h4 id="_instrument_verbose"><a class="anchor" href="#_instrument_verbose"></a><a class="link" href="#_instrument_verbose">25.1. Instrument verbose</a></h4>
+<h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></h3>
+
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">21. Tutorials and demos</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>By default functions like <code>flow-storm.api/instrument-namespaces-clj</code> will not print warnings on the console. You can log extra information
-by providing <code>:verbose? true</code> to the options map.</p>
+<p><a href="https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top" class="bare">https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top</a></p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_run_verbose"><a class="anchor" href="#_run_verbose"></a><a class="link" href="#_run_verbose">25.2. Run verbose</a></h4>
-<div class="paragraph">
-<p><code>#rtrace form</code> just expands to <code>(flow-storm.api/runi {} form)</code>.</p>
 </div>
-<div class="paragraph">
-<p>The first argument is a options map, which accepts <code>:verbose? :true</code>, in which case <em>FlowStorm</em> will print to the console tracing stats.</p>
-</div>
-<div class="paragraph">
-<p>Is useful when you have instrumented a big application and wish to see tracing progress while running.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">25.3. Run with JDK 11</a></h4>
+<div class="sect1">
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">22. Troubleshooting</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">22.1. Run with JDK 11</a></h3>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -3911,8 +3657,10 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">26. Internals, diagrams and documentation</a></h3>
+</div>
+<div class="sect1">
+<h2 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :</p>
 </div>
@@ -3937,9 +3685,10 @@ by providing <code>:verbose? true</code> to the options map.</p>
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-26 16:48:57 -0300
+Last updated 2024-03-27 12:40:19 -0300
 </div>
 </div>
 </body>

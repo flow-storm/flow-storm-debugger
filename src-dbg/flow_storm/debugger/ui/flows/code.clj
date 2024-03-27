@@ -648,16 +648,9 @@
         {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
 
         execution-expression? (and (:ns execution-expr)
-                                   (:form execution-expr))
-        re-run-flow-btn (ui-utils/icon-button :icon-name "mdi-cached"
-                                              :on-click (fn []
-                                                          (when execution-expression?
-                                                            (runtime-api/eval-form rt-api (:form execution-expr) {:instrument? false
-                                                                                                                  :ns (:ns execution-expr)})))
-                                              :disable (not execution-expression?))]
+                                   (:form execution-expr))]
     (doto (h-box [undo-nav-btn redo-nav-btn
-                  bookmark-btn
-                  re-run-flow-btn])
+                  bookmark-btn])
       (.setSpacing 2.0))))
 
 

@@ -79,7 +79,7 @@
 
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
-(s/def :flow/id (s/nilable int?))
+(s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
                                 :flow/threads
                                 :flow/execution-expr]
@@ -102,7 +102,6 @@
 (s/def :printer/printers (s/map-of :flow-storm/form-id
                                    (s/map-of :flow-storm/coord
                                              :printer/printer)))
-(s/def :ui/selected-flow-id :flow/id)
 (s/def :ui/selected-font-size-style-idx int?)
 (s/def :ui/selected-theme #{:light :dark})
 (s/def :ui/extra-styles (s/nilable string?))
@@ -183,12 +182,10 @@
                                 ::runtime-config
                                 ::debugger-config
                                 ::bookmarks
-                                ::unwinds]
-                       :opt-un [:ui/selected-flow-id]))
+                                ::unwinds]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
   {:flows {}
-   :selected-flow-id nil
    :printers {}
    :selected-font-size-style-idx 0
    :threads-info {}

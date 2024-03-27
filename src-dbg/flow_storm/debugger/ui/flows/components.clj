@@ -60,7 +60,7 @@
     (store-obj flow-id thread-id (ui-utils/thread-pprint-tap-btn-id pane-id) tap-btn)
     box))
 
-(defn update-pprint-pane [flow-id thread-id pane-id {:keys [val-ref extra-text class] :as data} opts]
+(defn update-pprint-pane [flow-id thread-id pane-id {:keys [val-ref extra-text class]} opts]
   (let [[result-type-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-type-lbl-id pane-id))
         [result-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-area-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-level-txt-id pane-id))

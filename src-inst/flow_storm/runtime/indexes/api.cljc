@@ -242,9 +242,9 @@
          (index-protos/all-threads flow-thread-registry))))
 
 (defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
-  ;; create the `nil` (funnel) flow if it doesn't exist
-   (when (and (nil? flow-id) (not (flow-exists? nil)))
-     (create-flow {:flow-id nil}))
+
+  (when-not (flow-exists? flow-id)
+    (create-flow {:flow-id flow-id}))
   
   (if-let [ti (get-thread-indexes flow-id thread-id)]
     ti

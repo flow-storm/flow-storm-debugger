@@ -21,7 +21,7 @@
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
              :refer [label icon-button event-handler h-box v-box progress-indicator progress-bar tab tab-pane border-pane
-                     key-combo-match? menu-button]]
+                     key-combo-match? menu-button combo-box]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
@@ -37,7 +37,8 @@
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [flow-storm.debugger.runtime-api :as rt-api])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
            [javafx.stage Stage]
@@ -173,53 +174,6 @@
 
     tabs-p))
 
-(defn- build-tool-bar-pane []
-  (let [record-btn (icon-button :icon-name "mdi-record"
-                                :tooltip "Start/Stop recording"
-                                :on-click (fn [] (runtime-api/toggle-recording rt-api))
-                                :classes ["record-btn"])
-        task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
-                                     :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
-                                     :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
-                                     :disable true)
-        clear-btn (icon-button :icon-name  "mdi-delete-forever"
-                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                               :on-click (fn [] (clear-all)))
-        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
-                                         :tooltip "Open the search window"
-                                         :on-click (fn [] (search/search-window)))
-        quick-jump-textfield (doto (h-box [(label "Quick jump:")
-                                           (ui-utils/autocomplete-textfield
-                                            (fn []
-                                              (into []
-                                                    (map (fn [[fq-fn-name cnt]]
-                                                           {:text (format "%s (%d)" fq-fn-name cnt)
-                                                            :on-select (fn []
-                                                                         (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                            [(symbol fq-fn-name) 0 {}]
-                                                                                            {:on-finished (fn [{:keys [result]}]
-                                                                                                            (when result
-                                                                                                              (flows-screen/goto-location result)))}))}))
-                                                    (runtime-api/all-fn-call-stats rt-api))))])
-                               (.setAlignment Pos/CENTER_LEFT))
-
-        exceptions-menu-data (menu-button {:items []})
-        exceptions-box (doto (h-box [(:menu-button exceptions-menu-data)]
-                                    "hidden-pane")
-                         (.setAlignment Pos/CENTER_LEFT))
-        tools [record-btn
-               clear-btn
-               task-cancel-btn
-               search-btn
-               quick-jump-textfield
-               exceptions-box]]
-
-    (store-obj "task-cancel-btn" task-cancel-btn)
-    (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-menu-data" exceptions-menu-data)
-    (store-obj "record-btn" record-btn)
-    (ToolBar. (into-array Node tools))))
-
 (defn- toggle-debug-mode []
   (dbg-state/toggle-debug-mode)
   (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
@@ -283,9 +237,69 @@
         (.addAll [view-menu actions-menu config-menu]))
     mb))
 
+(defn- build-top-tool-bar-pane []
+  (let [record-btn (icon-button :icon-name "mdi-record"
+                                :tooltip "Start/Stop recording"
+                                :on-click (fn [] (runtime-api/toggle-recording rt-api))
+                                :classes ["record-btn"])
+        task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
+                                     :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
+                                     :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
+                                     :disable true)
+        clear-btn (icon-button :icon-name  "mdi-delete-forever"
+                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
+                               :on-click (fn [] (clear-all)))
+        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
+                                         :tooltip "Open the search window"
+                                         :on-click (fn [] (search/search-window)))
+        quick-jump-textfield (doto (h-box [(label "Quick jump:")
+                                           (ui-utils/autocomplete-textfield
+                                            (fn []
+                                              (into []
+                                                    (map (fn [[fq-fn-name cnt]]
+                                                           {:text (format "%s (%d)" fq-fn-name cnt)
+                                                            :on-select (fn []
+                                                                         (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                            [(symbol fq-fn-name) 0 {}]
+                                                                                            {:on-finished (fn [{:keys [result]}]
+                                                                                                            (when result
+                                                                                                              (flows-screen/goto-location result)))}))}))
+                                                    (runtime-api/all-fn-call-stats rt-api))))])
+                               (.setAlignment Pos/CENTER_LEFT))
+
+        exceptions-menu-data (menu-button {:items []})
+        exceptions-box (doto (h-box [(:menu-button exceptions-menu-data)]
+                                    "hidden-pane")
+                         (.setAlignment Pos/CENTER_LEFT))
+        tools [record-btn
+               clear-btn
+               task-cancel-btn
+               search-btn
+               quick-jump-textfield
+               exceptions-box]]
+
+    (store-obj "task-cancel-btn" task-cancel-btn)
+    (store-obj "exceptions-box" exceptions-box)
+    (store-obj "exceptions-menu-data" exceptions-menu-data)
+    (store-obj "record-btn" record-btn)
+    (ToolBar. (into-array Node tools))))
+
+(defn- build-bottom-tool-bar-pane []
+  (let [flows-combo (combo-box {:items (into [] (range 10))
+                                :button-factory-fn (fn [_ i] (label (str "flow-" i)))
+                                :cell-factory-fn (fn [_ i] (label (str "flow-" i)))
+                                :on-change-fn (fn [_ new-flow-id]
+                                                (rt-api/switch-record-to-flow rt-api new-flow-id))})
+        flow-selector-box (doto (h-box [(label "Recording on : ") flows-combo])
+                            (.setAlignment Pos/CENTER_LEFT)
+                            (.setSpacing 5.0))]
+    (ToolBar. (into-array Node [flow-selector-box]))))
+
 (defn- build-top-bar-pane []
-  (v-box [(build-menu-bar)
-          (build-tool-bar-pane)]))
+  (doto (v-box [(build-menu-bar)
+           (build-top-tool-bar-pane)
+                (build-bottom-tool-bar-pane)])
+    (.setSpacing 5.0)))
 
 (defn set-task-cancel-btn-enable [enable?]
   (ui-utils/run-later

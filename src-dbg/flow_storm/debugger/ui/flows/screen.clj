@@ -106,9 +106,7 @@
                                     :drag-policy :reorder})
         flow-split-pane (doto (SplitPane.)
                           (.setOrientation (Orientation/HORIZONTAL)))
-        flow-tab (if (nil? flow-id)
-                   (tab {:id (str "flow-tab-" flow-id) :graphic (icon "mdi-filter") :content flow-split-pane})
-                   (tab {:id (str "flow-tab-" flow-id) :text (str "flow-" flow-id) :content flow-split-pane}))
+        flow-tab (tab {:id (str "flow-tab-" flow-id) :text (str "flow-" flow-id) :content flow-split-pane})
 
         {:keys [list-view-pane] :as lv-data}
         (list-view {:editable? false

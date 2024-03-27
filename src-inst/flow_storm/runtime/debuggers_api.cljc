@@ -328,17 +328,19 @@
 (defn set-total-order-recording [x]
   (tracer/set-total-order-recording x))
 
-(defn jump-to-last-expression-in-this-thread
-  ([] (jump-to-last-expression-in-this-thread nil))
-  ([flow-id]
-   (let [thread-id (utils/get-current-thread-id)
-         last-ex-loc (when-let [cnt (count (index-api/get-timeline flow-id thread-id))]
-                       {:thread/id thread-id
-                        :thread/name (utils/get-current-thread-name)
-                        :thread/idx (dec cnt)})]
-     (if last-ex-loc
-       (goto-location flow-id last-ex-loc)
-       (log "No recordings for this thread yet")))))
+(defn switch-record-to-flow [flow-id]
+  (tracer/set-current-flow-id flow-id))
+
+(defn jump-to-last-expression-in-this-thread []
+  (let [flow-id (tracer/get-current-flow-id)
+        thread-id (utils/get-current-thread-id)
+        last-ex-loc (when-let [cnt (count (index-api/get-timeline flow-id thread-id))]
+                      {:thread/id thread-id
+                       :thread/name (utils/get-current-thread-name)
+                       :thread/idx (dec cnt)})]
+    (if last-ex-loc
+      (goto-location flow-id last-ex-loc)
+      (log "No recordings for this thread yet"))))
 
 #?(:clj
    (defn unblock-thread [thread-id]     
@@ -504,6 +506,7 @@
              :stack-for-frame stack-for-frame
              :toggle-recording toggle-recording
              :set-total-order-recording set-total-order-recording
+             :switch-record-to-flow switch-record-to-flow
              :all-fn-call-stats all-fn-call-stats
              :set-thread-trace-limit set-thread-trace-limit
              :ping ping

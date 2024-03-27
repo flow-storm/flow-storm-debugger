@@ -5,7 +5,7 @@
 :encoding: UTF-8
 :doctype: book
 :toc: left
-:toclevels: 4
+:toclevels: 3
 :sectlinks:
 :sectanchors:
 :leveloffset: 1
@@ -16,7 +16,7 @@ _FlowStorm_ is a tracing debugger for Clojure and ClojureScript.
 
 It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.
 
-== Quick start
+= Quick start
 
 Before you start check _FlowStorm_ minimum requirements.
 
@@ -27,18 +27,18 @@ Before you start check _FlowStorm_ minimum requirements.
 	- Clojure >= 1.10.0
 ====
 
-=== Clojure
+== Clojure
 
 There are two ways of using _FlowStorm_ for Clojure :
 
-	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your dev Clojure compiler by ClojureStorm and get everything instrumented automatically
+	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your Clojure compiler at dev time by ClojureStorm and get everything instrumented automatically
 	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms
     
 _ClojureStorm_ is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
 
 You use it by swapping the official Clojure compiler by _ClojureStorm_ at dev time, using dev aliases or profiles.
 
-==== ClojureStorm
+=== ClojureStorm
 
 This is the newest and simplest way of using _FlowStorm_. It requires you to swap your official Clojure compiler by _ClojureStorm_ only at dev time.
 
@@ -48,12 +48,12 @@ your repl with a different alias or lein profile.
 
 The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial, like this :
 
-[,bash]
+[%nowrap,bash]
 ----
-;; on linux and mac-os
+;; on Linux and OSX
 clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
 
-;; on windows
+;; on Windows
 clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
 ----
 
@@ -115,7 +115,7 @@ If your project uses lein, your project.clj file should look something like this
 
 with `YOUR_INSTRUMENTATION_STRING` as described above.
 
-===== A global configuration
+==== A global configuration
 
 By using the `-Dclojure.storm.instrumentAutoPrefixes=true` JVM property it is possible to create a global `deps.edn` alias
 or `lein profile` so you don't have to modify each of your projects in order to use __FlowStorm__.
@@ -171,24 +171,16 @@ If you are usig lein < 2.11.0 make sure your global :dependencies don't include 
 Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.
 ====
 
-[NOTE]
-.#rtrace and #trace
-====
-When using _FlowStorm_ with _ClojureStorm_ it is a error to use #trace or #rtrace. They aren't needed since
-everything you declared in `clojure.storm.instrumentOnlyPrefixes` will be automatically instrumented.
-====
+=== Vanilla FlowStorm
 
-
-==== Vanilla FlowStorm
-
-If you use https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the _FlowStorm_ dependency loaded like this :
+If you use the https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the _FlowStorm_ dependency loaded like this :
 
 [,bash]
 ----
-;; on linux and mac-os
+;; on Linux and OSX
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'
 
-;; on windows
+;; on Windows
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}}}'
 ----
 
@@ -220,22 +212,13 @@ Let's debug something :
 user> #rtrace (reduce + (map inc (range 10))) ;; #rtrace will instrument and run some code
 ----
 
-image::user_guide_images/quick_start.png[]
+After running it, you should get the return value of the expression (as if #rtrace wasn't there),
+but now you will also have the debugger UI showing your recordings.
 
-After running it, you should get the return value of the expression (as if #rtrace wasn't there).
-The debugger thread list (the one on the left) shows all the threads it has recordings for.
-Double clicking on it should open the "thread exploring tools" for that thread in a new tab.
+From here you probably want to check out the <<#_flows_tool, Flows tool>> which contains a lot of information
+about exploring your recordings.
 
-This guide will cover all the tools in more detail but if you are interested in code stepping for example
-you will find it in the `code stepping tool` at the bottom left corner of the thread tab, the one that has the `()` icon.
-Clicking on it will show you something like the picture above.
-
-Go ahead and use the stepping controls to step over the code.
-
-Now that everything seems to be working move on and explore the many features _FlowStorm_ provides. There are many ways of instrumenting
-your code, and many ways to explore its executions.
-	
-=== ClojureScript
+== ClojureScript
 
 Debugging ClojureScript is a case of remote debugging in _FlowStorm_. This means the debugger
 will run in a separate process and connect to the debuggee (your browser or nodejs runtime) via a websocket and optionally
@@ -257,7 +240,7 @@ For enabling every debugger feature, _FlowStorm_ needs to connect to a cljs repl
 Currently only shadow-cljs repl over nrepl is supported.
 ====
 
-==== ClojureScriptStorm with shadow-cljs
+=== ClojureScriptStorm with shadow-cljs
 
 [IMPORTANT]
 .Minimum requirements
@@ -351,7 +334,7 @@ On the other side, typing a simple expression like `(+ 1 2)` will not show anyth
 still make that work by wrapping the expression on a fn and immediately calling it, like `((fn [] (+ 1 2)))`
 ====
 
-==== ClojureScriptStorm with cljs.main
+=== ClojureScriptStorm with cljs.main
 
 You can use _FlowStorm_ and _ClojureScriptStorm_ with cljs.main.
 
@@ -378,7 +361,7 @@ clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "
 
 And now refresh your browser page so your browser app connects to the UI.
 
-==== ClojureScript vanilla FlowStorm
+=== ClojureScript vanilla FlowStorm
 
 Let's say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
 
@@ -503,7 +486,7 @@ once it is connected.
 
 Here is a repo you can use if you want to try _FlowStorm_ with shadow-cljs https://github.com/flow-storm/shadow-flow-storm-basic
 
-==== Multiple ClojureScript builds
+=== Multiple ClojureScript builds
 
 You can setup FlowStorm to debug multiple ClojureScript builds. This can be useful when your application is made up of multiple parts,
 like when you have web workers.
@@ -580,7 +563,7 @@ You can change the theme or customize the styles of different instances to make 
 know which debugger instance is connected to which application.
 ====
 
-=== Babashka
+== Babashka
 
 You can debug your babashka scripts with FlowStorm using the JVM. The process is quite simple.
 
@@ -620,220 +603,69 @@ so we can also start it from Clojure.
 
 After the server has started, you can use the app from the browser and everything will get recorded as usual.
 
-== Remote debugging
+= The tool bar
 
-You can remotely debug any Clojure application the exposes a nrepl server.
+The toolbar as well as the menu provides quick access to some general commands.
 
-In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
-`flow-storm-inst` instead of `flow-storm-dbg`, being the former a slimmed down version of the later one that
-doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
+image::user_guide_images/toolbar.png[]
 
-The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :
+In the first row from left to right :
 
-[,bash]
-----
-ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
-----
+- Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
+- Discard all recordings so far.
+- Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
+- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
+- This will not always be visible but if your recordings contains any exceptions they will be shown here.
 
-assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and 
-that the debugger websocket server is running on the default port.
+On the second row we have :
 
-After the tunnel is established, you can run you debugger UI like this :
+- The recording flow selection system. Checkout the <<_flows_tool, flows tool>> for more info.
 
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
-----
-
-and that is it.
-
-If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
-----
-
-=== Docker
-
-If you run you process inside a docker container, here is a basic template for using _FlowStorm_ with it
-https://github.com/flow-storm/docker-flow-storm-basic
-
-== Instrument code (vanilla only)
-
-[NOTE]
-.ClojureStorm
-====
-Instructions here only apply to vanilla _FlowStorm_. If you are using _ClojureStorm_ or _ClojureScriptStorm_ (recommended)
-this is done automatically for you, so just skip this section.
-====
-
-Code instrumentation in _FlowStorm_ is done by rewriting your code, in a way that doesn't change its behavior
-but when executed will trace everything the code is doing.
-
-You can instrument code from the <<#_browser_tool,browser tool>> or the repl.
-
-=== Instrument from the repl
-
-==== Instrument any form with #trace
-
-You can instrument any top level form at the repl by writing `#trace` before it, like this :
-
-[,clojure]
-----
-#trace
-(defn sum [a b]
-  (+ a b))
-----
-
-and then evaluating the form.
-
-important:: `#trace` is meant to be used with forms that don't run immediately, like: defn, defmethod, extend-type, etc.
-Use `#rtrace` to trace and run a form, like `#rtrace (map inc (range 10))`.
-
-==== Run code with #rtrace
-
-`#rtrace` is useful in two situations :
-
-First, when instrumenting and running a simple form at the repl, like:
-
-[,clojure]
-----
-#rtrace (-> (range) (filter odd?) (take 10) (reduce +))
-----
-
-Second, when you want to run a form with a certain flow id (see <<#_flows_tool,flows>>).
-
-`#rtrace` by default will instrument and run the form with flow id 0, but you can use
-`#rtrace0`, `#rtrace1`, `#rtrace2`, `#rtrace3`, `#rtrace4`, `#rtrace5` to trace with flows ids [0..5].
-
-==== Instrument namespaces
-
-_FlowStorm_ allows you to instrument entire namespaces by providing `flow-storm.api/instrument-namespaces-clj`.
-
-You call it like this :
-
-[,clojure]
-----
-(instrument-namespaces-clj #{"org.my-app.core" "cljs."})
-----
-
-The first argument is a set of namespaces prefixes to instrument. In the previous example it means
-instrument all namespaces starting with `org.my-app.core`, and all starting with `cljs.`
-
-The second argument can be a map supporting the following options :
-
-- `:excluding-ns` a set of strings with namespaces that should be excluded
-- `:disable` a set containing any of #{`:expr` `:binding` `:anonymous-fn`} useful for disabling unnecessary traces in code that generate too many
-- `:verbose?` when true show more logging
-
-==== What can't be instrumented?
-
-These are some limitations when instrumenting forms :
-
-1. Very big forms can't be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
-When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying `Instrumented expression is too large for the Clojure compiler`
-and _FlowStorm_ automatically tries to instrument it with a lighter profile, by disabling some instrumentation.
-
-2. Functions that call recur without a loop
-
-3. Functions that return recursive lazy sequences. Like `(fn foo [] (lazy-seq (... (foo))))`
-
-==== Un-instrument code
-
-Un-instrumenting code that has been instrumented with `#trace` or `#ctrace` is straight forward, just remove the tag and re evaluate the form.
-
-To un-instrument entire namespaces you can use `flow-storm.api/uninstrument-namespaces-clj` which accept a set of namespaces prefixes.
-
-=== Instrument with the browser
-
-Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
-and weren't loaded from a file. 
-
-==== Instrument vars
-
-Using the browser you can navigate to the var you are interested in and then use the instrument button to instrument it.
-
-image::user_guide_images/browser_var_instrumentation.png[]
-
-There are two ways of instrumenting a var :
-
-- Instrument (instrument just the var source code)
-- Instrument recursively (recursively instrument the var and all vars referred by it)
-
-==== Instrument namespaces
-
-Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in
-and then a right click should show you a menu with two instrumentation commands.
-
-image::user_guide_images/browser_ns_instrumentation.png[]
-
-- `Instrument namespace :light` - record function arguments and return values (not expressions, no bindings tracing)
-
-- `Instrument namespace :full` fully instrument everything
-
-Light instrumentation is useful when you know the functions generate too many traces, so you can opt to trace just functions
-calls and returns. You can then <<#_fully_instrument_a_form_from_the_code_view, fully instrument>> whatever functions you are interested in.
-
-==== Un-instrument code
-
-The bottom panel shows all instrumented vars and namespaces.
-
-image::user_guide_images/browser_uninstrument.png[]
-
-You can un-instrument them temporarily with the enable/disable checkbox or
-permanently with the del button.
-
-=== Fully instrument a form from the code view
-
-image::user_guide_images/fully_instrument_form.png[]
-
-If you have instrumented a form with the <<#_instrument_namespaces_2, :light profile>> you can fully instrument it by right clicking on the current form
-and then clicking `Fully instrument this form`.
-
-== Flows tool
+= Flows tool
 
 The `Flows` tab contains a bunch of tools for analyzing all recorded executions.
 
-Flows are identified by a flow-id and can be started by running a form with `#rtrace`, `#rtrace1`, `#rtrace2`, etc,.
-If you run a flow twice with the same flow id, the first one is going to be replaced.
+First of all, what are Flows?
 
-[NOTE]
-.ClojureStorm
-====
-Currently, working with different flows in parallel is only supported in Vanilla FlowStorm.
-If you are using ClojureStorm or ClojureScriptStorm the only flow you will see is the funnel flow.
-====
+A Flow is a "execution flow" recording unit. The only purpose of a flow is to group recording activity.
+This grouping allows us for example to run some code and record it under "flow-0", then modify our code, run it again, and
+record this second run (or flow) under "flow-1". Now we can access both recordings separately.
 
-A flow will happen in one or more threads. A separate tab will show for each thread.
+You can use the `Recording on` combo-box on the toolbar to select under what flow new recordings are going to be stored.
 
-For example if we trace a form that spawns multiple threads :
+Whenever there is something recorded for a flow, a new tab with the flow name will appear.
 
-[,clojure]
-----
-#rtrace (-> (pmap (fn [i] (* i i)) (range 5)))
-----
+Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a list of threads
+we have recordings for. This threads inside flows will be referred sometimes as timelines, since they are a sequence of recording steps.
+
+The `Flows` tool is all about exploring your recorded timelines.
+
+Let's say for example we have selected to record under `flow-1` and run some multi threaded code.
+We are going to see something like this :
 
 image::user_guide_images/thread_outer_form.png[]
 
-the `(-> (pmap ... (range 5)))` form will run on the `main` thread
+There is a lot going on in the screenshot above, but the most important are :
+
+      - we have configured FlowStorm to record under `flow-1`
+      - we have recorded stuff under `flow-1` and `flow-0`      
+      - we are currently looking `flow-1` which contains recorded activity in 5 different threads
+      - we have opened the first thread, and we are exploring it in the code stepper
 
 image::user_guide_images/thread_inner_form.png[]
 
-while the `(fn [i] (* i i))`. executions will be distributed in the `clojure-agent-send-off-pool-*` since `clojure.core/pmap` is backed by a thread pool.
+This second image shows us exploring the second thread on the `flow-1` list.
 
-Anything instrumented that isn't run under #rtrace will end up in the funnel flow, which accumulates all traces that don't contain any flow-id.
+There are currently 3 tools to explore the recorded timelines, which we are going to describe next.
 
-image::user_guide_images/funnel_flow.png[]
-
-=== Code tool
+== Code tool
 
 image::user_guide_images/code_tool_tab.png[]
 
 The code tool is the second of the `Flows` tab. It provides most of the functionality found in a traditional debugger.
 You can use it to step over each expression, visualize values, locals and more.
 
-==== Code stepping
+=== Code stepping
 
 The code tool allows you to step and "travel throught time" in two ways:
 
@@ -862,9 +694,6 @@ The buttons around the step counter are :
 - Jump to the first step of the recording.
 - Jump to the last step of the recording.
 
-The last stepping controls to the right are the <<#_power_stepping, power stepping>> controls.
-
-
 On the first row we have more controls, also for moving around in time.
 
 From left to right we have :
@@ -872,8 +701,7 @@ From left to right we have :
 - Undo navigation
 - Redo navigation
 - Add a <<#_bookmarks, bookmark>>
-- Re run flow. This allows you to re-run the entire flow if it is different from the funnel flow. Only useful in vanilla FlowStorm.
-- The <<#_searching,value search>> tool
+- The last stepping controls to the right are the <<#_power_stepping, power stepping>> controls.
 
 [NOTE]
 .Highlighting
@@ -908,7 +736,7 @@ recorded at that coordinate (if any) and move the stepper to that point in time.
 You also have `Jump to first record here` which will scan from the beginning of the timeline and `Jump backwards here`
 which will search backwards from the current position.
 
-==== Power stepping
+=== Power stepping
 
 image::user_guide_images/controls_power_custom.png[]
 
@@ -939,7 +767,7 @@ Custom power stepping is only supported in Clojure now.
 ====
 
 
-==== Searching
+=== Searching
 
 You can use the search tool to search over all your recorded values. Find the search tool on the toolbar (the magnifier glass)
 or under `View -> Search`.
@@ -962,7 +790,7 @@ means.
 
 Double clicking on any of the search results will take you to that point in time.
 
-==== Loops
+=== Loops
 
 When clicking on a highlighted form two things can happen :
 
@@ -972,7 +800,7 @@ When clicking on a highlighted form two things can happen :
 
 image::user_guide_images/loops.png[]
 
-==== Exceptions debugging
+=== Exceptions debugging
 
 `FlowStorm` will report all functions that didn't return because an exception unwind the stack, even
 when that exception was captured further and it didn't bubble up.
@@ -984,7 +812,7 @@ together with the exceptions types. If you hover the mouse over any of them, a t
 
 Clicking on any of them will position the stepper at that point in time so you can explore what happened before.
 
-==== Locals
+=== Locals
 
 The locals panel will always show the locals bounded for the current point in time.
 
@@ -1000,7 +828,7 @@ Right clicking on them will show a menu where you can :
 `Define all frame vars` will define all the bindings for the entire frame in the current form namespace.
 This is useful for trying things at your editor as described here https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required
 
-==== Stack
+=== Stack
 
 The stack panel will always show the current stacktrace. Be aware that the stacktrace
 only include functions calls that had been recorded, so if you aren't recording everything
@@ -1010,7 +838,7 @@ image::user_guide_images/stack.png[]
 
 Double clicking on any of the stack entries will make the debugger jump to that point in time.
 
-==== Value panels
+=== Value panels
 
 Value panels show in many places in _FlowStorm_.
 
@@ -1020,13 +848,13 @@ The value panel in the code tool always display a pretty print of the current ex
 
 You can configure the print-level and print-meta for the pretty printing by using the controls at the top.
 
-===== Define value for repl
+==== Define value for repl
 
 Use the `def` button to define a var pointing to the current inspector value.
 
 You can use / to provide a namespace, otherwise will be defined under [cljs.]user
 
-==== Bookmarks
+== Bookmarks
 
 Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
 you to mark execution positions so you can come back to them later.
@@ -1042,12 +870,7 @@ image::user_guide_images/bookmarks.png[]
 
 Double clicking on any bookmark will make the debugger jump back to its position.
 
-==== Re running a flow
-
-Every time you run a form with #rtrace _FlowStorm_ keeps a copy of the form. You can use the re-run-flow button after instrumenting or un-instrumenting code,
-since it allows you to re run the form with a single click.
-
-=== Call Stack tree tool
+== Call Stack tree tool
 
 The call stack tree tool is the first one of the `Flows` tab. It allows you to see the execution flow by expanding its call stack tree.
 
@@ -1070,7 +893,7 @@ Use the button at the top left corner of the tree tool to show the current frame
 
 There are also two <<#_value_panels,value panels>> at the bottom that show the arguments and return value for the currently selected function call.
 
-=== Functions tool
+== Functions tool
 
 The functions tool is the third one of the `Flows` tab.
 
@@ -1087,7 +910,7 @@ jump through time much faster than single stepping.
 
 You can search over the functions list by using the bar at the top.
 
-==== Function calls
+=== Function calls
 
 Clicking on the calls counter of any function will display all function calls on the right sorted by time.
 Each line will show the arguments vector for each call, and their return value.
@@ -1099,21 +922,14 @@ Double clicking on any row in the functions call list will jump to the stepper a
 
 You can also use the `args` and `ret` buttons to open the values on the inspector.
 
-==== Un-instrumenting functions
+= Browser tool
 
-Since the functions tool shows all the functions sorted by how many time they have been called it is a good tool to
-see where most of your traces are coming from. If you want to reduce the number of traces, to make let's say, search faster,
-you can right click on any function to un instrument it. You will have to <<#_re_running_a_flow,re run the flow>> after.
-
-== Browser tool
-
-The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and also instrument/un-instrument them.
+The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and if you are a Vanilla FlowStorm user
+you can also use it to <<#_instrument_with_the_browser, instrument functions>> .
 
 image::user_guide_images/browser.png[]
 
-See <<#_instrument_with_the_browser, instrument with the browser>> for more info.
-
-== Taps tool
+= Taps tool
 
 Use the taps tool to visualize your `tap>`.
 
@@ -1143,99 +959,7 @@ Use the `clear` button to clear the list.
 
 There is also `#tap-stack-trace`. It will tap the current stack trace.
 
-== Docs tool
-
-Generate projects functions documentation by sampling their executions.
-
-=== Generating docs
-
-Let's say we want to generate documentation for datascript(https://github.com/tonsky/datascript/). 
-
-First we clone the repo. Then we can generate it by calling `flow-storm.api/cli-doc`. 
-
-For convenience we are going to create a script `document.sh` like this :
-
-[,bash]
-----
-#!/bin/bash
-
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}' \
-    -X:test flow-storm.api/cli-doc \
-    :result-name '"datascript-flow-docs-1.4.0"' \
-    :print-unsampled? true \
-    :instrument-ns '#{"datascript"}' \
-    :fn-symb 'datascript.test/test-clj' \
-    :fn-args '[]' \
-    :examples-pprint? true \
-    :examples-print-length 2 \
-    :examples-print-level 3 
-----
-
-The idea behind `flow-storm.api/cli-doc` is to act as a trampoline, so it will instrument our code base as specified by `:instrument-ns` 
-then call whatever function provided by `:fn-symb` and `:fn-args`.
-
-For this case we are going to instrument every namespace that starts with "datascript" and then run `datascript.test/test-clj` without arguments.
-
-For the rest of the options check `flow-storm.api/cli-doc` doc string.
-
-It will output 3 useful things :
-
-- datascript-flow-docs-1.4.0.jar containing just a sample.edn file with all the data
-- the coverage percentage (how many fns were sampled over the instrumented ones)
-- unsampled fns, which are all the functions that were instrumented but the test never called
-
-So if you are running your tests, as a bonus you will get your test "coverage" and a list of functions your 
-tests aren't exercising, you should see something like this after it finishes :
-
-image::user_guide_images/flow_docs_cli.png[]
-
-=== Publishing docs
-
-Given the docs are already in jar format you can publish them to your local repo or any maven repo (like Clojars) 
-with the usual mvn utilities.
-
-=== Consuming docs
-
-_FlowStorm_ debugger provides a way of visualizing whatever docs you have on your classpath.
-
-For this you can add the docs and _FlowStorm_ to your classpaths as usual, like :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} dsdocs/dsdocs {:local/root "/home/user/datascript/datascript-flow-docs-1.4.0.jar"}}}'
-----
-
-or if you want to use the documentation I already generated and uploaded to my clojars group try :
-
-[,bash]
-----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} com.github.flow-storm/datascript-flow-docs {:mvn/version "1.4.0"}}}'
-----
-
-and now we can run the debugger :
-
-[,clojure]
-----
-(require '[flow-storm.api :as fs-api])
-
-(fs-api/local-connect)
-----
-
-The documentation will be available under the Docs tool.
-
-You can search and click over all the functions you have loaded from all your imported docs to see the details.
-
-Currently it shows fns meta, arguments, returns, and call examples.
-
-image::user_guide_images/flow_docs_browser.png[]
-
-=== TIPS
-
-If you are using the emacs integration you can do `C-c C-f d` (flow-storm-show-current-var-doc) to show the current function documentation 
-in the debugger.
-
-
-== Timeline tool
+= Timeline tool
 
 You can use this tool to record, display and navigate a total order of your recordings in a timeline, in the order they executed.
 This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.
@@ -1271,7 +995,7 @@ Rendering the timeline needs some processing to render each sub-form and print e
 if you try it on big recordings.
 ====
 
-== Printer tool
+= Printer tool
 
 _FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
 inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
@@ -1304,7 +1028,7 @@ be added after a space at the end.
 ====
 
 
-== Value inspector
+= Value inspector
 
 Use the value inspector to explore any data.
 
@@ -1326,7 +1050,7 @@ forward and backwards in the execution the current selected value.
 Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore your objects also.
 ====
 
-== Thread breakpoints
+= Thread breakpoints
 
 image::user_guide_images/thread_breaks.png[]
 
@@ -1366,45 +1090,7 @@ You can remove breakpoints by :
 - Calling `flow-storm.api/remove-break` to remove a single breakpoint
 - Calling `flow-storm.api/clear-breaks` to remove all breakpoints
 
-== Limiting recording
-
-When recording an application execution (specially when using _ClojureStorm_ or _ClojureScriptStorm_) is common to find some
-high frequency functions adding a lot of noise to your recordings. For example a mouse-move event processing will generate a lot of
-recordings while you use your app.
-
-Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
-when it isn't, you can try functions call limiting.
-
-There are a couple of ways to limit your functions calls by thread.
-
-The first one is by adding the `flowstorm.threadFnCallLimits` JVM prop.
-
-For example, you can add `"-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4"` so every time the system starts, limits will be set for
-`org.my-app/fn1` and `org.my-app/fn2`. The number next to them is the limit. When a function reaches the limit _FlowStorm_ will stop recording calls
-to it and all the functions down its callstack.
-
-You can also modify the limits from your repl, by calling `flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]`.
-In ClojureScript you need to call them via your cljs repl.
-
-All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
-the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.
-
-When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
-global limits definitions.
-
-== The tool bar
-
-The toolbar provides quick access to some general commands :
-
-image::user_guide_images/toolbar.png[]
-
-From left to right :
-
-- Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
-- Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
-- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
-
-== Programmable debugging
+= Programmable debugging
 
 _FlowStorm_ gives you full access to its internal indexes from the repl in Clojure and ClojureScript.
 These allows you to explore your recordings using Clojure and write small programs to analyze
@@ -1426,7 +1112,7 @@ So first we require the api ns as `ia`.
 Now from the UI, you can get the thread-id of your recordings (the number next to the thread name)
 which you will need for accessing them from the repl.
 
-=== Timelines
+== Timelines
 
 Let's say you want to explore recordings on thread 32. You can retrieve its timeline by calling `ia/get-timeline` like this :
 
@@ -1516,7 +1202,7 @@ You can also access the timeline as a tree by calling :
 
 Take a look at their docstrings for more info.
 
-=== Forms
+== Forms
   
 You can retrieve forms by form id with `get-form` and then use `get-sub-form-at-coord` and a coordinate.
 
@@ -1556,7 +1242,7 @@ user> (ia/get-sub-form-at-coord form (:coord expr))
 a                    
 ----
 
-=== Multi-thread timeline
+== Multi-thread timeline
   
 If you have recorded a multi-thread timeline, you can retrieve it with `total-order-timeline` like this :
 
@@ -1591,7 +1277,7 @@ user> (->> mt-timeline
 
 Notice that each of these entries contains a flow-id and thread-id also.
 
-=== Other utilities
+== Other utilities
 
 There are other utitities in the api ns that could be useful, some of the most interesting ones :
 
@@ -1602,8 +1288,92 @@ There are other utitities in the api ns that could be useful, some of the most i
 
 Take a look at their docstrings for more info.
   
-  
-== Dealing with mutable values
+= Remote debugging
+
+You can remotely debug any Clojure application the exposes a nrepl server.
+
+In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
+`flow-storm-inst` instead of `flow-storm-dbg`, being the former a slimmed down version of the later one that
+doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
+
+The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :
+
+[,bash]
+----
+ssh -L 9000:localhost:9000 -R 7722:localhost:7722 my-debuggee-box.com
+----
+
+assuming your remote process at my-debuggee-box.com has started a nrepl server listening on port 9000 and 
+that the debugger websocket server is running on the default port.
+
+After the tunnel is established, you can run you debugger UI like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
+----
+
+and that is it.
+
+If you need to connect the debugger to a remote process without a ssh tunnel or you need to configure the websocket server port you can do it like this :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
+----
+
+== Docker
+
+If you run you process inside a docker container, here is a basic template for using _FlowStorm_ with it
+https://github.com/flow-storm/docker-flow-storm-basic
+
+= Dealing with too many traces
+
+When recording an application's execution (specially when using _ClojureStorm_ or _ClojureScriptStorm_) it could happen
+that your process starts running out of heap. This section documents some tools FlowStorm provides to deal with this situations.
+
+Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
+when it isn't, here are some other options.
+
+A common situation is to see some high frequency functions adding a lot of noise to your recordings. For example a MouseMove event processing
+will generate a lot of recordings while you use your app. There are a couple of ways to limit your functions calls by thread. You can identify
+this kind of functions with the <<#_functions_tool,functions tool>>.
+
+One tool you can use in this situations is the `flowstorm.threadFnCallLimits` JVM prop.
+
+For example, you can add `"-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4"` so every time the system starts, limits will be set for
+`org.my-app/fn1` and `org.my-app/fn2`. The number next to them is the limit. When a function reaches the limit _FlowStorm_ will stop recording calls
+to it and all the functions down its callstack.
+
+You can also modify the limits from your repl, by calling `flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]`.
+In ClojureScript you need to call them via your cljs repl api.
+
+All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
+the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.
+
+When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
+global limits definitions.
+
+If you are tracing some code that ends up in a infinite loop the debugger will choke on
+too many traces, making everything slow and your only option is probably to restart it.
+
+For preventing this, _FlowStorm_ provides a fuse/breaker, called thread trace limit.
+It is off by default but you can enable it from the Config menu.
+
+image::user_guide_images/thread_trace_limit_menu.png[]
+
+image::user_guide_images/thread_trace_limit_dialog.png[]
+
+Let's say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and stop recording.
+Your code will continue execution as normal, which you can break using
+your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.
+
+You can set a limit of 0 to disable it again.
+
+This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.
+
+= Dealing with mutable values
 
 _FlowStorm_ will retain all values pointers when code executes so you can analyze them later. This works great with immutable values but
 when your code uses mutable values like this :
@@ -1648,28 +1418,7 @@ If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snap
 so no need to implement `flow-storm.runtime.values/snapshot-value`
 ====
 
-== Debugging infinite loop/recursion
-
-If you are tracing some code that ends up in a infinite loop the debugger will choke on
-too many traces, making everything slow and your only option is probably to restart it.
-
-For preventing this, _FlowStorm_ provides a fuse/breaker, called thread trace limit.
-It is off by default but you can enable it from the Config menu.
-
-image::user_guide_images/thread_trace_limit_menu.png[]
-
-image::user_guide_images/thread_trace_limit_dialog.png[]
-
-Let's say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
-record those first 1000 traces and stop recording.
-Your code will continue execution as normal, which you can break using
-your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.
-
-You can set a limit of 0 to disable it again.
-
-This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.
-
-== Controlling instrumentation
+= Controlling instrumentation
 
 If you are using _ClojureStorm_ or _ClojureScriptStorm_ it is important to learn how to control what gets instrumented and
 how to uninstrument things.
@@ -1700,7 +1449,7 @@ namespaces to skip. All these together allows you to instrument you whole app bu
 The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
 repl. This is slightly different between Clojure and ClojureScript.
 
-=== Controlling instrumentation in ClojureStorm
+== Controlling instrumentation in ClojureStorm
 
 You can disable/enable instrumentation by evaluating the keys `:noinst` and  `:inst` on your repl.
 Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
@@ -1722,7 +1471,7 @@ For adding/removing and checking your prefixes without restarting your repl you 
 
 You can also check your current prefixes by evaluating the `:help` keyword at the repl.
 
-=== Controlling instrumentation in ClojureScriptStorm 
+== Controlling instrumentation in ClojureScriptStorm 
 
 You can add,remove and check your prefixes and also enable/disable instrumentation in ClojureScript with your Clojure
 repl (not the Cljs one) by calling :
@@ -1747,7 +1496,131 @@ Shadow-cljs will not recompile files that haven't been modified since the last c
 parameter for this. If you provide `src` for example, it will walk the directory structure down and touch every file,
 which should fire a recompilation.
 
-== Styling and theming
+== Instrumentation in Vanilla FlowStorm
+
+[NOTE]
+.ClojureStorm
+====
+Instructions here only apply to vanilla _FlowStorm_. If you are using _ClojureStorm_ or _ClojureScriptStorm_ (recommended)
+this is done automatically for you, so just skip this section.
+====
+
+Code instrumentation in _FlowStorm_ is done by rewriting your code, in a way that doesn't change its behavior
+but when executed will trace everything the code is doing.
+
+=== Instrument any form with #trace
+
+You can instrument any top level form at the repl by writing `#trace` before it, like this :
+
+[,clojure]
+----
+#trace
+(defn sum [a b]
+  (+ a b))
+----
+
+and then evaluating the form.
+
+important:: `#trace` is meant to be used with forms that don't run immediately, like: defn, defmethod, extend-type, etc.
+Use `#rtrace` to trace and run a form, like `#rtrace (map inc (range 10))`.
+
+=== Run code with #rtrace
+
+`#rtrace` is useful in two situations :
+
+First, when instrumenting and running a simple form at the repl, like:
+
+[,clojure]
+----
+#rtrace (-> (range) (filter odd?) (take 10) (reduce +))
+----
+
+=== Instrument namespaces
+
+_FlowStorm_ allows you to instrument entire namespaces by providing `flow-storm.api/instrument-namespaces-clj`.
+
+You call it like this :
+
+[,clojure]
+----
+(instrument-namespaces-clj #{"org.my-app.core" "cljs."})
+----
+
+The first argument is a set of namespaces prefixes to instrument. In the previous example it means
+instrument all namespaces starting with `org.my-app.core`, and all starting with `cljs.`
+
+The second argument can be a map supporting the following options :
+
+- `:excluding-ns` a set of strings with namespaces that should be excluded
+- `:disable` a set containing any of #{`:expr` `:binding` `:anonymous-fn`} useful for disabling unnecessary traces in code that generate too many
+- `:verbose?` when true show more logging
+
+=== What can't be instrumented?
+
+These are some limitations when instrumenting forms :
+
+1. Very big forms can't be fully instrumented. The JVM spec has a limit on the size of methods and instrumentation adds a lot of code.
+When instrumenting entire namespaces, if you hit this limit on a form a warning will printed on the console saying `Instrumented expression is too large for the Clojure compiler`
+and _FlowStorm_ automatically tries to instrument it with a lighter profile, by disabling some instrumentation.
+
+2. Functions that call recur without a loop
+
+3. Functions that return recursive lazy sequences. Like `(fn foo [] (lazy-seq (... (foo))))`
+
+=== Un-instrument code
+
+Un-instrumenting code that has been instrumented with `#trace` or `#ctrace` is straight forward, just remove the tag and re evaluate the form.
+
+To un-instrument entire namespaces you can use `flow-storm.api/uninstrument-namespaces-clj` which accept a set of namespaces prefixes.
+
+=== Instrument with the browser
+
+Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
+and weren't loaded from a file. 
+
+==== Instrument vars
+
+Using the browser you can navigate to the var you are interested in and then use the instrument button to instrument it.
+
+image::user_guide_images/browser_var_instrumentation.png[]
+
+There are two ways of instrumenting a var :
+
+- Instrument (instrument just the var source code)
+- Instrument recursively (recursively instrument the var and all vars referred by it)
+
+==== Instrument namespaces
+
+Using the browser you can also instrument multiple namespaces. Do this by selecting the namespaces you are interested in
+and then a right click should show you a menu with two instrumentation commands.
+
+image::user_guide_images/browser_ns_instrumentation.png[]
+
+- `Instrument namespace :light` - record function arguments and return values (not expressions, no bindings tracing)
+
+- `Instrument namespace :full` fully instrument everything
+
+Light instrumentation is useful when you know the functions generate too many traces, so you can opt to trace just functions
+calls and returns. You can then <<#_fully_instrument_a_form_from_the_code_view, fully instrument>> whatever functions you are interested in.
+
+==== Un-instrument code
+
+The bottom panel shows all instrumented vars and namespaces.
+
+image::user_guide_images/browser_uninstrument.png[]
+
+You can un-instrument them temporarily with the enable/disable checkbox or
+permanently with the del button.
+
+==== Fully instrument a form from the code view
+
+image::user_guide_images/fully_instrument_form.png[]
+
+If you have instrumented a form with the <<#_instrument_namespaces_2, :light profile>> you can fully instrument it by right clicking on the current form
+and then clicking `Fully instrument this form`.
+
+
+= Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map
 with the `:styles`, `:title` and `:theme` keywords. If `:styles` points to a css file it will be used to overwrite the default styles, in case you 
@@ -1769,9 +1642,9 @@ If you are using _ClojureStorm_ you can also provide them with :
    
 You can overwrite all the styles defined here https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/styles.css
 
-== Key bindings
+= Key bindings
 
-=== General
+== General
 
 - `Ctrl-g` Cancel any long running task (only search supported yet)
 - `Ctrl-l` Clean all debugger state
@@ -1785,7 +1658,7 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 - `T`      "Select the Taps tool"
 - `D`      "Select the Docs tool"
 
-=== Flows
+== Flows
 
 - `Esc` Select the funnel default flow threads list
 - `0` Select flow id 0 threads list
@@ -1805,7 +1678,7 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 - `Ctrl-z` Undo navigation
 - `Ctrl-r` Redo navigation
 
-== Debugging react native applications
+= Debugging react native applications
 
 Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.
 
@@ -1831,7 +1704,7 @@ Also remember that you need to have installed the `websocket` npm library. You c
 npm install websocket --save
 ----
 
-== Working on Windows with WSL2
+= Working on Windows with WSL2
 
 For those using WSL2 on Windows. You'll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.
 
@@ -1850,7 +1723,7 @@ Then everything should work. The steps are:
     . That should get you into the REPL, where you should type (require '[flow-storm.api :as fs-api])
     . Finally, type (fs-api/local-connect) and you're done!
 
-== Opening forms in editors
+= Opening forms in editors
 
 You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :
 
@@ -1863,7 +1736,7 @@ which should open the file at that specific line (useful for long forms).
 
 Here are some known setups for most common editors :
 
-=== Emacs
+== Emacs
 
 [,clojure]
 ----
@@ -1871,96 +1744,44 @@ Here are some known setups for most common editors :
 "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
 ----
 
-=== VSCode
+== VSCode
 
 [,clojure]
 ----
 "-Dflowstorm.fileEditorCommand=code --goto <<FILE>>:<<LINE>>"
 ----
 
-=== IntelliJ
+== IntelliJ
 
 [,clojure]
 ----
 "-Dflowstorm.fileEditorCommand=idea --line <<LINE>> <<FILE>>"
 ----
 
-=== Vim
+== Vim
 
 [,clojure]
 ----
 "-Dflowstorm.fileEditorCommand=vim +<<LINE>> <<FILE>>"
 ----
 
-== Editors/IDEs integration
+= Editors/IDEs integration
 
-=== Emacs
+== Emacs
 
 Checkout https://github.com/flow-storm/cider-storm[Cider Storm] an Emacs Cider front-end with support for Clojure and ClojureScript.
 
-==== Opening forms
+== VSCode
 
-You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.
+== IntelliJ IDEA (Cursive)
 
+= Tutorials and demos
 
-If something doesn't work try the command on your shell first, maybe you need the full path to the binary.
+https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top
 
-=== VSCode
+= Troubleshooting
 
-==== Opening forms
-
-You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.
-
-
-If the files are inside a jar you can put any command here using the <<JAR>>, <<FILE>>, and <<LINE>> placeholders that
-will be executed by FlowStorm to open it. I don't know any for VSCode, if you know how to do it please submit a PR.
-
-[,clojure]
-----
-"-Dflowstorm.jarEditorCommand="
-----
-
-=== IntelliJ IDEA (Cursive)
-
-==== Opening forms
-
-You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars.
-
-"-Dflowstorm.jarEditorCommand="
-"-Dflowstorm.fileEditorCommand="
-
-If something doesn't work try the command on your shell first, maybe you need the full path to the binary.
-
-
-== Tutorials and demos
-
-- https://www.youtube.com/watch?v=2nH59edD5Uo[Show me your REPL episode]
-- https://www.youtube.com/watch?v=PbGVTVs1yiU[Debugging Clojure with FlowStorm]
-- https://www.youtube.com/watch?v=jMYl32lnMhI[Debugging ClojureScript with FlowStorm]
-- https://www.youtube.com/watch?v=A3AzlqNwUXc[Presentation at London Clojurians]
-- https://www.youtube.com/watch?v=YnpQMrkj4v8[Flows basics]
-- https://youtu.be/YnpQMrkj4v8?t=332[Instrumenting libraries]
-- https://youtu.be/YnpQMrkj4v8?t=533[Debugging the ClojureScript compiler]
-- https://www.youtube.com/watch?v=cnLwRzxrKDk[Browser]
-- https://youtu.be/cnLwRzxrKDk?t=103[Def button]
-- https://youtu.be/cnLwRzxrKDk?t=133[Conditional tracing]
-
-== Troubleshooting
-
-=== Instrument verbose
-
-By default functions like `flow-storm.api/instrument-namespaces-clj` will not print warnings on the console. You can log extra information
-by providing `:verbose? true` to the options map.
-
-=== Run verbose
-
-`#rtrace form` just expands to `(flow-storm.api/runi {} form)`.
-
-The first argument is a options map, which accepts `:verbose? :true`, in which case _FlowStorm_ will print to the console tracing stats.
-
-Is useful when you have instrumented a big application and wish to see tracing progress while running.
-
-=== Run with JDK 11
+== Run with JDK 11
 
 FlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.
 
@@ -1974,7 +1795,7 @@ org.openjfx/javafx-graphics {:mvn/version "19.0.2"}
 org.openjfx/javafx-swing    {:mvn/version "19.0.2"}
 ----
 
-== Internals, diagrams and documentation
+= Internals, diagrams and documentation
 
 For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :
 

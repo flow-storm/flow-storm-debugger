@@ -218,7 +218,6 @@
        (binding [*runtime-ctx* {:flow-id flow-id#
                                 :thread-trace-limit ~thread-trace-limit
                                 :tracing-disabled? ~tracing-disabled?}]
-         (tracer/trace-flow-init-trace {:flow-id flow-id# :form-ns curr-ns# :form (quote (runi ~opts ~form))})
 
          ~@init-forms
 
@@ -406,21 +405,15 @@
   `(instrument* {:tracing-disabled? true} ~form))
 
 (defn- read-rtrace-tag* [config form]
-  (let [{:keys [flow-id] :as full-config} (merge config (meta form))]
+  (let [full-config (merge config (meta form))]
     `(if (utils/storm-env?)
        (throw (ex-info "#rtrace and #trace can't be used with ClojureStorm, they aren't needed. All your configured compilations will be automatically instrumented. Please re-run the expression without it. Evaluation skipped." {}))
 
        (let [res# (runi ~full-config ~form)]
-         (dbg-api/jump-to-last-expression-in-this-thread ~flow-id)
+         (dbg-api/jump-to-last-expression-in-this-thread)
          res#))))
 
-(defn read-rtrace-tag [form]  (read-rtrace-tag* {:flow-id 0} form))
-(defn read-rtrace0-tag [form] (read-rtrace-tag* {:flow-id 0} form))
-(defn read-rtrace1-tag [form] (read-rtrace-tag* {:flow-id 1} form))
-(defn read-rtrace2-tag [form] (read-rtrace-tag* {:flow-id 2} form))
-(defn read-rtrace3-tag [form] (read-rtrace-tag* {:flow-id 3} form))
-(defn read-rtrace4-tag [form] (read-rtrace-tag* {:flow-id 4} form))
-(defn read-rtrace5-tag [form] (read-rtrace-tag* {:flow-id 5} form))
+(defn read-rtrace-tag [form]  (read-rtrace-tag* {} form))
 
 (defn read-tap-tag [form]
   `(let [form-val# ~form]
