@@ -12,6 +12,7 @@
 ### Changes 
     
     - Improve pprint panes. Now all of the also show exceptions
+    - #rtrace0 ... #rtrace5 reader tags were removed since they aren't needed anymore with the new flow system
     
 ### Bugs fixed
 
