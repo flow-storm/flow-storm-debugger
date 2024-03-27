@@ -9,7 +9,9 @@
     - There is a new, much more powerfull global search system instead of the old per timeline search.
       
 ### Changes 
-            
+    
+    - Improve pprint panes. Now all of the also show exceptions
+    
 ### Bugs fixed
 
 ## 3.13.1 (21-03-2024)

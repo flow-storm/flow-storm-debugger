@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.flows.search
   (:require [flow-storm.debugger.ui.utils :as ui-utils
              :refer [h-box v-box border-pane event-handler split table-view text-field
-                     combo-box label text-area icon-button]]
+                     combo-box label text-area]]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as rt-api :refer [rt-api]])
@@ -11,7 +11,7 @@
            [javafx.scene.layout VBox Priority]
            [javafx.scene.input MouseButton]))
 
-(defn search [{:keys [flow-id thread-id print-level print-length] :as criteria}]
+(defn search [{:keys [print-level print-length] :as criteria}]
   (let [[{:keys [add-all clear]}] (obj-lookup "search_results_table_data")]
     (clear)
     (tasks/submit-task rt-api/search-collect-timelines-entries-task

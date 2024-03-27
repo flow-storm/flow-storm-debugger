@@ -60,7 +60,7 @@
     (store-obj flow-id thread-id (ui-utils/thread-pprint-tap-btn-id pane-id) tap-btn)
     box))
 
-(defn update-pprint-pane [flow-id thread-id pane-id val opts]
+(defn update-pprint-pane [flow-id thread-id pane-id {:keys [val-ref extra-text class] :as data} opts]
   (let [[result-type-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-type-lbl-id pane-id))
         [result-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-area-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-level-txt-id pane-id))
@@ -68,36 +68,28 @@
         [def-btn] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-def-btn-id pane-id))
         [inspect-btn] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-inspect-btn-id pane-id))
         [tap-btn] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-tap-btn-id pane-id))
-        {:keys [val-str val-type]} (when val
-                                     (runtime-api/val-pprint rt-api val {:print-length 50
-                                                                         :print-level (Integer/parseInt (.getText print-level-txt))
-                                                                         :print-meta? (.isSelected print-meta-chk)
-                                                                         :pprint? true}))]
-    (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val)))
-    (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val opts)))
-    (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val)))
+        [extra-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id))
 
-    (.setText result-txt val-str)
-    (.setText result-type-lbl (format "Type: %s" val-type))))
+        {:keys [val-str val-type]} (when val-ref
+                                     (runtime-api/val-pprint rt-api val-ref {:print-length 50
+                                                                             :print-level (Integer/parseInt (.getText print-level-txt))
+                                                                             :print-meta? (.isSelected print-meta-chk)
+                                                                             :pprint? true}))]
+    (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val-ref)))
+    (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val-ref opts)))
+    (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val-ref)))
 
-(defn update-return-pprint-pane [flow-id thread-id pane-id {:keys [ret throwable return/kind]} opts]
-  (let [[extra-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-extra-lbl-id pane-id))
-        val (case kind
-              :return ret
-              :unwind throwable
-              :waiting nil
-              nil)]
-    (case kind
-      :waiting (do
-                 (.setText extra-lbl "Waiting")
+    (.setText extra-lbl (or extra-text ""))
+    (case class
+      :warning (do
                  (ui-utils/rm-class extra-lbl "fail")
                  (ui-utils/add-class extra-lbl "warning"))
-      :unwind (do
-                (.setText extra-lbl "Throwed")
-                (ui-utils/rm-class extra-lbl "warning")
-                (ui-utils/add-class extra-lbl "fail"))
-      :return (do
-                (ui-utils/rm-class extra-lbl "fail")
-                (ui-utils/rm-class extra-lbl "warning")
-                (.setText extra-lbl "")))
-    (update-pprint-pane flow-id thread-id pane-id val opts)))
+      :fail (do
+              (ui-utils/rm-class extra-lbl "warning")
+              (ui-utils/add-class extra-lbl "fail"))
+      (do
+        (ui-utils/rm-class extra-lbl "fail")
+        (ui-utils/rm-class extra-lbl "warning")))
+
+    (.setText result-txt val-str)
+    (.setText result-type-lbl (format "Type: %s" (or val-type "")))))

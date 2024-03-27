@@ -3,7 +3,7 @@
             [flow-storm.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor]]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box border-pane]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box]]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
@@ -11,12 +11,12 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.tasks :as tasks]
             [hansel.utils :refer [get-form-at-coord]])
-  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextField TextInputDialog]
+  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextInputDialog]
            [javafx.scene Node]
            [javafx.geometry Orientation Pos]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.text Font]
-           [javafx.scene.input KeyCode MouseButton KeyEvent ScrollEvent]
+           [javafx.scene.input MouseButton KeyEvent ScrollEvent]
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]
            [javafx.scene.input MouseEvent]))
@@ -467,7 +467,14 @@
       (flow-cmp/update-pprint-pane flow-id
                                    thread-id
                                    "expr_result"
-                                   (:result next-tentry)
+                                   (let [[val-ref e-text class] (case (:type next-tentry)
+                                                                  :fn-call   [nil                      "Call"    :normal]
+                                                                  :expr      [(:result next-tentry)    ""        :normal]
+                                                                  :fn-return [(:result next-tentry)    "Return"  :normal]
+                                                                  :fn-unwind [(:throwable next-tentry) "Throws" :fail])]
+                                     {:val-ref   val-ref
+                                      :extra-text e-text
+                                      :class      class})
                                    {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)})
 
       ;; update locals panel

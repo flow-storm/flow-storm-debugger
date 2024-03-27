@@ -205,17 +205,25 @@
                   (proxy [ChangeListener] []
                     (changed [changed old-val new-val]
                       (when new-val
-                        (let [{:keys [args-vec] :as entry} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
+                        (let [{:keys [args-vec return/kind] :as frame} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
                           (flow-cmp/update-pprint-pane flow-id
                                                        thread-id
                                                        "fn_args"
-                                                       args-vec
+                                                       {:val-ref args-vec}
                                                        {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)})
-                          (flow-cmp/update-return-pprint-pane flow-id
-                                                              thread-id
-                                                              "fn_ret"
-                                                              entry
-                                                              {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)}))))))
+                          (flow-cmp/update-pprint-pane flow-id
+                                                       thread-id
+                                                       "fn_ret"
+                                                       {:val-ref    (if (= :unwind kind) (:throwable frame) (:ret frame))
+                                                        :extra-text (case kind
+                                                                      :waiting "Return waiting"
+                                                                      :unwind  "Throwed"
+                                                                      nil)
+                                                        :class (case kind
+                                                                 :waiting :warning
+                                                                 :unwind  :fail
+                                                                 #_else   :normal)}
+                                                       {:find-and-jump-same-val (partial flow-code/find-and-jump-same-val flow-id thread-id)}))))))
 
     (store-obj flow-id thread-id "callstack_tree_view" tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)

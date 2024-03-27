@@ -345,24 +345,6 @@
               tl-entry (get timeline target-idx)]
           (index-protos/as-immutable tl-entry)))))
   
-#_(defn timeline-find-entry [timeline pred {:keys [from-idx backward? needs-form-id?]}]
-  (locking timeline
-    (let [last-idx (if backward?
-                     0
-                     (dec (count timeline)))
-          next-idx (if backward? dec inc)]
-      (loop [i from-idx]
-        (when (not= i last-idx)
-          (let [tl-entry (get timeline i)                
-                form-id (when needs-form-id?
-                          (let [fn-call (if (fn-call-trace/fn-call-trace? tl-entry)
-                                          tl-entry
-                                          (get timeline (index-protos/fn-call-idx tl-entry)))]
-                            (index-protos/get-form-id fn-call)))]
-            (if (pred form-id tl-entry)
-              (index-protos/as-immutable tl-entry)
-              (recur (next-idx i)))))))))
-
 (defn tree-frame-data [timeline fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
   (if (= fn-call-idx tree-root-idx)
     {:root? true}

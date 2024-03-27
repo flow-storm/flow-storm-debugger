@@ -254,7 +254,7 @@
      (index-api/make-fid-tid-timelines {:flow-id flow-id :thread-id thread-id})
      xf)))
 
-(defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str from-idx] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
+(defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
   (let [collector-xf (case search-type
                        :pr-str (keep (fn [tl-entry]
                                        (when (or (expr-trace/expr-trace? tl-entry)
@@ -271,7 +271,7 @@
                                                  (assoc :entry-preview pprint-val)))))))
                        :custorm-predicate #?(:clj (let [custom-pred-fn (try
                                                                          (eval (read-string predicate-code-str))
-                                                                         (catch Exception e (constantly false)))]
+                                                                         (catch Exception _ (constantly false)))]
                                                     (keep (fn [tl-entry]                                                            
                                                             (try
                                                               (when (or (expr-trace/expr-trace? tl-entry)
@@ -288,7 +288,7 @@
                                                                           reference-timeline-entry!
                                                                           (assoc :entry-preview pprint-val))))))
                                                               (catch Exception _ nil)))))
-                                             :cljs identity))]
+                                             :cljs (do #_:clj-kondo/ignore predicate-code-str identity)))]
     (submit-async-interruptible-batched-process-timelines-task
      (index-api/make-fid-tid-timelines criteria)   
      collector-xf)))
