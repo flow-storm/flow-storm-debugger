@@ -644,11 +644,7 @@
                                            :tooltip "Undo navigation")
         redo-nav-btn (ui-utils/icon-button :icon-name "mdi-redo"
                                            :on-click (fn [] (redo-jump flow-id thread-id))
-                                           :tooltip "Redo navigation")
-        {:keys [flow/execution-expr]} (dbg-state/get-flow flow-id)
-
-        execution-expression? (and (:ns execution-expr)
-                                   (:form execution-expr))]
+                                           :tooltip "Redo navigation")]
     (doto (h-box [undo-nav-btn redo-nav-btn
                   bookmark-btn])
       (.setSpacing 2.0))))

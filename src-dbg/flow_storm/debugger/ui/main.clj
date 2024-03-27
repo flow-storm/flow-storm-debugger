@@ -37,8 +37,7 @@
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs]
-            [clojure.string :as str]
-            [flow-storm.debugger.runtime-api :as rt-api])
+            [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene Node]
            [javafx.stage Stage]
@@ -289,7 +288,7 @@
                                 :button-factory-fn (fn [_ i] (label (str "flow-" i)))
                                 :cell-factory-fn (fn [_ i] (label (str "flow-" i)))
                                 :on-change-fn (fn [_ new-flow-id]
-                                                (rt-api/switch-record-to-flow rt-api new-flow-id))})
+                                                (runtime-api/switch-record-to-flow rt-api new-flow-id))})
         flow-selector-box (doto (h-box [(label "Recording on : ") flows-combo])
                             (.setAlignment Pos/CENTER_LEFT)
                             (.setSpacing 5.0))]

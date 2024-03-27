@@ -435,13 +435,16 @@
                          (into-array ButtonType))
         alert-width  700
         alert-height 100
-        alert (Alert. alert-type message buttons-vec)]
+        alert (Alert. alert-type message buttons-vec)
+        dialog-pane (.getDialogPane alert)]
+
 
     (.setResizable alert true)
 
+    (-> dialog-pane .getStylesheets (.addAll (dbg-state/current-stylesheets)))
+
     (when center-on-stage
-      (let [dialog-pane (.getDialogPane alert)
-            {:keys [x y]} (stage-center-box center-on-stage alert-width alert-height)]
+      (let [{:keys [x y]} (stage-center-box center-on-stage alert-width alert-height)]
 
         (doto dialog-pane
           (.setPrefWidth alert-width)
@@ -812,12 +815,14 @@
 (defn ask-text-dialog [{:keys [header body width height center-on-stage]}]
   (let [tdiag (doto (TextInputDialog.)
                 (.setHeaderText header)
-                (.setContentText body))]
+                (.setContentText body))
+        dialog-pane (.getDialogPane tdiag)]
+
+    (-> dialog-pane .getStylesheets (.addAll (dbg-state/current-stylesheets)))
 
     (when (and width height)
-      (let [dialog-pane (.getDialogPane tdiag)]
-        (.setPrefWidth dialog-pane width)
-        (.setPrefHeight dialog-pane height)))
+      (.setPrefWidth dialog-pane width)
+      (.setPrefHeight dialog-pane height))
 
     (when (and width height center-on-stage)
       (let [{:keys [x y]} (stage-center-box center-on-stage width height)]
@@ -832,16 +837,18 @@
   (let [tdiag (doto (TextInputDialog.)
                 (.setHeaderText header)
                 (.setContentText body))
-        checkb (CheckBox.)]
+        checkb (CheckBox.)
+        dialog-pane (.getDialogPane tdiag)]
+
+    (-> dialog-pane .getStylesheets (.addAll (dbg-state/current-stylesheets)))
 
     (when bool-msg
       (.add (.getContent (.getDialogPane tdiag)) (label bool-msg) 0 2)
       (.add (.getContent (.getDialogPane tdiag)) checkb 1 2))
 
     (when (and width height)
-      (let [dialog-pane (.getDialogPane tdiag)]
-        (.setPrefWidth dialog-pane width)
-        (.setPrefHeight dialog-pane height)))
+      (.setPrefWidth dialog-pane width)
+      (.setPrefHeight dialog-pane height))
 
     (when (and width height center-on-stage)
       (let [{:keys [x y]} (stage-center-box center-on-stage width height)]

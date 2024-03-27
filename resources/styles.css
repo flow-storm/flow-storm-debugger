@@ -131,6 +131,10 @@
 	-fx-background-color: -fx-theme-base2;
 }
 
+.dialog-pane {
+    -fx-background-color: -fx-theme-base2;
+}
+
 .form-pane.form-background-highlighted {
 	-fx-background-color: -fx-theme-form-highlight;
 } 
