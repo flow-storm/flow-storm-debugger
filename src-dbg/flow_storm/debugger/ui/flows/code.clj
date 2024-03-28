@@ -129,6 +129,65 @@
 
     (.create spb)))
 
+
+(defn- make-coord-expressions-menu [flow-id thread-id clicked-coord-exprs curr-idx]
+  (let [first-entry (first clicked-coord-exprs)
+        last-entry  (get clicked-coord-exprs (dec (count clicked-coord-exprs)))
+        interesting-N 20
+        interesting-entries (cond
+                              ;; if we are currently before this expressions
+                              ;; show the first N discarding the first one since we
+                              ;; add it as a special entry
+                              (< curr-idx (:idx first-entry))
+                              (subvec clicked-coord-exprs
+                                      1
+                                      (min interesting-N (count clicked-coord-exprs)))
+
+                              ;; if we are currently after this expressions
+                              ;; show the last N discarding the last one since we
+                              ;; add it as a special entry
+                              (> curr-idx (:idx last-entry))
+                              (subvec clicked-coord-exprs
+                                      (max 0 (- (count clicked-coord-exprs) interesting-N))
+                                      (- (count clicked-coord-exprs) 2))
+
+                              ;; if we are somewhere in the middle show N/2 before
+                              ;; and N/2 after our current position
+                              :else (let [{:keys [before match after]} (utils/grep-coll clicked-coord-exprs
+                                                                                        (/ interesting-N 2)
+                                                                                        (/ interesting-N 2)
+                                                                                        (fn [{:keys [idx]}] (> idx curr-idx)))]
+                                      (-> before
+                                          (into [{:idx curr-idx}])
+                                          (into [match])
+                                          (into after))))
+
+        make-menu-item (fn [{:keys [idx result]}]
+                         (if (= idx curr-idx)
+                           {:text (format "%d - << we are here >>" curr-idx)
+                            :disable? true}
+                           (let [v-str (-> (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})
+                                           :val-str
+                                           (utils/elide-string 80))]
+                             {:text (cond
+                                      (= (:idx first-entry) idx) (format "[FIRST] %d - %s" idx v-str)
+                                      (= (:idx last-entry) idx)  (format "[LAST] %d - %s" idx v-str)
+                                      :else                      (format "%d - %s" idx v-str))
+
+                              :on-click #(jump-to-coord flow-id
+                                                        thread-id
+                                                        (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))})))
+        ctx-menu-options (mapv make-menu-item
+                               (-> [first-entry]
+                                   (into interesting-entries)
+                                   (into [last-entry])
+                                   ;; kind of hack. On small cases when we are in the middle
+                                   ;; but close to the border we are going to have first and last
+                                   ;; already added by interesting-entries
+                                   dedupe))
+        loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
+    loop-traces-menu))
+
 (defn- build-form-paint-and-arm-fn
 
   "Builds a form-paint-fn function that when called with expr-executions and a curr-coord
@@ -175,11 +234,11 @@
                                                           (some (fn [{:keys [idx-from len] :as span}]
                                                                   (when (and (>= char-idx idx-from)
                                                                              (< char-idx (+ idx-from len)))
-                                                                    span))))]
+                                                                    span))))
+                                        curr-idx (dbg-state/current-idx flow-id thread-id)]
                                     (when-let [coord (:coord clicked-span)]
                                       (if (:interesting? clicked-span)
                                         (let [clicked-coord-exprs (get interesting-coords coord)
-                                              last-idx (get-in clicked-coord-exprs [(dec (count clicked-coord-exprs)) :idx])
 
                                               token-right-click-menu (ui-utils/make-context-menu
                                                                       (cond-> [{:text "Add to prints"
@@ -212,30 +271,15 @@
                                             (if (= 1 (count clicked-coord-exprs))
                                               (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
-                                              (let [make-menu-item (fn [{:keys [idx result]}]
-                                                                     (let [v-str (:val-str (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false}))]
-                                                                       {:text (format "%s" (utils/elide-string v-str 80))
-                                                                        :on-click #(jump-to-coord flow-id
-                                                                                                  thread-id
-                                                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id idx :at))}))
-                                                    ctx-menu-options (->> clicked-coord-exprs
-                                                                          (map make-menu-item)
-                                                                          (into [{:text "Goto Last Iteration"
-                                                                                  :on-click #(jump-to-coord flow-id
-                                                                                                            thread-id
-                                                                                                            (runtime-api/timeline-entry rt-api flow-id thread-id last-idx :at))}]))
-                                                    loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
-                                                (ui-utils/show-context-menu
-                                                 loop-traces-menu
-                                                 form-code-area
-                                                 (.getScreenX mev)
-                                                 (.getScreenY mev))))))
+                                              (ui-utils/show-context-menu
+                                               (make-coord-expressions-menu flow-id thread-id clicked-coord-exprs curr-idx)
+                                               form-code-area
+                                               (.getScreenX mev)
+                                               (.getScreenY mev)))))
 
                                         ;; else if it is not interesting? we don't want to jump there
                                         ;; but provide a way of search and jump to it by coord and form
                                         (let [form-id (:form/id form)
-                                              curr-idx (dbg-state/current-idx flow-id thread-id)
-
                                               token-right-click-menu
                                               (ui-utils/make-context-menu
                                                [{:text "Jump to first record here"

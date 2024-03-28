@@ -68,9 +68,13 @@
 (defn make-context-menu [items]
   (let [cm (ContextMenu.)
         cm-items (->> items
-                      (map (fn [{:keys [text on-click]}]
-                             (doto (MenuItem. text)
-                               (.setOnAction (event-handler [_] (on-click)))))))]
+                      (map (fn [{:keys [text on-click disable?]}]
+                             (let [mi (MenuItem. text)]
+                               (when on-click
+                                 (.setOnAction mi (event-handler [_] (on-click))))
+                               (when disable?
+                                 (.setDisable mi true))
+                               mi))))]
     (-> cm
         .getItems
         (.addAll ^objects (into-array Object cm-items)))

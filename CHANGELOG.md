@@ -8,6 +8,7 @@
     - Add an option to set threads limit to throw
     - There is a new, much more powerfull global search system instead of the old per timeline search.
     - An improved Flows system that allows the user to record into multiple flows.
+    - Implement an improved loop navigation system
     
 ### Changes 
     
