@@ -105,11 +105,12 @@
          {:columns ["Flow Id" "Thread Id" "Index" "Preview"]
           :columns-width-percs [0.1 0.1 0.1 0.7]
           :cell-factory-fn (fn [_ item]
-                             (label (case (:cell-type item)
-                                      :flow-id   (str (:flow-id item))
-                                      :thread-id (str (:thread-id item))
-                                      :idx       (str (:idx item))
-                                      :preview   (str (:entry-preview item)))))
+                             (doto (label (case (:cell-type item)
+                                            :flow-id   (str (:flow-id item))
+                                            :thread-id (str (:thread-id item))
+                                            :idx       (str (:idx item))
+                                            :preview   (str (:entry-preview item))))
+                               (.setMaxHeight 50)))
           :resize-policy :constrained
           :selection-mode :single
           :on-click (fn [mev items _]
