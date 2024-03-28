@@ -75,10 +75,14 @@
   (get-all-vars-for-ns [_ nsname])
   (get-var-meta [_ var-ns var-name])
 
-  (instrument-var [_ var-ns var-name opts])
-  (uninstrument-var [_ var-ns var-name opts])
-  (instrument-namespaces [_ nsnames opts])
-  (uninstrument-namespaces [_ nanames opts])
+  (vanilla-instrument-var [_ var-ns var-name opts])
+  (vanilla-uninstrument-var [_ var-ns var-name opts])
+  (vanilla-instrument-namespaces [_ nsnames opts])
+  (vanilla-uninstrument-namespaces [_ nanames opts])
+  (modify-storm-instrumentation [_ operation opts])
+  (get-storm-instrumentation [_])
+
+  (reload-namespace [_ ns-info])
 
   (eval-form [_ form-str opts])
 
@@ -180,18 +184,27 @@
     (-> (meta (resolve (symbol var-ns var-name)))
         (update :ns (comp str ns-name))))
 
-  (instrument-var [_ var-ns var-name opts]
-    (api-call :local "instrument-var" [:clj (symbol var-ns var-name) opts]))
+  (vanilla-instrument-var [_ var-ns var-name opts]
+    (api-call :local "vanilla-instrument-var" [:clj (symbol var-ns var-name) opts]))
 
-  (uninstrument-var [_ var-ns var-name opts]
-    (api-call :local "uninstrument-var" [:clj (symbol var-ns var-name) opts]))
+  (vanilla-uninstrument-var [_ var-ns var-name opts]
+    (api-call :local "vanilla-uninstrument-var" [:clj (symbol var-ns var-name) opts]))
 
-  (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
+  (vanilla-instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
     (let [disable-set (utils/disable-from-profile profile)]
-      (api-call :local "instrument-namespaces" [:clj nsnames (assoc opts :disable disable-set)])))
+      (api-call :local "vanilla-instrument-namespaces" [:clj nsnames (assoc opts :disable disable-set)])))
 
-  (uninstrument-namespaces [_ nsnames opts]
-    (api-call :local "uninstrument-namespaces" [:clj nsnames opts]))
+  (vanilla-uninstrument-namespaces [_ nsnames opts]
+    (api-call :local "vanilla-uninstrument-namespaces" [:clj nsnames opts]))
+
+  (modify-storm-instrumentation [_ operation opts]
+    (api-call :local "modify-storm-instrumentation" [:clj operation opts]))
+
+  (get-storm-instrumentation [_]
+    (api-call :local "get-storm-instrumentation" [:clj]))
+
+  (reload-namespace [_ ns-info]
+    (require (symbol (:namespace-name ns-info)) :reload))
 
   (eval-form [_ form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [ns-to-eval (find-ns (symbol ns))]
@@ -325,34 +338,55 @@
       :clj  (api-call :remote "get-var-meta" [:clj (symbol var-ns var-name)])
       :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/get-var-meta :cljs '%s/%s %s)" var-ns var-name {:build-id (:repl.cljs/build-id (dbg-state/repl-config))}))))
 
-  (instrument-var [_ var-ns var-name opts]
+  (vanilla-instrument-var [_ var-ns var-name opts]
     (case (dbg-state/env-kind)
-      :clj (api-call :remote "instrument-var" [:clj (symbol var-ns var-name) opts])
+      :clj (api-call :remote "vanilla-instrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (show-message "FlowStorm ClojureScript single var instrumentation is pretty limited. You can instrument them only once, and the only way of uninstrumenting them is by reloading your page or restarting your node process. Also deep instrumentation is missing some cases. So for most cases you are going to be better with [un]instrumenting entire namespaces." :warning)
               (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
-  (uninstrument-var [_ var-ns var-name opts]
+  (vanilla-uninstrument-var [_ var-ns var-name opts]
     (case (dbg-state/env-kind)
-      :clj (api-call :remote "uninstrument-var" [:clj (symbol var-ns var-name) opts])
+      :clj (api-call :remote "vanilla-uninstrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [_opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (show-message "FlowStorm currently can't uninstrument single vars in ClojureScript. You can only [un]instrument entire namespaces. If you want to get rid of the current vars instrumentation please reload your browser page, or restart your node process." :warning)
               #_(safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
-  (instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
+  (vanilla-instrument-namespaces [_ nsnames {:keys [profile] :as opts}]
     (let [opts (assoc opts :disable (utils/disable-from-profile profile))]
       (case (dbg-state/env-kind)
         :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
-                (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
-        :clj (api-call :remote "instrument-namespaces" [:clj nsnames opts]))))
+                (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/vanilla-instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+        :clj (api-call :remote "instrument-namespaces-vanilla" [:clj nsnames opts]))))
 
-  (uninstrument-namespaces [_ nsnames opts]
+  (vanilla-uninstrument-namespaces [_ nsnames opts]
     (case (dbg-state/env-kind)
       :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
-              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
+              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/vanilla-uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
 
       ;; for Clojure just call the api
       :clj (api-call :remote "uninstrument-namespaces" [:clj nsnames opts])))
+
+  (modify-storm-instrumentation [_ operation opts]
+    (case (dbg-state/env-kind)
+      :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
+              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/modify-storm-instrumentation :cljs %s %s)" operation opts)))
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote "modify-storm-instrumentation" [:clj operation opts])))
+
+  (get-storm-instrumentation [_]
+    (case (dbg-state/env-kind)
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/get-storm-instrumentation :cljs)"))
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote "get-storm-instrumentation" [:clj])))
+
+  (reload-namespace [_ ns-info]
+    (let [reload-code (format "(require '%s :reload)" (:namespace-name ns-info))]
+      (case (dbg-state/env-kind)
+        :cljs (safe-cljs-eval-code-str reload-code "cljs.user")
+        :clj  (safe-eval-code-str reload-code))))
 
   (eval-form [this form-str {:keys [instrument? instrument-options var-name ns]}]
     (let [var-meta (when var-name (select-keys (get-var-meta this ns var-name) [:file :column :end-column :line :end-line]))

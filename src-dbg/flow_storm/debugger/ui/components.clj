@@ -21,7 +21,6 @@
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.flowless VirtualFlow]))
 
-(set! *warn-on-reflection* true)
 
 (defn context-menu [& {:keys [items]}]
   (let [cm (ContextMenu.)
@@ -185,8 +184,8 @@
 
     ta))
 
-(defn menu-button [& {:keys [items]}]
-  (let [mb (MenuButton. "Exceptions")
+(defn menu-button [& {:keys [title items disable?]}]
+  (let [mb (MenuButton. title)
         clear-items (fn [] (-> mb .getItems .clear))
         add-item (fn [{:keys [text on-click tooltip] :as item}]
                    (let [^Label mi-lbl (label :text text)
@@ -201,6 +200,7 @@
                     (doseq [item new-items]
                       (add-item item)))]
 
+    (when disable? (.setDisable mb true))
     (set-items items)
 
     {:menu-button mb

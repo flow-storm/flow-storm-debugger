@@ -9,7 +9,6 @@
             [flow-storm.debugger.ui.flows.general :as ui-general])
   (:import [javafx.scene.layout Priority VBox]))
 
-(set! *warn-on-reflection* true)
 
 (defn add-tap-value [val]
   (ui-utils/run-later

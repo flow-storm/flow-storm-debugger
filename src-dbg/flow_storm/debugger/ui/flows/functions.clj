@@ -12,7 +12,6 @@
             [clojure.string :as str])
   (:import [javafx.scene.layout Priority HBox VBox]))
 
-(set! *warn-on-reflection* true)
 
 (def max-args 9)
 
@@ -57,7 +56,7 @@
                           (map (fn [{:keys [fn-name fn-ns]}]
                                  (symbol fn-ns fn-name))))]
       (doseq [vs vars-symbs]
-        (runtime-api/uninstrument-var rt-api (namespace vs) (name vs) {})))
+        (runtime-api/vanilla-uninstrument-var rt-api (namespace vs) (name vs) {})))
 
     (let [forms (->> (:forms groups)
                      (map (fn [{:keys [fn-ns form]}]

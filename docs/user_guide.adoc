@@ -68,7 +68,7 @@ It is much safer to just write the latest versions. Check out  the https://githu
 [NOTE]
 .On disabling/enabling instrumentation
 ====
-It is possible to <<#_controlling_instrumentation_in_clojurestorm,disable/enable instrumentation>> without restarting the repl, which is necessary for
+It is possible to <<#_controlling_instrumentation,disable/enable instrumentation>> without restarting the repl, which is necessary for
 things like measuring performance.
 ====
 
@@ -1437,7 +1437,10 @@ so no need to implement `flow-storm.runtime.values/snapshot-value`
 = Controlling instrumentation
 
 If you are using _ClojureStorm_ or _ClojureScriptStorm_ it is important to learn how to control what gets instrumented and
-how to uninstrument things.
+how to uninstrument things. You can configure what gets instrumented automatically on startup via JVM properties but also
+change this while your repl is running without the need to restart it.
+
+== Setup startup instrumentation
 
 The first important thing is to setup your instrumentation correctly via JVM properties :
 
@@ -1463,54 +1466,30 @@ accepts a comma separated list of namespaces prefixes to skip, and instrumentSki
 namespaces to skip. All these together allows you to instrument you whole app but some undesired namespaces.
 
 The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
-repl. This is slightly different between Clojure and ClojureScript.
+repl. 
 
-== Controlling instrumentation in ClojureStorm
+== Modifying instrumentation with the Browser
 
-You can disable/enable instrumentation by evaluating the keys `:noinst` and  `:inst` on your repl.
-Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
-in after enabling/disabling instrumentation.
+You can use the `Browser tool` to check and change on the fly the prefixes you configured in the previous section.
 
-For adding/removing and checking your prefixes without restarting your repl you can call :
+image::user_guide_images/browser_storm_instrumentation_1.png[]
 
-[,clojure]
-----
-(clojure.storm.Emitter/addInstrumentationOnlyPrefix "dev")
-(clojure.storm.Emitter/removeInstrumentationOnlyPrefix "dev")
+On the bottom pane (instrumentations) you will see your current instrumentation configution (if any). Here we can see that everything under
+`ring` and `compojure` will get instrumented but anything under `compojure.middleware` will be skipped.
 
-(clojure.storm.Emitter/addInstrumentationSkipPrefix "dev")
-(clojure.storm.Emitter/removeInstrumentationSkipPrefix "dev")
+You can remove entries using the `del` buttons or temporarly disable/enable them using the `Enable all` checkbox.
 
-(clojure.storm.Emitter/getInstrumentationOnlyPrefixes)
-(clojure.storm.Emitter/getInstrumentationSkipPrefixes)
-----
+image::user_guide_images/browser_storm_instrumentation_2.png[]
 
-You can also check your current prefixes by evaluating the `:help` keyword at the repl.
+You can use the `Add` menu in the picure above to add instrumentation prefixes.
 
-== Controlling instrumentation in ClojureScriptStorm 
-
-You can add,remove and check your prefixes and also enable/disable instrumentation in ClojureScript with your Clojure
-repl (not the Cljs one) by calling :
-
-[,clojure]
-----
-(cljs.storm.api/add-instr-only-prefix "dev")
-(cljs.storm.api/rm-instr-only-prefix "dev")
-
-(cljs.storm.api/add-instr-skip-prefix "dev")
-(cljs.storm.api/rm-instr-skip-prefix "dev")
-
-(cljs.storm.api/get-instr-prefixes)
-(cljs.storm.api/set-instrumentation true)
-----
-
-The `[add|rm]-instr-prefix` set of functions have an extra parameter called `touch-path`.
-This is kind of a hacky way of going around shadow-cljs cache.
-
-Let's say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
-Shadow-cljs will not recompile files that haven't been modified since the last compilation. You can use the `touch-path`
-parameter for this. If you provide `src` for example, it will walk the directory structure down and touch every file,
-which should fire a recompilation.
+[NOTE]
+.Instrumentation
+====
+Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
+You can recompile it as usual with your editor commands, or by using the `Reload namespace` option in the menu, which will
+execute a `(require 'the-selected.namespace :reload)` expression for you.
+====
 
 == Instrumentation in Vanilla FlowStorm
 

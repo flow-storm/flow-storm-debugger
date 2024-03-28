@@ -9,7 +9,6 @@
             [flow-storm.utils :as utils]
             #?(:clj [clojure.core.protocols :as cp])))
 
-#?(:clj (set! *warn-on-reflection* true))
 
 (def fn-expr-limit
   #?(:cljs 9007199254740992 ;; MAX safe integer     

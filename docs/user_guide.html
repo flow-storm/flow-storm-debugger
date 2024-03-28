@@ -727,8 +727,8 @@ pre.rouge {
 <li><a href="#_dealing_with_mutable_values">13. Dealing with mutable values</a></li>
 <li><a href="#_controlling_instrumentation">14. Controlling instrumentation</a>
 <ul class="sectlevel2">
-<li><a href="#_controlling_instrumentation_in_clojurestorm">14.1. Controlling instrumentation in ClojureStorm</a></li>
-<li><a href="#_controlling_instrumentation_in_clojurescriptstorm">14.2. Controlling instrumentation in ClojureScriptStorm</a></li>
+<li><a href="#_setup_startup_instrumentation">14.1. Setup startup instrumentation</a></li>
+<li><a href="#_modifying_instrumentation_with_the_browser">14.2. Modifying instrumentation with the Browser</a></li>
 <li><a href="#_instrumentation_in_vanilla_flowstorm">14.3. Instrumentation in Vanilla FlowStorm</a>
 <ul class="sectlevel3">
 <li><a href="#_instrument_any_form_with_trace">14.3.1. Instrument any form with #trace</a></li>
@@ -883,7 +883,7 @@ It is much safer to just write the latest versions. Check out  the <a href="http
 <td class="content">
 <div class="title">On disabling/enabling instrumentation</div>
 <div class="paragraph">
-<p>It is possible to <a href="#_controlling_instrumentation_in_clojurestorm">disable/enable instrumentation</a> without restarting the repl, which is necessary for
+<p>It is possible to <a href="#_controlling_instrumentation">disable/enable instrumentation</a> without restarting the repl, which is necessary for
 things like measuring performance.</p>
 </div>
 </td>
@@ -2015,7 +2015,7 @@ instead of immediately jumping into it, FlowStorm will popup a menu, like in the
 <p>This is the loops navigation menu. It allows you to quickly move around interesting iterations of the loop.</p>
 </div>
 <div class="paragraph">
-<p>The menu will display slightly differnt options depending on you current position. The <code>[FIRST] &#8230;&#8203;</code> and <code>[LAST] &#8230;&#8203;</code>
+<p>The menu will display slightly different options depending on you current position. The <code>[FIRST] &#8230;&#8203;</code> and <code>[LAST] &#8230;&#8203;</code>
 entries will always show, which allows you to quickly jump to the first and last iteration of the loop.</p>
 </div>
 <div class="paragraph">
@@ -3050,8 +3050,11 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p
 <div class="sectionbody">
 <div class="paragraph">
 <p>If you are using <em>ClojureStorm</em> or <em>ClojureScriptStorm</em> it is important to learn how to control what gets instrumented and
-how to uninstrument things.</p>
+how to uninstrument things. You can configure what gets instrumented automatically on startup via JVM properties but also
+change this while your repl is running without the need to restart it.</p>
 </div>
+<div class="sect2">
+<h3 id="_setup_startup_instrumentation"><a class="anchor" href="#_setup_startup_instrumentation"></a><a class="link" href="#_setup_startup_instrumentation">14.1. Setup startup instrumentation</a></h3>
 <div class="paragraph">
 <p>The first important thing is to setup your instrumentation correctly via JVM properties :</p>
 </div>
@@ -3081,61 +3084,50 @@ namespaces to skip. All these together allows you to instrument you whole app bu
 </div>
 <div class="paragraph">
 <p>The next important thing is to be able to enable/disable instrumentation and add/remove prefixes without restarting the
-repl. This is slightly different between Clojure and ClojureScript.</p>
-</div>
-<div class="sect2">
-<h3 id="_controlling_instrumentation_in_clojurestorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurestorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurestorm">14.1. Controlling instrumentation in ClojureStorm</a></h3>
-<div class="paragraph">
-<p>You can disable/enable instrumentation by evaluating the keys <code>:noinst</code> and  <code>:inst</code> on your repl.
-Disabling/enabling instrumentation will not reload your code, so if you need to re-evaluate the forms you are interested
-in after enabling/disabling instrumentation.</p>
-</div>
-<div class="paragraph">
-<p>For adding/removing and checking your prefixes without restarting your repl you can call :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">clojure.storm.Emitter/addInstrumentationOnlyPrefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">clojure.storm.Emitter/removeInstrumentationOnlyPrefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">clojure.storm.Emitter/addInstrumentationSkipPrefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">clojure.storm.Emitter/removeInstrumentationSkipPrefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">clojure.storm.Emitter/getInstrumentationOnlyPrefixes</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">clojure.storm.Emitter/getInstrumentationSkipPrefixes</span><span class="p">)</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can also check your current prefixes by evaluating the <code>:help</code> keyword at the repl.</p>
+repl.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_controlling_instrumentation_in_clojurescriptstorm"><a class="anchor" href="#_controlling_instrumentation_in_clojurescriptstorm"></a><a class="link" href="#_controlling_instrumentation_in_clojurescriptstorm">14.2. Controlling instrumentation in ClojureScriptStorm</a></h3>
+<h3 id="_modifying_instrumentation_with_the_browser"><a class="anchor" href="#_modifying_instrumentation_with_the_browser"></a><a class="link" href="#_modifying_instrumentation_with_the_browser">14.2. Modifying instrumentation with the Browser</a></h3>
 <div class="paragraph">
-<p>You can add,remove and check your prefixes and also enable/disable instrumentation in ClojureScript with your Clojure
-repl (not the Cljs one) by calling :</p>
+<p>You can use the <code>Browser tool</code> to check and change on the fly the prefixes you configured in the previous section.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">cljs.storm.api/add-instr-only-prefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">cljs.storm.api/rm-instr-only-prefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">cljs.storm.api/add-instr-skip-prefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">cljs.storm.api/rm-instr-skip-prefix</span><span class="w"> </span><span class="s">"dev"</span><span class="p">)</span><span class="w">
-
-</span><span class="p">(</span><span class="nf">cljs.storm.api/get-instr-prefixes</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">cljs.storm.api/set-instrumentation</span><span class="w"> </span><span class="n">true</span><span class="p">)</span></code></pre>
+<img src="user_guide_images/browser_storm_instrumentation_1.png" alt="browser storm instrumentation 1">
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>[add|rm]-instr-prefix</code> set of functions have an extra parameter called <code>touch-path</code>.
-This is kind of a hacky way of going around shadow-cljs cache.</p>
+<p>On the bottom pane (instrumentations) you will see your current instrumentation configution (if any). Here we can see that everything under
+<code>ring</code> and <code>compojure</code> will get instrumented but anything under <code>compojure.middleware</code> will be skipped.</p>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s say you added/removed a prefix and you want to fire a shadow-cljs recompile of your files so the changes take effect.
-Shadow-cljs will not recompile files that haven&#8217;t been modified since the last compilation. You can use the <code>touch-path</code>
-parameter for this. If you provide <code>src</code> for example, it will walk the directory structure down and touch every file,
-which should fire a recompilation.</p>
+<p>You can remove entries using the <code>del</code> buttons or temporarly disable/enable them using the <code>Enable all</code> checkbox.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_storm_instrumentation_2.png" alt="browser storm instrumentation 2">
+</div>
+</div>
+<div class="paragraph">
+<p>You can use the <code>Add</code> menu in the picure above to add instrumentation prefixes.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Instrumentation</div>
+<div class="paragraph">
+<p>Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
+You can recompile it as usual with your editor commands, or by using the <code>Reload namespace</code> option in the menu, which will
+execute a <code>(require 'the-selected.namespace :reload)</code> expression for you.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -3704,7 +3696,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-30 18:15:11 -0300
+Last updated 2024-04-05 17:10:36 -0300
 </div>
 </div>
 </body>

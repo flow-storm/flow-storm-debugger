@@ -102,12 +102,34 @@
                          (swap! interruptible-tasks dissoc task-id))})]
     (submit-interruptible-task (assoc task :task-id task-id))))
 
+#?(:clj
+   (defn get-storm-instrumentation [kind]
+     {:instrument-only-prefixes (try
+                                  (case kind
+                                    :clj  (->> (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationOnlyPrefixes" [])
+                                               (mapv (fn [p] (clojure.lang.Compiler/demunge p))))
+                                    :cljs (into [] ((requiring-resolve 'cljs.storm.api/get-instr-prefixes))))
+                                  (catch Exception _ []))     
+      :skip-prefixes (try
+                       (case kind
+                         :clj  (->> (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationSkipPrefixes" [])
+                                    (mapv (fn [p] (clojure.lang.Compiler/demunge p))))
+                         :cljs (into [] ((requiring-resolve 'cljs.storm.api/get-skip-prefixes))))
+                       (catch Exception _ []))
+      :skip-regex (try
+                    (case kind
+                      :clj  (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationSkipRegex" [])
+                      :cljs (into [] ((requiring-resolve 'cljs.storm.api/get-skip-regex))))
+                    (catch Exception _ []))}))
+
 (defn runtime-config []
-  {:env-kind #?(:clj :clj :cljs :cljs)
-   :storm? (utils/storm-env?)
-   :recording? (tracer/recording?)
-   :total-order-recording? (tracer/total-order-recording?)
-   :breakpoints (tracer/all-breakpoints)})
+  (let [storm? (utils/storm-env?)
+        env-kind #?(:clj :clj :cljs :cljs)]
+    (cond-> {:env-kind env-kind
+             :storm? storm?
+             :recording? (tracer/recording?)
+             :total-order-recording? (tracer/total-order-recording?)
+             :breakpoints (tracer/all-breakpoints)})))
 
 (defn val-pprint [vref opts]
   (rt-values/val-pprint-ref vref opts))
@@ -394,7 +416,7 @@
      nil))
 
 #?(:clj
-   (defn instrument-var [kind var-symb {:keys [disable-events?] :as config}]
+   (defn vanilla-instrument-var [kind var-symb {:keys [disable-events?] :as config}]
      (let [inst-fn (case kind
                      :clj  hansel/instrument-var-clj
                      :cljs hansel/instrument-var-shadow-cljs)]
@@ -405,10 +427,10 @@
                                 config))
        
        (when-not disable-events?
-         (publish-event! kind (rt-events/make-var-instrumented-event (name var-symb) (namespace var-symb)) config)))))
+         (publish-event! kind (rt-events/make-vanilla-var-instrumented-event (name var-symb) (namespace var-symb)) config)))))
 
 #?(:clj
-   (defn uninstrument-var [kind var-symb {:keys [disable-events?] :as config}]
+   (defn vanilla-uninstrument-var [kind var-symb {:keys [disable-events?] :as config}]
      (let [inst-fn (case kind
                      :clj  hansel/uninstrument-var-clj
                      :cljs hansel/uninstrument-var-shadow-cljs)]
@@ -417,10 +439,10 @@
        (inst-fn var-symb (merge (tracer/hansel-config config)
                                 config))
        (when-not disable-events?
-         (publish-event! kind (rt-events/make-var-uninstrumented-event (name var-symb) (namespace var-symb)) config)))))
+         (publish-event! kind (rt-events/make-vanilla-var-uninstrumented-event (name var-symb) (namespace var-symb)) config)))))
 
 #?(:clj
-   (defn instrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
+   (defn vanilla-instrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
      (log (format "Instrumenting namespaces %s" (pr-str ns-prefixes)))
      (let [inst-fn (case kind
                      :clj  hansel/instrument-namespaces-clj
@@ -430,11 +452,11 @@
        
        (when-not disable-events?
          (doseq [ns-symb affected-namespaces]
-           (publish-event! kind (rt-events/make-ns-instrumented-event (name ns-symb)) config))))))
+           (publish-event! kind (rt-events/make-vanilla-ns-instrumented-event (name ns-symb)) config))))))
 
 #?(:clj
-   (defn uninstrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
-     (log (format "Uninstrumenting namespaces %s" (pr-str ns-prefixes)))
+   (defn vanilla-uninstrument-namespaces [kind ns-prefixes {:keys [disable-events?] :as config}]
+     (log (format "Uninstrumenting namespaces %s" (pr-str ns-prefixes)))         
      (let [inst-fn (case kind
                      :clj  hansel/uninstrument-namespaces-clj
                      :cljs hansel/uninstrument-namespaces-shadow-cljs)
@@ -443,7 +465,30 @@
        
        (when-not disable-events?
          (doseq [ns-symb affected-namespaces]
-           (publish-event! kind (rt-events/make-ns-uninstrumented-event (name ns-symb)) config))))))
+           (publish-event! kind (rt-events/make-vanilla-ns-uninstrumented-event (name ns-symb)) config))))))
+
+#?(:clj
+   (defn modify-storm-instrumentation [kind {:keys [inst-kind op prefix regex]} {:keys [disable-events?] :as config}]
+     (case kind
+       :clj  (let [[method args] (cond
+                                   (and (= inst-kind :inst-only-prefix) (= op :add)) ["addInstrumentationOnlyPrefix"    [prefix]]
+                                   (and (= inst-kind :inst-skip-prefix) (= op :add)) ["addInstrumentationSkipPrefix"    [prefix]]
+                                   (and (= inst-kind :inst-skip-regex)  (= op :add)) ["addInstrumentationSkipRegex"     [regex]]
+                                   (and (= inst-kind :inst-only-prefix) (= op :rm))  ["removeInstrumentationOnlyPrefix" [prefix]]
+                                   (and (= inst-kind :inst-skip-prefix) (= op :rm))  ["removeInstrumentationSkipPrefix" [prefix]]
+                                   (and (= inst-kind :inst-skip-regex)  (= op :rm))  ["removeInstrumentationSkipRegex"  [regex]])]
+               (utils/call-jvm-method "clojure.storm.Emitter" method args))
+       
+       :cljs (cond
+               (and (= inst-kind :inst-only-prefix) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-only-prefix) prefix)
+               (and (= inst-kind :inst-skip-prefix) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-skip-prefix) prefix)
+               (and (= inst-kind :inst-skip-regex) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-skip-regex) regex)
+               (and (= inst-kind :inst-only-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-only-prefix) prefix)
+               (and (= inst-kind :inst-skip-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-skip-prefix) prefix)
+               (and (= inst-kind :inst-skip-regex)   (= op :rm)) ((requiring-resolve 'cljs.storm.api/rm-instr-skip-regex) regex)
+               ))
+     (when-not disable-events?
+       (publish-event! kind (rt-events/make-storm-instrumentation-updated-event (get-storm-instrumentation kind)) config))))
 
 #?(:clj
    (defn all-namespaces
@@ -515,10 +560,15 @@
                   :all-namespaces all-namespaces
                   :all-vars-for-namespace all-vars-for-namespace
                   :get-var-meta get-var-meta
-                  :instrument-var instrument-var
-                  :uninstrument-var uninstrument-var
-                  :instrument-namespaces instrument-namespaces
-                  :uninstrument-namespaces uninstrument-namespaces
+                  
+                  :vanilla-instrument-var vanilla-instrument-var
+                  :vanilla-uninstrument-var vanilla-uninstrument-var
+                  :vanilla-instrument-namespaces vanilla-instrument-namespaces
+                  :vanilla-uninstrument-namespaces vanilla-uninstrument-namespaces
+
+                  :get-storm-instrumentation get-storm-instrumentation
+                  :modify-storm-instrumentation modify-storm-instrumentation
+                  
                   :unblock-thread unblock-thread
                   :unblock-all-threads unblock-all-threads
                   :add-breakpoint! add-breakpoint!

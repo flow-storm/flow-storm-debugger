@@ -10,7 +10,6 @@
            [java.io File]
            [java.net URL]))
 
-(set! *warn-on-reflection* true)
 
 (defn select-thread-tool-tab [flow-id thread-id tool]
   (let [[^TabPane thread-tools-tab-pane] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")

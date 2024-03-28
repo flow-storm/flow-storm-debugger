@@ -12,7 +12,6 @@
            [ javafx.beans.value ChangeListener]
            [javafx.scene.layout HBox Priority VBox]))
 
-(set! *warn-on-reflection* true)
 
 (def call-stack-tree-childs-limit 500)
 

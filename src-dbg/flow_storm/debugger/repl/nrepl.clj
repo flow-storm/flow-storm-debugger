@@ -3,7 +3,8 @@
   "Utilities to connect to nRepl servers"
 
   (:require [nrepl.core :as nrepl]
-            [nrepl.transport :as transport]))
+            [nrepl.transport :as transport]
+            [flow-storm.utils :refer [log]]))
 
 (defn connect
 
@@ -37,7 +38,9 @@
                           (first (:value res-map)))))
                     (catch java.net.SocketException se
                       (throw (ex-info (.getMessage se)
-                                      {:error/type :repl/socket-exception})))))
+                                      {:error/type :repl/socket-exception})))
+                    (catch Exception e
+                      (log (format "Error evaluating %s in NS %s, CAUSE: %s" code-str ns (.getMessage e))))))
 
      :close-connection (fn []
                          (.close transport))}))

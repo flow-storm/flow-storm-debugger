@@ -20,7 +20,6 @@
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]))
 
-(set! *warn-on-reflection* true)
 
 (declare jump-to-coord)
 (declare find-and-jump-same-val)

@@ -9,7 +9,6 @@
            [javafx.scene Node]
            [javafx.scene.input MouseEvent]))
 
-(set! *warn-on-reflection* true)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; NOTE :                                                                                              ;;

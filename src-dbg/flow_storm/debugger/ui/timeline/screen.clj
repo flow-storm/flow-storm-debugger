@@ -12,7 +12,6 @@
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.control TableRow Label CheckBox]))
 
-(set! *warn-on-reflection* true)
 
 (def thread-possible-colors #{"#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"})
 

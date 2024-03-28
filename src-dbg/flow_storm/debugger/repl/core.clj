@@ -101,6 +101,7 @@
 
 (defn make-cljs-repl-init-sequence []
   [{:code "(do (in-ns 'shadow.user) nil)"                                      :ns nil         :repl-kind :clj}
+   {:code "(require '[flow-storm.runtime.debuggers-api])"                      :ns nil         :repl-kind :clj}
    {:code "(require '[flow-storm.runtime.debuggers-api :include-macros true])" :ns "cljs.user" :repl-kind :cljs}])
 
 (defn make-clj-repl-init-sequence []
@@ -148,9 +149,11 @@
                        (.flush log-output-stream))
 
                      (try
-                       (read-string {} response)
+                       (when response (read-string {} response))
                        (catch Exception e
-                         (utils/log-error (.getMessage e))))))
+                         (utils/log-error (format "Error reading the response %s. CAUSE : %s"
+                                                  response
+                                                  (.getMessage e)))))))
         eval-cljs (fn [code-str ns]
                     (eval-clj (format "((requiring-resolve 'hansel.instrument.utils/eval-in-ns-fn-cljs) '%s '%s %s)"
                                       ns

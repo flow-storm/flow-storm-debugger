@@ -7,7 +7,6 @@
   (:import [javafx.scene.layout VBox Priority]
            [javafx.scene.control TextArea TextField]))
 
-(set! *warn-on-reflection* true)
 
 (defn def-kind-colored-label [text kind]
   (case kind

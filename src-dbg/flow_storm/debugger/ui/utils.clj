@@ -19,7 +19,6 @@
            [java.awt Toolkit]
            [java.awt.datatransfer StringSelection]))
 
-(set! *warn-on-reflection* true)
 
 (defn run-later*
   [f]
@@ -152,6 +151,9 @@
 
 (defn observable-clear [^ObservableList olist]
   (.clear olist))
+
+(defn set-disable [^Node node x]
+  (.setDisable node x))
 
 (defn combo-box-set-items [^ComboBox cbox items]
   (let [observable-list (FXCollections/observableArrayList)]

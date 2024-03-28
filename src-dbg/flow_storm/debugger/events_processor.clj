@@ -11,25 +11,30 @@
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.state :as dbg-state]))
 
-(defn- var-instrumented-event [{:keys [var-ns var-name]}]
+(defn- vanilla-var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
    (ui-general/select-main-tools-tab :browser)))
 
-(defn- var-uninstrumented-event [{:keys [var-ns var-name]}]
+(defn- vanilla-var-uninstrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
    (ui-general/select-main-tools-tab :browser)))
 
-(defn- namespace-instrumented-event [{:keys [ns-name]}]
+(defn- vanilla-namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-ns ns-name))
    (ui-general/select-main-tools-tab :browser)))
 
-(defn- namespace-uninstrumented-event [{:keys [ns-name]}]
+(defn- vanilla-namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-ns ns-name))
    (ui-general/select-main-tools-tab :browser)))
+
+(defn- storm-instrumentation-updated-event [data]
+  (ui-utils/run-later
+    (browser-screen/update-storm-instrumentation data)
+    (ui-general/select-main-tools-tab :browser)))
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
@@ -80,10 +85,11 @@
 (defn process-event [[ev-type ev-args-map]]
 
   (case ev-type
-    :var-instrumented (var-instrumented-event ev-args-map)
-    :var-uninstrumented (var-uninstrumented-event ev-args-map)
-    :namespace-instrumented (namespace-instrumented-event ev-args-map)
-    :namespace-uninstrumented (namespace-uninstrumented-event ev-args-map)
+    :vanilla-var-instrumented (vanilla-var-instrumented-event ev-args-map)
+    :vanilla-var-uninstrumented (vanilla-var-uninstrumented-event ev-args-map)
+    :vanilla-namespace-instrumented (vanilla-namespace-instrumented-event ev-args-map)
+    :vanilla-namespace-uninstrumented (vanilla-namespace-uninstrumented-event ev-args-map)
+    :storm-instrumentation-updated-event (storm-instrumentation-updated-event ev-args-map)
     :flow-created (flow-created-event ev-args-map)
     :threads-updated (threads-updated-event ev-args-map)
     :tap (tap-event ev-args-map)

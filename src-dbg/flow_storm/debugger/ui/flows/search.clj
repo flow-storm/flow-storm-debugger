@@ -9,7 +9,6 @@
            [javafx.scene.control Label]
            [javafx.scene.layout VBox Priority]))
 
-(set! *warn-on-reflection* true)
 
 (defn search [{:keys [print-level print-length] :as criteria}]
   (let [[{:keys [add-all clear]}] (obj-lookup "search_results_table_data")]

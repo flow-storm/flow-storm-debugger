@@ -9,7 +9,6 @@
   (:import [javafx.scene Scene]
            [javafx.stage Stage]))
 
-(set! *warn-on-reflection* true)
 
 (defn update-bookmarks []
   (when-let [[{:keys [clear add-all]}] (obj-lookup "bookmarks_table_data")]

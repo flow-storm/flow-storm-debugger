@@ -24,19 +24,22 @@
 (defn make-threads-updated-event [flow-id]
   [:threads-updated {:flow-id flow-id}])
 
-(defn make-var-instrumented-event [var-name var-ns]
-  [:var-instrumented {:var-name var-name
-                      :var-ns var-ns}])
+(defn make-storm-instrumentation-updated-event [inst-data]
+  [:storm-instrumentation-updated-event inst-data])
 
-(defn make-var-uninstrumented-event [var-name var-ns]
-  [:var-uninstrumented {:var-name var-name
-                        :var-ns var-ns}])
+(defn make-vanilla-ns-instrumented-event [ns-name]
+  [:vanilla-namespace-instrumented {:ns-name ns-name}])
 
-(defn make-ns-instrumented-event [ns-name]
-  [:namespace-instrumented {:ns-name ns-name}])
+(defn make-vanilla-ns-uninstrumented-event [ns-name]
+  [:vanilla-namespace-uninstrumented {:ns-name ns-name}])
 
-(defn make-ns-uninstrumented-event [ns-name]
-  [:namespace-uninstrumented {:ns-name ns-name}])
+(defn make-vanilla-var-instrumented-event [var-name var-ns]
+  [:vanilla-var-instrumented {:var-name var-name
+                              :var-ns var-ns}])
+
+(defn make-vanilla-var-uninstrumented-event [var-name var-ns]
+  [:vanilla-var-uninstrumented {:var-name var-name
+                                :var-ns var-ns}])
 
 (defn make-tap-event [tap-val]
   [:tap {:value tap-val}])

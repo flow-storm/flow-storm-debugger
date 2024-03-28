@@ -14,7 +14,6 @@
            [javafx.scene.input KeyEvent]
            [javafx.beans.property ReadOnlyDoubleProperty]))
 
-(set! *warn-on-reflection* true)
 
 (declare create-or-focus-thread-tab)
 (declare update-exceptions-combo)

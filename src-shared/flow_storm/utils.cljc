@@ -156,6 +156,14 @@
             (catch Exception _ false))
      :cljs (boolean (try (js* "cljs.storm.tracer.trace_fn_call") (catch js/Error _ false)))))
 
+(defn ensure-vanilla []
+  (when (storm-env?)
+    (throw (ex-info "Can't execute in a Storm environment. Use under Vanilla only." {}))))
+
+(defn ensure-storm []
+  (when-not (storm-env?)
+    (throw (ex-info "Can't execute outside a Storm environment." {}))))
+
 (defn contains-only? [m ks]
   (empty? (apply dissoc m ks)))
 
@@ -362,3 +370,9 @@
          :after (into [] (take B rcoll))}
         (recur (conj elems-before e)
                rcoll)))))
+
+#?(:clj
+   (defn call-jvm-method [class-name method-name args]
+     (let [klass (Class/forName class-name)
+           method (.getMethod klass method-name (into-array java.lang.Class (mapv class args)))]       
+       (.invoke method nil (into-array args)))))

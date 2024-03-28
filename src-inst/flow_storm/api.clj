@@ -15,7 +15,6 @@
             [flow-storm.mem-reporter :as mem-reporter]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as index-api]
-            [flow-storm.fn-sampler.core :as fn-sampler]
             [clojure.string :as str]
             [clojure.stacktrace :as stacktrace]))
 
@@ -97,7 +96,6 @@
   [limit]
   (dbg-api/set-thread-trace-limit limit))
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure instrumentation ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,8 +124,8 @@
 
   ([var-symb] (instrument-var-clj var-symb {}))
   ([var-symb config]
-
-   (dbg-api/instrument-var :clj var-symb config)))
+   (utils/ensure-vanilla)
+   (dbg-api/vanilla-instrument-var :clj var-symb config)))
 
 (defn uninstrument-var-clj
 
@@ -137,7 +135,8 @@
 
   [var-symb]
 
-  (dbg-api/uninstrument-var :clj var-symb {}))
+  (utils/ensure-vanilla)
+  (dbg-api/vanilla-uninstrument-var :clj var-symb {}))
 
 (defn instrument-namespaces-clj
 
@@ -153,7 +152,9 @@
   "
 
   ([prefixes] (instrument-namespaces-clj prefixes {}))
-  ([prefixes opts] (dbg-api/instrument-namespaces :clj prefixes opts)))
+  ([prefixes opts]
+   (utils/ensure-vanilla)
+   (dbg-api/vanilla-instrument-namespaces :clj prefixes opts)))
 
 (defn uninstrument-namespaces-clj
 
@@ -161,7 +162,8 @@
 
   ([prefixes] (uninstrument-namespaces-clj prefixes {}))
   ([prefixes opts]
-   (dbg-api/uninstrument-namespaces :clj prefixes opts)))
+   (utils/ensure-vanilla)
+   (dbg-api/vanilla-uninstrument-namespaces :clj prefixes opts)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ClojureScript instrumentation ;;
@@ -176,7 +178,7 @@
   ([var-symb] (instrument-var-cljs var-symb {}))
   ([var-symb config]
 
-   (dbg-api/instrument-var :cljs var-symb config)))
+   (dbg-api/vanilla-instrument-var :cljs var-symb config)))
 
 (defn uninstrument-var-cljs
 
@@ -186,7 +188,7 @@
 
   [var-symb config]
 
-  (dbg-api/uninstrument-var :cljs var-symb config))
+  (dbg-api/vanilla-uninstrument-var :cljs var-symb config))
 
 (defn instrument-namespaces-cljs
 
@@ -195,7 +197,7 @@
   Arguments are the same as the Clojure version but `config` also accepts a `:build-id`"
 
   ([prefixes] (instrument-namespaces-clj prefixes {}))
-  ([prefixes opts] (dbg-api/instrument-namespaces :cljs prefixes opts)))
+  ([prefixes opts] (dbg-api/vanilla-instrument-namespaces :cljs prefixes opts)))
 
 (defn uninstrument-namespaces-cljs
 
@@ -203,11 +205,12 @@
   Arguments are the same as the Clojure version but `config` also accepts a `:build-id`"
 
   [prefixes config]
-  (dbg-api/uninstrument-namespaces :cljs prefixes config))
+  (dbg-api/vanilla-uninstrument-namespaces :cljs prefixes config))
 
 (defn- runi* [{:keys [ns flow-id thread-trace-limit tracing-disabled? env] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
   ;; doesn't work with fn* in clojurescript
+  (utils/ensure-vanilla)
   (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))
         ns (or ns (when-let [env-ns (-> env :ns :name)]
                     (str env-ns)))
@@ -238,119 +241,6 @@
   [opts form]
 
   (runi* (assoc opts :env &env) form))
-
-(defn cli-run
-
-  "Require `fn-symb` ns, instrument `ns-set` (excluding `excluding-ns`) and then call (apply `fn-symb` `fn-args`).
-
-  `profile` (optional) should be :full (for full instrumentation) or :light for disable #{:expr :binding}
-
-  `require-before` (optional) should be a set of namespaces you want to require before the instrumentation.
-
-  `verbose?` (optional) when true show more logging.
-
-  `styles` (optional) a file path containing styles (css) that will override default styles
-
-  cli-run is designed to be used with clj -X like :
-
-  clj -X:dbg:inst:dev:build flow-storm.api/cli-run :instrument-set '#{\"hf.depstar\"}' :fn-symb 'hf.depstar/jar' :fn-args '[{:jar \"flow-storm-dbg.jar\" :aliases [:dbg] :paths-only false :sync-pom true :version \"1.1.1\" :group-id \"com.github.jpmonettas\" :artifact-id \"flow-storm-dbg\"}]'
-
-  if you want to package flow-storm-dbg with depstar traced.
-  "
-
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args profile verbose? styles theme flow-id excluding-fns] :as opts}]
-  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args :profile :verbose? :styles :theme :debugger-host :port :flow-id :excluding-fns}]
-
-    (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
-    (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
-    (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
-    (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
-    (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
-    (assert (vector? fn-args) "fn-args should be a vector")
-    (assert (or (nil? profile) (#{:full :light} profile)) "profile should be :full or :light")
-
-    (let [inst-opts {:disable (utils/disable-from-profile profile)
-                     :excluding-ns excluding-ns
-                     :excluding-fns excluding-fns
-                     :verbose? verbose?}
-          fn-ns-name (namespace fn-symb)
-          _ (require (symbol fn-ns-name))
-          _ (resolve fn-symb)]
-
-      (when (seq require-before)
-        (doseq [ns-name require-before]
-          (log (format "Requiring ns %s" ns-name))
-          (require (symbol ns-name))))
-
-      (local-connect {:verbose? verbose? :styles styles :theme theme})
-
-      (log (format "Instrumenting namespaces %s" instrument-ns))
-      (time
-       (instrument-namespaces-clj instrument-ns inst-opts))
-      (log "Instrumentation done.")
-      (time
-       (if flow-id
-         (eval (runi* {:flow-id flow-id} `(~fn-symb ~@fn-args)))
-         (eval `(~fn-symb ~@fn-args))))
-      (log "Execution done, processing traces...")
-      (log "DONE"))))
-
-(defn cli-doc
-
-  "Document a code base by instrumenting, running and sampling it.
-
-  - :instrument-ns Set of namespaces prefixes to instrument for documentation
-  - :result-name A name for the output jar file
-  - :fn-symb Fully qualified symbol of the fn to run for exercising the code base
-  - :fn-args Arguments to be passed to the function defined by `:fn-symb`
-
-  - :excluding-fns (optional) A set of fns as symbols to be excluded from instrumentation.
-  - :excluding-ns (optional) A set of namespaces as string to be excluded from instrumentation.
-  - :require-before (optional) A set of namespaces as a string. Useful when you need to load extra namespaces before instrumentation.
-  - :verbose? (optional) Print extra log info.
-  - :print-unsampled? (optional) After finishing, prints all uncovered functions (functions that where instrumented but weren't sampled)
-  - :examples-pprint? (optional) Pretty print the values in the examples
-  - :examples-print-length (optional) Print length for the examples values
-  - :examples-print-level (optional) Print level for the examples values
-  "
-
-  [{:keys [instrument-ns excluding-ns require-before fn-symb fn-args verbose? excluding-fns
-           result-name print-unsampled? examples-pprint? examples-print-length examples-print-level] :as opts}]
-
-  (let [valid-opts-keys #{:instrument-ns :excluding-ns :require-before :fn-symb :fn-args
-                          :verbose? :excluding-fns :result-name :print-unsampled?
-                          :examples-pprint? :examples-print-length :examples-print-level}]
-
-    (assert (utils/contains-only? opts valid-opts-keys) (format "Invalid option key. Valid options are %s" valid-opts-keys))
-    (assert (or (nil? instrument-ns) (set? instrument-ns)) "instrument-ns should be a set of namespaces prefixes")
-    (assert (or (nil? excluding-ns) (set? excluding-ns)) "excluding-ns should be a set of namepsaces as string")
-    (assert (or (nil? require-before) (set? require-before)) "require-before should be a set of namespaces as string")
-    (assert (and (symbol? fn-symb) (namespace fn-symb)) "fn-symb should be a fully qualify symbol")
-    (assert (vector? fn-args) "fn-args should be a vector")
-
-    (let [fn-ns-name (namespace fn-symb)
-          _ (require (symbol fn-ns-name))
-          _ (resolve fn-symb)]
-
-      (when (seq require-before)
-        (doseq [ns-name require-before]
-          (log (format "Requiring ns %s" ns-name))
-          (require (symbol ns-name))))
-
-      (eval
-       `(fn-sampler/sample
-         ~{:result-name result-name
-           :inst-ns-prefixes instrument-ns
-           :excluding-fns excluding-fns
-           :excluding-ns excluding-ns
-           :verbose? verbose?
-           :print-unsampled? print-unsampled?
-           :uninstrument? false
-           :examples-pprint? examples-pprint?
-           :examples-print-length examples-print-length
-           :examples-print-level examples-print-level}
-
-         (~fn-symb ~@fn-args))))))
 
 (defmacro instrument* [config form]
   (let [env &env

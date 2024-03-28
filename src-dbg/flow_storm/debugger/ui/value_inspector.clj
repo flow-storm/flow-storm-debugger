@@ -14,7 +14,6 @@
            [javafx.scene.control SplitPane]
            [javafx.scene.layout VBox HBox Priority]))
 
-(set! *warn-on-reflection* true)
 
 (declare create-value-pane)
 

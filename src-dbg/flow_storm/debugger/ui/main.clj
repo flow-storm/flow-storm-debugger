@@ -46,7 +46,6 @@
            [javafx.scene.control Button ProgressBar]
            [javafx.scene.layout HBox]))
 
-(set! *warn-on-reflection* true)
 
 (declare start-ui)
 (declare stop-ui)
@@ -268,7 +267,9 @@
                                                 (runtime-api/all-fn-call-stats rt-api))))]
                               :align :center-left)
 
-        exceptions-menu-data (ui/menu-button :items [])
+        exceptions-menu-data (ui/menu-button
+                              :title "Exceptions"
+                              :items [])
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
@@ -369,19 +370,23 @@
   to configure the part of UI that depends on runtime state."
   []
   (ui-utils/run-later
-    (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
-      (log (str "Runtime config retrieved :" runtime-config))
-      (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                               (map first)
-                               (into #{}))]
-        (dbg-state/set-runtime-config runtime-config)
-        (set-recording-btn recording?)
-        (timeline-screen/set-recording-check total-order-recording?)
-        (printer-screen/update-prints-controls)
+   (when-let [{:keys [storm? recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+     (log (str "Runtime config retrieved :" runtime-config))
+     (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                              (map first)
+                              (into #{}))]
+       (dbg-state/set-runtime-config runtime-config)
+       (set-recording-btn recording?)
+       (timeline-screen/set-recording-check total-order-recording?)
+       (printer-screen/update-prints-controls)
 
+       (when storm?
+         (let [storm-prefixes (runtime-api/get-storm-instrumentation rt-api)]
+           (browser-screen/enable-storm-controls)
+           (browser-screen/update-storm-instrumentation storm-prefixes)))
 
-        (doseq [fid all-flows-ids]
-          (create-flow {:flow-id fid}))))))
+       (doseq [fid all-flows-ids]
+         (create-flow {:flow-id fid}))))))
 
 
 (defn start-ui [config]

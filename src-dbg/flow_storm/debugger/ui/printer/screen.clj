@@ -11,7 +11,6 @@
   (:import [javafx.scene.layout Priority VBox]
            [javafx.scene.control ComboBox SelectionModel]))
 
-(set! *warn-on-reflection* true)
 
 (defn clear-prints []
   (let [[{:keys [clear]}] (obj-lookup "printer-print-outs-list")]
