@@ -18,6 +18,7 @@
 ### Bugs fixed
 
     - Theme dialog panes
+    - Fix inspector power stepper
 
 ## 3.13.1 (21-03-2024)
 	

@@ -579,6 +579,15 @@
                                                         :thread-id thread-id
                                                         :idx       idx}))))))}))
 
+(defn find-and-jump-same-val [flow-id thread-id v-ref backward?]
+  (let [{:keys [idx]} (dbg-state/current-timeline-entry flow-id thread-id)
+        from-idx (if backward? (dec idx) (inc idx))]
+    (find-and-jump flow-id thread-id {:identity-val v-ref
+                                      :flow-id flow-id
+                                      :thread-id thread-id
+                                      :backward? backward?
+                                      :from-idx from-idx})))
+
 (defn- power-stepping-pane [flow-id thread-id]
   (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
         show-custom-field (fn [show?]
