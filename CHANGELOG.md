@@ -4,6 +4,14 @@
 	
 ### New Features
 
+### Changes 
+    
+### Bugs fixed
+
+## 3.14.0 (30-03-2024)
+	
+### New Features
+
     - Add support to open forms in editors
     - Add an option to set threads limit to throw
     - There is a new, much more powerfull global search system instead of the old per timeline search.

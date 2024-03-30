@@ -5,7 +5,7 @@
             [clojure.spec.alpha :as s]))
 
 (def version (or (System/getenv "VERSION")
-                 "3.13.1"))
+                 "3.14.0"))
 
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))
@@ -41,7 +41,15 @@
             ;; if no AOT value provided we default to true
             true))
 
+(defn- check-jvm []
+  (let [jvm-version (-> (System/getProperty "java.specification.version")
+                        Integer/parseInt)]
+    (when (>= jvm-version 21)
+      (throw (ex-info "Not building with JVM >= 21 because of the SequencedCollection issue. See https://aphyr.com/posts/369-classnotfoundexception-java-util-sequencedcollection" {})))
+    (println "Building with JVM " jvm-version)))
+
 (defn jar-dbg [_]
+  (check-jvm)
   (clean nil)
   (println "AOT compiling dbg : " aot?)
   (let [lib 'com.github.flow-storm/flow-storm-dbg
@@ -69,6 +77,7 @@
             :jar-file jar-file})))
 
 (defn jar-inst [_]
+  (check-jvm)
   (clean nil)
   (println "AOT compiling inst : " aot?)
   (let [lib 'com.github.flow-storm/flow-storm-inst
@@ -79,7 +88,8 @@
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'io.github.clojure/tools.build {:mvn/version "0.9.4" :exclusions ['com.google.guava/guava 'org.slf4j/slf4j-nop]}
                                               'com.github.flow-storm/hansel {:mvn/version "0.1.83"}
-                                              'org.clojure/data.int-map {:mvn/version "1.2.1"}}
+                                              'org.clojure/data.int-map {:mvn/version "1.2.1"}
+                                              'amalloy/ring-buffer {:mvn/version "1.3.1"}}
 
                                        :paths src-dirs}})
         jar-file (format "%s/%s.jar" target-dir (name lib))]
