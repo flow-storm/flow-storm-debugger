@@ -2003,23 +2003,39 @@ means.</p>
 <div class="sect3">
 <h4 id="_loops"><a class="anchor" href="#_loops"></a><a class="link" href="#_loops">3.1.4. Loops</a></h4>
 <div class="paragraph">
-<p>When clicking on a highlighted form two things can happen :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If the form was executed only once for the current frame, the debugger will immediately jump to it.</p>
-</li>
-<li>
-<p>Else if the form was executed multiple times, a context menu will show all the values that form evaluated to, sorted by time,
-and clicking on them will make the debugger jump to that specific point in time. This is useful for debugging loops.</p>
-</li>
-</ul>
+<p>Whenever you click a highlighted form that has been executed multiple times inside the same function call (any kind of loop),
+instead of immediately jumping into it, FlowStorm will popup a menu, like in the picture below :</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="user_guide_images/loops.png" alt="loops">
 </div>
+</div>
+<div class="paragraph">
+<p>This is the loops navigation menu. It allows you to quickly move around interesting iterations of the loop.</p>
+</div>
+<div class="paragraph">
+<p>The menu will display slightly differnt options depending on you current position. The <code>[FIRST] &#8230;&#8203;</code> and <code>[LAST] &#8230;&#8203;</code>
+entries will always show, which allows you to quickly jump to the first and last iteration of the loop.</p>
+</div>
+<div class="paragraph">
+<p>If you are currently before the loop, clicking into any expression inside the loop will show the first 20
+values for the clicked expression.</p>
+</div>
+<div class="paragraph">
+<p>If instead you are currently in a expression after the loop, clicking back to an expression inside the loop,
+will show the last 20 values for the clicked expression.</p>
+</div>
+<div class="paragraph">
+<p>Now if you are currently stepping inside the loop, clicking any other expression inside it will show you 10 values
+before and 10 values after of your current position.</p>
+</div>
+<div class="paragraph">
+<p>Clicking on any of this entries will take you to that position in time.</p>
+</div>
+<div class="paragraph">
+<p>If this is not enough, and you want to see all the values taken by some expression along the loop, you can always
+use the <a href="#_printer_tool">printer tool</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -3688,7 +3704,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-03-27 12:40:19 -0300
+Last updated 2024-03-30 18:15:11 -0300
 </div>
 </div>
 </body>

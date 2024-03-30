@@ -792,13 +792,29 @@ Double clicking on any of the search results will take you to that point in time
 
 === Loops
 
-When clicking on a highlighted form two things can happen :
-
-	 - If the form was executed only once for the current frame, the debugger will immediately jump to it.
-	 - Else if the form was executed multiple times, a context menu will show all the values that form evaluated to, sorted by time,
-	 and clicking on them will make the debugger jump to that specific point in time. This is useful for debugging loops.
+Whenever you click a highlighted form that has been executed multiple times inside the same function call (any kind of loop),
+instead of immediately jumping into it, FlowStorm will popup a menu, like in the picture below :
 
 image::user_guide_images/loops.png[]
+
+This is the loops navigation menu. It allows you to quickly move around interesting iterations of the loop.
+
+The menu will display slightly different options depending on you current position. The `[FIRST] ...` and `[LAST] ...`
+entries will always show, which allows you to quickly jump to the first and last iteration of the loop.
+
+If you are currently before the loop, clicking into any expression inside the loop will show the first 20
+values for the clicked expression.
+
+If instead you are currently in a expression after the loop, clicking back to an expression inside the loop,
+will show the last 20 values for the clicked expression.
+
+Now if you are currently stepping inside the loop, clicking any other expression inside it will show you 10 values
+before and 10 values after of your current position.
+
+Clicking on any of this entries will take you to that position in time.
+
+If this is not enough, and you want to see all the values taken by some expression along the loop, you can always
+use the <<#_printer_tool, printer tool>>.
 
 === Exceptions debugging
 
