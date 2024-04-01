@@ -573,7 +573,7 @@
       (let [scene (.getScene stage)
             scene-stylesheets (.getStylesheets scene)]
         (.clear scene-stylesheets)
-        (.addAll scene-stylesheets (into-array String new-stylesheets))))))
+        (.addAll scene-stylesheets new-stylesheets)))))
 
 (defn register-jfx-stage! [stg]
   (swap! state update :jfx-stages conj stg)

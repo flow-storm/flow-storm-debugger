@@ -1,14 +1,13 @@
 (ns flow-storm.debugger.ui.browser.screen
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label button add-class list-view]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [add-class]]
+            [flow-storm.debugger.ui.components :as ui]
             [flow-storm.utils :refer [log-error] :as utils]
             [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.debugger.ui.flows.general :refer [show-message]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [clojure.string :as str])
-  (:import [javafx.scene.control CheckBox SplitPane]
-           [javafx.scene Node]
-           [javafx.geometry Orientation Pos]
-           [javafx.scene.input MouseButton]))
+            [clojure.string :as str]))
+
+(set! *warn-on-reflection* true)
 
 (defn make-inst-var [var-ns var-name]
   {:inst-type :var
@@ -92,25 +91,27 @@
         [selected-fn-args-list-v-box]     (obj-lookup "browser-selected-fn-args-list-v-box")
         [selected-fn-doc-label]           (obj-lookup "browser-selected-fn-doc-label")
 
-        args-lists-labels (map (fn [al] (label (str al))) arglists)]
+        args-lists-labels (map (fn [al] (ui/label :text (str al))) arglists)]
 
     (add-class browser-instrument-button "enable")
     (add-class browser-instrument-rec-button "enable")
     (add-class browser-break-button "enable")
-    (.setOnAction browser-instrument-button (event-handler [_] (disabled-with-storm (instrument-function ns name))))
-    (.setOnAction browser-instrument-rec-button (event-handler [_] (disabled-with-storm (instrument-function ns name {:deep? true}))))
-    (.setOnAction browser-break-button (event-handler [_] (add-breakpoint (symbol (str ns) (str name)) {})))
+    (ui-utils/set-button-action browser-instrument-button (fn [] (disabled-with-storm (instrument-function ns name))))
+    (ui-utils/set-button-action browser-instrument-rec-button (fn [] (disabled-with-storm (instrument-function ns name {:deep? true}))))
+    (ui-utils/set-button-action browser-break-button (fn [] (add-breakpoint (symbol (str ns) (str name)) {})))
 
-    (.setText selected-fn-fq-name-label (format "%s" #_ns name))
+    (ui-utils/set-text selected-fn-fq-name-label (format "%s" #_ns name))
     (when added
-      (.setText selected-fn-added-label (format "Added: %s" added)))
-    (.setText selected-fn-file-label (format "File: %s:%d" file line))
+      (ui-utils/set-text selected-fn-added-label (format "Added: %s" added)))
+    (ui-utils/set-text selected-fn-file-label (format "File: %s:%d" file line))
     (when static
-      (.setText selected-fn-static-label "Static: true"))
-    (-> selected-fn-args-list-v-box .getChildren .clear)
-    (.addAll (.getChildren selected-fn-args-list-v-box)
-             (into-array Node args-lists-labels))
-    (.setText selected-fn-doc-label doc)))
+      (ui-utils/set-text selected-fn-static-label "Static: true"))
+
+    (-> selected-fn-args-list-v-box ui-utils/pane-children ui-utils/observable-clear)
+
+    (ui-utils/add-childrens-to-pane selected-fn-args-list-v-box args-lists-labels)
+
+    (ui-utils/set-text selected-fn-doc-label doc)))
 
 (defn- update-vars-pane [vars]
   (let [[{:keys [clear add-all]}] (obj-lookup "browser-observable-vars-list-data")]
@@ -138,30 +139,30 @@
 
 (defn create-namespaces-pane []
   (let [{:keys [list-view-pane] :as lv-data}
-        (list-view {:editable? false
-                    :cell-factory-fn (fn [list-cell ns-name]
-                                       (.setText list-cell nil)
-                                       (.setGraphic list-cell (label ns-name)))
-                    :on-click (fn [mev sel-items {:keys [list-view-pane]}]
-                                (when (and (= MouseButton/SECONDARY (.getButton mev))
-                                           (not (dbg-state/clojure-storm-env?)))
-                                  (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
-                                                                      :on-click (fn []
-                                                                                  (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
-                                        ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
-                                                                     :on-click (fn []
-                                                                                 (instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}
-                                        ctx-menu (ui-utils/make-context-menu [ctx-menu-instrument-ns-light
-                                                                              ctx-menu-instrument-ns-full])]
+        (ui/list-view :editable? false
+                      :cell-factory (fn [list-cell ns-name]
+                                      (-> list-cell
+                                          (ui-utils/set-text  nil)
+                                          (ui-utils/set-graphic (ui/label :text ns-name))))
+                      :on-click (fn [mev sel-items {:keys [list-view-pane]}]
+                                  (when (and (ui-utils/mouse-secondary? mev)
+                                             (not (dbg-state/clojure-storm-env?)))
+                                    (let [ctx-menu-instrument-ns-light {:text "Instrument namespace :light"
+                                                                        :on-click (fn []
+                                                                                    (instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
+                                          ctx-menu-instrument-ns-full {:text "Instrument namespace :full"
+                                                                       :on-click (fn []
+                                                                                   (instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}
+                                          ctx-menu (ui/context-menu :items [ctx-menu-instrument-ns-light
+                                                                            ctx-menu-instrument-ns-full])]
 
-                                    (ui-utils/show-context-menu ctx-menu
-                                                                list-view-pane
-                                                                (.getScreenX mev)
-                                                                (.getScreenY mev)))))
-                    :on-selection-change (fn [_ sel-ns] (when sel-ns (get-all-vars-for-ns sel-ns)))
-                    :selection-mode :multiple
-                    :search-predicate (fn [ns-name search-str]
-                                        (str/includes? ns-name search-str))})]
+                                      (ui-utils/show-context-menu :menu ctx-menu
+                                                                  :parent list-view-pane
+                                                                  :mouse-ev mev))))
+                      :on-selection-change (fn [_ sel-ns] (when sel-ns (get-all-vars-for-ns sel-ns)))
+                      :selection-mode :multiple
+                      :search-predicate (fn [ns-name search-str]
+                                          (str/includes? ns-name search-str)))]
 
     (store-obj "browser-observable-namespaces-list-data" lv-data)
 
@@ -169,45 +170,50 @@
 
 (defn create-vars-pane []
   (let [{:keys [list-view-pane] :as lv-data}
-        (list-view {:editable? false
-                    :cell-factory-fn (fn [list-cell {:keys [var-name]}]
-                                       (.setText list-cell nil)
-                                       (.setGraphic list-cell (label var-name)))
-                    :on-selection-change (fn [_ sel-var]
-                                           (when sel-var
-                                             (get-var-meta sel-var)))
-                    :selection-mode :single
-                    :search-predicate (fn [{:keys [var-name]} search-str]
-                                        (str/includes? var-name search-str))})]
+        (ui/list-view :editable? false
+                      :cell-factory (fn [list-cell {:keys [var-name]}]
+                                      (-> list-cell
+                                          (ui-utils/set-text nil)
+                                          (ui-utils/set-graphic (ui/label :text var-name))))
+                      :on-selection-change (fn [_ sel-var]
+                                             (when sel-var
+                                               (get-var-meta sel-var)))
+                      :selection-mode :single
+                      :search-predicate (fn [{:keys [var-name]} search-str]
+                                          (str/includes? var-name search-str)))]
 
     (store-obj "browser-observable-vars-list-data" lv-data)
     list-view-pane))
 
 (defn create-fn-details-pane []
-  (let [selected-fn-fq-name-label (label "" "browser-fn-fq-name")
-        inst-button (button :label "Instrument" :classes ["browser-instrument-btn" "btn-sm"])
-        break-button (button :label "Break"
-                             :classes ["browser-break-btn" "btn-sm"]
-                             :tooltip "Add a breakpoint to this function. Threads hitting this function will be paused")
-        inst-rec-button (button :label "Instrument recursively" :classes ["browser-instrument-btn" "btn-sm"])
-        btns-box (doto (h-box [inst-button inst-rec-button break-button]
-                              "browser-var-buttons")
-                   (.setSpacing 5))
-        name-box (doto (h-box [selected-fn-fq-name-label])
-                   (.setAlignment Pos/CENTER_LEFT))
-        selected-fn-added-label (label "" "browser-fn-attr")
-        selected-fn-file-label (label "" "browser-fn-attr")
-        selected-fn-static-label (label "" "browser-fn-attr")
-        selected-fn-args-list-v-box (v-box [] "browser-fn-args-box")
-        selected-fn-doc-label (label "" "browser-fn-attr")
+  (let [selected-fn-fq-name-label (ui/label :text "" :class "browser-fn-fq-name")
+        inst-button (ui/button :label "Instrument" :classes ["browser-instrument-btn" "btn-sm"])
+        break-button (ui/button :label "Break"
+                                :classes ["browser-break-btn" "btn-sm"]
+                                :tooltip "Add a breakpoint to this function. Threads hitting this function will be paused")
+        inst-rec-button (ui/button :label "Instrument recursively" :classes ["browser-instrument-btn" "btn-sm"])
+        btns-box (ui/h-box :childs [inst-button inst-rec-button break-button]
+                           :class "browser-var-buttons"
+                           :spacing 5)
 
-        selected-fn-detail-pane (v-box [name-box
-                                        btns-box
-                                        selected-fn-args-list-v-box
-                                        selected-fn-added-label
-                                        selected-fn-doc-label
-                                        selected-fn-file-label
-                                        selected-fn-static-label])]
+        name-box (ui/h-box :childs [selected-fn-fq-name-label]
+                           :align :center-left)
+
+        selected-fn-added-label (ui/label :text "" :class "browser-fn-attr")
+        selected-fn-file-label (ui/label :text "" :class "browser-fn-attr")
+        selected-fn-static-label (ui/label :text "" :class "browser-fn-attr")
+        selected-fn-args-list-v-box (ui/v-box :childs []
+                                              :class "browser-fn-args-box")
+        selected-fn-doc-label (ui/label :text "" :class "browser-fn-attr")
+
+        selected-fn-detail-pane (ui/v-box
+                                 :childs [name-box
+                                          btns-box
+                                          selected-fn-args-list-v-box
+                                          selected-fn-added-label
+                                          selected-fn-doc-label
+                                          selected-fn-file-label
+                                          selected-fn-static-label])]
 
     (store-obj "browser-instrument-button" inst-button)
     (store-obj "browser-break-button" break-button)
@@ -225,89 +231,94 @@
   (try
     (let [inst-box (case inst-type
                      :var (let [{:keys [var-name var-ns]} inst
-                                inst-lbl (doto (h-box [(label "VAR INST:" "browser-instr-type-lbl")
-                                                       (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
-                                           (.setSpacing 10))
-                                inst-del-btn (button :label "del"
-                                                     :classes ["browser-instr-del-btn" "btn-sm"]
-                                                     :on-click (fn [] (uninstrument-function var-ns var-name)))]
-                            (doto (h-box [inst-lbl inst-del-btn])
-                              (.setSpacing 10)
-                              (.setAlignment Pos/CENTER_LEFT)))
+                                inst-lbl (ui/h-box :childs [(ui/label :text "VAR INST:"                      :class "browser-instr-type-lbl")
+                                                            (ui/label :text (format "%s/%s" var-ns var-name) :class "browser-instr-label")]
+                                                   :spacing 10)
+
+                                inst-del-btn (ui/button :label "del"
+                                                        :classes ["browser-instr-del-btn" "btn-sm"]
+                                                        :on-click (fn [] (uninstrument-function var-ns var-name)))]
+                            (ui/h-box :childs [inst-lbl inst-del-btn]
+                                      :spacing 10
+                                      :align :center-left))
                      :ns (let [{:keys [ns-name] :as inst-ns} inst
-                               inst-lbl (doto (h-box [(label "NS INST:" "browser-instr-type-lbl")
-                                                      (label ns-name "browser-instr-label")])
-                                          (.setSpacing 10))
-                               inst-del-btn (button :label "del"
-                                                    :classes ["browser-instr-del-btn" "btn-sm"]
-                                                    :on-click (fn [] (uninstrument-namespaces [inst-ns])))]
-                           (doto (h-box [inst-lbl inst-del-btn])
-                             (.setSpacing 10)
-                             (.setAlignment Pos/CENTER_LEFT)))
-                     :break (let [{:keys [var-ns var-name]} inst
-                                  inst-lbl (doto (h-box [(label "VAR BREAK:" "browser-instr-type-lbl")
-                                                         (label (format "%s/%s" var-ns var-name) "browser-instr-label")])
-                                             (.setSpacing 10))
-                                  inst-del-btn (button :label "del"
+                               inst-lbl (ui/h-box :childs [(ui/label :text "NS INST:" :class "browser-instr-type-lbl")
+                                                           (ui/label :text ns-name    :class "browser-instr-label")]
+                                                  :spacing 10)
+
+                               inst-del-btn (ui/button :label "del"
                                                        :classes ["browser-instr-del-btn" "btn-sm"]
-                                                       :on-click (fn [] (remove-breakpoint (symbol var-ns var-name) {})))]
-                              (doto (h-box [inst-lbl inst-del-btn])
-                                (.setSpacing 10)
-                                (.setAlignment Pos/CENTER_LEFT))))]
-      (.setGraphic ^Node list-cell inst-box))
+                                                       :on-click (fn [] (uninstrument-namespaces [inst-ns])))]
+                           (ui/h-box :childs [inst-lbl inst-del-btn]
+                                     :spacing 10
+                                     :align :center-left))
+                     :break (let [{:keys [var-ns var-name]} inst
+                                  inst-lbl (ui/h-box :childs [(ui/label :text "VAR BREAK:"                     :class "browser-instr-type-lbl")
+                                                              (ui/label :text (format "%s/%s" var-ns var-name) :class "browser-instr-label")]
+                                                     :spacing 10)
+
+                                  inst-del-btn (ui/button :label "del"
+                                                          :classes ["browser-instr-del-btn" "btn-sm"]
+                                                          :on-click (fn [] (remove-breakpoint (symbol var-ns var-name) {})))]
+                              (ui/h-box :childs [inst-lbl inst-del-btn]
+                                        :spacing 10
+                                        :align :center-left)))]
+      (ui-utils/set-graphic list-cell inst-box))
     (catch Exception e (log-error e))))
 
 (defn- create-instrumentations-pane []
-  (let [{:keys [list-view-pane get-all-items] :as lv-data} (list-view {:editable? false
-                                                                      :selection-mode :single
-                                                                      :cell-factory-fn instrumentations-cell-factory})
-        delete-all-btn (button :label "Delete all"
-                               :on-click (fn []
-                                           (let [type-groups (group-by :inst-type (get-all-items))
-                                                 del-namespaces (:ns type-groups)
-                                                 del-vars (:var type-groups)
-                                                 del-brks (:break type-groups)]
+  (let [{:keys [list-view-pane get-all-items] :as lv-data} (ui/list-view :editable? false
+                                                                         :selection-mode :single
+                                                                         :cell-factory instrumentations-cell-factory)
+        delete-all-btn (ui/button :label "Delete all"
+                                  :on-click (fn []
+                                              (let [type-groups (group-by :inst-type (get-all-items))
+                                                    del-namespaces (:ns type-groups)
+                                                    del-vars (:var type-groups)
+                                                    del-brks (:break type-groups)]
 
-                                             (uninstrument-namespaces del-namespaces)
+                                                (uninstrument-namespaces del-namespaces)
 
-                                             (doseq [v del-vars]
-                                               (uninstrument-function (:var-ns v) (:var-name v)))
+                                                (doseq [v del-vars]
+                                                  (uninstrument-function (:var-ns v) (:var-name v)))
 
-                                             (doseq [b del-brks]
-                                               (remove-breakpoint (symbol (:var-ns b) (:var-name b)) {})))))
-        en-dis-chk (doto (CheckBox.)
-                     (.setSelected true))
-        _ (.setOnAction en-dis-chk
-                        (event-handler
-                         [_]
-                         (let [type-groups (group-by :inst-type (get-all-items))
-                               change-namespaces (:ns type-groups)
-                               change-vars (:var type-groups)
-                               breakpoints (:break type-groups)]
+                                                (doseq [b del-brks]
+                                                  (remove-breakpoint (symbol (:var-ns b) (:var-name b)) {})))))
+        en-dis-chk (ui/check-box :selected? true)
 
-                           (when (seq change-namespaces)
-                             (if (.isSelected en-dis-chk)
-                               (instrument-namespaces change-namespaces {:disable-events? true})
-                               (uninstrument-namespaces change-namespaces {:disable-events? true})))
+        instrumentations-tools (ui/h-box :childs [(ui/label :text "Enable all")
+                                                  en-dis-chk
+                                                  delete-all-btn]
+                                         :class "browser-instr-tools-box"
+                                         :spacing 10
+                                         :align :center-left)
 
-                           (doseq [v change-vars]
-                             (if (.isSelected en-dis-chk)
-                               (instrument-function (:var-ns v) (:var-name v) {:disable-events? true})
-                               (uninstrument-function (:var-ns v) (:var-name v) {:disable-events? true})))
+        pane (ui/v-box
+              :childs [(ui/label :text "Instrumentations")
+                       instrumentations-tools
+                       list-view-pane])]
 
-                           (doseq [{:keys [var-ns var-name]} breakpoints]
-                             (if (.isSelected en-dis-chk)
-                               (add-breakpoint (symbol var-ns var-name) {:disable-events? true})
-                               (remove-breakpoint (symbol var-ns var-name) {:disable-events? true}))))))
-        instrumentations-tools (doto (h-box [(label "Enable all")
-                                             en-dis-chk
-                                             delete-all-btn]
-                                            "browser-instr-tools-box")
-                                 (.setSpacing 10)
-                                 (.setAlignment Pos/CENTER_LEFT))
-        pane (v-box [(label "Instrumentations")
-                     instrumentations-tools
-                     list-view-pane])]
+    (ui-utils/set-button-action en-dis-chk
+                                (fn []
+                                  (let [type-groups (group-by :inst-type (get-all-items))
+                                        change-namespaces (:ns type-groups)
+                                        change-vars (:var type-groups)
+                                        breakpoints (:break type-groups)]
+
+                                    (when (seq change-namespaces)
+                                      (if (ui-utils/checkbox-checked? en-dis-chk)
+                                        (instrument-namespaces change-namespaces {:disable-events? true})
+                                        (uninstrument-namespaces change-namespaces {:disable-events? true})))
+
+                                    (doseq [v change-vars]
+                                      (if (ui-utils/checkbox-checked? en-dis-chk)
+                                        (instrument-function (:var-ns v) (:var-name v) {:disable-events? true})
+                                        (uninstrument-function (:var-ns v) (:var-name v) {:disable-events? true})))
+
+                                    (doseq [{:keys [var-ns var-name]} breakpoints]
+                                      (if (ui-utils/checkbox-checked? en-dis-chk)
+                                        (add-breakpoint (symbol var-ns var-name) {:disable-events? true})
+                                        (remove-breakpoint (symbol var-ns var-name) {:disable-events? true}))))))
 
     (store-obj "browser-observable-instrumentations-list-data" lv-data)
 
@@ -318,24 +329,10 @@
         vars-pane (create-vars-pane)
         selected-fn-detail-pane (create-fn-details-pane)
         inst-pane (create-instrumentations-pane)
-        top-split-pane (doto (SplitPane.)
-                         (.setOrientation (Orientation/HORIZONTAL)))
-        top-bottom-split-pane (doto (SplitPane.)
-                                (.setOrientation (Orientation/VERTICAL)))]
-
-    (-> top-split-pane
-        .getItems
-        (.addAll [namespaces-pane vars-pane selected-fn-detail-pane]))
-
-    (-> top-bottom-split-pane
-        .getItems
-        (.addAll [top-split-pane
-                  inst-pane]))
-
-    (.setDividerPosition top-split-pane 0 0.3)
-    (.setDividerPosition top-split-pane 1 0.6)
-
-    (.setDividerPosition top-bottom-split-pane 0 0.7)
-
-    top-bottom-split-pane
-    ))
+        top-split-pane (ui/split :orientation :horizontal
+                                 :childs [namespaces-pane vars-pane selected-fn-detail-pane]
+                                 :sizes [0.3 0.6])
+        top-bottom-split-pane (ui/split :orientation :vertical
+                                        :childs [top-split-pane inst-pane]
+                                        :sizes [0.7])]
+    top-bottom-split-pane))

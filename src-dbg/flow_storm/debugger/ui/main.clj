@@ -20,8 +20,8 @@
 
   (:require [flow-storm.debugger.ui.utils
              :as ui-utils
-             :refer [label icon-button event-handler h-box v-box progress-indicator progress-bar tab tab-pane border-pane
-                     key-combo-match? menu-button combo-box]]
+             :refer [event-handler key-combo-match?]]
+            [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
@@ -39,12 +39,14 @@
             [flow-storm.debugger.docs]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
-           [javafx.scene Scene Node]
+           [javafx.scene Scene]
            [javafx.stage Stage]
-           [javafx.geometry Pos]
-           [javafx.scene.control ToolBar MenuBar]
            [javafx.application Platform]
-           [javafx.scene.input KeyCode]))
+           [javafx.scene.input KeyCode KeyEvent]
+           [javafx.scene.control Button ProgressBar]
+           [javafx.scene.layout HBox]))
+
+(set! *warn-on-reflection* true)
 
 (declare start-ui)
 (declare stop-ui)
@@ -82,17 +84,19 @@
   (printer-screen/clear-prints))
 
 (defn bottom-box []
-  (let [progress-box (h-box [])
-        heap-bar (doto (progress-bar 100)
-                   (.setProgress 0))
-        heap-max-lbl (label "")
-        heap-box (h-box [heap-bar heap-max-lbl])
-        repl-status-lbl (label "REPL")
-        runtime-status-lbl (label "RUNTIME")
-        box (doto (h-box [progress-box repl-status-lbl runtime-status-lbl heap-box] "main-bottom-bar-box")
-              (.setSpacing 5)
-              (.setAlignment Pos/CENTER_RIGHT)
-              (.setPrefHeight 20))]
+  (let [progress-box (ui/h-box :childs [])
+        ^ProgressBar heap-bar (ui/progress-bar :width 100)
+        _ (.setProgress heap-bar 0)
+        heap-max-lbl (ui/label :text "")
+        heap-box (ui/h-box :childs [heap-bar heap-max-lbl])
+        repl-status-lbl (ui/label :text "REPL")
+        runtime-status-lbl (ui/label :text "RUNTIME")
+        box (ui/h-box :childs [progress-box repl-status-lbl runtime-status-lbl heap-box]
+                      :class "main-bottom-bar-box"
+                      :spacing 5
+                      :align :center-right
+                      :pref-height 20)
+        ]
     (store-obj "progress-box" progress-box)
     (store-obj "repl-status-lbl" repl-status-lbl)
     (store-obj "runtime-status-lbl" runtime-status-lbl)
@@ -102,13 +106,13 @@
 
 (defn update-heap-indicator [{:keys [max-heap-bytes heap-size-bytes heap-free-bytes]}]
   (ui-utils/run-later
-   (let [[heap-bar] (obj-lookup "heap-bar")
-         [heap-max-lbl] (obj-lookup "heap-max-lbl")
-         occupied-bytes (- heap-size-bytes heap-free-bytes)
-         occ-perc (float (/ occupied-bytes max-heap-bytes))
-         max-gb (float (/ max-heap-bytes 1024 1024 1024))]
-     (.setProgress heap-bar occ-perc)
-     (.setText heap-max-lbl (format "%.2f Gb" max-gb)))))
+    (let [[^ProgressBar heap-bar] (obj-lookup "heap-bar")
+          [heap-max-lbl] (obj-lookup "heap-max-lbl")
+          occupied-bytes (- heap-size-bytes heap-free-bytes)
+          occ-perc (float (/ occupied-bytes max-heap-bytes))
+          max-gb (float (/ max-heap-bytes 1024 1024 1024))]
+      (.setProgress heap-bar occ-perc)
+      (ui-utils/set-text heap-max-lbl (format "%.2f Gb" max-gb)))))
 
 (defn set-conn-status-lbl [lbl-key status]
   (ui-utils/run-later
@@ -127,48 +131,48 @@
 
 (defn set-in-progress [in-progress?]
   (ui-utils/run-later
-   (let [[box] (obj-lookup "progress-box")]
-     (if in-progress?
+    (let [[^HBox box] (obj-lookup "progress-box")]
+      (if in-progress?
 
-       (let [prog-ind (progress-indicator 20)]
-         (-> box .getChildren .clear)
-         (.addAll (.getChildren box) [prog-ind]))
+        (let [prog-ind (ui/progress-indicator :size 20)]
+          (-> box .getChildren .clear)
+          (ui-utils/observable-add-all (.getChildren box) [prog-ind]))
 
-       (-> box .getChildren .clear)))))
+        (-> box .getChildren ui-utils/observable-clear)))))
 
 
 (defn- main-tabs-pane []
-  (let [flows-tab (tab {:text "Flows"
-                        :class "vertical-tab"
-                        :content (flows-screen/main-pane)})
-        browser-tab (tab {:text "Browser"
+  (let [flows-tab (ui/tab :text "Flows"
                           :class "vertical-tab"
-                          :content (browser-screen/main-pane)})
-        taps-tab (tab {:text "Taps"
-                       :class "vertical-tab"
-                       :content (taps-screen/main-pane)
-                       :on-selection-changed (event-handler [_])})
-        docs-tab (tab {:text "Docs"
-                       :class "vertical-tab"
-                       :content (docs-screen/main-pane)
-                       :on-selection-changed (event-handler [_])})
-        timeline-tab (tab {:text "Timeline"
-                           :class "vertical-tab"
-                           :content (timeline-screen/main-pane)
-                           :on-selection-changed (event-handler [_])})
-        printer-tab (tab {:text "Printer"
-                          :class "vertical-tab"
-                          :content (printer-screen/main-pane)
-                          :on-selection-changed (event-handler [_])})
+                          :content (flows-screen/main-pane))
+        browser-tab (ui/tab :text "Browser"
+                            :class "vertical-tab"
+                            :content (browser-screen/main-pane))
+        taps-tab (ui/tab :text "Taps"
+                         :class "vertical-tab"
+                         :content (taps-screen/main-pane)
+                         :on-selection-changed (event-handler [_]))
+        docs-tab (ui/tab :text "Docs"
+                         :class "vertical-tab"
+                         :content (docs-screen/main-pane)
+                         :on-selection-changed (event-handler [_]))
+        timeline-tab (ui/tab :text "Timeline"
+                             :class "vertical-tab"
+                             :content (timeline-screen/main-pane)
+                             :on-selection-changed (event-handler [_]))
+        printer-tab (ui/tab :text "Printer"
+                            :class "vertical-tab"
+                            :content (printer-screen/main-pane)
+                            :on-selection-changed (event-handler [_]))
 
-        tabs-p (tab-pane {:tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab printer-tab]
-                          :rotate? true
-                          :closing-policy :unavailable
-                          :side :left
-                          :on-tab-change (fn [_ to-tab]
-                                           (cond
-                                             (= to-tab browser-tab) (browser-screen/get-all-namespaces)
-                                             (= to-tab printer-tab) (printer-screen/update-prints-controls)))})
+        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab printer-tab]
+                            :rotate? true
+                            :closing-policy :unavailable
+                            :side :left
+                            :on-tab-change (fn [_ to-tab]
+                                             (cond
+                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces)
+                                               (= to-tab printer-tab) (printer-screen/update-prints-controls))))
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
@@ -178,98 +182,97 @@
   (log (format "DEBUG MODE %s" (if (:debug-mode? (dbg-state/debugger-config)) "ENABLED" "DISABLED"))))
 
 (defn- ask-and-set-threads-limit []
-  (let [{:keys [text bool]} (ui-utils/ask-text-and-bool-dialog
-                             {:header "Set threads trace limit. FlowStorm will stop recording threads which hit the provided trace limit."
-                              :body "Limit :"
-                              :width  500
-                              :height 100
-                              :center-on-stage (dbg-state/main-jfx-stage)
-                              :bool-msg "Throw on limit?"})]
+  (let [{:keys [text bool]} (ui/ask-text-and-bool-dialog
+                             :header "Set threads trace limit. FlowStorm will stop recording threads which hit the provided trace limit."
+                             :body "Limit :"
+                             :width  500
+                             :height 100
+                             :center-on-stage (dbg-state/main-jfx-stage)
+                             :bool-msg "Throw on limit?")]
 
     (when-not (str/blank? text)
       (runtime-api/set-thread-trace-limit rt-api {:limit (Integer/parseInt text) :break? bool}))))
 
 (defn- build-menu-bar []
-  (let [mb (MenuBar.)
-        view-menu (ui-utils/make-menu {:label "_View"
-                                       :items [{:text "Bookmarks"
-                                                :on-click (fn [] (bookmarks/show-bookmarks))}
-                                               {:text "Search"
-                                                :on-click (fn [] (search/search-window))}
-                                               {:text "Toggle theme"
-                                                :on-click (fn []
-                                                            (dbg-state/rotate-theme)
-                                                            (dbg-state/reset-theming))
-                                                :accel {:mods [:ctrl]
-                                                        :key-code KeyCode/T}}
-                                               {:text "Increase font size"
-                                                :on-click (fn []
-                                                            (dbg-state/inc-font-size)
-                                                            (dbg-state/reset-theming))
-                                                :accel {:mods [:ctrl :shift]
-                                                        :key-code KeyCode/EQUALS}}
-                                               {:text "Decrease font size"
-                                                :on-click (fn []
-                                                            (dbg-state/dec-font-size)
-                                                            (dbg-state/reset-theming))
-                                                :accel {:mods [:ctrl]
-                                                        :key-code KeyCode/MINUS}}
-                                               {:text "Toggle debug mode"
-                                                :on-click (fn [] (toggle-debug-mode))
-                                                :accel {:mods [:ctrl]
-                                                        :key-code KeyCode/D}}]})
-        actions-menu (ui-utils/make-menu {:label "_Actions"
-                                          :items [{:text "Clear recordings"
-                                                   :on-click (fn [] (clear-all))
-                                                   :accel {:mods [:ctrl]
-                                                           :key-code KeyCode/L}}
-                                                  {:text "Unblock all threads"
-                                                   :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
-                                                   :accel {:mods [:ctrl]
-                                                           :key-code KeyCode/U}}]})
-        config-menu (ui-utils/make-menu {:label "_Config"
-                                         :items [{:text "Set threads limit"
-                                                  :on-click (fn [] (ask-and-set-threads-limit))}]})]
+  (let [view-menu (ui/menu :label "_View"
+                           :items [{:text "Bookmarks"
+                                    :on-click (fn [] (bookmarks/show-bookmarks))}
+                                   {:text "Search"
+                                    :on-click (fn [] (search/search-window))}
+                                   {:text "Toggle theme"
+                                    :on-click (fn []
+                                                (dbg-state/rotate-theme)
+                                                (dbg-state/reset-theming))
+                                    :accel {:mods [:ctrl]
+                                            :key-code KeyCode/T}}
+                                   {:text "Increase font size"
+                                    :on-click (fn []
+                                                (dbg-state/inc-font-size)
+                                                (dbg-state/reset-theming))
+                                    :accel {:mods [:ctrl :shift]
+                                            :key-code KeyCode/EQUALS}}
+                                   {:text "Decrease font size"
+                                    :on-click (fn []
+                                                (dbg-state/dec-font-size)
+                                                (dbg-state/reset-theming))
+                                    :accel {:mods [:ctrl]
+                                            :key-code KeyCode/MINUS}}
+                                   {:text "Toggle debug mode"
+                                    :on-click (fn [] (toggle-debug-mode))
+                                    :accel {:mods [:ctrl]
+                                            :key-code KeyCode/D}}])
+        actions-menu (ui/menu :label "_Actions"
+                              :items [{:text "Clear recordings"
+                                       :on-click (fn [] (clear-all))
+                                       :accel {:mods [:ctrl]
+                                               :key-code KeyCode/L}}
+                                      {:text "Unblock all threads"
+                                       :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
+                                       :accel {:mods [:ctrl]
+                                               :key-code KeyCode/U}}])
+        config-menu (ui/menu :label "_Config"
+                             :items [{:text "Set threads limit"
+                                      :on-click (fn [] (ask-and-set-threads-limit))}])]
 
-    (-> mb
-        .getMenus
-        (.addAll [view-menu actions-menu config-menu]))
-    mb))
+    (ui/menu-bar :menues [view-menu actions-menu config-menu])))
 
 (defn- build-top-tool-bar-pane []
-  (let [record-btn (icon-button :icon-name "mdi-record"
-                                :tooltip "Start/Stop recording"
-                                :on-click (fn [] (runtime-api/toggle-recording rt-api))
-                                :classes ["record-btn"])
-        task-cancel-btn (icon-button :icon-name "mdi-playlist-remove"
-                                     :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
-                                     :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
-                                     :disable true)
-        clear-btn (icon-button :icon-name  "mdi-delete-forever"
-                               :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                               :on-click (fn [] (clear-all)))
-        search-btn (ui-utils/icon-button :icon-name "mdi-magnify"
-                                         :tooltip "Open the search window"
-                                         :on-click (fn [] (search/search-window)))
-        quick-jump-textfield (doto (h-box [(label "Quick jump:")
-                                           (ui-utils/autocomplete-textfield
-                                            (fn []
-                                              (into []
-                                                    (map (fn [[fq-fn-name cnt]]
-                                                           {:text (format "%s (%d)" fq-fn-name cnt)
-                                                            :on-select (fn []
-                                                                         (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                            [(symbol fq-fn-name) 0 {}]
-                                                                                            {:on-finished (fn [{:keys [result]}]
-                                                                                                            (when result
-                                                                                                              (flows-screen/goto-location result)))}))}))
-                                                    (runtime-api/all-fn-call-stats rt-api))))])
-                               (.setAlignment Pos/CENTER_LEFT))
+  (let [record-btn (ui/icon-button :icon-name "mdi-record"
+                                   :tooltip "Start/Stop recording"
+                                   :on-click (fn [] (runtime-api/toggle-recording rt-api))
+                                   :classes ["record-btn"])
+        task-cancel-btn (ui/icon-button :icon-name "mdi-playlist-remove"
+                                        :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
+                                        :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
+                                        :disable true)
+        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
+                                  :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
+                                  :on-click (fn [] (clear-all)))
+        search-btn (ui/icon-button :icon-name "mdi-magnify"
+                                   :tooltip "Open the search window"
+                                   :on-click (fn [] (search/search-window)))
+        quick-jump-textfield (ui/h-box
+                              :childs [(ui/label :text "Quick jump:")
+                                       (ui/autocomplete-textfield
+                                        :get-completions
+                                        (fn []
+                                          (into []
+                                                (map (fn [[fq-fn-name cnt]]
+                                                       {:text (format "%s (%d)" fq-fn-name cnt)
+                                                        :on-select (fn []
+                                                                     (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                        [(symbol fq-fn-name) 0 {}]
+                                                                                        {:on-finished (fn [{:keys [result]}]
+                                                                                                        (when result
+                                                                                                          (flows-screen/goto-location result)))}))}))
+                                                (runtime-api/all-fn-call-stats rt-api))))]
+                              :align :center-left)
 
-        exceptions-menu-data (menu-button {:items []})
-        exceptions-box (doto (h-box [(:menu-button exceptions-menu-data)]
-                                    "hidden-pane")
-                         (.setAlignment Pos/CENTER_LEFT))
+        exceptions-menu-data (ui/menu-button :items [])
+        exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
+                                 :class "hidden-pane"
+                                 :align :center-left)
+
         tools [record-btn
                clear-btn
                task-cancel-btn
@@ -281,48 +284,48 @@
     (store-obj "exceptions-box" exceptions-box)
     (store-obj "exceptions-menu-data" exceptions-menu-data)
     (store-obj "record-btn" record-btn)
-    (ToolBar. (into-array Node tools))))
+    (ui/toolbar :childs tools)))
 
 (defn- build-bottom-tool-bar-pane []
-  (let [flows-combo (combo-box {:items (into [] (range 10))
-                                :button-factory-fn (fn [_ i] (label (str "flow-" i)))
-                                :cell-factory-fn (fn [_ i] (label (str "flow-" i)))
-                                :on-change-fn (fn [_ new-flow-id]
-                                                (runtime-api/switch-record-to-flow rt-api new-flow-id))})
-        flow-selector-box (doto (h-box [(label "Recording on : ") flows-combo])
-                            (.setAlignment Pos/CENTER_LEFT)
-                            (.setSpacing 5.0))]
-    (ToolBar. (into-array Node [flow-selector-box]))))
+  (let [flows-combo (ui/combo-box :items (into [] (range 10))
+                                  :button-factory (fn [_ i] (ui/label :text (str "flow-" i)))
+                                  :cell-factory (fn [_ i] (ui/label :text (str "flow-" i)))
+                                  :on-change (fn [_ new-flow-id]
+                                               (runtime-api/switch-record-to-flow rt-api new-flow-id)))
+        flow-selector-box (ui/h-box :childs [(ui/label :text "Recording on : ") flows-combo]
+                                    :spacing 5
+                                    :align :center-left)]
+    (ui/toolbar :childs [flow-selector-box])))
 
 (defn- build-top-bar-pane []
-  (doto (v-box [(build-menu-bar)
-           (build-top-tool-bar-pane)
-                (build-bottom-tool-bar-pane)])
-    (.setSpacing 5.0)))
+  (ui/v-box
+   :childs [(build-menu-bar)
+            (build-top-tool-bar-pane)
+            (build-bottom-tool-bar-pane)]
+   :spacing 5))
 
 (defn set-task-cancel-btn-enable [enable?]
   (ui-utils/run-later
-   (let [[task-cancel-btn] (obj-lookup "task-cancel-btn")]
-     (.setDisable task-cancel-btn (not enable?))
-     (if enable?
-       (ui-utils/add-class task-cancel-btn "attention")
-       (ui-utils/rm-class task-cancel-btn "attention")))))
+    (let [[^Button task-cancel-btn] (obj-lookup "task-cancel-btn")]
+      (.setDisable task-cancel-btn (not enable?))
+      (if enable?
+        (ui-utils/add-class task-cancel-btn "attention")
+        (ui-utils/rm-class task-cancel-btn "attention")))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later
-   (let [[record-btn] (obj-lookup "record-btn")]
-     (ui-utils/update-button-icon
-      record-btn
-      (if recording?
-        "mdi-pause"
-        "mdi-record")))))
+    (let [[record-btn] (obj-lookup "record-btn")]
+      (ui-utils/update-button-icon
+       record-btn
+       (if recording?
+         "mdi-pause"
+         "mdi-record")))))
 
 (defn- build-main-pane []
-  (let [mp (border-pane {:top (build-top-bar-pane)
-                         :center (main-tabs-pane)
-                         :bottom (bottom-box)})]
-    (ui-utils/add-class mp "main-pane")
-    mp))
+  (ui/border-pane :top (build-top-bar-pane)
+                  :center (main-tabs-pane)
+                  :bottom (bottom-box)
+                  :class "main-pane"))
 
 (defn- start-theme-listener [on-theme-change]
   (try
@@ -330,7 +333,7 @@
           listener (reify java.util.function.Consumer
                      (accept [_ dark?]
                        (ui-utils/run-later
-                        (on-theme-change dark?))))]
+                         (on-theme-change dark?))))]
       (log "Registering os theme-listener")
       (.registerListener detector listener)
       listener)
@@ -348,7 +351,7 @@
     ;; close all stages
     (when-not *killing-ui-from-window-close?*
       (doseq [stage (dbg-state/jfx-stages)]
-        (ui-utils/run-now (.close stage))))))
+        (ui-utils/run-now (.close ^Stage stage))))))
 
 (defn create-flow [{:keys [flow-id form-ns form timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
@@ -366,77 +369,77 @@
   to configure the part of UI that depends on runtime state."
   []
   (ui-utils/run-later
-   (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
-     (log (str "Runtime config retrieved :" runtime-config))
-     (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
-                              (map first)
-                              (into #{}))]
-       (dbg-state/set-runtime-config runtime-config)
-       (set-recording-btn recording?)
-       (timeline-screen/set-recording-check total-order-recording?)
-       (printer-screen/update-prints-controls)
+    (when-let [{:keys [recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+      (log (str "Runtime config retrieved :" runtime-config))
+      (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
+                               (map first)
+                               (into #{}))]
+        (dbg-state/set-runtime-config runtime-config)
+        (set-recording-btn recording?)
+        (timeline-screen/set-recording-check total-order-recording?)
+        (printer-screen/update-prints-controls)
 
 
-       (doseq [fid all-flows-ids]
-         (create-flow {:flow-id fid}))))))
+        (doseq [fid all-flows-ids]
+          (create-flow {:flow-id fid}))))))
 
 
 (defn start-ui [config]
   (Platform/setImplicitExit false)
 
   (ui-utils/run-now
-   (try
-     (let [scene (Scene. (build-main-pane) 1024 768)
-           stage (doto (Stage.)
-                   (.setTitle (or (:title config) "Flowstorm debugger"))
-                   (.setScene scene)
-                   (.setOnCloseRequest
-                    (event-handler
-                     [_]
-                     ;; call with skip-ui-stop? true since if we are here
-                     ;; we are already stopping the ui from closing the window
-                     (binding [*killing-ui-from-window-close?* true]
-                       (let [stop-config (when (utils/storm-env?)
-                                           {:skip-index-stop? true})]
-                         (if-let [stop-all (resolve 'flow-storm.api/stop)]
-                           ;; if ui and runtime is running under the same jvm
-                           ;; we can stop all
-                           (stop-all stop-config)
+    (try
+      (let [scene (Scene. (build-main-pane) 1024 768)
+            stage (doto (Stage.)
+                    (.setTitle (or (:title config) "Flowstorm debugger"))
+                    (.setScene scene)
+                    (.setOnCloseRequest
+                     (event-handler
+                         [_]
+                       ;; call with skip-ui-stop? true since if we are here
+                       ;; we are already stopping the ui from closing the window
+                       (binding [*killing-ui-from-window-close?* true]
+                         (let [stop-config (when (utils/storm-env?)
+                                             {:skip-index-stop? true})]
+                           (if-let [stop-all (resolve 'flow-storm.api/stop)]
+                             ;; if ui and runtime is running under the same jvm
+                             ;; we can stop all
+                             (stop-all stop-config)
 
-                           ;; else stop just the debugger
-                           ((resolve 'flow-storm.debugger.main/stop-debugger))))))))
+                             ;; else stop just the debugger
+                             ((resolve 'flow-storm.debugger.main/stop-debugger))))))))
 
-           theme-listener (when (= :auto (:theme config))
-                            (start-theme-listener
-                             (fn [dark?]
-                               (dbg-state/set-theme (if dark? :dark :light))
-                               (dbg-state/reset-theming))))]
+            theme-listener (when (= :auto (:theme config))
+                             (start-theme-listener
+                              (fn [dark?]
+                                (dbg-state/set-theme (if dark? :dark :light))
+                                (dbg-state/reset-theming))))]
 
-       (dbg-state/register-jfx-stage! stage)
-       (dbg-state/reset-theming)
+        (dbg-state/register-jfx-stage! stage)
+        (dbg-state/reset-theming)
 
-       (doto scene
-         (.setOnKeyPressed (event-handler
-                            [kev]
-                            (let [key-name (.getName (.getCode kev))]
+        (doto scene
+          (.setOnKeyPressed (event-handler
+                                [^KeyEvent kev]
+                              (let [key-name (.getName (.getCode kev))]
 
-                              (cond
+                                (cond
 
-                                (key-combo-match? kev "g" [:ctrl])
-                                (runtime-api/interrupt-all-tasks rt-api)
+                                  (key-combo-match? kev "g" [:ctrl])
+                                  (runtime-api/interrupt-all-tasks rt-api)
 
-                                (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab :flows)
-                                (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)
-                                (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab :taps)
-                                (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab :docs)
-                                (= key-name "Esc") (flows-screen/select-flow-tab nil)
-                                (= key-name "0")   (flows-screen/select-flow-tab 0)
-                                ))))
-         (.setRoot (build-main-pane)))
+                                  (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab :flows)
+                                  (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)
+                                  (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab :taps)
+                                  (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab :docs)
+                                  (= key-name "Esc") (flows-screen/select-flow-tab nil)
+                                  (= key-name "0")   (flows-screen/select-flow-tab 0)
+                                  ))))
+          (.setRoot (build-main-pane)))
 
-       (-> stage .show)
+        (-> stage .show)
 
-       {:theme-listener theme-listener})
+        {:theme-listener theme-listener})
 
-     (catch Exception e
-       (log-error "UI Thread exception" e)))))
+      (catch Exception e
+        (log-error "UI Thread exception" e)))))

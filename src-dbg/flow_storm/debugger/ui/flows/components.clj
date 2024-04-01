@@ -1,53 +1,60 @@
 (ns flow-storm.debugger.ui.flows.components
-  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler label h-box v-box button text-area check-box]]
+  (:require [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
-  (:import [javafx.scene.control CheckBox TextField]
-           [javafx.scene.layout VBox Priority]
-           [javafx.geometry Pos]))
+  (:import [javafx.scene.layout VBox Priority]
+           [javafx.scene.control TextArea TextField]))
+
+(set! *warn-on-reflection* true)
 
 (defn def-kind-colored-label [text kind]
   (case kind
-    :defmethod       (label text "defmethod")
-    :extend-protocol (label text "extend-protocol")
-    :extend-type     (label text "extend-type")
-    :defn            (label text "defn")
-    (label text "anonymous")))
+    :defmethod       (ui/label :text text :class "defmethod")
+    :extend-protocol (ui/label :text text :class "extend-protocol")
+    :extend-type     (ui/label :text text :class "extend-type")
+    :defn            (ui/label :text text :class "defn")
+    #_else           (ui/label :text text :class "anonymous")))
 
 (defn create-pprint-pane [flow-id thread-id pane-id]
-  (let [result-txt (text-area "" {:editable? false})
-        print-meta-chk (doto (CheckBox.)
-                         (.setSelected false))
-        print-level-txt (doto (TextField. "5")
-                          (.setPrefWidth 50)
-                          (.setAlignment Pos/CENTER))
-        print-wrap-chk (doto (check-box {:on-change (fn [selected?] (.setWrapText result-txt selected?))})
-                             (.setSelected false))
-        def-btn (button :label "def"
-                        :classes ["def-btn" "btn-sm"]
-                        :tooltip "Define a reference to this value so it can be used from the repl.")
-        inspect-btn (button :label "ins"
-                            :classes ["def-btn" "btn-sm"]
-                            :tooltip "Open this value in the value inspector.")
-        tap-btn (button :label "tap"
-                        :classes ["def-btn" "btn-sm"]
-                        :tooltip "Tap this value as with tap>. Useful to send it to other inspectors like portal, REBL, Reveal, etc")
-        tools-box (doto (h-box [(label "*print-level*") print-level-txt
-                                (label "*print-meta*") print-meta-chk
-                                (label "*print-wrap*") print-wrap-chk
-                                def-btn
-                                inspect-btn
-                                tap-btn])
-                    (.setAlignment Pos/CENTER_RIGHT)
-                    (.setSpacing 3.0))
-        result-type-lbl (label "")
-        extra-lbl (label "")
-        header-box (doto (h-box [result-type-lbl extra-lbl])
-                     (.setSpacing 3.0))
-        box (v-box [tools-box
-                    header-box
-                    result-txt])]
+  (let [^TextArea result-txt (ui/text-area :text ""
+                                 :editable? false)
+        print-meta-chk (ui/check-box :selected? false)
+        print-level-txt  (ui/text-field :initial-text "5"
+                                        :align :center
+                                        :pref-width 50)
+
+        print-wrap-chk (ui/check-box :on-change (fn [selected?] (.setWrapText result-txt selected?))
+                                     :selected? false)
+
+        def-btn (ui/button :label "def"
+                           :classes ["def-btn" "btn-sm"]
+                           :tooltip "Define a reference to this value so it can be used from the repl.")
+        inspect-btn (ui/button :label "ins"
+                               :classes ["def-btn" "btn-sm"]
+                               :tooltip "Open this value in the value inspector.")
+        tap-btn (ui/button :label "tap"
+                           :classes ["def-btn" "btn-sm"]
+                           :tooltip "Tap this value as with tap>. Useful to send it to other inspectors like portal, REBL, Reveal, etc")
+        tools-box (ui/h-box :childs [(ui/label :text "*print-level*") print-level-txt
+                                     (ui/label :text "*print-meta*") print-meta-chk
+                                     (ui/label :text "*print-wrap*") print-wrap-chk
+                                     def-btn
+                                     inspect-btn
+                                     tap-btn]
+                            :spacing 3
+                            :align :center-right)
+
+        result-type-lbl (ui/label :text "")
+        extra-lbl (ui/label :text "")
+        header-box (ui/h-box :childs [result-type-lbl extra-lbl]
+                             :spacing 3)
+
+        box (ui/v-box
+             :childs [tools-box
+                      header-box
+                      result-txt])]
 
     (VBox/setVgrow result-txt Priority/ALWAYS)
     (store-obj flow-id thread-id (ui-utils/thread-pprint-type-lbl-id pane-id) result-type-lbl)
@@ -72,14 +79,14 @@
 
         {:keys [val-str val-type]} (when val-ref
                                      (runtime-api/val-pprint rt-api val-ref {:print-length 50
-                                                                             :print-level (Integer/parseInt (.getText print-level-txt))
-                                                                             :print-meta? (.isSelected print-meta-chk)
+                                                                             :print-level (Integer/parseInt (.getText ^TextField print-level-txt))
+                                                                             :print-meta? (ui-utils/checkbox-checked? print-meta-chk)
                                                                              :pprint? true}))]
-    (.setOnAction def-btn (event-handler [_] (value-inspector/def-val val-ref)))
-    (.setOnAction inspect-btn (event-handler [_] (value-inspector/create-inspector val-ref opts)))
-    (.setOnAction tap-btn (event-handler [_] (runtime-api/tap-value rt-api val-ref)))
+    (ui-utils/set-button-action def-btn (fn [] (value-inspector/def-val val-ref)))
+    (ui-utils/set-button-action inspect-btn (fn [] (value-inspector/create-inspector val-ref opts)))
+    (ui-utils/set-button-action tap-btn (fn [] (runtime-api/tap-value rt-api val-ref)))
 
-    (.setText extra-lbl (or extra-text ""))
+    (ui-utils/set-text extra-lbl (or extra-text ""))
     (case class
       :warning (do
                  (ui-utils/rm-class extra-lbl "fail")
@@ -91,5 +98,5 @@
         (ui-utils/rm-class extra-lbl "fail")
         (ui-utils/rm-class extra-lbl "warning")))
 
-    (.setText result-txt val-str)
-    (.setText result-type-lbl (format "Type: %s" (or val-type "")))))
+    (ui-utils/set-text-input-text result-txt val-str)
+    (ui-utils/set-text result-type-lbl (format "Type: %s" (or val-type "")))))

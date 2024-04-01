@@ -669,11 +669,12 @@
   [pred fid-tid-timelines {:keys [from-idx backward? needs-form-id?]} {:keys [on-progress on-match on-end]}]
 
   (let [batch-size 10000
-        total-batches (->> (all-threads)
-                           (mapv (fn [[fid tid]]
-                                   (quot (count (get-timeline fid tid))
-                                         batch-size)))
-                           (reduce +))
+        total-batches (max 1
+                           (->> (all-threads)
+                                (mapv (fn [[fid tid]]
+                                        (quot (count (get-timeline fid tid))
+                                              batch-size)))
+                                (reduce +)))
         batches-processed (volatile! 0)
         interrupted? (atom false)
         interrupt (fn [] (reset! interrupted? true))
@@ -710,7 +711,8 @@
 
                                                   ;; else keep collecting from the current timeline
                                                   #?(:clj (recur work-timelines to-idx)
-                                                     :cljs (js/setTimeout find-next-batch 0 work-timelines to-idx))))))))]
+                                                     :cljs (js/setTimeout find-next-batch 0 work-timelines to-idx)))))))
+                                        )]
                   (find-next-batch fid-tid-timelines from-idx)))]
     {:interrupt interrupt
      :start start}))

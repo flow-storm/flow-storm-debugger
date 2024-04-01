@@ -3,7 +3,8 @@
             [flow-storm.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor]]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon list-view text-field tab-pane tab combo-box]]
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
+            [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
@@ -11,15 +12,15 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.tasks :as tasks]
             [hansel.utils :refer [get-form-at-coord]])
-  (:import [javafx.scene.control Label Tab TabPane TabPane$TabClosingPolicy SplitPane TextInputDialog]
-           [javafx.scene Node]
-           [javafx.geometry Orientation Pos]
+  (:import [javafx.scene Node]
            [javafx.scene.layout Priority VBox HBox]
+           [javafx.scene.control ScrollPane Label SelectionModel TextField ComboBox]
            [javafx.scene.text Font]
-           [javafx.scene.input MouseButton KeyEvent ScrollEvent]
+           [javafx.scene.input KeyEvent ScrollEvent MouseEvent]
            [org.fxmisc.richtext CodeArea]
-           [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]
-           [javafx.scene.input MouseEvent]))
+           [org.fxmisc.richtext.model StyleSpansBuilder TwoDimensional$Bias]))
+
+(set! *warn-on-reflection* true)
 
 (declare jump-to-coord)
 (declare find-and-jump-same-val)
@@ -76,20 +77,20 @@
   (let [{:keys [form-id fn-ns fn-name]} (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)
         form (runtime-api/get-form rt-api form-id)
         expr (get-form-at-coord (:form/form form) coord)
-        tdiag (doto (TextInputDialog.)
-                (.setHeaderText "Printer message. %s will be replaced by the value.")
-                (.setContentText "Message : "))
-        _ (.showAndWait tdiag)
-        format-str (-> tdiag .getEditor .getText)]
+        format-str (ui/ask-text-dialog :header "Printer message. %s will be replaced by the value."
+                                       :body "Message : "
+                                       :width  800
+                                       :height 100
+                                       :center-on-stage (dbg-state/main-jfx-stage))]
     (dbg-state/add-printer form-id coord (assoc (dissoc form :form/form)
-                                            :fn-ns fn-ns
-                                            :fn-name fn-name
-                                            :coord coord
-                                            :expr expr
-                                            :format-str format-str
-                                            :print-length 5
-                                            :print-level  3
-                                            :enable? true))))
+                                                :fn-ns fn-ns
+                                                :fn-name fn-name
+                                                :coord coord
+                                                :expr expr
+                                                :format-str format-str
+                                                :print-length 5
+                                                :print-level  3
+                                                :enable? true))))
 
 (defn- calculate-execution-idx-range [spans curr-coord]
   (let [[s1 s2 :as hl-coords-spans] (->> spans
@@ -185,7 +186,7 @@
                                    ;; but close to the border we are going to have first and last
                                    ;; already added by interesting-entries
                                    dedupe))
-        loop-traces-menu (ui-utils/make-context-menu ctx-menu-options)]
+        loop-traces-menu (ui/context-menu :items ctx-menu-options)]
     loop-traces-menu))
 
 (defn- build-form-paint-and-arm-fn
@@ -226,7 +227,7 @@
         (.setOnMouseClicked form-code-area
                             (event-handler
                                 [^MouseEvent mev]
-                              (let [char-hit (-> mev .getSource (.hit (.getX mev) (.getY mev)))
+                              (let [char-hit (.hit form-code-area (.getX mev) (.getY mev))
                                     opt-char-idx (.getCharacterIndex char-hit)]
                                 (when (.isPresent opt-char-idx)
                                   (let [char-idx (.getAsInt opt-char-idx)
@@ -240,48 +241,47 @@
                                       (if (:interesting? clicked-span)
                                         (let [clicked-coord-exprs (get interesting-coords coord)
 
-                                              token-right-click-menu (ui-utils/make-context-menu
-                                                                      (cond-> [{:text "Add to prints"
-                                                                                :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
+                                              token-right-click-menu (ui/context-menu
+                                                                      :items (cond-> [{:text "Add to prints"
+                                                                                       :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
 
-                                                                        (:line clicked-span)
-                                                                        (into [{:text "Open in editor"
-                                                                                :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}])
+                                                                               (:line clicked-span)
+                                                                               (into [{:text "Open in editor"
+                                                                                       :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}])
 
-                                                                        (not (dbg-state/clojure-storm-env?))
-                                                                        (into [{:text "Fully instrument this form"
-                                                                                :on-click (fn []
-                                                                                            (runtime-api/eval-form rt-api
-                                                                                                                   (pr-str (:form/form form))
-                                                                                                                   {:instrument? true
-                                                                                                                    :ns (:form/ns form)}))}
-                                                                               {:text "Instrument this form without bindings"
-                                                                                :on-click (fn []
-                                                                                            (runtime-api/eval-form rt-api
-                                                                                                                   (pr-str (:form/form form))
-                                                                                                                   {:instrument? true
-                                                                                                                    :instrument-options {:disable #{:bind}}
-                                                                                                                    :ns (:form/ns form)}))}])))]
+                                                                               (not (dbg-state/clojure-storm-env?))
+                                                                               (into [{:text "Fully instrument this form"
+                                                                                       :on-click (fn []
+                                                                                                   (runtime-api/eval-form rt-api
+                                                                                                                          (pr-str (:form/form form))
+                                                                                                                          {:instrument? true
+                                                                                                                           :ns (:form/ns form)}))}
+                                                                                      {:text "Instrument this form without bindings"
+                                                                                       :on-click (fn []
+                                                                                                   (runtime-api/eval-form rt-api
+                                                                                                                          (pr-str (:form/form form))
+                                                                                                                          {:instrument? true
+                                                                                                                           :instrument-options {:disable #{:bind}}
+                                                                                                                           :ns (:form/ns form)}))}])))]
 
-                                          (if (= MouseButton/SECONDARY (.getButton mev))
-                                            (ui-utils/show-context-menu token-right-click-menu
-                                                                        form-code-area
-                                                                        (.getScreenX mev)
-                                                                        (.getScreenY mev))
+                                          (if (ui-utils/mouse-secondary? mev)
+                                            (ui-utils/show-context-menu :menu token-right-click-menu
+                                                                        :parent form-code-area
+                                                                        :mouse-ev mev)
                                             (if (= 1 (count clicked-coord-exprs))
                                               (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
                                               (ui-utils/show-context-menu
-                                               (make-coord-expressions-menu flow-id thread-id clicked-coord-exprs curr-idx)
-                                               form-code-area
-                                               (.getScreenX mev)
-                                               (.getScreenY mev)))))
+                                               :menu (make-coord-expressions-menu flow-id thread-id clicked-coord-exprs curr-idx)
+                                               :parent form-code-area
+                                               :mouse-ev mev))))
 
                                         ;; else if it is not interesting? we don't want to jump there
                                         ;; but provide a way of search and jump to it by coord and form
                                         (let [form-id (:form/id form)
                                               token-right-click-menu
-                                              (ui-utils/make-context-menu
+                                              (ui/context-menu
+                                               :items
                                                [{:text "Jump to first record here"
                                                  :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
                                                 {:text "Jump forward here"
@@ -289,12 +289,11 @@
                                                 {:text "Jump backwards here"
                                                  :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])]
 
-                                          (when (= MouseButton/SECONDARY (.getButton mev))
+                                          (when (ui-utils/mouse-secondary? mev)
                                             (ui-utils/show-context-menu
-                                             token-right-click-menu
-                                             form-code-area
-                                             (.getScreenX mev)
-                                             (.getScreenY mev)))))))))))))))
+                                             :menu token-right-click-menu
+                                             :parent form-code-area
+                                             :mouse-ev mev))))))))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."
@@ -305,23 +304,26 @@
                            ;; if it is a wrapped repl expression discard some tokens that the user
                            ;; isn't interested in
                            maybe-unwrap-runi-tokens))
-        [forms-box] (obj-lookup flow-id thread-id "forms_box")
+        [^VBox forms-box] (obj-lookup flow-id thread-id "forms_box")
         code-text (form-pprinter/to-string print-tokens)
-        ns-label (let [form-line (some-> form :form/form meta :line)]
-                   (doto (label (if form-line
-                                  (format "%s:%d" (:form/ns form) form-line)
-                                  (:form/ns form))
-                                "link-lbl-no-color")
+        ns-label (let [form-line (some-> form :form/form meta :line)
+                       ^Label ns-lbl (ui/label :text (if form-line
+                                                       (format "%s:%d" (:form/ns form) form-line)
+                                                       (:form/ns form))
+                                               :class "link-lbl-no-color")]
+                   (doto ns-lbl
                      (.setOnMouseClicked (event-handler [_] (open-form-in-editor form)))
                      (.setFont (Font. 10))))
 
-        form-header (doto (h-box [ns-label])
-                          (.setAlignment (Pos/TOP_RIGHT)))
+        form-header (ui/h-box :childs [ns-label]
+                              :align :top-right)
 
-        ^CodeArea form-code-area (ui-utils/code-area {:editable? false
-                                                      :text code-text})
+        ^CodeArea form-code-area (ui/code-area :editable? false
+                                               :text code-text)
 
-        form-pane (v-box [form-header form-code-area] "form-pane")
+        form-pane (ui/v-box
+                   :childs [form-header form-code-area]
+                   :class "form-pane")
 
         form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form form-code-area print-tokens)]
 
@@ -351,47 +353,48 @@
     form-pane))
 
 (defn- locals-list-cell-factory [list-cell symb-val]
-  (let [symb-lbl (doto (label (first symb-val))
-                   (.setPrefWidth 100))
-        val-lbl (label  (utils/elide-string (:val-str (runtime-api/val-pprint rt-api (second symb-val)
-                                                                              {:print-length 20
-                                                                               :print-level 5
-                                                                               :pprint? false}))
-                                            80))
-        hbox (h-box [symb-lbl val-lbl])]
-    (.setGraphic ^Node list-cell hbox)))
+  (let [symb-lbl (ui/label :text (first symb-val)
+                           :pref-width 100)
+
+        val-lbl (ui/label :text (utils/elide-string (:val-str (runtime-api/val-pprint rt-api (second symb-val)
+                                                                                      {:print-length 20
+                                                                                       :print-level 5
+                                                                                       :pprint? false}))
+                                                    80))
+        hbox (ui/h-box :childs [symb-lbl val-lbl])]
+    (ui-utils/set-graphic list-cell hbox)))
 
 (defn- on-locals-list-item-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
-  (when (= MouseButton/SECONDARY (.getButton mev))
+  (when (ui-utils/mouse-secondary? mev)
     (let [[_ val] (first selected-items)
-          ctx-menu (ui-utils/make-context-menu [{:text "Define all frame vars"
-                                                 :on-click (fn []
-                                                             (let [curr-idx (dbg-state/current-idx flow-id thread-id)
-                                                                   {:keys [fn-ns]} (dbg-state/current-frame flow-id thread-id)
-                                                                   all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {:all-frame? true})]
-                                                               (doseq [[symb-name vref] all-bindings]
-                                                                 (let [symb (symbol fn-ns symb-name)]
-                                                                   (runtime-api/def-value rt-api symb vref)))))}
-                                                {:text "Define var for val"
-                                                 :on-click (fn []
-                                                             (value-inspector/def-val val))}
-                                                {:text "Tap val"
-                                                 :on-click (fn []
-                                                             (runtime-api/tap-value rt-api val))}
-                                                {:text "Inspect"
-                                                 :on-click (fn []
-                                                             (value-inspector/create-inspector val {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)}))}])]
-      (ui-utils/show-context-menu ctx-menu
-                                  list-view-pane
-                                  (.getScreenX mev)
-                                  (.getScreenY mev)))))
+          ctx-menu (ui/context-menu :items
+                                    [{:text "Define all frame vars"
+                                      :on-click (fn []
+                                                  (let [curr-idx (dbg-state/current-idx flow-id thread-id)
+                                                        {:keys [fn-ns]} (dbg-state/current-frame flow-id thread-id)
+                                                        all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {:all-frame? true})]
+                                                    (doseq [[symb-name vref] all-bindings]
+                                                      (let [symb (symbol fn-ns symb-name)]
+                                                        (runtime-api/def-value rt-api symb vref)))))}
+                                     {:text "Define var for val"
+                                      :on-click (fn []
+                                                  (value-inspector/def-val val))}
+                                     {:text "Tap val"
+                                      :on-click (fn []
+                                                  (runtime-api/tap-value rt-api val))}
+                                     {:text "Inspect"
+                                      :on-click (fn []
+                                                  (value-inspector/create-inspector val {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)}))}])]
+      (ui-utils/show-context-menu :menu ctx-menu
+                                  :parent list-view-pane
+                                  :mouse-ev mev))))
 
 (defn- create-locals-pane [flow-id thread-id]
   (let [{:keys [list-view-pane] :as lv-data}
-        (list-view {:editable? false
-                    :selection-mode :single
-                    :cell-factory-fn locals-list-cell-factory
-                    :on-click (partial on-locals-list-item-click flow-id thread-id)})]
+        (ui/list-view :editable? false
+                      :selection-mode :single
+                      :cell-factory locals-list-cell-factory
+                      :on-click (partial on-locals-list-item-click flow-id thread-id))]
     (store-obj flow-id thread-id "locals_list" lv-data)
 
     list-view-pane))
@@ -403,22 +406,22 @@
 
 (defn- create-stack-pane [flow-id thread-id]
   (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name form-def-kind dispatch-val]}]
-                       (.setGraphic list-cell (label (if (= :defmethod form-def-kind)
-                                                       (str fn-ns "/" fn-name " " dispatch-val)
-                                                       (str fn-ns "/" fn-name))
-                                                     "link-lbl")))
+                       (ui-utils/set-graphic list-cell (ui/label :text (if (= :defmethod form-def-kind)
+                                                                         (str fn-ns "/" fn-name " " dispatch-val)
+                                                                         (str fn-ns "/" fn-name))
+                                                                 :class "link-lbl")))
         item-click (fn [mev selected-items _]
                      (let [{:keys [fn-call-idx]} (first selected-items)]
-                       (when (and (= MouseButton/PRIMARY (.getButton mev))
-                                  (= 2 (.getClickCount mev)))
+                       (when (and (ui-utils/mouse-primary? mev)
+                                  (ui-utils/double-click? mev))
                          (jump-to-coord flow-id
                                         thread-id
                                         (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :prev)))))
         {:keys [list-view-pane] :as lv-data}
-        (list-view {:editable? false
-                    :selection-mode :single
-                    :cell-factory-fn cell-factory
-                    :on-click item-click})]
+        (ui/list-view :editable? false
+                      :selection-mode :single
+                      :cell-factory cell-factory
+                      :on-click item-click)]
     (store-obj flow-id thread-id "stack_list" lv-data)
 
     list-view-pane))
@@ -430,8 +433,8 @@
     (add-all stack)))
 
 (defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
-  (let [[^Label lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
-    (.setText lbl (str (dec cnt)))))
+  (let [[lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
+    (ui-utils/set-text lbl (str (dec cnt)))))
 
 (defn- unhighlight-form [flow-id thread-id form-id]
   (let [[form-pane] (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))]
@@ -492,7 +495,7 @@
           changing-form? (not= curr-form-id next-form-id)]
 
       ;; update thread current trace label and total traces
-      (.setText curr-trace-text-field (str next-idx))
+      (ui-utils/set-text-input-text curr-trace-text-field (str next-idx))
       (update-thread-trace-count-lbl flow-id thread-id trace-count)
 
       (when (or first-jump? changing-frame?)
@@ -589,23 +592,24 @@
                                       :from-idx from-idx})))
 
 (defn- power-stepping-pane [flow-id thread-id]
-  (let [custom-expression-txt (text-field {:initial-text "(fn [v] v)"})
+  (let [^TextField custom-expression-txt (ui/text-field :initial-text "(fn [v] v)")
         show-custom-field (fn [show?]
                             (doto custom-expression-txt
                               (.setVisible show?)
                               (.setPrefWidth (if show? 200 0))))
         _ (show-custom-field false)
-        step-type-combo (combo-box {:items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord"]
-                                    :on-change-fn (fn [_ new-val]
-                                                    (case new-val
-                                                      "identity"              (show-custom-field false)
-                                                      "identity-other-thread" (show-custom-field false)
-                                                      "equality"              (show-custom-field false)
-                                                      "same-coord"            (show-custom-field false)
-                                                      "custom"                (show-custom-field true)
-                                                      "custom-same-coord"     (show-custom-field true)))})
+        ^ComboBox step-type-combo (ui/combo-box :items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord"]
+                                                :on-change (fn [_ new-val]
+                                                             (case new-val
+                                                               "identity"              (show-custom-field false)
+                                                               "identity-other-thread" (show-custom-field false)
+                                                               "equality"              (show-custom-field false)
+                                                               "same-coord"            (show-custom-field false)
+                                                               "custom"                (show-custom-field true)
+                                                               "custom-same-coord"     (show-custom-field true))))
         search-params (fn [backward?]
-                        (let [step-type-val (-> step-type-combo .getSelectionModel .getSelectedItem)
+                        (let [^SelectionModel sel-model (.getSelectionModel step-type-combo)
+                              step-type-val (.getSelectedItem sel-model)
                               {:keys [idx result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
                               {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
                               from-idx (if backward? (dec idx) (inc idx))
@@ -638,15 +642,15 @@
                                                                 :backward? backward?
                                                                 :from-idx from-idx})]
                           (assoc params :flow-id flow-id)))
-        val-prev-btn (ui-utils/icon-button :icon-name "mdi-ray-end-arrow"
-                                           :on-click (fn [] (find-and-jump flow-id thread-id (search-params true)))
-                                           :tooltip "Find the prev expression that contains this value")
-        val-next-btn (ui-utils/icon-button :icon-name "mdi-ray-start-arrow"
-                                           :on-click (fn [] (find-and-jump flow-id thread-id (search-params false)))
-                                           :tooltip "Find the next expression that contains this value")
+        val-prev-btn (ui/icon-button :icon-name "mdi-ray-end-arrow"
+                                     :on-click (fn [] (find-and-jump flow-id thread-id (search-params true)))
+                                     :tooltip "Find the prev expression that contains this value")
+        val-next-btn (ui/icon-button :icon-name "mdi-ray-start-arrow"
+                                     :on-click (fn [] (find-and-jump flow-id thread-id (search-params false)))
+                                     :tooltip "Find the next expression that contains this value")
 
-        power-stepping-pane (doto (h-box [val-prev-btn val-next-btn step-type-combo custom-expression-txt])
-                              (.setSpacing 3))]
+        power-stepping-pane (ui/h-box :childs [val-prev-btn val-next-btn step-type-combo custom-expression-txt]
+                                      :spacing 3)]
     power-stepping-pane))
 
 (defn undo-jump [flow-id thread-id]
@@ -658,104 +662,105 @@
     (jump-to-coord flow-id thread-id (dbg-state/redo-nav-history flow-id thread-id))))
 
 (defn- trace-pos-pane [flow-id thread-id]
-  (let [first-btn (ui-utils/icon-button :icon-name "mdi-page-first"
-                                        :on-click (fn [] (step-first flow-id thread-id))
-                                        :tooltip "Step to the first recorded expression")
-        last-btn (ui-utils/icon-button :icon-name "mdi-page-last"
-                                       :on-click (fn [] (step-last flow-id thread-id))
-                                       :tooltip "Step to the last recorded expression")
+  (let [first-btn (ui/icon-button :icon-name "mdi-page-first"
+                                  :on-click (fn [] (step-first flow-id thread-id))
+                                  :tooltip "Step to the first recorded expression")
+        last-btn (ui/icon-button :icon-name "mdi-page-last"
+                                 :on-click (fn [] (step-last flow-id thread-id))
+                                 :tooltip "Step to the last recorded expression")
 
-        curr-trace-text-field (doto (text-field {:initial-text "0"
-                                                 :on-return-key (fn [idx-str]
-                                                                  (let [[forms-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
-                                                                        target-idx (Long/parseLong idx-str)
-                                                                        target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
-                                                                    (jump-to-coord flow-id thread-id target-tentry)
-                                                                    (.requestFocus forms-scroll-pane)))
-                                                 :align :right})
-                                (.setPrefWidth 80))
-        separator-lbl (label "/")
-        thread-trace-count-lbl (label "?")]
+        curr-trace-text-field (ui/text-field :initial-text "0"
+                                             :on-return-key (fn [idx-str]
+                                                              (let [[^ScrollPane forms-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
+                                                                    target-idx (Long/parseLong idx-str)
+                                                                    target-tentry (runtime-api/timeline-entry rt-api flow-id thread-id target-idx :at)]
+                                                                (jump-to-coord flow-id thread-id target-tentry)
+                                                                (.requestFocus forms-scroll-pane)))
+                                             :align :center-right
+                                             :pref-width 80)
+
+        separator-lbl (ui/label :text "/")
+        thread-trace-count-lbl (ui/label :text "?")]
 
     (store-obj flow-id thread-id "thread_curr_trace_tf" curr-trace-text-field)
     (store-obj flow-id thread-id "thread_trace_count_lbl" thread-trace-count-lbl)
 
-    (doto (h-box [first-btn curr-trace-text-field separator-lbl thread-trace-count-lbl last-btn]
-                 "trace-position-box")
-      (.setSpacing 2.0))))
+    (ui/h-box :childs [first-btn curr-trace-text-field separator-lbl thread-trace-count-lbl last-btn]
+              :class "trace-position-box"
+              :spacing 2)))
 
 (defn- create-bookmarks-and-nav-pane [flow-id thread-id]
-  (let [bookmark-btn (ui-utils/icon-button :icon-name "mdi-bookmark"
-                                           :on-click (fn []
-                                                       (bookmarks/bookmark-add
-                                                        flow-id
-                                                        thread-id
-                                                        (dbg-state/current-idx flow-id thread-id)))
-                                           :tooltip "Bookmark the current position")
-        undo-nav-btn (ui-utils/icon-button :icon-name "mdi-undo"
-                                           :on-click (fn [] (undo-jump flow-id thread-id))
-                                           :tooltip "Undo navigation")
-        redo-nav-btn (ui-utils/icon-button :icon-name "mdi-redo"
-                                           :on-click (fn [] (redo-jump flow-id thread-id))
-                                           :tooltip "Redo navigation")]
-    (doto (h-box [undo-nav-btn redo-nav-btn
-                  bookmark-btn])
-      (.setSpacing 2.0))))
+  (let [bookmark-btn (ui/icon-button :icon-name "mdi-bookmark"
+                                     :on-click (fn []
+                                                 (bookmarks/bookmark-add
+                                                  flow-id
+                                                  thread-id
+                                                  (dbg-state/current-idx flow-id thread-id)))
+                                     :tooltip "Bookmark the current position")
+        undo-nav-btn (ui/icon-button :icon-name "mdi-undo"
+                                     :on-click (fn [] (undo-jump flow-id thread-id))
+                                     :tooltip "Undo navigation")
+        redo-nav-btn (ui/icon-button :icon-name "mdi-redo"
+                                     :on-click (fn [] (redo-jump flow-id thread-id))
+                                     :tooltip "Redo navigation")]
+    (ui/h-box :childs [undo-nav-btn redo-nav-btn
+                       bookmark-btn]
+              :spacing 2)))
 
 
 (defn- create-controls-first-row-pane [flow-id thread-id]
   (let [bookmarks-and-nav-pane (create-bookmarks-and-nav-pane flow-id thread-id)]
-
-    (doto (h-box [bookmarks-and-nav-pane
-                         (power-stepping-pane flow-id thread-id)]
-                 "thread-controls-pane")
-      (.setSpacing 20.0))))
+    (ui/h-box :childs [bookmarks-and-nav-pane
+                       (power-stepping-pane flow-id thread-id)]
+              :class "thread-controls-pane"
+              :spacing 20)))
 
 (defn- create-controls-second-row-pane [flow-id thread-id]
-  (let [prev-over-btn (ui-utils/icon-button :icon-name "mdi-debug-step-over"
-                                            :on-click (fn [] (step-prev-over flow-id thread-id))
-                                            :tooltip "Step to the previous recorded interesting expression in the current frame"
-                                            :mirrored? true)
-        prev-btn (ui-utils/icon-button :icon-name "mdi-chevron-left"
-                                       :on-click (fn [] (step-prev flow-id thread-id))
-                                       :tooltip "Step to the previous recorded interesting expression")
+  (let [prev-over-btn (ui/icon-button :icon-name "mdi-debug-step-over"
+                                      :on-click (fn [] (step-prev-over flow-id thread-id))
+                                      :tooltip "Step to the previous recorded interesting expression in the current frame"
+                                      :mirrored? true)
+        prev-btn (ui/icon-button :icon-name "mdi-chevron-left"
+                                 :on-click (fn [] (step-prev flow-id thread-id))
+                                 :tooltip "Step to the previous recorded interesting expression")
 
-        out-btn (ui-utils/icon-button :icon-name "mdi-debug-step-out"
-                                      :on-click (fn []
-                                                  (step-out flow-id thread-id))
-                                      :tooltip "Step to the parent first expression")
+        out-btn (ui/icon-button :icon-name "mdi-debug-step-out"
+                                :on-click (fn []
+                                            (step-out flow-id thread-id))
+                                :tooltip "Step to the parent first expression")
 
-        next-btn (ui-utils/icon-button :icon-name "mdi-chevron-right"
-                                       :on-click (fn [] (step-next flow-id thread-id))
-                                       :tooltip "Step to the next recorded interesting expression")
-        next-over-btn (ui-utils/icon-button :icon-name "mdi-debug-step-over"
-                                            :on-click (fn [] (step-next-over flow-id thread-id))
-                                            :tooltip "Step to the next recorded interesting expression in the current frame")
+        next-btn (ui/icon-button :icon-name "mdi-chevron-right"
+                                 :on-click (fn [] (step-next flow-id thread-id))
+                                 :tooltip "Step to the next recorded interesting expression")
+        next-over-btn (ui/icon-button :icon-name "mdi-debug-step-over"
+                                      :on-click (fn [] (step-next-over flow-id thread-id))
+                                      :tooltip "Step to the next recorded interesting expression in the current frame")
 
-        controls-box (doto (h-box [prev-over-btn prev-btn out-btn next-btn next-over-btn])
-                       (.setSpacing 2.0))]
+        controls-box (ui/h-box :childs [prev-over-btn prev-btn out-btn next-btn next-over-btn]
+                               :spacing 2)]
 
-    (doto (h-box [controls-box
-             (trace-pos-pane flow-id thread-id)]
-                 "thread-controls-pane")
-      (.setSpacing 20.0))))
+    (ui/h-box :childs [controls-box
+                       (trace-pos-pane flow-id thread-id)]
+              :class "thread-controls-pane"
+              :spacing 20)))
 
 (defn- create-forms-pane [flow-id thread-id]
-  (let [forms-box (doto (v-box [])
-                    (.setOnScroll (event-handler
-                                   [ev]
-                                   (when (or (.isAltDown ev) (.isControlDown ev))
-                                     (.consume ev)
-                                     (cond
-                                       (> (.getDeltaY ev) 0) (step-prev flow-id thread-id)
-                                       (< (.getDeltaY ev) 0) (step-next flow-id thread-id)))))
-                    (.setSpacing 5))
-        scroll-pane (ui-utils/scroll-pane "forms-scroll-container")
+  (let [^VBox forms-box (ui/v-box :childs []
+                                  :spacing 5)
+        _ (.setOnScroll forms-box
+                        (event-handler
+                            [^ScrollEvent ev]
+                          (when (or (.isAltDown ev) (.isControlDown ev))
+                            (.consume ev)
+                            (cond
+                              (> (.getDeltaY ev) 0) (step-prev flow-id thread-id)
+                              (< (.getDeltaY ev) 0) (step-next flow-id thread-id)))))
+        ^ScrollPane scroll-pane (ui/scroll-pane :class "forms-scroll-container")
         controls-first-row-pane (create-controls-first-row-pane flow-id thread-id)
         controls-second-row-pane (create-controls-second-row-pane flow-id thread-id)
-        outer-box (v-box [controls-first-row-pane
-                          controls-second-row-pane
-                          scroll-pane])]
+        outer-box (ui/v-box :childs [controls-first-row-pane
+                                     controls-second-row-pane
+                                     scroll-pane])]
     (VBox/setVgrow forms-box Priority/ALWAYS)
     (VBox/setVgrow scroll-pane Priority/ALWAYS)
     (HBox/setHgrow scroll-pane Priority/ALWAYS)
@@ -768,39 +773,27 @@
     outer-box))
 
 (defn- create-result-pane [flow-id thread-id]
-  (let [tools-tab-pane (doto (TabPane.)
-                         (.setTabClosingPolicy TabPane$TabClosingPolicy/UNAVAILABLE))
-        pprint-tab (doto (Tab.)
-                     (.setGraphic (icon "mdi-code-braces"))
-                     (.setContent (flow-cmp/create-pprint-pane flow-id thread-id "expr_result")))]
-    (-> tools-tab-pane
-        .getTabs
-        (.addAll [pprint-tab]))
-
+  (let [pprint-tab (ui/tab :graphic (ui/icon :name "mdi-code-braces")
+                           :content (flow-cmp/create-pprint-pane flow-id thread-id "expr_result"))
+        tools-tab-pane (ui/tab-pane :closing-policy :unavailable
+                                    :tabs [pprint-tab])]
     tools-tab-pane))
 
 (defn create-code-pane [flow-id thread-id]
-  (let [left-right-pane (doto (SplitPane.)
-                          (.setOrientation (Orientation/HORIZONTAL)))
-        locals-result-pane (doto (SplitPane.)
-                             (.setOrientation (Orientation/VERTICAL)))
-        forms-pane (create-forms-pane flow-id thread-id)
+  (let [forms-pane (create-forms-pane flow-id thread-id)
         result-pane (create-result-pane flow-id thread-id)
-        locals-stack-tab-pane (tab-pane {:tabs [(tab {:text "Locals"
-                                                      :content (create-locals-pane flow-id thread-id)
-                                                      :tooltip "Locals"})
-                                                (tab {:text "Stack"
-                                                      :content (create-stack-pane flow-id thread-id)
-                                                      :tooltip "Locals"})]
-                                         :side :top
-                                         :closing-policy :unavailable})]
+        locals-stack-tab-pane (ui/tab-pane :tabs [(ui/tab :text "Locals"
+                                                          :content (create-locals-pane flow-id thread-id)
+                                                          :tooltip "Locals")
+                                                  (ui/tab :text "Stack"
+                                                          :content (create-stack-pane flow-id thread-id)
+                                                          :tooltip "Locals")]
+                                           :side :top
+                                           :closing-policy :unavailable)
+        locals-result-pane (ui/split :orientation :vertical
+                                     :childs [result-pane locals-stack-tab-pane])
+        left-right-pane (ui/split :orientation :horizontal
+                                  :childs [forms-pane locals-result-pane]
+                                  :sizes [0.6])]
 
-    (.setDividerPosition left-right-pane 0 0.6)
-
-    (-> locals-result-pane
-        .getItems
-        (.addAll [result-pane locals-stack-tab-pane]))
-    (-> left-right-pane
-        .getItems
-        (.addAll [forms-pane locals-result-pane]))
     left-right-pane))

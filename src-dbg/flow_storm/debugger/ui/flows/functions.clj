@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.flows.functions
   (:require [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [v-box h-box label list-view table-view icon-button button
-                                                               check-box]]
+            [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -10,11 +10,9 @@
             [flow-storm.debugger.ui.tasks :as tasks]
             [clojure.pprint :refer [cl-format]]
             [clojure.string :as str])
-  (:import [javafx.scene.layout Priority HBox VBox]
-           [javafx.geometry Orientation Insets Pos]
-           [javafx.scene Node]
-           [javafx.scene.control CheckBox SplitPane]
-           [javafx.scene.input MouseButton]))
+  (:import [javafx.scene.layout Priority HBox VBox]))
+
+(set! *warn-on-reflection* true)
 
 (def max-args 9)
 
@@ -33,8 +31,8 @@
 
 (defn- functions-cell-factory [_ {:keys [cell-type] :as cell-info}]
   (case cell-type
-    :calls (doto (h-box [(label (cl-format nil "~:d" (:cnt cell-info)))])
-             (.setAlignment Pos/CENTER_RIGHT))
+    :calls (ui/h-box :childs [(ui/label :text (cl-format nil "~:d" (:cnt cell-info)))]
+                     :align :center-right)
 
     :function (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} cell-info
                     fn-lbl (case form-def-kind
@@ -74,28 +72,29 @@
   ;; selected items contains rows like [{...fn-call...} cnt]
   (let [selected-items (map first selected-items)]
     (cond
-      (and (= MouseButton/SECONDARY (.getButton mev))
+      (and (ui-utils/mouse-secondary? mev)
            (not (dbg-state/clojure-storm-env?)))
       (let [ctx-menu-un-instrument-item {:text "Un-instrument seleced functions" :on-click (fn [] (uninstrument-items selected-items) )}
-            ctx-menu (ui-utils/make-context-menu [ctx-menu-un-instrument-item])]
+            ctx-menu (ui/context-menu
+                      :items [ctx-menu-un-instrument-item])]
         (ui-utils/show-context-menu
-         ctx-menu
-         table-view-pane
-         (.getScreenX mev)
-         (.getScreenY mev))))))
+         :menu ctx-menu
+         :parent table-view-pane
+         :mouse-ev mev)))))
 
 (defn- create-fns-list-pane [flow-id thread-id]
-  (let [{:keys [table-view-pane table-view] :as tv-data} (table-view
-                                               {:columns ["Functions" "Calls"]
-                                                :cell-factory-fn functions-cell-factory
-                                                :resize-policy :constrained
-                                                :on-click function-click
-                                                :on-selection-change (fn [_ sel-item]
-                                                                       (dbg-state/set-selected-function-list-fn flow-id thread-id (first sel-item))
-                                                                       (update-function-calls flow-id thread-id))
-                                                :selection-mode :multiple
-                                                :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
-                                                                    (str/includes? (format "%s/%s" fn-ns fn-name) search-str))})]
+  (let [{:keys [table-view-pane table-view] :as tv-data}
+        (ui/table-view
+         :columns ["Functions" "Calls"]
+         :cell-factory functions-cell-factory
+         :resize-policy :constrained
+         :on-click function-click
+         :on-selection-change (fn [_ sel-item]
+                                (dbg-state/set-selected-function-list-fn flow-id thread-id (first sel-item))
+                                (update-function-calls flow-id thread-id))
+         :selection-mode :multiple
+         :search-predicate (fn [[{:keys [fn-name fn-ns]} _] search-str]
+                             (str/includes? (format "%s/%s" fn-ns fn-name) search-str)))]
 
     (store-obj flow-id thread-id "functions_table_data" tv-data)
     (VBox/setVgrow table-view Priority/ALWAYS)
@@ -106,36 +105,37 @@
   (let [create-inspector (fn [vref]
                            (value-inspector/create-inspector vref {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
         args-node (when-not (str/blank? args-vec-str)
-                    (doto (h-box [(button :label "args"
-                                          :classes ["def-btn" "btn-sm"]
-                                          :tooltip "Open this value in the value inspector."
-                                          :on-click (fn [] (create-inspector args-vec)))
-                                  (label args-vec-str)])
-                      (.setSpacing 5)))
+                    (ui/h-box :childs [(ui/button :label "args"
+                                                  :classes ["def-btn" "btn-sm"]
+                                                  :tooltip "Open this value in the value inspector."
+                                                  :on-click (fn [] (create-inspector args-vec)))
+                                       (ui/label :text args-vec-str)]
+                              :spacing 5))
         ret-node (when ret-str
-                   (doto (h-box [(button :label "ret"
-                                    :classes ["def-btn" "btn-sm"]
-                                    :tooltip "Open this value in the value inspector."
-                                    :on-click (fn [] (create-inspector ret)))
-                                 (label ret-str)])
-                     (.setSpacing 5)))
+                   (ui/h-box :childs [(ui/button :label "ret"
+                                                 :classes ["def-btn" "btn-sm"]
+                                                 :tooltip "Open this value in the value inspector."
+                                                 :on-click (fn [] (create-inspector ret)))
+                                      (ui/label :text ret-str)]
+                             :spacing 5))
         throwable-node (when throwable-str
-                         (doto (h-box [(button :label "throw"
-                                          :classes ["def-btn" "btn-sm"]
-                                          :tooltip "Open this value in the value inspector."
-                                          :on-click (fn [] (create-inspector throwable)))
-                                       (label throwable-str "fail")])
-                           (.setSpacing 5)))
+                         (ui/h-box :childs [(ui/button :label "throw"
+                                                       :classes ["def-btn" "btn-sm"]
+                                                       :tooltip "Open this value in the value inspector."
+                                                       :on-click (fn [] (create-inspector throwable)))
+                                            (ui/label :text throwable-str
+                                                      :class "fail")]
+                                   :spacing 5))
         ret-kind-node (cond
                         ret-str       ret-node
                         throwable-str throwable-node)
-        cell (doto (v-box (cond-> []
-                            args-node     (conj args-node)
-                            ret-kind-node (conj ret-kind-node))
-                          "contrast-background")
-               (.setSpacing 5)
-               (.setPadding (Insets. 5)))]
-    (.setGraphic ^Node list-cell cell)))
+        cell (ui/v-box :childs (cond-> []
+                                 args-node     (conj args-node)
+                                 ret-kind-node (conj ret-kind-node))
+                       :class "contrast-background"
+                       :spacing 5
+                       :paddings [5])]
+    (ui-utils/set-graphic list-cell cell)))
 
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
@@ -146,47 +146,50 @@
                                                 (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))]
 
     (cond
-      (and (= MouseButton/PRIMARY (.getButton mev))
-           (= 2 (.getClickCount mev)))
+      (and (ui-utils/mouse-primary? mev)
+           (ui-utils/double-click? mev))
 
       (jump-to-idx)
 
-      (= MouseButton/SECONDARY (.getButton mev))
-      (let [ctx-menu (ui-utils/make-context-menu [{:text "Step code"
-                                                   :on-click jump-to-idx}])]
-        (ui-utils/show-context-menu ctx-menu
-                                    list-view-pane
-                                    (.getScreenX mev)
-                                    (.getScreenY mev))))))
+      (ui-utils/mouse-secondary? mev)
+      (let [ctx-menu (ui/context-menu
+                      :items [{:text "Step code"
+                               :on-click jump-to-idx}])]
+        (ui-utils/show-context-menu :menu ctx-menu
+                                    :parent list-view-pane
+                                    :mouse-ev mev)))))
 
 (defn- create-fn-calls-list-pane [flow-id thread-id]
-  (let [args-checks (repeatedly max-args (fn [] (doto (check-box {:on-change (fn [_] (update-function-calls flow-id thread-id))})
-                                                  (.setSelected true)
-                                                  (.setFocusTraversable false))))
+  (let [args-checks (repeatedly max-args (fn []
+                                           (ui/check-box :on-change (fn [_] (update-function-calls flow-id thread-id))
+                                                              :selected? true
+                                                              :focus-traversable? false)))
 
-        {:keys [list-view-pane] :as lv-data} (list-view {:editable? false
-                                                         :cell-factory-fn (partial functions-calls-cell-factory flow-id thread-id)
-                                                         :on-click (partial function-call-click flow-id thread-id)
-                                                         :selection-mode :single})
-        args-print-type-checks (doto (->> args-checks
-                                          (map-indexed (fn [idx cb]
-                                                         (h-box [(label (format "a%d" (inc idx))) cb])))
-                                          (into [(label "Print args:")])
-                                          h-box)
-                                 (.setSpacing 8))
-        ret-check (doto (check-box {:on-change (fn [_] (update-function-calls flow-id thread-id))})
-                    (.setSelected true)
-                    (.setFocusTraversable false))
-        fn-call-list-pane (doto (v-box [args-print-type-checks
-                                        (h-box [(label "Print ret?") ret-check])
-                                        list-view-pane])
-                            (.setSpacing 5))
+        {:keys [list-view-pane] :as lv-data} (ui/list-view :editable? false
+                                                           :cell-factory (partial functions-calls-cell-factory flow-id thread-id)
+                                                           :on-click (partial function-call-click flow-id thread-id)
+                                                           :selection-mode :single)
+        args-print-type-checks (ui/h-box
+                                :childs (->> args-checks
+                                             (map-indexed (fn [idx cb]
+                                                            (ui/h-box :childs [(ui/label :text (format "a%d" (inc idx))) cb])))
+                                             (into [(ui/label :text "Print args:")]))
+                                :spacing 8)
+
+        ret-check (ui/check-box :on-change (fn [_] (update-function-calls flow-id thread-id))
+                                :selected? true
+                                :focus-traversable? false)
+
+        fn-call-list-pane (ui/v-box :childs [args-print-type-checks
+                                             (ui/h-box :childs [(ui/label :text "Print ret?") ret-check])
+                                             list-view-pane]
+                                    :spacing 5)
 
         selected-args-and-ret (fn []
                                 {:sel-args (->> args-checks
-                                                (keep-indexed (fn [idx ^CheckBox cb]
-                                                                (when (.isSelected cb) idx))))
-                                 :ret? (.isSelected ret-check)})]
+                                                (keep-indexed (fn [idx cb]
+                                                                (when (ui-utils/checkbox-checked? cb) idx))))
+                                 :ret? (ui-utils/checkbox-checked? ret-check)})]
 
     (VBox/setVgrow list-view-pane Priority/ALWAYS)
 
@@ -207,24 +210,21 @@
     (add-all fn-call-stats)))
 
 (defn create-functions-pane [flow-id thread-id]
-  (let [refresh-btn (icon-button :icon-name "mdi-reload"
-                                 :on-click (fn [] (update-functions-pane flow-id thread-id))
-                                 :tooltip "Refresh the content of the functions list.")
-        controls-box (doto (h-box [refresh-btn])
-                       (.setPadding (Insets. 10.0)))
+  (let [refresh-btn (ui/icon-button :icon-name "mdi-reload"
+                                    :on-click (fn [] (update-functions-pane flow-id thread-id))
+                                    :tooltip "Refresh the content of the functions list.")
+        controls-box (ui/h-box :childs [refresh-btn]
+                               :paddings [10])
+
         fns-list-pane (create-fns-list-pane flow-id thread-id)
         fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
-        split-pane (doto (SplitPane.)
-                     (.setOrientation (Orientation/HORIZONTAL)))
-        functions-pane (v-box [controls-box
-                               split-pane])]
+        split-pane (ui/split :orientation :horizontal
+                             :childs [fns-list-pane fn-calls-list-pane])
+        functions-pane (ui/v-box :childs [controls-box
+                                          split-pane])]
 
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
     (VBox/setVgrow split-pane Priority/ALWAYS)
-
-    (-> split-pane
-        .getItems
-        (.addAll [fns-list-pane fn-calls-list-pane]))
 
     (update-functions-pane flow-id thread-id)
 

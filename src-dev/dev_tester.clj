@@ -85,6 +85,12 @@
 
     (lorem-ipsum long-arg1 long-arg2 long-arg3)))
 
+(defn make-a-case [x]
+  (let [r (case x
+          :type-a (+ 2 2)
+          :type-b (+ 4 4))]
+    r))
+
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
@@ -104,7 +110,9 @@
               (recur (dec i) (+ sum i))
               sum))
         z (catcher)
-        li (generate-lorem-ipsum)]
+        li (generate-lorem-ipsum)
+        w (make-a-case :type-a)
+        ww (true? (instance? String "hello"))]
     (->> xs
          (map (fn [x] (+ 1 (do-it x))))
          (reduce + )

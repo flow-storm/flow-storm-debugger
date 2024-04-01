@@ -30,6 +30,8 @@
 
 (javafx.embed.swing.JFXPanel.)
 
+(set! *warn-on-reflection* true)
+
 (comment
   (add-tap (bound-fn* println))
   )

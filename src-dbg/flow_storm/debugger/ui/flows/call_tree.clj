@@ -5,13 +5,14 @@
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as state :refer [store-obj obj-lookup]]
-            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler v-box h-box label icon-button border-pane]])
+            [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
+            [flow-storm.debugger.ui.components :as ui])
   (:import [javafx.collections ObservableList]
-           [javafx.scene.control SelectionModel SplitPane TreeCell TreeView TreeItem]
-           [javafx.scene.input MouseButton]
+           [javafx.scene.control TreeCell TreeView TreeItem]
            [ javafx.beans.value ChangeListener]
-           [javafx.geometry Pos Orientation]
            [javafx.scene.layout HBox Priority VBox]))
+
+(set! *warn-on-reflection* true)
 
 (def call-stack-tree-childs-limit 500)
 
@@ -27,20 +28,19 @@
                                                            (remove (fn [child-node]
                                                                      (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
                                                                        (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
-                                                           (map lazy-tree-item)
-                                                           (into-array TreeItem))]
+                                                           (map lazy-tree-item))]
 
                                      (when (> (count calls) call-stack-tree-childs-limit)
                                        (show-message (format "Tree childs had been limited to %d to keep the UI responsive. You can still analyze all of them with the rest of the tools."
                                                              call-stack-tree-childs-limit)
                                                      :warning))
 
-                                     (.setAll super-childrens new-children)
+                                     (.setAll super-childrens ^objects (into-array Object new-children))
                                      super-childrens)
                                    super-childrens)))
                              (isLeaf [] (empty? calls)))))
         tree-root-node (runtime-api/callstack-tree-root-node rt-api flow-id thread-id)
-        root-item (lazy-tree-item tree-root-node)
+        ^TreeItem root-item (lazy-tree-item tree-root-node)
         [tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")]
     (.setExpanded root-item true)
     (.setRoot ^TreeView tree-view root-item)))
@@ -49,7 +49,7 @@
   (let [v-str (-> (runtime-api/val-pprint rt-api args-vec {:print-length 3 :print-level 3 :pprint? false})
                   :val-str
                   (ui-utils/remove-newlines))
-        step-1 (utils/elide-string v-str 80)]
+        ^String step-1 (utils/elide-string v-str 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
@@ -60,31 +60,32 @@
   ;; so it should be fast
   (if (:root? frame)
 
-    (label ".")
+    (ui/label :text ".")
 
     (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api form-id)
           form-hint (if (= item-level 1)
                       (utils/elide-string (pr-str form) 80)
                       "")]
 
-      (h-box [(label (if dispatch-val
-                       (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 1 :print-level 1 :pprint? false})) (format-tree-fn-call-args args-vec))
-                       (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
-              (label form-hint "light")]))))
+      (ui/h-box :childs [(ui/label :text (if dispatch-val
+                                           (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 1 :print-level 1 :pprint? false})) (format-tree-fn-call-args args-vec))
+                                           (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
+                         (ui/label :text form-hint
+                                   :class "light")]))))
 
 (defn- select-call-stack-tree-node [flow-id thread-id match-idx]
-  (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
+  (let [[^TreeView tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
         [^TreeCell tree-cell] (obj-lookup flow-id thread-id (ui-utils/thread-callstack-tree-cell match-idx))]
     (when tree-cell
       (let [tree-cell-idx (.getIndex tree-cell)
             tree-item (.getTreeItem tree-cell)
             tree-selection-model (.getSelectionModel tree-view)]
         (.scrollTo tree-view tree-cell-idx)
-        (.select ^SelectionModel tree-selection-model tree-item)))))
+        (ui-utils/selection-select-obj tree-selection-model tree-item)))))
 
 (defn expand-path [^TreeItem tree-item select-idx path-set]
   (when-not (.isEmpty (.getChildren tree-item))
-    (doseq [child-item (.getChildren tree-item)]
+    (doseq [^TreeItem child-item (.getChildren tree-item)]
       (let [cnode (.getValue child-item)
             {:keys [fn-call-idx]} (runtime-api/callstack-node-frame rt-api cnode)]
         (when (path-set fn-call-idx)
@@ -94,10 +95,10 @@
 
 (defn expand-and-highlight [flow-id thread-id [curr-idx :as fn-call-idx-path]]
   (ui-utils/run-later
-   (let [[tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
-         root-item (.getRoot tree-view)]
-     (expand-path root-item curr-idx (into #{} fn-call-idx-path))
-     (select-call-stack-tree-node flow-id thread-id curr-idx))))
+    (let [[^TreeView tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
+          root-item (.getRoot tree-view)]
+      (expand-path root-item curr-idx (into #{} fn-call-idx-path))
+      (select-call-stack-tree-node flow-id thread-id curr-idx))))
 
 (defn- build-tree-cell-factory [flow-id thread-id ^TreeView tree-view]
   (proxy [javafx.util.Callback] []
@@ -107,32 +108,32 @@
           (proxy-super updateItem tree-node empty?)
           (if empty?
 
-            (doto this
-              (.setGraphic nil)
-              (.setText nil))
+            (-> this
+                (ui-utils/set-graphic nil)
+                (ui-utils/set-text nil))
 
-            (let [^TreeItem tree-item (.getTreeItem this)
+            (let [^TreeItem tree-item (.getTreeItem ^TreeCell this)
                   item-level (.getTreeItemLevel tree-view tree-item)
                   frame (runtime-api/callstack-node-frame rt-api tree-node)
                   fn-call-idx (:fn-call-idx frame)
-                  update-tree-btn (icon-button :icon-name "mdi-reload"
-                                               :classes ["reload-tree-btn"]
-                                               :on-click (fn []
-                                                           (binding [runtime-api/*cache-disabled?* true]
-                                                             (update-call-stack-tree-pane flow-id thread-id)))
-                                               :tooltip "Refresh the content of the tree. Useful since the tree will not autoupdate after it is open.")]
+                  update-tree-btn (ui/icon-button :icon-name "mdi-reload"
+                                                  :classes ["reload-tree-btn"]
+                                                  :on-click (fn []
+                                                              (binding [runtime-api/*cache-disabled?* true]
+                                                                (update-call-stack-tree-pane flow-id thread-id)))
+                                                  :tooltip "Refresh the content of the tree. Useful since the tree will not autoupdate after it is open.")]
 
               (if (:root? frame)
 
                 ;; it's the root dummy node, put update-tree-btn
-                (doto this
-                  (.setGraphic update-tree-btn)
-                  (.setText nil))
+                (-> this
+                    (ui-utils/set-graphic update-tree-btn)
+                    (ui-utils/set-text nil))
 
                 ;; else, put the frame
-                (doto this
-                  (.setGraphic (create-call-stack-tree-graphic-node frame item-level))
-                  (.setText nil)))
+                (-> this
+                    (ui-utils/set-graphic (create-call-stack-tree-graphic-node frame item-level))
+                    (ui-utils/set-text nil)))
 
               (store-obj flow-id thread-id (ui-utils/thread-callstack-tree-cell fn-call-idx) this))))))))
 
@@ -142,20 +143,18 @@
     (expand-and-highlight flow-id thread-id fn-call-idx-path)))
 
 (defn create-call-stack-tree-pane [flow-id thread-id]
-  (let [tree-view (doto (TreeView.)
-                    (.setEditable false))
-        tree-cell-factory (build-tree-cell-factory flow-id thread-id tree-view)
-        controls-box (doto (h-box [(icon-button :icon-name "mdi-adjust"
-                                                :on-click (fn [] (highlight-current-frame flow-id thread-id))
-                                                :tooltip "Highlight current frame")])
-                       (.setAlignment Pos/CENTER_RIGHT)
-                       (.setSpacing 3.0))
-        top-pane (border-pane {:left controls-box})
-        _ (doto tree-view
-            (.setCellFactory tree-cell-factory))
+  (let [^TreeView tree-view (ui/tree-view)
+        _ (.setCellFactory tree-view (build-tree-cell-factory flow-id thread-id tree-view))
+        controls-box (ui/h-box :childs [(ui/icon-button :icon-name "mdi-adjust"
+                                                        :on-click (fn [] (highlight-current-frame flow-id thread-id))
+                                                        :tooltip "Highlight current frame")]
+                               :spacing 3
+                               :align :center-right)
+
+        top-pane (ui/border-pane :left controls-box)
         tree-view-sel-model (.getSelectionModel tree-view)
         get-selected-frame (fn []
-                             (let [sel-tree-node (.getValue (first (.getSelectedItems tree-view-sel-model)))]
+                             (let [sel-tree-node (.getValue ^TreeItem (first (.getSelectedItems tree-view-sel-model)))]
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
         jump-to-selected-frame-code (fn [& _]
                                       (let [{:keys [fn-call-idx]} (get-selected-frame)]
@@ -168,11 +167,11 @@
                                              (ui-utils/copy-selected-frame-to-clipboard fn-ns fn-name (when args? args-vec))))
         _ (doto tree-view
             (.setOnMouseClicked (event-handler
-                                 [mev]
-                                 (when (and (= MouseButton/PRIMARY (.getButton mev))
-                                            (= 2 (.getClickCount mev)))
-                                   (jump-to-selected-frame-code)
-                                   (.consume mev)))))
+                                    [mev]
+                                  (when (and (ui-utils/mouse-primary? mev)
+                                             (ui-utils/double-click? mev))
+                                    (jump-to-selected-frame-code)
+                                    (ui-utils/consume mev)))))
         ctx-menu-options [{:text "Step code"
                            :on-click jump-to-selected-frame-code}
                           {:text "Copy qualified function symbol"
@@ -184,16 +183,17 @@
                                        (let [{:keys [fn-name fn-ns]} (get-selected-frame)]
                                          (state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
                                          (update-call-stack-tree-pane flow-id thread-id)))}]
-        ctx-menu (ui-utils/make-context-menu ctx-menu-options)
+        ctx-menu (ui/context-menu :items ctx-menu-options)
         callstack-fn-args-pane   (flow-cmp/create-pprint-pane flow-id thread-id "fn_args")
         callstack-fn-ret-pane (flow-cmp/create-pprint-pane flow-id thread-id "fn_ret")
-        labeled-args-pane  (v-box [(label "Args:") callstack-fn-args-pane])
-        labeled-ret-pane (v-box [(label "Ret:") callstack-fn-ret-pane])
-        args-ret-pane (doto (h-box [labeled-args-pane labeled-ret-pane])
-                        (.setSpacing 5.0))
-        top-bottom-split (doto (SplitPane.)
-                           (.setOrientation (Orientation/VERTICAL))
-                           (.setDividerPosition 0 0.75))]
+        labeled-args-pane  (ui/v-box :childs [(ui/label :text "Args:") callstack-fn-args-pane])
+        labeled-ret-pane (ui/v-box :childs [(ui/label :text "Ret:") callstack-fn-ret-pane])
+        args-ret-pane (ui/h-box :childs [labeled-args-pane labeled-ret-pane]
+                                :spacing 5)
+        top-bottom-split (ui/split :orientation :vertical
+                                   :childs [(ui/v-box :childs [top-pane tree-view])
+                                            args-ret-pane]
+                                   :sizes [0.75])]
     (.setContextMenu tree-view ctx-menu)
 
     (VBox/setVgrow callstack-fn-args-pane Priority/ALWAYS)
@@ -203,7 +203,7 @@
 
     (.addListener (.selectedItemProperty tree-view-sel-model)
                   (proxy [ChangeListener] []
-                    (changed [changed old-val new-val]
+                    (changed [changed old-val ^TreeItem new-val]
                       (when new-val
                         (let [{:keys [args-vec return/kind] :as frame} (runtime-api/callstack-node-frame rt-api (.getValue new-val))]
                           (flow-cmp/update-pprint-pane flow-id
@@ -227,10 +227,6 @@
 
     (store-obj flow-id thread-id "callstack_tree_view" tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)
-    (-> top-bottom-split
-        .getItems
-        (.addAll [(v-box [top-pane tree-view])
-                  args-ret-pane]))
 
     (update-call-stack-tree-pane flow-id thread-id)
 
