@@ -54,11 +54,6 @@
         (clear)
         (add-all threads-info)))))
 
-
-(defn copy-current-frame-symbol [flow-id thread-id args?]
-  (let [{:keys [fn-name fn-ns args-vec]} (dbg-state/current-frame flow-id thread-id)]
-    (ui-utils/copy-selected-frame-to-clipboard fn-ns fn-name (when args? args-vec))))
-
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
    ^Pane pane
@@ -78,8 +73,8 @@
          (= key-txt "<") (flow-code/step-first flow-id thread-id)
          (= key-txt ">") (flow-code/step-last flow-id thread-id)
 
-         (key-combo-match? kev "f" [:ctrl :shift])  (copy-current-frame-symbol flow-id thread-id true)
-         (key-combo-match? kev "f" [:ctrl])         (copy-current-frame-symbol flow-id thread-id false)
+         (key-combo-match? kev "f" [:ctrl :shift])  (flow-code/copy-current-frame-symbol flow-id thread-id true)
+         (key-combo-match? kev "f" [:ctrl])         (flow-code/copy-current-frame-symbol flow-id thread-id false)
 
          (key-combo-match? kev "z" [:ctrl]) (flow-code/undo-jump flow-id thread-id)
          (key-combo-match? kev "r" [:ctrl]) (flow-code/redo-jump flow-id thread-id))))))

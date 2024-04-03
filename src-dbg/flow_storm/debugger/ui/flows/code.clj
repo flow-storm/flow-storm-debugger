@@ -189,6 +189,10 @@
         loop-traces-menu (ui/context-menu :items ctx-menu-options)]
     loop-traces-menu))
 
+(defn copy-current-frame-symbol [flow-id thread-id args?]
+  (let [{:keys [fn-name fn-ns args-vec]} (dbg-state/current-frame flow-id thread-id)]
+    (ui-utils/copy-selected-frame-to-clipboard fn-ns fn-name (when args? args-vec))))
+
 (defn- build-form-paint-and-arm-fn
 
   "Builds a form-paint-fn function that when called with expr-executions and a curr-coord
@@ -228,47 +232,53 @@
                             (event-handler
                                 [^MouseEvent mev]
                               (let [char-hit (.hit form-code-area (.getX mev) (.getY mev))
-                                    opt-char-idx (.getCharacterIndex char-hit)]
-                                (when (.isPresent opt-char-idx)
+                                    opt-char-idx (.getCharacterIndex char-hit)
+                                    ctx-menu-options (cond-> [{:text "Copy qualified function symbol"
+                                                               :on-click (fn [] (copy-current-frame-symbol flow-id thread-id false))}
+                                                              {:text "Copy function calling form"
+                                                               :on-click (fn [] (copy-current-frame-symbol flow-id thread-id true))}]
+
+                                                       (not (dbg-state/clojure-storm-env?))
+                                                       (into [{:text "Fully instrument this form"
+                                                               :on-click (fn []
+                                                                           (runtime-api/eval-form rt-api
+                                                                                                  (pr-str (:form/form form))
+                                                                                                  {:instrument? true
+                                                                                                   :ns (:form/ns form)}))}
+                                                              {:text "Instrument this form without bindings"
+                                                               :on-click (fn []
+                                                                           (runtime-api/eval-form rt-api
+                                                                                                  (pr-str (:form/form form))
+                                                                                                  {:instrument? true
+                                                                                                   :instrument-options {:disable #{:bind}}
+                                                                                                   :ns (:form/ns form)}))}]))]
+
+                                (if (.isPresent opt-char-idx)
                                   (let [char-idx (.getAsInt opt-char-idx)
                                         clicked-span (->> spans
                                                           (some (fn [{:keys [idx-from len] :as span}]
                                                                   (when (and (>= char-idx idx-from)
                                                                              (< char-idx (+ idx-from len)))
                                                                     span))))
+                                        ctx-menu-options (cond-> ctx-menu-options
+                                                           (:line clicked-span)
+                                                           (into [{:text "Open in editor"
+                                                                   :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}]))
                                         curr-idx (dbg-state/current-idx flow-id thread-id)]
                                     (when-let [coord (:coord clicked-span)]
                                       (if (:interesting? clicked-span)
-                                        (let [clicked-coord-exprs (get interesting-coords coord)
-
-                                              token-right-click-menu (ui/context-menu
-                                                                      :items (cond-> [{:text "Add to prints"
-                                                                                       :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]
-
-                                                                               (:line clicked-span)
-                                                                               (into [{:text "Open in editor"
-                                                                                       :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}])
-
-                                                                               (not (dbg-state/clojure-storm-env?))
-                                                                               (into [{:text "Fully instrument this form"
-                                                                                       :on-click (fn []
-                                                                                                   (runtime-api/eval-form rt-api
-                                                                                                                          (pr-str (:form/form form))
-                                                                                                                          {:instrument? true
-                                                                                                                           :ns (:form/ns form)}))}
-                                                                                      {:text "Instrument this form without bindings"
-                                                                                       :on-click (fn []
-                                                                                                   (runtime-api/eval-form rt-api
-                                                                                                                          (pr-str (:form/form form))
-                                                                                                                          {:instrument? true
-                                                                                                                           :instrument-options {:disable #{:bind}}
-                                                                                                                           :ns (:form/ns form)}))}])))]
+                                        (let [clicked-coord-exprs (get interesting-coords coord)]
 
                                           (if (ui-utils/mouse-secondary? mev)
-                                            (ui-utils/show-context-menu :menu token-right-click-menu
+                                            (ui-utils/show-context-menu :menu (ui/context-menu
+                                                                               :items (into ctx-menu-options
+                                                                                            [{:text "Add to prints"
+                                                                                              :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]))
                                                                         :parent form-code-area
                                                                         :mouse-ev mev)
+                                            ;; else
                                             (if (= 1 (count clicked-coord-exprs))
+
                                               (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
                                               (ui-utils/show-context-menu
@@ -278,22 +288,26 @@
 
                                         ;; else if it is not interesting? we don't want to jump there
                                         ;; but provide a way of search and jump to it by coord and form
-                                        (let [form-id (:form/id form)
-                                              token-right-click-menu
-                                              (ui/context-menu
-                                               :items
-                                               [{:text "Jump to first record here"
-                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
-                                                {:text "Jump forward here"
-                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
-                                                {:text "Jump backwards here"
-                                                 :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])]
+                                        (let [form-id (:form/id form)]
 
                                           (when (ui-utils/mouse-secondary? mev)
                                             (ui-utils/show-context-menu
-                                             :menu token-right-click-menu
+                                             :menu (ui/context-menu
+                                                    :items
+                                                    [{:text "Jump to first record here"
+                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
+                                                     {:text "Jump forward here"
+                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
+                                                     {:text "Jump backwards here"
+                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])
                                              :parent form-code-area
-                                             :mouse-ev mev))))))))))))))
+                                             :mouse-ev mev))))))
+
+                                  ;; else clicked on the form background
+                                  (ui-utils/show-context-menu
+                                   :menu (ui/context-menu :items ctx-menu-options)
+                                   :parent form-code-area
+                                   :mouse-ev mev)))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."

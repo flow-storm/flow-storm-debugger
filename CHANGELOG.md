@@ -4,6 +4,8 @@
 	
 ### New Features
 
+    - Add "Copy qualified function symbol" and "Copy function calling form" to form menu
+    
 ### Changes 
     
 ### Bugs fixed
