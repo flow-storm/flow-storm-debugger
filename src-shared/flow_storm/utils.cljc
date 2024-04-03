@@ -61,7 +61,7 @@
 #?(:clj (defn seq-like? [x] (instance? java.util.List x)))
 #?(:cljs (defn seq-like? [_] false))
 
-#?(:cljs (def uuids (atom {:max-uuid 3 :strings-and-numbers {}})))
+#?(:cljs (defonce uuids (atom {:max-uuid 3 :strings-and-numbers {}})))
 
 ;; copying goog.getUid https://github.com/google/closure-library/blob/master/closure/goog/base.js#L1306
 #?(:cljs (def flow-storm-uuid-prop (str "flow_storm_" (unsigned-bit-shift-right (* (js/Math.random) 1e9) 0))))

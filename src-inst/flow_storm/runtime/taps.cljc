@@ -2,7 +2,7 @@
   (:require [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]))
 
-(def tap-fn (atom nil))
+(defonce tap-fn (atom nil))
 
 (defn setup-tap! []
   (when-not @tap-fn

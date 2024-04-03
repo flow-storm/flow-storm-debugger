@@ -877,21 +877,10 @@
 ;; Utilities for exploring indexes from the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def selected-thread (atom nil))
-
 (defn print-threads []
   (->> (all-threads)
        (map #(zipmap [:flow-id :thread-id :thread-name] %))
        pp/print-table))
-
-(defn select-thread [flow-id thread-id]
-  (reset! selected-thread [flow-id thread-id]))
-
-(defn print-forms []  
-  (let [[flow-id thread-id] @selected-thread]
-    (->> (all-forms flow-id thread-id)
-         (map #(dissoc % :form/flow-id ))
-         pp/print-table)))
 
 (defn entry-idx
   "Given a timeline entry of any kind return its possition in the timeline."

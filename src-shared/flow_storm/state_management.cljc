@@ -5,8 +5,8 @@
 
 ;; state-name -> {:order :status :start :stop :var}
 ;; :status [:started | :stopped]
-(def states (atom {}))
-(def last-order (atom 0))
+(defonce states (atom {}))
+(defonce last-order (atom 0))
 
 #?(:clj
    (defn alter-state-var [state-var new-val]

@@ -76,7 +76,7 @@
 
 (def init-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0}))
 
-(def values-ref-registry (atom init-ref-registry))
+(defonce values-ref-registry (atom init-ref-registry))
 
 (defn deref-value [vref]
   (if (types/value-ref? vref)

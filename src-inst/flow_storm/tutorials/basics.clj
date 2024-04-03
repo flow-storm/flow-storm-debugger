@@ -3,7 +3,7 @@
 
 (declare steps)
 
-(def step (atom 0))
+(defonce step (atom 0))
 
 (defn print-current-step [] (println (get steps @step)))
 (defn step-next [] (swap! step inc) (print-current-step))

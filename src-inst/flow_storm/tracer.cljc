@@ -6,13 +6,13 @@
 (declare start-tracer)
 (declare stop-tracer)
 
-(def total-order-recording (atom false))
-(def recording (atom true))
-(def breakpoints (atom #{}))
-(def blocked-threads (atom #{}))
-(def current-flow-id (atom 0))
-(def thread-trace-limit 0)
-(def throw-on-trace-limit? false)
+(defonce total-order-recording (atom false))
+(defonce recording (atom true))
+(defonce breakpoints (atom #{}))
+(defonce blocked-threads (atom #{}))
+(defonce current-flow-id (atom 0))
+(defonce thread-trace-limit 0)
+(defonce throw-on-trace-limit? false)
 
 (defn set-recording [x]
   (if x

@@ -1,7 +1,7 @@
 (ns flow-storm.runtime.events)
 
-(def *dispatch (atom nil))
-(def pending-events (atom []))
+(defonce *dispatch (atom nil))
+(defonce pending-events (atom []))
 
 (defn clear-dispatch-fn! []
   (reset! *dispatch nil))

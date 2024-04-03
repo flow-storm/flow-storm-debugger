@@ -3,7 +3,7 @@
             [flow-storm.utils :as utils]))
 
 (def reporter-interval 1000)
-(def reporter-stop-fn (atom nil))
+(defonce reporter-stop-fn (atom nil))
 
 #?(:clj
    (defn run-mem-reporter []  

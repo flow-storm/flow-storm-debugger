@@ -25,7 +25,7 @@
 ;; So we will probably end re-implementing replicant stuff here with ClojureScript support.            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def renderers-registry (atom {}))
+(defonce renderers-registry (atom {}))
 
 (defn register-renderer [id-key browser? pred render-fn]
   (swap! renderers-registry assoc id-key {:browser? browser? :pred pred :render-fn render-fn}))
