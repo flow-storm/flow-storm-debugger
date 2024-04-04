@@ -11,6 +11,7 @@
             [flow-storm.debugger.ui.value-renderers :as renderers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
+           [javafx.scene.control SplitPane]
            [javafx.scene.layout VBox HBox Priority]))
 
 (set! *warn-on-reflection* true)
@@ -27,7 +28,7 @@
     (when-not (str/blank? val-name)
       (runtime-api/def-value rt-api (symbol val-name) val))))
 
-(defn- update-vals-panes [{:keys [main-split vals-stack]}]
+(defn- update-vals-panes [{:keys [^SplitPane main-split vals-stack]}]
   (let [[head prev & _] @vals-stack
         value-full-pane (let [def-btn (ui/button :label "def"
                                                  :on-click (:def-fn head))
@@ -68,7 +69,7 @@
     (ui-utils/observable-clear (.getItems main-split))
     (ui-utils/observable-add-all (.getItems main-split)
                                  (if prev
-                                   (let [prev-pane (doto (ui/h-box :childs [(:val-pane prev)])
+                                   (let [prev-pane (doto ^HBox (ui/h-box :childs [(:val-pane prev)])
                                                      (.setId "prev-pane"))]
                                      [prev-pane value-full-pane])
                                    [value-full-pane]))))
@@ -81,7 +82,7 @@
                stack
                (recur (pop stack)))))))
 
-(defn- update-stack-bar-pane [{:keys [stack-bar-pane vals-stack] :as ctx}]
+(defn- update-stack-bar-pane [{:keys [^HBox stack-bar-pane vals-stack] :as ctx}]
   (ui-utils/observable-clear (.getChildren stack-bar-pane))
   (ui-utils/observable-add-all (.getChildren stack-bar-pane)
                                (mapv (fn [{:keys [stack-txt] :as val-frame}]
