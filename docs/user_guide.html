@@ -3122,8 +3122,10 @@ repl.</p>
 <div class="title">Instrumentation</div>
 <div class="paragraph">
 <p>Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
-You can recompile it as usual with your editor commands, or by using the <code>Reload namespace</code> option in the menu, which will
-execute a <code>(require 'the-selected.namespace :reload)</code> expression for you.</p>
+You can recompile it as usual with your editor commands, or by using the <code>Reload namespace</code> option in the context menu
+on any namespace, which will execute a <code>(require 'the-selected.namespace :reload)</code> expression for you.
+You can bulk reload by selecting many namespace on the browser or by using Clojure&#8217;s reload-all functionality
+by running on your repl <code>(require 'my-core-namespace :reload-all)</code>.</p>
 </div>
 </td>
 </tr>
@@ -3696,7 +3698,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-05 17:10:36 -0300
+Last updated 2024-04-05 17:18:43 -0300
 </div>
 </div>
 </body>

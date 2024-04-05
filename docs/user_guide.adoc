@@ -1487,8 +1487,10 @@ You can use the `Add` menu in the picure above to add instrumentation prefixes.
 .Instrumentation
 ====
 Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
-You can recompile it as usual with your editor commands, or by using the `Reload namespace` option in the menu, which will
-execute a `(require 'the-selected.namespace :reload)` expression for you.
+You can recompile it as usual with your editor commands, or by using the `Reload namespace` option in the context menu
+on any namespace, which will execute a `(require 'the-selected.namespace :reload)` expression for you.
+You can bulk reload by selecting many namespace on the browser or by using Clojure's reload-all functionality
+by running on your repl `(require 'my-core-namespace :reload-all)`.
 ====
 
 == Instrumentation in Vanilla FlowStorm
