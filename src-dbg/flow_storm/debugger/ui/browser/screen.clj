@@ -367,7 +367,8 @@
                                                     del-vanilla-vars (:vanilla-var type-groups)
                                                     del-brks (:break type-groups)]
 
-                                                (vanilla-uninstrument-namespaces del-vanilla-namespaces)
+                                                (when (seq del-vanilla-namespaces)
+                                                  (vanilla-uninstrument-namespaces del-vanilla-namespaces))
 
                                                 (doseq [v del-vanilla-vars]
                                                   (del-vanilla-vars (:var-ns v) (:var-name v)))
