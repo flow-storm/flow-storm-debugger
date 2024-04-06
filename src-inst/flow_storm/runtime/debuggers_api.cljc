@@ -118,8 +118,10 @@
                        (catch Exception _ []))
       :skip-regex (try
                     (case kind
-                      :clj  (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationSkipRegex" [])
-                      :cljs (into [] ((requiring-resolve 'cljs.storm.api/get-skip-regex))))
+                      :clj  (when-let [pat (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationSkipRegex" [])]
+                              (.pattern pat))
+                      :cljs (when-let [pat ((requiring-resolve 'cljs.storm.api/get-skip-regex))]
+                              (.pattern pat)))
                     (catch Exception _ []))}))
 
 (defn runtime-config []
@@ -473,20 +475,19 @@
        :clj  (let [[method args] (cond
                                    (and (= inst-kind :inst-only-prefix) (= op :add)) ["addInstrumentationOnlyPrefix"    [prefix]]
                                    (and (= inst-kind :inst-skip-prefix) (= op :add)) ["addInstrumentationSkipPrefix"    [prefix]]
-                                   (and (= inst-kind :inst-skip-regex)  (= op :add)) ["addInstrumentationSkipRegex"     [regex]]
+                                   (and (= inst-kind :inst-skip-regex)  (= op :set)) ["setInstrumentationSkipRegex"     [regex]]
                                    (and (= inst-kind :inst-only-prefix) (= op :rm))  ["removeInstrumentationOnlyPrefix" [prefix]]
                                    (and (= inst-kind :inst-skip-prefix) (= op :rm))  ["removeInstrumentationSkipPrefix" [prefix]]
-                                   (and (= inst-kind :inst-skip-regex)  (= op :rm))  ["removeInstrumentationSkipRegex"  [regex]])]
+                                   (and (= inst-kind :inst-skip-regex)  (= op :rm))  ["removeInstrumentationSkipRegex"  []])]
                (utils/call-jvm-method "clojure.storm.Emitter" method args))
        
        :cljs (cond
                (and (= inst-kind :inst-only-prefix) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-only-prefix) prefix)
                (and (= inst-kind :inst-skip-prefix) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-skip-prefix) prefix)
-               (and (= inst-kind :inst-skip-regex) (= op :add)) ((requiring-resolve 'cljs.storm.api/add-instr-skip-regex) regex)
-               (and (= inst-kind :inst-only-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-only-prefix) prefix)
-               (and (= inst-kind :inst-skip-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-skip-prefix) prefix)
-               (and (= inst-kind :inst-skip-regex)   (= op :rm)) ((requiring-resolve 'cljs.storm.api/rm-instr-skip-regex) regex)
-               ))
+               (and (= inst-kind :inst-skip-regex)  (= op :set)) ((requiring-resolve 'cljs.storm.api/set-instr-skip-regex)  regex)
+               (and (= inst-kind :inst-only-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-only-prefix)  prefix)
+               (and (= inst-kind :inst-skip-prefix) (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-skip-prefix)  prefix)
+               (and (= inst-kind :inst-skip-regex)  (= op :rm))  ((requiring-resolve 'cljs.storm.api/rm-instr-skip-regex))))
      (when-not disable-events?
        (publish-event! kind (rt-events/make-storm-instrumentation-updated-event (get-storm-instrumentation kind)) config))))
 

@@ -62,9 +62,9 @@
 (defn update-storm-instrumentation [{:keys [instrument-only-prefixes skip-prefixes skip-regex]}]
   (let [[{:keys [remove-all add-all get-all-items]}] (obj-lookup "browser-observable-instrumentations-list-data")
         curr-items (get-all-items)
-        new-items (->> (mapv make-storm-inst-only-prefix instrument-only-prefixes)
-                       (into (mapv make-storm-inst-skip-prefix skip-prefixes))
-                       (into (mapv make-storm-inst-skip-regex skip-regex)))]
+        new-items (cond->> (mapv make-storm-inst-only-prefix instrument-only-prefixes)
+                    true       (into (mapv make-storm-inst-skip-prefix skip-prefixes))
+                    skip-regex (into [(make-storm-inst-skip-regex skip-regex)]))]
     ;; clear the entries for the current prefixes
     (remove-all (filterv (fn [i]
                            (#{:storm-inst-only-prefix
@@ -390,18 +390,22 @@
                                                     :inst-only-prefix "Prefix:"
                                                     :inst-skip-prefix "Prefix:"
                                                     :inst-skip-regex  "Regex:")
-                                       operation {:inst-kind inst-kind
-                                                  :op :add}
+                                       operation {:inst-kind inst-kind}
                                        data (ui/ask-text-dialog :header "Modify instrumentation"
                                                                 :body dialog-msg
                                                                 :width  800
                                                                 :height 200
                                                                 :center-on-stage (dbg-state/main-jfx-stage))]
-                                   (runtime-api/modify-storm-instrumentation rt-api
-                                                                             (if (= :inst-skip-regex inst-kind)
-                                                                               (assoc operation :regex data)
-                                                                               (assoc operation :prefix data))
-                                                                             {})))
+                                   (when-not (str/blank? data)
+                                     (runtime-api/modify-storm-instrumentation rt-api
+                                                                               (if (= :inst-skip-regex inst-kind)
+                                                                                 (assoc operation
+                                                                                        :regex data
+                                                                                        :op :set)
+                                                                                 (assoc operation
+                                                                                        :prefix data
+                                                                                        :op :add))
+                                                                               {}))))
         storm-add-inst-menu-data (ui/menu-button
                                   :title "Add"
                                   :disable? true
@@ -411,7 +415,7 @@
                                           {:text "Add inst skip prefix"
                                            :on-click (fn [_] (ask-and-add-storm-inst :inst-skip-prefix))
                                            :tooltip ""}
-                                          {:text "Add inst skip regex"
+                                          {:text "Set inst skip regex"
                                            :on-click (fn [_] (ask-and-add-storm-inst :inst-skip-regex))
                                            :tooltip ""}])
         instrumentations-tools (ui/h-box :childs (cond-> [(ui/label :text "Enable all")
