@@ -8,6 +8,8 @@
     - Add "Copy qualified function symbol" and "Copy function calling form" to form menu
     
 ### Changes 
+
+    - The threads selector is now a menu button instead of a list view to gain some UI space
     
 ### Bugs fixed
 

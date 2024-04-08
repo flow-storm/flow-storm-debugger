@@ -4,10 +4,10 @@
             [flow-storm.debugger.state :as dbg-state])
   (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
-            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton MenuItem
+            TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton CustomMenuItem
             ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane]
            [javafx.scene.input KeyCombination$Modifier KeyCodeCombination KeyEvent KeyCode]
-           [javafx.scene.layout HBox VBox BorderPane Priority GridPane]
+           [javafx.scene.layout HBox VBox BorderPane Priority GridPane AnchorPane]
            [javafx.geometry Side Orientation]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
@@ -159,12 +159,16 @@
 
     sp))
 
-(defn label [& {:keys [text class pref-width]}]
+(defn label [& {:keys [text class pref-width on-click]}]
   (let [lbl (Label. text)]
     (when pref-width
       (.setPrefWidth lbl pref-width))
     (when class
       (ui-utils/add-class lbl class))
+
+    (when on-click
+      (.setOnMouseClicked lbl (event-handler [mev] (on-click mev))))
+
     lbl))
 
 (defn text-area [& {:keys [text editable? on-change] :or {editable? true}}]
@@ -184,16 +188,20 @@
 
     ta))
 
-(defn menu-button [& {:keys [title items disable?]}]
+(defn menu-button [& {:keys [title items disable? item-factory]}]
   (let [mb (MenuButton. title)
         clear-items (fn [] (-> mb .getItems .clear))
-        add-item (fn [{:keys [text on-click tooltip] :as item}]
-                   (let [^Label mi-lbl (label :text text)
-                         mi (doto (MenuItem. nil mi-lbl)
-                              (.setOnAction (event-handler [_]
-                                                           (on-click item))))]
-                     (when tooltip
-                       (.setTooltip mi-lbl (tool-tip :text tooltip)))
+        item-factory (or item-factory
+                         (fn [{:keys [text on-click tooltip] :as item}]
+                           (let [^Label mi-lbl (label :text text)]
+                             (.setOnMouseClicked mi-lbl (event-handler [_]
+                                                          (on-click item)))
+                             (when tooltip
+                               (.setTooltip mi-lbl (tool-tip :text tooltip)))
+                             mi-lbl)))
+        add-item (fn [{:keys [hide-on-click?] :as item}]
+                   (let [mi (CustomMenuItem. (item-factory item))]
+                     (.setHideOnClick mi (boolean hide-on-click?))
                      (-> mb .getItems (.add mi))))
         set-items (fn [new-items]
                     (clear-items)
@@ -341,13 +349,16 @@
   (doto (ProgressBar.)
     (.setPrefWidth width)))
 
-(defn tab-pane [& {:keys [tabs rotate? side closing-policy drag-policy on-tab-change]
+(defn tab-pane [& {:keys [tabs rotate? side closing-policy drag-policy on-tab-change class]
                    :or {closing-policy :unavailable
                         drag-policy :fixed
                         side :top
                         rotate? false}}]
   (let [tp (TabPane.)
         tabs-list (.getTabs tp)]
+
+    (when class
+      (ui-utils/add-class tp class))
 
     (doto tp
       (.setRotateGraphic rotate?)
@@ -381,6 +392,18 @@
     (when class
       (ui-utils/add-class sp class))
     sp))
+
+(defn anchor-pane [& {:keys [childs]}]
+  (let [ap (AnchorPane.)]
+    (doseq [{:keys [top-anchor left-anchor right-anchor bottom-anchor node]} childs]
+      (when top-anchor (AnchorPane/setTopAnchor node top-anchor))
+      (when left-anchor (AnchorPane/setLeftAnchor node left-anchor))
+      (when right-anchor (AnchorPane/setRightAnchor node right-anchor))
+      (when bottom-anchor (AnchorPane/setBottomAnchor node bottom-anchor)))
+    (-> ap
+        .getChildren
+        (.addAll (mapv :node childs)))
+    ap))
 
 (defn list-view [& {:keys [editable? cell-factory on-click on-enter on-selection-change selection-mode search-predicate]
                     :or {editable? false

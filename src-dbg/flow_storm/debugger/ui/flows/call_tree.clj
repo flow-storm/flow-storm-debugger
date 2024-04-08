@@ -99,6 +99,11 @@
       (expand-path root-item curr-idx (into #{} fn-call-idx-path))
       (select-call-stack-tree-node flow-id thread-id curr-idx))))
 
+(defn highlight-current-frame [flow-id thread-id]
+  (let [curr-idx (:fn-call-idx (state/current-timeline-entry flow-id thread-id))
+        {:keys [fn-call-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
+    (expand-and-highlight flow-id thread-id fn-call-idx-path)))
+
 (defn- build-tree-cell-factory [flow-id thread-id ^TreeView tree-view]
   (proxy [javafx.util.Callback] []
     (call [tv]
@@ -126,7 +131,12 @@
 
                 ;; it's the root dummy node, put update-tree-btn
                 (-> this
-                    (ui-utils/set-graphic update-tree-btn)
+                    (ui-utils/set-graphic (ui/h-box :childs [(ui/icon-button :icon-name "mdi-adjust"
+                                                                             :on-click (fn [] (highlight-current-frame flow-id thread-id))
+                                                                             :tooltip "Highlight current frame")
+                                                             update-tree-btn]
+                                                    :spacing 3
+                                                    :align :center-left))
                     (ui-utils/set-text nil))
 
                 ;; else, put the frame
@@ -136,21 +146,10 @@
 
               (store-obj flow-id thread-id (ui-utils/thread-callstack-tree-cell fn-call-idx) this))))))))
 
-(defn highlight-current-frame [flow-id thread-id]
-  (let [curr-idx (:fn-call-idx (state/current-timeline-entry flow-id thread-id))
-        {:keys [fn-call-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
-    (expand-and-highlight flow-id thread-id fn-call-idx-path)))
-
 (defn create-call-stack-tree-pane [flow-id thread-id]
   (let [^TreeView tree-view (ui/tree-view)
         _ (.setCellFactory tree-view (build-tree-cell-factory flow-id thread-id tree-view))
-        controls-box (ui/h-box :childs [(ui/icon-button :icon-name "mdi-adjust"
-                                                        :on-click (fn [] (highlight-current-frame flow-id thread-id))
-                                                        :tooltip "Highlight current frame")]
-                               :spacing 3
-                               :align :center-right)
 
-        top-pane (ui/border-pane :left controls-box)
         tree-view-sel-model (.getSelectionModel tree-view)
         get-selected-frame (fn []
                              (let [sel-tree-node (.getValue ^TreeItem (first (.getSelectedItems tree-view-sel-model)))]
@@ -190,7 +189,7 @@
         args-ret-pane (ui/h-box :childs [labeled-args-pane labeled-ret-pane]
                                 :spacing 5)
         top-bottom-split (ui/split :orientation :vertical
-                                   :childs [(ui/v-box :childs [top-pane tree-view])
+                                   :childs [tree-view
                                             args-ret-pane]
                                    :sizes [0.75])]
     (.setContextMenu tree-view ctx-menu)
@@ -226,6 +225,7 @@
 
     (store-obj flow-id thread-id "callstack_tree_view" tree-view)
     (VBox/setVgrow tree-view Priority/ALWAYS)
+    (VBox/setVgrow top-bottom-split Priority/ALWAYS)
 
     (update-call-stack-tree-pane flow-id thread-id)
 

@@ -8,11 +8,9 @@
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler key-combo-match?]]
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
-  (:import [javafx.beans.value ChangeListener]
-           [javafx.scene.control Tab SplitPane TabPane ListView]
-           [javafx.scene.layout Pane]
-           [javafx.scene.input KeyEvent]
-           [javafx.beans.property ReadOnlyDoubleProperty]))
+  (:import [javafx.scene.control Tab TabPane ListView]
+           [javafx.scene.layout Pane Priority VBox]
+           [javafx.scene.input KeyEvent]))
 
 
 (declare create-or-focus-thread-tab)
@@ -45,13 +43,12 @@
   (ui-utils/run-later (update-exceptions-combo)))
 
 (defn update-threads-list [flow-id]
-  (let [[{:keys [add-all clear] :as lv-data}] (obj-lookup flow-id "flow_threads_list")]
-    (when lv-data
+  (let [[{:keys [set-items] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
+    (when menu-data
       (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)]
         (doseq [tinfo threads-info]
           (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
-        (clear)
-        (add-all threads-info)))))
+        (set-items threads-info)))))
 
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
@@ -96,61 +93,47 @@
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (ui/tab-pane :closing-policy :all-tabs
-                                      :drag-policy :reorder)
-        {:keys [list-view-pane] :as lv-data}
-        (ui/list-view :editable? false
-                      :selection-mode :single
-                      :cell-factory (fn [list-cell {:keys [thread/name thread/blocked thread/id]}]
-                                      (-> list-cell
-                                          (ui-utils/set-text nil)
-                                          (ui-utils/set-graphic
-                                           (if blocked
-                                             ;; build blocked thread node
-                                             (let [[bp-var-ns bp-var-name] blocked
-                                                   thread-unblock-btn (ui/icon-button :icon-name "mdi-play"
-                                                                                      :on-click (fn []
-                                                                                                  (runtime-api/unblock-thread rt-api id))
-                                                                                      :classes ["thread-continue-btn"
-                                                                                                "btn-xs"])
-                                                   ctx-menu-unblock-all-threads {:text "Unblock all threads"
-                                                                                 :on-click (fn []
-                                                                                             (runtime-api/unblock-all-threads rt-api))}
-                                                   ctx-menu (ui/context-menu :items [ctx-menu-unblock-all-threads])
-                                                   ^Pane blocked-thread (ui/h-box :childs [(ui/v-box :childs [(ui/label :text (ui/thread-label id name)        :class "thread-blocked")
-                                                                                                        (ui/label :text (format "%s/%s" bp-var-ns bp-var-name) :class "light")])
-                                                                                     thread-unblock-btn]
-                                                                            :spacing 5)]
-                                               (doto blocked-thread
-                                                 (.setOnContextMenuRequested
-                                                  (event-handler
-                                                      [mev]
-                                                    (ui-utils/show-context-menu :menu ctx-menu
-                                                                                :parent blocked-thread
-                                                                                :mouse-ev mev)))))
+                                      :drag-policy :reorder
+                                      :class "threads-tab-pane")
 
-                                             ;; if not blocked just render a label
-                                             (ui/label :text (ui/thread-label id name))))))
-                      :on-click (fn [mev sel-items _]
-                                  (when (and (ui-utils/mouse-primary? mev)
-                                             (ui-utils/double-click? mev))
-                                    (when-let [th (first sel-items)]
-                                      (open-thread th))))
-                      :on-enter (fn [sel-items]
-                                  (open-thread (first sel-items))))
-        flow-split-pane (ui/split :orientation :horizontal
-                                  :childs [list-view-pane threads-tab-pane]
-                                  :sizes [0.2])
+        {:keys [menu-button] :as menu-btn-data}
+        (ui/menu-button
+         :title "Threads"
+         :item-factory (fn [{:keys [thread/name thread/blocked thread/id] :as th}]
+                         (let [thread-lbl-click (fn [mev]
+                                                  (when (ui-utils/mouse-primary? mev)
+                                                    (open-thread th)))]
+                           (if blocked
+                             ;; build blocked thread node
+                             (let [[bp-var-ns bp-var-name] blocked
+                                   thread-unblock-btn (ui/icon-button :icon-name "mdi-play"
+                                                                      :on-click (fn []
+                                                                                  (runtime-api/unblock-thread rt-api id))
+                                                                      :classes ["thread-continue-btn"
+                                                                                "btn-xs"])]
+                               (ui/h-box :childs [(ui/v-box :childs [(ui/label :text (ui/thread-label id name)
+                                                                               :class "thread-blocked"
+                                                                               :on-click thread-lbl-click)
+                                                                     (ui/label :text (format "%s/%s" bp-var-ns bp-var-name) :class "light")])
+                                                  thread-unblock-btn]
+                                         :spacing 5))
+
+                             ;; if not blocked just render a label
+                             (ui/label :text (ui/thread-label id name)
+                                       :on-click thread-lbl-click)))))
+        flow-box (ui/anchor-pane
+                  :childs [{:node threads-tab-pane
+                            :top-anchor 5.0
+                            :left-anchor 5.0
+                            :right-anchor 5.0
+                            :bottom-anchor 5.0}
+                           {:node menu-button
+                            :top-anchor 8.0
+                            :left-anchor 10.0}])
+
         flow-tab (ui/tab :id (str "flow-tab-" flow-id)
                          :text (str "flow-" flow-id)
-                         :content flow-split-pane)]
-
-    ;; this is to keep the divider positions if the user
-    ;; resize the window
-    (.addListener ^ReadOnlyDoubleProperty
-                  (.widthProperty ^Pane flows-tabs-pane)
-                  (proxy [ChangeListener] []
-                    (changed [_ _ _]
-                      (.setDividerPosition ^SplitPane flow-split-pane 0 0.2))))
+                         :content flow-box)]
 
     (.setOnCloseRequest ^Tab flow-tab
                         (event-handler
@@ -162,7 +145,7 @@
 
     (store-obj flow-id "threads_tabs_pane" threads-tab-pane)
     (store-obj flow-id "flow_tab" flow-tab)
-    (store-obj flow-id "flow_threads_list" lv-data)
+    (store-obj flow-id "flow_threads_menu" menu-btn-data)
 
     (update-threads-list flow-id)
 
@@ -268,5 +251,6 @@
 (defn main-pane []
   (let [t-pane (ui/tab-pane :closing-policy :all-tabs
                             :side :top)]
+    (VBox/setVgrow t-pane Priority/ALWAYS)
     (store-obj "flows_tabs_pane" t-pane)
     t-pane))

@@ -11,6 +11,10 @@
 	-fx-font-family: 'Roboto Medium';    
 }
 
+.context-menu {
+    -fx-background-color: -fx-theme-base2; 
+}
+
 .separator-label {
     -fx-text-fill: -fx-theme-separator;
 }
@@ -202,6 +206,10 @@
 
 .trace-position-box {
 	-fx-alignment: center;
+}
+
+.threads-tab-pane > .tab-header-area {
+  -fx-padding: 0 0 0 92 ;
 }
 
 /*****************/
