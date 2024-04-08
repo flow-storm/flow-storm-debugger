@@ -46,6 +46,14 @@
     -fx-text-fill: -fx-theme-button1-text;
 }
 
+.hl-combo {    
+    -fx-background-color: -fx-theme-hl-combos;    
+}
+
+.important-combo {     
+    -fx-background-color: -fx-theme-important-combos;    
+}
+
 .tab: selected {
         -fx-opacity: 1;
 }
@@ -209,11 +217,11 @@
 }
 
 .threads-tab-pane > .tab-header-area {
-  -fx-padding: 0 0 0 92 ;
+  -fx-padding: 5 0 0 92 ;
 }
 
 .flows-tab-pane > .tab-header-area {
-  -fx-padding: 0 0 0 135 ;
+  -fx-padding: 5 0 0 135 ;
 }
 
 /*****************/

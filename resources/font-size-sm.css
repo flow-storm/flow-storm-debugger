@@ -2,3 +2,6 @@
 .ikonli-font-icon {-fx-font-size: 15;}
 .btn-sm {-fx-font-size: 10;}
 .btn-xs {-fx-font-size: 8;}
+
+.threads-tab-pane > .tab-header-area {-fx-padding: 5 0 0 92 ;}
+.flows-tab-pane > .tab-header-area {-fx-padding: 5 0 0 135 ;}

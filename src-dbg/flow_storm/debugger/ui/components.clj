@@ -188,7 +188,7 @@
 
     ta))
 
-(defn menu-button [& {:keys [title items disable? item-factory]}]
+(defn menu-button [& {:keys [title items disable? item-factory class]}]
   (let [mb (MenuButton. title)
         clear-items (fn [] (-> mb .getItems .clear))
         item-factory (or item-factory
@@ -207,7 +207,8 @@
                     (clear-items)
                     (doseq [item new-items]
                       (add-item item)))]
-
+    (when class
+      (ui-utils/add-class mb class))
     (when disable? (.setDisable mb true))
     (set-items items)
 
@@ -216,11 +217,14 @@
      :clear-items clear-items
      :add-item add-item}))
 
-(defn combo-box [& {:keys [items button-factory cell-factory on-change on-showing]}]
+(defn combo-box [& {:keys [items button-factory cell-factory on-change on-showing class]}]
   (let [cb (ComboBox.)
         sel-model (.getSelectionModel cb)]
     (ui-utils/combo-box-set-items cb items)
     (ui-utils/selection-select-obj sel-model (first items))
+
+    (when class
+      (ui-utils/add-class cb class))
 
     (when on-change
       (-> cb

@@ -120,7 +120,8 @@
 
                              ;; if not blocked just render a label
                              (ui/label :text (ui/thread-label id name)
-                                       :on-click thread-lbl-click)))))
+                                       :on-click thread-lbl-click))))
+         :class "hl-combo")
         flow-box (ui/anchor-pane
                   :childs [{:node threads-tab-pane
                             :top-anchor 5.0
@@ -256,7 +257,8 @@
                                   :button-factory (fn [_ i] (ui/label :text (str "Rec on flow-" i)))
                                   :cell-factory (fn [_ i] (ui/label :text (str "flow-" i)))
                                   :on-change (fn [_ new-flow-id]
-                                               (runtime-api/switch-record-to-flow rt-api new-flow-id)))
+                                               (runtime-api/switch-record-to-flow rt-api new-flow-id))
+                                  :class "hl-combo")
         flow-anchor (ui/anchor-pane
                      :childs [{:node flows-tpane
                                :top-anchor 5.0

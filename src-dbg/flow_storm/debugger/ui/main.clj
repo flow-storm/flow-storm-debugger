@@ -269,7 +269,8 @@
 
         exceptions-menu-data (ui/menu-button
                               :title "Exceptions"
-                              :items [])
+                              :items []
+                              :class "important-combo")
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
