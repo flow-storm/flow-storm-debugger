@@ -64,7 +64,7 @@
 }
 
 .thread-blocked {
-	-fx-text-fill: -fx-theme-breakpoint;
+    	-fx-text-fill: -fx-theme-warning;
 }
 
 .button.clear-break-btn {
