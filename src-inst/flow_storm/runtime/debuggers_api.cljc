@@ -122,7 +122,7 @@
                               (.pattern pat))
                       :cljs (when-let [pat ((requiring-resolve 'cljs.storm.api/get-skip-regex))]
                               (.pattern pat)))
-                    (catch Exception _ []))}))
+                    (catch Exception _ nil))}))
 
 (defn runtime-config []
   (let [storm? (utils/storm-env?)
