@@ -287,22 +287,10 @@
     (store-obj "record-btn" record-btn)
     (ui/toolbar :childs tools)))
 
-(defn- build-bottom-tool-bar-pane []
-  (let [flows-combo (ui/combo-box :items (into [] (range 10))
-                                  :button-factory (fn [_ i] (ui/label :text (str "flow-" i)))
-                                  :cell-factory (fn [_ i] (ui/label :text (str "flow-" i)))
-                                  :on-change (fn [_ new-flow-id]
-                                               (runtime-api/switch-record-to-flow rt-api new-flow-id)))
-        flow-selector-box (ui/h-box :childs [(ui/label :text "Recording on : ") flows-combo]
-                                    :spacing 5
-                                    :align :center-left)]
-    (ui/toolbar :childs [flow-selector-box])))
-
 (defn- build-top-bar-pane []
   (ui/v-box
    :childs [(build-menu-bar)
-            (build-top-tool-bar-pane)
-            (build-bottom-tool-bar-pane)]
+            (build-top-tool-bar-pane)]
    :spacing 5))
 
 (defn set-task-cancel-btn-enable [enable?]

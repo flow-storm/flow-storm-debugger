@@ -9,7 +9,7 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.control Tab TabPane ListView]
-           [javafx.scene.layout Pane Priority VBox]
+           [javafx.scene.layout Pane]
            [javafx.scene.input KeyEvent]))
 
 
@@ -249,8 +249,23 @@
                      unwinds))))
 
 (defn main-pane []
-  (let [t-pane (ui/tab-pane :closing-policy :all-tabs
-                            :side :top)]
-    (VBox/setVgrow t-pane Priority/ALWAYS)
-    (store-obj "flows_tabs_pane" t-pane)
-    t-pane))
+  (let [flows-tpane (ui/tab-pane :closing-policy :all-tabs
+                                 :side :top
+                                 :class "flows-tab-pane")
+        flows-combo (ui/combo-box :items (into [] (range 10))
+                                  :button-factory (fn [_ i] (ui/label :text (str "Rec on flow-" i)))
+                                  :cell-factory (fn [_ i] (ui/label :text (str "flow-" i)))
+                                  :on-change (fn [_ new-flow-id]
+                                               (runtime-api/switch-record-to-flow rt-api new-flow-id)))
+        flow-anchor (ui/anchor-pane
+                     :childs [{:node flows-tpane
+                               :top-anchor 5.0
+                               :left-anchor 5.0
+                               :right-anchor 5.0
+                               :bottom-anchor 5.0}
+                              {:node flows-combo
+                               :top-anchor 8.0
+                               :left-anchor 10.0}])]
+
+    (store-obj "flows_tabs_pane" flows-tpane)
+    flow-anchor))

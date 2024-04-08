@@ -12,7 +12,7 @@
 }
 
 .context-menu {
-    -fx-background-color: -fx-theme-base2; 
+    -fx-background-color: -fx-theme-base4; 
 }
 
 .separator-label {
@@ -210,6 +210,10 @@
 
 .threads-tab-pane > .tab-header-area {
   -fx-padding: 0 0 0 92 ;
+}
+
+.flows-tab-pane > .tab-header-area {
+  -fx-padding: 0 0 0 135 ;
 }
 
 /*****************/
