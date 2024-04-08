@@ -781,6 +781,11 @@ pre.rouge {
 <div class="paragraph">
 <p><em>FlowStorm</em> is a tracing debugger for Clojure and ClojureScript.</p>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/intro_screenshot.png" alt="intro screenshot">
+</div>
+</div>
 <div class="paragraph">
 <p>It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.</p>
 </div>
@@ -830,10 +835,8 @@ pre.rouge {
 </ul>
 </div>
 <div class="paragraph">
-<p><em>ClojureStorm</em> is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).</p>
-</div>
-<div class="paragraph">
-<p>You use it by swapping the official Clojure compiler by <em>ClojureStorm</em> at dev time, using dev aliases or profiles.</p>
+<p><em>ClojureStorm</em> is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).
+You use it by swapping the official Clojure compiler by <em>ClojureStorm</em> at dev time, using dev aliases or lein profiles.</p>
 </div>
 <div class="sect3">
 <h4 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">1.1.1. ClojureStorm</a></h4>
@@ -842,11 +845,14 @@ pre.rouge {
 </div>
 <div class="paragraph">
 <p>Swapping compilers sounds like a lot, but don&#8217;t worry, <em>ClojureStorm</em> is just a patch applied over the official compiler with some
-extra stuff for automatic instrumentation, you shouldn&#8217;t encounter any differences, it is only for dev, and you can swap it back and forth by starting
-your repl with a different alias or lein profile.</p>
+extra stuff for automatic instrumentation. You shouldn&#8217;t encounter any differences, it is only for dev, and you can swap it back
+and forth by starting your repl with a different alias or lein profile.</p>
 </div>
 <div class="paragraph">
-<p>The easiest way to run and learn <em>FlowStorm</em> with <em>ClojureStorm</em> is by running the repl tutorial, like this :</p>
+<p>The easiest way to run and learn <em>FlowStorm</em> with <em>ClojureStorm</em> is by running the repl tutorial.</p>
+</div>
+<div class="paragraph">
+<p>You can start a repl with FlowStorm like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -895,7 +901,7 @@ things like measuring performance.</p>
 evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
 </div>
 <div class="paragraph">
-<p>After the tutorial you would want to add and configure it for your projects, so here are the basics :</p>
+<p>After the tutorial you would want to add and configure it for your projects, or <a href="#_a_global_configuration">create a global config</a> so here are the basics :</p>
 </div>
 <div class="paragraph">
 <p>If your project is using deps.edn, your deps.edn file should look like this :</p>
@@ -921,7 +927,10 @@ evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p
 </div>
 </div>
 <div class="paragraph">
-<p>which means only instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core</p>
+<p>which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core</p>
+</div>
+<div class="paragraph">
+<p>All this can be changed after without restarting your repl from <a href="#_modifying_instrumentation_with_the_browser">FlowStorm browser</a>.</p>
 </div>
 <div class="paragraph">
 <p>This is probably what most people want since you don&#8217;t want to instrument things like nrepl, cider or any of your tooling stuff
@@ -1644,7 +1653,7 @@ that is basically only allowing the server to run if we are running from babashk
 </div>
 </div>
 <div class="paragraph">
-<p>In the first row from left to right :</p>
+<p>From left to right :</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1665,16 +1674,6 @@ that is basically only allowing the server to run if we are running from babashk
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>On the second row we have :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The recording flow selection system. Checkout the <a href="#_flows_tool">flows tool</a> for more info.</p>
-</li>
-</ul>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1692,21 +1691,21 @@ This grouping allows us for example to run some code and record it under "flow-0
 record this second run (or flow) under "flow-1". Now we can access both recordings separately.</p>
 </div>
 <div class="paragraph">
-<p>You can use the <code>Recording on</code> combo-box on the toolbar to select under what flow new recordings are going to be stored.</p>
+<p>You can use the <code>Rec on</code> combo-box to select under what flow new recordings are going to be stored.</p>
 </div>
 <div class="paragraph">
 <p>Whenever there is something recorded for a flow, a new tab with the flow name will appear.</p>
 </div>
 <div class="paragraph">
-<p>Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a list of threads
-we have recordings for. This threads inside flows will be referred sometimes as timelines, since they are a sequence of recording steps.</p>
+<p>Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a menu of threads
+we have recordings for so far. This threads will be referred sometimes as timelines, since they are a sequence of
+recorded execution steps.</p>
 </div>
 <div class="paragraph">
-<p>The <code>Flows</code> tool is all about exploring your recorded timelines.</p>
+<p>Let&#8217;s say for example we have selected to record under <code>flow-1</code> and run some multi threaded code.</p>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s say for example we have selected to record under <code>flow-1</code> and run some multi threaded code.
-We are going to see something like this :</p>
+<p>We are going to see something like this :</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1725,10 +1724,7 @@ We are going to see something like this :</p>
 <p>we have recorded stuff under <code>flow-1</code> and <code>flow-0</code></p>
 </li>
 <li>
-<p>we are currently looking <code>flow-1</code> which contains recorded activity in 5 different threads</p>
-</li>
-<li>
-<p>we have opened the first thread, and we are exploring it in the code stepper</p>
+<p>we are currently looking at <code>flow-1</code>, we have opened to explore thread 18 and we are exploring it in the code stepper</p>
 </li>
 </ul>
 </div>
@@ -1738,7 +1734,7 @@ We are going to see something like this :</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This second image shows us exploring the second thread on the <code>flow-1</code> list.</p>
+<p>This second image shows us exploring another thread on <code>flow-1</code>.</p>
 </div>
 <div class="paragraph">
 <p>There are currently 3 tools to explore the recorded timelines, which we are going to describe next.</p>
@@ -2220,7 +2216,7 @@ You can use the refresh button at the root to update it.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/functions.png" alt="functions">
+<img src="user_guide_images/functions_calls.png" alt="functions calls">
 </div>
 </div>
 <div class="paragraph">
@@ -2259,8 +2255,8 @@ Use the check boxes at the top to hide some of the arguments.</p>
 <h2 id="_browser_tool"><a class="anchor" href="#_browser_tool"></a><a class="link" href="#_browser_tool">4. Browser tool</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and if you are a Vanilla FlowStorm user
-you can also use it to <a href="#_instrument_with_the_browser">instrument functions</a> .</p>
+<p>The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars,
+and provides ways of <a href="#_controlling_instrumentation">managing what gets instrumented</a>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2504,11 +2500,12 @@ and you are probably not interested in all those frames details.</p>
 <p>For situations like the previous one, <em>FlowStorm</em> has the ability to set thread breakpoints, which means to define points
 in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn&#8217;t enough you can
-click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
-click on any of the blocked threads and select <code>Unblock all threads</code> to unlock all of them.
-Then you can analyse the new recordings. Once you are done, you can choose to uninstrument
-your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
-can remove the breakpoints and un-block every thread.</p>
+click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again.
+Then you can analyse the new recordings.</p>
+</div>
+<div class="paragraph">
+<p>Once you are done, you can choose to uninstrument your functions, or maybe easier to just pause recording
+using the pause button in the main toolbar. Then you can remove the breakpoints and un-block every thread.</p>
 </div>
 <div class="paragraph">
 <p>You can define thread breakpoints in two ways :</p>
@@ -3698,7 +3695,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-05 17:18:43 -0300
+Last updated 2024-04-08 14:00:42 -0300
 </div>
 </div>
 </body>

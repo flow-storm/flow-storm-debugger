@@ -14,6 +14,8 @@
 
 _FlowStorm_ is a tracing debugger for Clojure and ClojureScript.
 
+image::user_guide_images/intro_screenshot.png[]
+
 It can instrument any Clojure code and provides many tools to explore and analyze your programs executions.
 
 = Quick start
@@ -35,18 +37,19 @@ There are two ways of using _FlowStorm_ for Clojure :
 	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms
     
 _ClojureStorm_ is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
-
-You use it by swapping the official Clojure compiler by _ClojureStorm_ at dev time, using dev aliases or profiles.
+You use it by swapping the official Clojure compiler by _ClojureStorm_ at dev time, using dev aliases or lein profiles.
 
 === ClojureStorm
 
 This is the newest and simplest way of using _FlowStorm_. It requires you to swap your official Clojure compiler by _ClojureStorm_ only at dev time.
 
 Swapping compilers sounds like a lot, but don't worry, _ClojureStorm_ is just a patch applied over the official compiler with some
-extra stuff for automatic instrumentation, you shouldn't encounter any differences, it is only for dev, and you can swap it back and forth by starting
-your repl with a different alias or lein profile.
+extra stuff for automatic instrumentation. You shouldn't encounter any differences, it is only for dev, and you can swap it back
+and forth by starting your repl with a different alias or lein profile.
 
-The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial, like this :
+The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial.
+
+You can start a repl with FlowStorm like this :
 
 [%nowrap,bash]
 ----
@@ -75,7 +78,7 @@ things like measuring performance.
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
 evaluate the `:tut/basics` keyword on it for a tour of the basics.
 
-After the tutorial you would want to add and configure it for your projects, so here are the basics :
+After the tutorial you would want to add and configure it for your projects, or <<#_a_global_configuration, create a global config>> so here are the basics :
 
 If your project is using deps.edn, your deps.edn file should look like this :
 [%nowrap,clojure]
@@ -94,7 +97,9 @@ where `YOUR_INSTRUMENTATION_STRING` should be a comma separated list of namespac
 
 	  my-project.,lib1.,lib2.core
 
-which means only instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
+which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
+
+All this can be changed after without restarting your repl from <<#_modifying_instrumentation_with_the_browser, FlowStorm browser>>.
 
 This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuff
 although you can still do it if you need it. There are also other options you can check with `:help`.
@@ -609,17 +614,13 @@ The toolbar as well as the menu provides quick access to some general commands.
 
 image::user_guide_images/toolbar.png[]
 
-In the first row from left to right :
+From left to right :
 
 - Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
 - Discard all recordings so far.
 - Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
 - Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
 - This will not always be visible but if your recordings contains any exceptions they will be shown here.
-
-On the second row we have :
-
-- The recording flow selection system. Checkout the <<_flows_tool, flows tool>> for more info.
 
 = Flows tool
 
@@ -631,16 +632,16 @@ A Flow is a "execution flow" recording unit. The only purpose of a flow is to gr
 This grouping allows us for example to run some code and record it under "flow-0", then modify our code, run it again, and
 record this second run (or flow) under "flow-1". Now we can access both recordings separately.
 
-You can use the `Recording on` combo-box on the toolbar to select under what flow new recordings are going to be stored.
+You can use the `Rec on` combo-box to select under what flow new recordings are going to be stored.
 
 Whenever there is something recorded for a flow, a new tab with the flow name will appear.
 
-Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a list of threads
-we have recordings for. This threads inside flows will be referred sometimes as timelines, since they are a sequence of recording steps.
-
-The `Flows` tool is all about exploring your recorded timelines.
+Execution inside a flow will be grouped by threads. So the first thing you will see on a flow is a menu of threads
+we have recordings for so far. This threads will be referred sometimes as timelines, since they are a sequence of
+recorded execution steps.
 
 Let's say for example we have selected to record under `flow-1` and run some multi threaded code.
+
 We are going to see something like this :
 
 image::user_guide_images/thread_outer_form.png[]
@@ -649,12 +650,11 @@ There is a lot going on in the screenshot above, but the most important are :
 
       - we have configured FlowStorm to record under `flow-1`
       - we have recorded stuff under `flow-1` and `flow-0`      
-      - we are currently looking `flow-1` which contains recorded activity in 5 different threads
-      - we have opened the first thread, and we are exploring it in the code stepper
-
+      - we are currently looking at `flow-1`, we have opened to explore thread 18 and we are exploring it in the code stepper
+      
 image::user_guide_images/thread_inner_form.png[]
 
-This second image shows us exploring the second thread on the `flow-1` list.
+This second image shows us exploring another thread on `flow-1`.
 
 There are currently 3 tools to explore the recorded timelines, which we are going to describe next.
 
@@ -917,7 +917,7 @@ image::user_guide_images/functions_tool_tab.png[]
 
 It shows a list of all traced functions sort by how many times the have been called.
 
-image::user_guide_images/functions.png[]
+image::user_guide_images/functions_calls.png[]
 
 Normal functions will be colored black, multimethods magenta and types/records protocols/interfaces implementations in green.
 
@@ -940,8 +940,8 @@ You can also use the `args` and `ret` buttons to open the values on the inspecto
 
 = Browser tool
 
-The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars, and if you are a Vanilla FlowStorm user
-you can also use it to <<#_instrument_with_the_browser, instrument functions>> .
+The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars,
+and provides ways of <<#_controlling_instrumentation,managing what gets instrumented>>.
 
 image::user_guide_images/browser.png[]
 
@@ -1078,11 +1078,11 @@ and you are probably not interested in all those frames details.
 For situations like the previous one, _FlowStorm_ has the ability to set thread breakpoints, which means to define points
 in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
-click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again, or right
-click on any of the blocked threads and select `Unblock all threads` to unlock all of them.
-Then you can analyse the new recordings. Once you are done, you can choose to uninstrument
-your functions, or maybe easier to just pause recording using the pause button in the main toolbar. Then you
-can remove the breakpoints and un-block every thread.
+click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again.
+Then you can analyse the new recordings.
+
+Once you are done, you can choose to uninstrument your functions, or maybe easier to just pause recording
+using the pause button in the main toolbar. Then you can remove the breakpoints and un-block every thread.
 
 You can define thread breakpoints in two ways :
 
