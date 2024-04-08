@@ -92,6 +92,6 @@
 
            (when command
              (utils/log (str "Running : " command))
-             (apply shell/sh (str/split command #" "))))))
+             (apply shell/sh (str/split command #"\s"))))))
      (catch Exception e
        (utils/log-error (.getMessage e))))))
