@@ -44,7 +44,7 @@ Go ahead and start the UI! Then type :tut/next to continue and I see you on the 
    "
 Great! Sice we are going to be using the UI throught the tutorial, let's do it comfortably.
 You can toggle between light/dark themes by hitting (Ctrl-t) or using the menu View->Toggle theme and
-also increase/decrease the font size also using the View menu, so make yourself comfortable first.
+ increase/decrease the font size also using the View menu, so make yourself comfortable first.
 
 Now we are ready! The first thing we need to do is to tell FlowStorm what namespaces to instrument,
 so we can record their functions executions.
