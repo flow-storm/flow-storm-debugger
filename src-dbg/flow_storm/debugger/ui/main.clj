@@ -344,12 +344,12 @@
       (doseq [stage (dbg-state/jfx-stages)]
         (ui-utils/run-now (.close ^Stage stage))))))
 
-(defn create-flow [{:keys [flow-id form-ns form timestamp]}]
+(defn create-flow [{:keys [flow-id timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
   ;; we don't reuse old flows values on this flow
   (runtime-api/clear-api-cache rt-api)
 
-  (dbg-state/create-flow flow-id form-ns form timestamp)
+  (dbg-state/create-flow flow-id timestamp)
   (flows-screen/remove-flow flow-id)
   (flows-screen/create-empty-flow flow-id)
   (ui-general/select-main-tools-tab :flows)

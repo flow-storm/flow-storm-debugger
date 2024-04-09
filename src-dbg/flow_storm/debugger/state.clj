@@ -81,8 +81,7 @@
 
 (s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
-                                :flow/threads
-                                :flow/execution-expr]
+                                :flow/threads]
                           :req-un [::timestamp]))
 
 (s/def :flow/flows (s/map-of :flow/id :flow/flow))
@@ -259,15 +258,12 @@
 (defn set-runtime-config [config]
   (swap! state assoc :runtime-config config))
 
-(defn create-flow [flow-id form-ns form timestamp]
+(defn create-flow [flow-id timestamp]
   ;; if a flow for `flow-id` already exist we discard it and
   ;; will be GCed
 
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
-                                          ;; the form that started the flow
-                                          :flow/execution-expr {:ns form-ns
-                                                                :form form}
                                           :timestamp timestamp}))
 
 (defn remove-flow [flow-id]

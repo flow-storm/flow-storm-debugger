@@ -61,7 +61,7 @@
   )
 
 (defn start-local []
-  (fs-api/local-connect {:theme :ligth})
+  (fs-api/local-connect {:skip-index-start? (utils/storm-env?)})
   (spec-instrument-state))
 
 

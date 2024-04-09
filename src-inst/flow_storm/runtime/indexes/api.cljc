@@ -273,10 +273,9 @@
         
         (if-not (check-fn-limit! fn-call-limits fn-ns fn-name)
           ;; if we are not limited, go ahead and record fn-call
-          (do
-            (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
-              (when (and tl-idx total-order-recording?)
-                (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx))))
+          (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
+            (when (and tl-idx total-order-recording?)
+              (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx)))
             
             (when fn-call-stats-index
               (index-protos/add-fn-call fn-call-stats-index fn-ns fn-name form-id args)))

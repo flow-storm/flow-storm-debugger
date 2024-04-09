@@ -20,7 +20,7 @@
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         [flow-tab] (obj-lookup flow-id "flow_tab")]
 
-    (when flow-tab
+    (when (and flows-tabs-pane flow-tab)
       (ui-utils/rm-tab-pane-tab flows-tabs-pane flow-tab))
 
     ;; clean ui state objects
@@ -91,7 +91,9 @@
         (doseq [tinfo threads-info]
           (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
 
-        (when (zero? (count (.getTabs threads-tabs-pane)))
+        (when (and (seq threads-info)
+                   threads-tabs-pane
+                   (zero? (count (.getTabs threads-tabs-pane))))
           (open-thread (first threads-info)))
 
         (set-items threads-info)))))
