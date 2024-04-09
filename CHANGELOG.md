@@ -11,6 +11,7 @@
 
     - The record flow selector combo is now next to the tabs
     - The threads selector is now a menu button instead of a list view to gain some UI space
+    - Automatically open first recorded thread
     
 ### Bugs fixed
 

@@ -410,14 +410,15 @@
         storm-add-inst-menu-data (ui/menu-button
                                   :title "Add"
                                   :disable? true
-                                  :items [{:text "Add inst only prefix"
-                                           :on-click (fn [_] (ask-and-add-storm-inst :inst-only-prefix))
+                                  :on-action (fn [item] (ask-and-add-storm-inst (:key item)))
+                                  :items [{:key :inst-only-prefix
+                                           :text "Add inst only prefix"
                                            :tooltip ""}
-                                          {:text "Add inst skip prefix"
-                                           :on-click (fn [_] (ask-and-add-storm-inst :inst-skip-prefix))
+                                          {:key :inst-skip-prefix
+                                           :text "Add inst skip prefix"
                                            :tooltip ""}
-                                          {:text "Set inst skip regex"
-                                           :on-click (fn [_] (ask-and-add-storm-inst :inst-skip-regex))
+                                          {:key :inst-skip-regex
+                                           :text "Set inst skip regex"
                                            :tooltip ""}])
         instrumentations-tools (ui/h-box :childs (cond-> [(ui/label :text "Enable all")
                                                           en-dis-chk

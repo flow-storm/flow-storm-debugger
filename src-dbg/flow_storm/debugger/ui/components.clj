@@ -188,27 +188,28 @@
 
     ta))
 
-(defn menu-button [& {:keys [title items disable? item-factory class]}]
+(defn menu-button [& {:keys [title items disable? item-factory on-action class]}]
   (let [mb (MenuButton. title)
         clear-items (fn [] (-> mb .getItems .clear))
         item-factory (or item-factory
-                         (fn [{:keys [text on-click tooltip] :as item}]
+                         (fn [{:keys [text tooltip]}]
                            (let [^Label mi-lbl (label :text text)]
-                             (.setOnMouseClicked mi-lbl (event-handler [_]
-                                                          (on-click item)))
                              (when tooltip
                                (.setTooltip mi-lbl (tool-tip :text tooltip)))
                              mi-lbl)))
         add-item (fn [{:keys [hide-on-click?] :as item}]
                    (let [mi (CustomMenuItem. (item-factory item))]
                      (.setHideOnClick mi (boolean hide-on-click?))
+                     (.setOnAction mi
+                                   (event-handler [_] (on-action item)))
                      (-> mb .getItems (.add mi))))
         set-items (fn [new-items]
                     (clear-items)
                     (doseq [item new-items]
                       (add-item item)))]
-    (when class
-      (ui-utils/add-class mb class))
+
+    (when class (ui-utils/add-class mb class))
+
     (when disable? (.setDisable mb true))
     (set-items items)
 

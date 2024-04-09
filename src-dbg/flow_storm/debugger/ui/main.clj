@@ -269,6 +269,7 @@
 
         exceptions-menu-data (ui/menu-button
                               :title "Exceptions"
+                              :on-action (fn [loc] (flows-screen/goto-location loc))
                               :items []
                               :class "important-combo")
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
@@ -377,6 +378,11 @@
        (doseq [fid all-flows-ids]
          (create-flow {:flow-id fid}))))))
 
+(defn open-flow-threads-menu [flow-id]
+  (flows-screen/select-flow-tab flow-id)
+  (let [[{:keys [menu-button]}] (obj-lookup flow-id "flow_threads_menu")]
+    (when menu-button
+      (.show menu-button))))
 
 (defn start-ui [config]
   (Platform/setImplicitExit false)
@@ -426,9 +432,16 @@
                                   (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)
                                   (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab :taps)
                                   (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab :docs)
-                                  (= key-name "Esc") (flows-screen/select-flow-tab nil)
-                                  (= key-name "0")   (flows-screen/select-flow-tab 0)
-                                  ))))
+                                  (= key-name "0")                    (open-flow-threads-menu 0)
+                                  (= key-name "1")                    (open-flow-threads-menu 1)
+                                  (= key-name "2")                    (open-flow-threads-menu 2)
+                                  (= key-name "3")                    (open-flow-threads-menu 3)
+                                  (= key-name "4")                    (open-flow-threads-menu 4)
+                                  (= key-name "5")                    (open-flow-threads-menu 5)
+                                  (= key-name "6")                    (open-flow-threads-menu 6)
+                                  (= key-name "7")                    (open-flow-threads-menu 7)
+                                  (= key-name "8")                    (open-flow-threads-menu 8)
+                                  (= key-name "9")                    (open-flow-threads-menu 9)))))
           (.setRoot (build-main-pane)))
 
         (-> stage .show)

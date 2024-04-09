@@ -1657,8 +1657,7 @@ You can overwrite all the styles defined here https://github.com/flow-storm/flow
 
 == Flows
 
-- `Esc` Select the funnel default flow threads list
-- `0` Select flow id 0 threads list
+- `0-9` Open focus flow-N threads menu, N being the pressed key
 - `t` Select the tree tool (needs to be inside a thread)
 - `c` Select the code tool (needs to be inside a thread)
 - `f` Select the functions tool (needs to be inside a thread)

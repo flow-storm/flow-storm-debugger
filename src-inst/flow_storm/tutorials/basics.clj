@@ -55,16 +55,14 @@ In your repl, you should see the result, like a normal Clojure repl, with the on
 that everything that just happened got recorded. The UI will not show much yet, but follow along,
 on the next slide we will be using it to explore what we just recorded.
 
-Note: The recording will always happen independently of the UI running or not.
-      This means you can work normally at your repl and open the debugger to see what just happened.
+Note: Recording can be turned on and off on demand by using the first button on the toolbar.
 
-Note2: What gets recorded depends on the value of clojure.storm.instrumentOnlyPrefixes and
-       clojure.storm.instrumentSkipPrefixes. This tutorial will only work over the `user` namespace
-       but the basic way of using it in your project will be to set :
+Note2: What gets instrumented for recording depends on your instrumentation configuration, which
+       can be changed without restarting the repl. If you started this tutorial by following FlowStorm
+       User's Guide quick start then only stuff under user namespace is going to be instrumented.
 
-            -Dclojure.storm.instrumentOnlyPrefixes=your-project-top-ns,lib1-top-ns,lib2-top-ns
-
-       and all namespaces you are interested in debugging.
+Tip: On your daily work you can keep recording off and turn it on right before executing
+     something you are interested in.
 
 Next we will start using the debugger.
 "
@@ -72,15 +70,20 @@ Next we will start using the debugger.
    "
 Great, now let's focus on the FlowStorm UI.
 
-We will focus on the Flows tab for now. On the left you
-should see a list of threads for which we have recordings.
+We will focus on the Flows tab for now. The Flows tool is all about recording and
+exploring your programs execution.
+
+From the top, you should see a combo box saying it is recording under flow-0.
+This is just a way of grouping recordings, so we are going to ignore it for now.
+
+After you run your factorial function a tab for flow-0 should be open, and you should
+see a Threads menu. This contains a list of of threads for which we have recordings.
 
 If you are running this from a bare bones clj command you should see
 just the `main` thread there, but if you are running it connected to nrepl (when using Cider, etc)
 you probably see more threads like `nREPL-session-d7edf6bc-a548-4ce9-a283-71a331a30dc4`.
 
-You can double click on any thread to explore the recordings, or if you just want to jump to the last
-thing recorded in your repl thread, type the :last command.
+You can click on any thread to explore the recordings.
 
 Go ahead, try it and then move next.
 "
@@ -89,14 +92,11 @@ Go ahead, try it and then move next.
    "
 You should be seeing a \"thread exploring tab\".
 
-If you typed :last in the previous step, you should be seeing the `code stepping tool`, while if you
-double clicked on a thread you should be seeing the `call tree tool`. They are different tools to explore
-the recordings. You can swap between tools in the bottom left corner of the \"thread exploring tab\".
+Here you will find a bunch of tools to analyze what just happened when your factorial
+function run.
 
-Go and click the first one, which is the `call tree tool`, then move next.
-"
+The default tool is called the `call tree tool`
 
-   "
 The `call tree tool` will show you a expandable overview of your recordings.
 
 Expand the one that says `(factorial 5)` and keep expanding it. It will show you
@@ -111,16 +111,17 @@ Note2: Once opened, the tree will not auto-refresh. Use the refresh button at th
 
 Now let's say you are interested in stepping through the code of your factorial function.
 We can travel just before (factorial 2) was called. For it, you will have to expand the nodes until you
-see the one you are interested in, then right click on it, and select `Step code` from the menu.
+see the one you are interested in, and then double click the node.
 
 It should take you to the `code stepping tool` with the debugger positioned right at that
 point in time.
+
 "
 
    "
 There are a bunch of things going on at the `code stepping tool`.
 
-Some things to notice is that your factorial function code is showing there with
+One thing to notice is that your factorial function code is showing there with
 some parts highlighted in pink, and also there is a bar at the top with some controls and
 some numbers.
 
@@ -128,27 +129,27 @@ The numbers show the position of the debugger in time for this specific thread. 
 is the current position, and the one on the right shows how many \"expressions executions\" were recorded
 so far for this thread.
 
-There are 3 ways of moving around time from this screen.
+There are many ways of moving around time with FlowStorm but this are the basic ones.
 
-The first one is by clicking the controls (check out the tool tips to know how they move).
+The second row on the controls panel provides stepping controls similar to what you can find on most debuggers,
+but with the ability to also step backwards. Check out the tooltips to know how they move and give them a try.
 
-The second one is by clicking on the highlights of the form. These are what FlowStorm captured as interesting
-debugging points for this frame. You can click on them (symbols and expressions). It will get highlighted in green and the
+Another way of moving around in time is by clicking on the highlights of the form.
+These are what FlowStorm captured as interesting debugging points for this frame.
+You can click on them (symbols and expressions). Whatever you click will get highlighted in green and the
 debugger will move to that point in time. Sometimes it is more practical to just click on the value you want to see
 instead of clicking the next button many times.
 
-The third one is by just typing a number on the current step input and then hitting enter.
-This come in handy when you are trying to understand a complicated execution flow, since you can
-take notes of interesting positions and then come back by just typing the position.
-
 Also notice that as you move in time two panels on the right change.
 The top one shows a pretty print of the current expression value while the bottom one
-shows all locals in scope. This example values are super simple, given they are just integers,
-but for more complex values sometimes the pretty print is going to be too noisy and we would be better suited
-by a value explorer, which we are going to cover in a couple of slides.
+shows all locals in scope.
 
-Before leaving the `code stepping tool` let's learn one more future, loops debugging!
+The pretty print panel is useful for exploring simple values like in this example but it won't be
+enought to explore heavy nested ones.
 
+For that there is a value explorer, which we are going to cover in a couple of slides.
+
+Before leaving the `code stepping tool` let's learn one more feature, loops debugging!
 
 "
 

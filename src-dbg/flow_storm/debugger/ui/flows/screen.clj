@@ -42,14 +42,6 @@
   (dbg-state/remove-unwinds flow-id)
   (ui-utils/run-later (update-exceptions-combo)))
 
-(defn update-threads-list [flow-id]
-  (let [[{:keys [set-items] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
-    (when menu-data
-      (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)]
-        (doseq [tinfo threads-info]
-          (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
-        (set-items threads-info)))))
-
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
    ^Pane pane
@@ -90,6 +82,20 @@
 
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
 
+(defn update-threads-list [flow-id]
+  (let [[{:keys [set-items] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
+    (when menu-data
+      (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)
+            [threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")]
+
+        (doseq [tinfo threads-info]
+          (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
+
+        (when (zero? (count (.getTabs threads-tabs-pane)))
+          (open-thread (first threads-info)))
+
+        (set-items threads-info)))))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (ui/tab-pane :closing-policy :all-tabs
@@ -99,28 +105,24 @@
         {:keys [menu-button] :as menu-btn-data}
         (ui/menu-button
          :title "Threads"
-         :item-factory (fn [{:keys [thread/name thread/blocked thread/id] :as th}]
-                         (let [thread-lbl-click (fn [mev]
-                                                  (when (ui-utils/mouse-primary? mev)
-                                                    (open-thread th)))]
-                           (if blocked
-                             ;; build blocked thread node
-                             (let [[bp-var-ns bp-var-name] blocked
-                                   thread-unblock-btn (ui/icon-button :icon-name "mdi-play"
-                                                                      :on-click (fn []
-                                                                                  (runtime-api/unblock-thread rt-api id))
-                                                                      :classes ["thread-continue-btn"
-                                                                                "btn-xs"])]
-                               (ui/h-box :childs [(ui/v-box :childs [(ui/label :text (ui/thread-label id name)
-                                                                               :class "thread-blocked"
-                                                                               :on-click thread-lbl-click)
-                                                                     (ui/label :text (format "%s/%s" bp-var-ns bp-var-name) :class "light")])
-                                                  thread-unblock-btn]
-                                         :spacing 5))
+         :on-action (fn [th] (open-thread th))
+         :item-factory (fn [{:keys [thread/name thread/blocked thread/id]}]
+                         (if blocked
+                           ;; build blocked thread node
+                           (let [[bp-var-ns bp-var-name] blocked
+                                 thread-unblock-btn (ui/icon-button :icon-name "mdi-play"
+                                                                    :on-click (fn []
+                                                                                (runtime-api/unblock-thread rt-api id))
+                                                                    :classes ["thread-continue-btn"
+                                                                              "btn-xs"])]
+                             (ui/h-box :childs [(ui/v-box :childs [(ui/label :text (ui/thread-label id name)
+                                                                             :class "thread-blocked")
+                                                                   (ui/label :text (format "%s/%s" bp-var-ns bp-var-name) :class "light")])
+                                                thread-unblock-btn]
+                                       :spacing 5))
 
-                             ;; if not blocked just render a label
-                             (ui/label :text (ui/thread-label id name)
-                                       :on-click thread-lbl-click))))
+                           ;; if not blocked just render a label
+                           (ui/label :text (ui/thread-label id name))))
          :class "hl-combo")
         flow-box (ui/anchor-pane
                   :childs [{:node threads-tab-pane
@@ -242,11 +244,10 @@
 
     (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
                        {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
-                        :on-click (fn [_]
-                                    (goto-location {:flow-id flow-id
-                                                    :thread-id thread-id
-                                                    :idx idx}))
-                        :tooltip ex-message})
+                        :tooltip ex-message
+                        :flow-id flow-id
+                        :thread-id thread-id
+                        :idx idx})
                      unwinds))))
 
 (defn main-pane []
