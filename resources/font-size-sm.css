@@ -5,3 +5,5 @@
 
 .threads-tab-pane > .tab-header-area {-fx-padding: 5 0 0 92 ;}
 .flows-tab-pane > .tab-header-area {-fx-padding: 5 0 0 135 ;}
+
+.flows-combo {-fx-pref-width: 127;}

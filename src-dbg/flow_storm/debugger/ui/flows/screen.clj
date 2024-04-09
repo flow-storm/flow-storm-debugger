@@ -261,7 +261,7 @@
                                   :cell-factory (fn [_ i] (ui/label :text (str "flow-" i)))
                                   :on-change (fn [_ new-flow-id]
                                                (runtime-api/switch-record-to-flow rt-api new-flow-id))
-                                  :class "hl-combo")
+                                  :classes ["hl-combo" "flows-combo"])
         flow-anchor (ui/anchor-pane
                      :childs [{:node flows-tpane
                                :top-anchor 5.0

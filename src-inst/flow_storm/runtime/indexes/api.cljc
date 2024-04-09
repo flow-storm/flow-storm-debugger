@@ -109,28 +109,19 @@
 (declare discard-flow)
 (declare get-thread-indexes)
 
-(def flow-thread-registry
-  
-  "Registry that contains all flows and threads timelines.
-  It is an instance of `flow-storm.runtime.indexes.thread-registry/ThreadRegistry`."
+;; Registry that contains all flows and threads timelines.
+;; It is an instance of `flow-storm.runtime.indexes.thread-registry/ThreadRegistry`.
+(defonce flow-thread-registry nil)
 
-  nil)
+;; Registry that contains all registered forms.
+;; It could be anything that implements `flow-storm.runtime.indexes.protocols/FormRegistryP`
+;; 
+;; Currently it can be an instance of `flow-storm.runtime.indexes.thread-registry/FormRegistry`
+;; or `clojure.storm/FormRegistry` when working with ClojureStorm.
+(defonce forms-registry nil)
 
-(def forms-registry
-  
-  "Registry that contains all registered forms.
-  It could be anything that implements `flow-storm.runtime.indexes.protocols/FormRegistryP`
-  
-  Currently it can be an instance of `flow-storm.runtime.indexes.thread-registry/FormRegistry`
-  or `clojure.storm/FormRegistry` when working with ClojureStorm."
-  
-  nil)
-
-(def fn-call-limits
-
-  "Stores the function calls limits for different functions."
-  
-  (atom nil))
+;; Stores the function calls limits for different functions.
+(defonce fn-call-limits (atom nil))
 
 (defn add-fn-call-limit [fn-ns fn-name limit]
   (swap! fn-call-limits assoc-in [fn-ns fn-name] limit))
@@ -199,6 +190,7 @@
 
 #?(:clj
    (defn stop []
+     (println "@@@@@@@@@@@@ STOPPING")
      (when (utils/storm-env?)
        ((requiring-resolve 'flow-storm.tracer/unhook-clojure-storm))
        (utils/log "Storm functions unplugged"))     

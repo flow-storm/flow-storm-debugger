@@ -61,7 +61,7 @@
   )
 
 (defn start-local []
-  (fs-api/local-connect {:skip-index-start? (utils/storm-env?)})
+  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))})
   (spec-instrument-state))
 
 
@@ -73,7 +73,7 @@
   (spec-instrument-state))
 
 (defn stop []
-  (fs-api/stop))
+  (fs-api/stop {:skip-index-stop? (utils/storm-env?)}))
 
 (defn after-refresh []
   (alter-var-root #'utils/out-print-writer (constantly *out*))
@@ -83,7 +83,7 @@
   (let [running? dbg-state/state]
     (when running?
       (log "System is running, stopping first ...")
-      (stop))
+      (fs-api/stop))
     (tools-namespace-repl/refresh :after 'dev/after-refresh )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
