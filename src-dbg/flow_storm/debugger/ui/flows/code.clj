@@ -92,13 +92,14 @@
                                                 :enable? true))))
 
 (defn- calculate-execution-idx-range [spans curr-coord]
-  (let [[s1 s2 :as hl-coords-spans] (->> spans
-                                         (map-indexed (fn [i s] (assoc s :i i)))
-                                         (filter (fn [{:keys [coord]}] (= coord curr-coord))))]
-    (case (count hl-coords-spans)
-      1 [(:idx-from s1) (+ (:idx-from s1) (:len s1))]
-      2 [(:idx-from s1) (+ (:idx-from s2) (:len s2))]
-      nil)))
+  (when curr-coord
+    (let [[s1 s2 :as hl-coords-spans] (->> spans
+                                          (map-indexed (fn [i s] (assoc s :i i)))
+                                          (filter (fn [{:keys [coord]}] (= coord curr-coord))))]
+     (case (count hl-coords-spans)
+       1 [(:idx-from s1) (+ (:idx-from s1) (:len s1))]
+       2 [(:idx-from s1) (+ (:idx-from s2) (:len s2))]
+       nil))))
 
 (defn- build-style-spans
 
