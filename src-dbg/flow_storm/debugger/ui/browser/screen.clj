@@ -412,14 +412,14 @@
                                   :disable? true
                                   :on-action (fn [item] (ask-and-add-storm-inst (:key item)))
                                   :items [{:key :inst-only-prefix
-                                           :text "Add inst only prefix"
-                                           :tooltip ""}
+                                           :text "Add instrumentation prefix"
+                                           :tooltip "Only namespaces that matches these prefixes will be instrumented"}
                                           {:key :inst-skip-prefix
-                                           :text "Add inst skip prefix"
-                                           :tooltip ""}
+                                           :text "Add instrumentation skip prefix"
+                                           :tooltip "Use these on top of your instrumentation prefixes to skip a subset of them"}
                                           {:key :inst-skip-regex
-                                           :text "Set inst skip regex"
-                                           :tooltip ""}])
+                                           :text "Set instrumentation skip regex"
+                                           :tooltip "Same as the skip prefixes but a singular regular expression"}])
         instrumentations-tools (ui/h-box :childs (cond-> [(ui/label :text "Enable all")
                                                           en-dis-chk
                                                           delete-all-btn
