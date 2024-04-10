@@ -42,7 +42,7 @@ Go ahead and start the UI! Then type :tut/next to continue and I see you on the 
 "
 
    "
-Great! Sice we are going to be using the UI throught the tutorial, let's do it comfortably.
+Great! Since we are going to be using the UI throughout the tutorial, let's do it comfortably.
 You can toggle between light/dark themes by hitting (Ctrl-t) or using the menu View->Toggle theme and
  increase/decrease the font size also using the View menu, so make yourself comfortable first.
 
@@ -59,7 +59,7 @@ but this time we are going to use the browser.
 Click on the Browser tab and look at the Instrumentations bottom panel.
 
 Click on `Add` and then `Add instrumentation prefix`. It will ask you for a prefix.
-Let's type the word `tutorial` there and add a instrumentation prefix.
+Let's type the word `tutorial` there and add a instrumentation prefix by clicking Ok.
 
 These are prefixes, so this means that for the `tutorial` word any code compiled under `tutorial`,
  `tutorial.server`, `tutorial.server.core`, etc, will get instrumented.
@@ -79,7 +79,7 @@ Now go back to your repl and let's create a tutorial namespace by typing :
 (ns tutorial)
 --------------
 
-On the next slide we are going to start evaluating some under it.
+On the next slide we are going to start evaluating some under it. (:tut/next)
 "
 
    "
