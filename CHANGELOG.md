@@ -6,6 +6,7 @@
 
     - Implement storm instrumentation management in the browser
     - Add "Copy qualified function symbol" and "Copy function calling form" to form menu
+    - Add only-functions? to multi-thread timeline
     
 ### Changes 
 

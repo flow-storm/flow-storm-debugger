@@ -1011,6 +1011,9 @@ Rendering the timeline needs some processing to render each sub-form and print e
 if you try it on big recordings.
 ====
 
+There is also a `Only functions?` checkbox at the top that will retrieve only function calls and can be used to visualize
+the threads interleaving at a higher level.
+
 = Printer tool
 
 _FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty

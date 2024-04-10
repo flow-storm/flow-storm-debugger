@@ -15,6 +15,7 @@
             #?@(:clj [[hansel.api :as hansel]                      
                       [hansel.instrument.utils :as hansel-inst-utils]])
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
+            [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]))
 
 ;; TODO: build script
@@ -267,9 +268,12 @@
                                     criteria                                    
                                     {:result-transform reference-timeline-entry!})))
 
-(defn total-order-timeline-task []
+(defn total-order-timeline-task [{:keys [only-functions?]}]
   (let [timeline (index-api/total-order-timeline)
-        xf (total-order-timeline/detailed-timeline-transd index-api/forms-registry)]    
+        xf (cond->> (total-order-timeline/detailed-timeline-transd index-api/forms-registry)
+             only-functions? (comp (filter (fn [tote]
+                                             (let [entry (index-protos/tote-entry tote)]
+                                               (fn-call-trace/fn-call-trace? entry))))))]    
     (submit-async-interruptible-batched-process-timelines-task [[nil nil timeline]] xf)))
 
 (defn thread-prints-task [{:keys [flow-id thread-id printers]}]

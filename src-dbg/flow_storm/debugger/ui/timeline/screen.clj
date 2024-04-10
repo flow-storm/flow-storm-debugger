@@ -24,7 +24,7 @@
     (clear)))
 
 (defn main-pane []
-  (let [{:keys [table-view-pane table-view add-all] :as table-data}
+  (let [{:keys [table-view-pane table-view add-all clear] :as table-data}
         (ui/table-view :columns ["Thread" "Thread Idx" "Function" "Expression" "Value" "Value type"]
                        :resize-policy :constrained
                        :cell-factory (fn [_ cell-val]
@@ -55,10 +55,13 @@
         _ (ui-utils/set-button-action
            record-btn
            (fn [] (rt-api/set-total-order-recording rt-api (ui-utils/checkbox-checked? record-btn))))
+        only-functions-cb (ui/check-box :selected? false)
         refresh-btn (ui/icon-button :icon-name "mdi-reload"
                                     :on-click (fn []
+                                                (clear)
                                                 (let [thread-selected-colors (atom {})
-                                                      timeline-task-id (rt-api/total-order-timeline-task rt-api)
+                                                      params {:only-functions? (ui-utils/checkbox-checked? only-functions-cb)}
+                                                      timeline-task-id (rt-api/total-order-timeline-task rt-api params)
                                                       thread-color (fn [thread-id]
                                                                      (if-let [color (get @thread-selected-colors thread-id)]
                                                                        color
@@ -90,7 +93,10 @@
                                     :tooltip "Refresh the content of the timeline")
         main-pane (ui/border-pane
                    :top (ui/h-box
-                         :childs [refresh-btn (ui/label :text "Enable:") record-btn]
+                         :childs [refresh-btn
+                                  (ui/label :text "Enable :") record-btn
+                                  (ui/label :text "Only functions? :") only-functions-cb
+                                  ]
                          :class "controls-box"
                          :spacing 5)
 

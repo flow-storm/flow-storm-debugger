@@ -63,7 +63,7 @@
   (start-task [_ task-id])
 
   (find-expr-entry-task [_ criteria])
-  (total-order-timeline-task [_])
+  (total-order-timeline-task [_ opts])
   (thread-prints-task [_ print-cfg])
   (search-collect-timelines-entries-task [_ criteria opts])
   (discard-flow [_ flow-id])
@@ -171,7 +171,7 @@
   (interrupt-all-tasks [_] (api-call :local "interrupt-all-tasks" []))
 
   (find-expr-entry-task [_ criteria] (api-call :local "find-expr-entry-task" [criteria]))
-  (total-order-timeline-task [_] (api-call :local "total-order-timeline-task" []))
+  (total-order-timeline-task [_ opts] (api-call :local "total-order-timeline-task" [opts]))
   (thread-prints-task [_ print-cfg] (api-call :local "thread-prints-task" [print-cfg]))
   (search-collect-timelines-entries-task [_ criteria opts] (api-call :local "search-collect-timelines-entries-task" [criteria opts]))
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
@@ -310,7 +310,7 @@
   (interrupt-all-tasks [_] (api-call :remote "interrupt-all-tasks" []))
 
   (find-expr-entry-task [_ criteria] (api-call :remote "find-expr-entry-task" [criteria]))
-  (total-order-timeline-task [_] (api-call :remote "total-order-timeline-task" []))
+  (total-order-timeline-task [_ opts] (api-call :remote "total-order-timeline-task" [opts]))
   (thread-prints-task [_ print-cfg] (api-call :remote "thread-prints-task" [print-cfg]))
   (search-collect-timelines-entries-task [_ criteria opts] (api-call :remote "search-collect-timelines-entries-task" [criteria opts]))
   (discard-flow [_ flow-id] (api-call :remote "discard-flow" [flow-id]))
