@@ -278,7 +278,7 @@
 
                             (and (not (:hansel/instrumented? (meta fn-before#)))
                                  (:hansel/instrumented? (meta fn-after#)))
-                            (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))))))))
+                            (rt-events/publish-event! (rt-events/make-vanilla-var-instrumented-event vname# vns#))))))))
 
 
       `(do
