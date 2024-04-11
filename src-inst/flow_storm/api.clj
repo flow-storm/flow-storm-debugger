@@ -266,7 +266,7 @@
 
            (let [v# (var ~var-symb)
                  [vns# vname#] ((juxt namespace name) (symbol v#))]
-             (rt-events/publish-event! (rt-events/make-var-instrumented-event vname# vns#))
+             (rt-events/publish-event! (rt-events/make-vanilla-var-instrumented-event vname# vns#))
              (add-watch v#
                         :flow-storm/var-redef
                         (fn [a1# a2# fn-before# fn-after#]
@@ -274,7 +274,7 @@
 
                             (and (:hansel/instrumented? (meta fn-before#))
                                  (not (:hansel/instrumented? (meta fn-after#))))
-                            (rt-events/publish-event! (rt-events/make-var-uninstrumented-event vname# vns#))
+                            (rt-events/publish-event! (rt-events/make-vanilla-var-uninstrumented-event vname# vns#))
 
                             (and (not (:hansel/instrumented? (meta fn-before#)))
                                  (:hansel/instrumented? (meta fn-after#)))
