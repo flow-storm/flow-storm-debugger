@@ -15,6 +15,7 @@
     - Automatically open first recorded thread
     - Improved graphical tutorial
     - Help menu with tutorial and user's guide
+    - Don't start recording by default
     
 ### Bugs fixed
 

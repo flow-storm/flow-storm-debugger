@@ -7,7 +7,7 @@
 (declare stop-tracer)
 
 (defonce total-order-recording (atom false))
-(defonce recording (atom true))
+(defonce recording (atom false))
 (defonce breakpoints (atom #{}))
 (defonce blocked-threads (atom #{}))
 (defonce current-flow-id (atom 0))
