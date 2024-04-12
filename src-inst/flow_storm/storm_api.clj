@@ -22,27 +22,22 @@
   (println "  :dbg        - Show the FlowStorm debugger UI, you can dispose it by closing the window.")
   (println "  :rec        - Start recording. All instrumented code traces will be recorded.")
   (println "  :stop       - Stop recording. Instrumented code will execute but nothing will be recorded, so no extra heap will be consumed.")
-  (println "  :last       - Focus the last recorded expression on this thread.")
   (println "  :help       - Print this help.")
-  (println "  :tut/basics - Starts the basics tutorial.")
   (println)
   (println "JVM config properties: \n")
   (println "  -Dflowstorm.startRecording              [true|false]")
   (println "  -Dflowstorm.theme                       [dark|light|auto] (defaults to auto)")
   (println "  -Dflowstorm.styles                      [STRING] Ex: /home/user/my-styles.css")
   (println "  -Dflowstorm.threadFnCallLimits          Ex: org.my-app/fn1:2,org.my-app/fn2:4")
+  (println "  -Dclojure.storm.instrumentOnlyPrefixes  Ex: my-app,my-lib")
+  (println "  -Dclojure.storm.instrumentSkipPrefixes  Ex: my-app.too-heavy,my-lib.uninteresting")
+  (println "  -Dclojure.storm.instrumentSkipRegex     Ex: .*test.*")
   (println)
   (println "Modify limits : \n")
   (println "  (flow-storm.runtime.indexes.api/add-fn-call-limit \"org.my-app\" \"fn1\" 10)")
   (println "  (flow-storm.runtime.indexes.api/rm-fn-call-limit \"org.my-app\" \"fn1\")")
   (println "  (flow-storm.runtime.indexes.api/get-fn-call-limits)")
   (println)
-  (println "Change instrumentation prefixes : \n")
-  (println "  (clojure.storm.Emitter/addInstrumentationOnlyPrefix \"org.my-lib\")")
-  (println "  (clojure.storm.Emitter/removeInstrumentationOnlyPrefix \"org.my-lib\")")
-  (println "  (clojure.storm.Emitter/addInstrumentationSkipPrefix \"org.my-lib\")")
-  (println "  (clojure.storm.Emitter/removeInstrumentationSkipPrefix \"org.my-lib\")")
-
   (println))
 
 (defn maybe-execute-flow-storm-specials [input]
@@ -53,9 +48,7 @@
       :rec        (do (dbg-api/set-recording true)  true)
       :stop       (do (dbg-api/set-recording false) true)
 
-      :tut/basics (do ((requiring-resolve 'flow-storm.tutorials.basics/start))     true)
-      :tut/next   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-next)) true)
-      :tut/prev   (do ((requiring-resolve 'flow-storm.tutorials.basics/step-prev)) true)
+      :tut/basics (println "Deprecated. Start the UI by evaluating the :dbg keyword and find the tutorial under the View menu.")
       false)
 
     (catch Exception e

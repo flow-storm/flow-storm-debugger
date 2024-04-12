@@ -23,7 +23,7 @@
              :refer [event-handler key-combo-match?]]
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
-            [flow-storm.debugger.ui.flows.general :as ui-general]
+            [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -37,6 +37,7 @@
             [flow-storm.utils :as utils :refer [log log-error]]
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs]
+            [flow-storm.debugger.tutorials.basics :as tut-basics]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene]
@@ -219,7 +220,12 @@
                                    {:text "Toggle debug mode"
                                     :on-click (fn [] (toggle-debug-mode))
                                     :accel {:mods [:ctrl]
-                                            :key-code KeyCode/D}}])
+                                            :key-code KeyCode/D}}
+                                   {:text "Tutorial"
+                                    :on-click (fn []
+                                                (if (dbg-state/clojure-storm-env?)
+                                                  (tut-basics/start-tutorials-ui)
+                                                  (show-message "This tutorial is not available in vanilla mode" :warning)))}])
         actions-menu (ui/menu :label "_Actions"
                               :items [{:text "Clear recordings"
                                        :on-click (fn [] (clear-all))

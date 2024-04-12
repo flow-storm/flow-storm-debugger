@@ -12,14 +12,16 @@
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
-           [javafx.scene Node]
+           [javafx.scene Node Scene]
            [javafx.beans.property ReadOnlyDoubleProperty]
            [javafx.util Duration]
            [java.util.function Predicate]
            [org.kordamp.ikonli.javafx FontIcon]
            [javafx.collections FXCollections ObservableList]
            [org.fxmisc.richtext CodeArea]
-           [org.fxmisc.flowless VirtualFlow]))
+           [org.fxmisc.flowless VirtualFlow]
+           [javafx.stage Stage]
+           [javafx.scene.web WebView WebEngine]))
 
 
 (defn context-menu [& {:keys [items]}]
@@ -738,3 +740,28 @@
     (ui-utils/observable-add-all (.getMenus mb) menues)
 
     mb))
+
+(defn scene [& {:keys [root window-width window-height]}]
+  (Scene. root window-width window-height))
+
+(defn stage [& {:keys [scene title on-close-request x y show?]}]
+  (let [^Stage stg (doto (Stage.)
+                     (.setScene scene)
+                     (.setTitle title)
+                     (.setX x)
+                     (.setY y))]
+
+    (.setOnCloseRequest stg (event-handler [_]
+                              (dbg-state/unregister-jfx-stage! stg)
+                              (when on-close-request
+                                (on-close-request))))
+
+    (dbg-state/register-jfx-stage! stg)
+    (when show? (.show stg))
+    stg))
+
+(defn web-view []
+  (let [^WebView wv (WebView.)
+        ^WebEngine web-engine (.getEngine wv)]
+    {:web-view wv
+     :set-html (fn [html] (.loadContent web-engine html))}))
