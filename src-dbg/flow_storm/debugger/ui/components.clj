@@ -764,4 +764,5 @@
   (let [^WebView wv (WebView.)
         ^WebEngine web-engine (.getEngine wv)]
     {:web-view wv
-     :set-html (fn [html] (.loadContent web-engine html))}))
+     :set-html (fn [html] (.loadContent web-engine html))
+     :load-url (fn [url] (.load web-engine url))}))

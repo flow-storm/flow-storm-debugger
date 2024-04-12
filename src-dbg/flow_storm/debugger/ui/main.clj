@@ -38,6 +38,7 @@
             [flow-storm.state-management :refer [defstate]]
             [flow-storm.debugger.docs]
             [flow-storm.debugger.tutorials.basics :as tut-basics]
+            [flow-storm.debugger.user-guide :as user-guide]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
            [javafx.scene Scene]
@@ -220,12 +221,7 @@
                                    {:text "Toggle debug mode"
                                     :on-click (fn [] (toggle-debug-mode))
                                     :accel {:mods [:ctrl]
-                                            :key-code KeyCode/D}}
-                                   {:text "Tutorial"
-                                    :on-click (fn []
-                                                (if (dbg-state/clojure-storm-env?)
-                                                  (tut-basics/start-tutorials-ui)
-                                                  (show-message "This tutorial is not available in vanilla mode" :warning)))}])
+                                            :key-code KeyCode/D}}])
         actions-menu (ui/menu :label "_Actions"
                               :items [{:text "Clear recordings"
                                        :on-click (fn [] (clear-all))
@@ -237,9 +233,17 @@
                                                :key-code KeyCode/U}}])
         config-menu (ui/menu :label "_Config"
                              :items [{:text "Set threads limit"
-                                      :on-click (fn [] (ask-and-set-threads-limit))}])]
+                                      :on-click (fn [] (ask-and-set-threads-limit))}])
+        help-menu (ui/menu :label "_Help"
+                           :items [{:text "Tutorial"
+                                    :on-click (fn []
+                                                (if (dbg-state/clojure-storm-env?)
+                                                  (tut-basics/start-tutorials-ui)
+                                                  (show-message "This tutorial is not available in vanilla mode" :warning)))}
+                                   {:text "User Guide"
+                                    :on-click (fn [] (user-guide/show-user-guide))}])]
 
-    (ui/menu-bar :menues [view-menu actions-menu config-menu])))
+    (ui/menu-bar :menues [view-menu actions-menu config-menu help-menu])))
 
 (defn- build-top-tool-bar-pane []
   (let [record-btn (ui/icon-button :icon-name "mdi-record"

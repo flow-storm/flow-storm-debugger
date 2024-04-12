@@ -48,7 +48,7 @@
       :rec        (do (dbg-api/set-recording true)  true)
       :stop       (do (dbg-api/set-recording false) true)
 
-      :tut/basics (println "Deprecated. Start the UI by evaluating the :dbg keyword and find the tutorial under the View menu.")
+      :tut/basics (println "Deprecated. Start the UI by evaluating the :dbg keyword and find the tutorial under the Help menu.")
       false)
 
     (catch Exception e
