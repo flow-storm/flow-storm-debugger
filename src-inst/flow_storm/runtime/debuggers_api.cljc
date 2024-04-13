@@ -598,7 +598,7 @@
                     styles-prop           (assoc :styles styles-prop)
                     title-prop            (assoc :title  title-prop))]
 
-       (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "false") false true))
+       (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "true") true false))
 
        (doseq [[fn-ns fn-name l] fn-call-limits]
          (index-api/add-fn-call-limit fn-ns fn-name l))
@@ -617,7 +617,7 @@
 
      (println "Index started")
 
-     (let [recording? (if (= (env-prop "flowstorm.startRecording") "false") false true)]
+     (let [recording? (if (= (env-prop "flowstorm.startRecording") "true") true false)]
        (tracer/set-recording recording?)
        (println "Recording set to " recording?))
 
