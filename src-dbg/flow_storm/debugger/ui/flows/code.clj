@@ -732,23 +732,23 @@
 (defn- create-controls-second-row-pane [flow-id thread-id]
   (let [prev-over-btn (ui/icon-button :icon-name "mdi-debug-step-over"
                                       :on-click (fn [] (step-prev-over flow-id thread-id))
-                                      :tooltip "Step to the previous recorded interesting expression in the current frame"
+                                      :tooltip "Step over to the previous expression in the current frame"
                                       :mirrored? true)
         prev-btn (ui/icon-button :icon-name "mdi-chevron-left"
                                  :on-click (fn [] (step-prev flow-id thread-id))
-                                 :tooltip "Step to the previous recorded interesting expression")
+                                 :tooltip "Step in the previous expression")
 
         out-btn (ui/icon-button :icon-name "mdi-debug-step-out"
                                 :on-click (fn []
                                             (step-out flow-id thread-id))
-                                :tooltip "Step to the parent first expression")
+                                :tooltip "Step out to the caller, right after calling this funciton.")
 
         next-btn (ui/icon-button :icon-name "mdi-chevron-right"
                                  :on-click (fn [] (step-next flow-id thread-id))
-                                 :tooltip "Step to the next recorded interesting expression")
+                                 :tooltip "Step in the next expression")
         next-over-btn (ui/icon-button :icon-name "mdi-debug-step-over"
                                       :on-click (fn [] (step-next-over flow-id thread-id))
-                                      :tooltip "Step to the next recorded interesting expression in the current frame")
+                                      :tooltip "Step over to the next expression in the current frame")
 
         controls-box (ui/h-box :childs [prev-over-btn prev-btn out-btn next-btn next-over-btn]
                                :spacing 2)]

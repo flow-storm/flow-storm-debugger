@@ -29,9 +29,9 @@ It will guide you over the basics and help you get started with FlowStorm.
    "
 <p>Great! Since we are going to be using the UI throughout the tutorial, let's do it comfortably.</p>
 
-<p> You can <b>toggle the debugger's UI between light/dark themes by hitting (Ctrl-t)</b> or using the <b>View menu</b> which also allows you to  increase/decrease the font size. You can <b>also toggle this tutorial theme by using the button at the top right corner</b>, so go ahead and make yourself comfortable first.</p>
+<p> You can <b>toggle the debugger's UI between light/dark themes by hitting (Ctrl-t)</b> or using the <b>View menu</b> which also allows you to  increase/decrease the font size. You can <b>also toggle this tutorial theme by using the button at the bottom right corner</b>, so go ahead and make yourself comfortable first.</p>
 
-<p>Now we are ready! The first thing we need to do is to <b>tell FlowStorm what namespaces to instrument</b>, so we can record their functions executions.</p>
+<p>Now we are ready! The first thing we need to do is to <b>tell FlowStorm what namespaces to instrument</b>, so we can record their function's executions.</p>
 
 <p>We can do this by setting some JVM properties before starting the repl or <b>by using the FlowStorm Browser</b> (second vertical tab from the top).</p>
 
@@ -43,9 +43,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>These are prefixes, so this means that for the `tutorial` word any code compiled under `tutorial`, `tutorial.server`, `tutorial.server.core`, etc, will get instrumented. Normally adding prefixes for the top namespace of your project and some libs you are interested in debugging will be enough.</p>
 
-<p>After that we are done with instrumentation setup for this tutorial.</p>
+<p>After that, we are done with instrumentation setup for this tutorial.</p>
 
-<p>Another <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the tool bar. Clicking it will toggle between recording/paused. Let's click it and leave it on pause (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
+<p>Another <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
 
 <p>Now go back to your repl and let's create a tutorial namespace by typing :</p>
 
@@ -53,11 +53,11 @@ It will guide you over the basics and help you get started with FlowStorm.
 (ns tutorial)
 </code>
 
-<p>On the next slide we are going to start evaluating some under it.</p>
+<p>On the next slide we are going to start evaluating some code under it.</p>
 "
 
    "
-<p>Great! Now we need some code to debug. Go ahead and evaluate the function below (you can copy and paste them on the repl) :</p>
+<p>Great! Now we need some code to debug. Go ahead and evaluate the function below (you can copy and paste it on the repl) :</p>
 
 <code>
 <pre>
@@ -86,13 +86,13 @@ It will guide you over the basics and help you get started with FlowStorm.
    "
 <p>The default tool is called the <b>call tree tool</b>.</p>
 
-<p>This tool will show you a expandable tree of the functions calls, which will serve as <b>an overview of your selected thread recordings</b>. It will be very handy when trying to understand and end to end execution helping you create a mental model of what is going on.</p>
+<p>This tool will show you a expandable tree of the functions calls, which will serve as <b>an overview of your selected thread recordings</b>. It will be very handy when trying to understand an end to end execution, helping you create a mental model of what is going on.</p>
 
-<p>Expand the one that says `(factorial 5)` and keep expanding it. This already makes evident how this recursive factorial function works by calling itself. It show you a tree of functions calls with its arguments.</p>
+<p>Expand the one that says `(factorial 5)` and keep expanding it. This already makes evident how this recursive factorial function works by calling itself. It shows you a tree of functions calls with its arguments.</p>
 
 <p>You can also click on any node and the bottom two panels will show you a pretty print of the arguments vector on the left and of the return value on the right.</p>
 
-<p class=\"hl\">Note: Once opened, the tree will not auto-refresh. Use the refresh button at the root of the tree to update it.</p>
+<p class=\"hl\">Note: Once opened, the tree will not auto-refresh if the code is still running. Use the refresh button at the root of the tree to update it.</p>
 
 <p>Now let's say you are interested in stepping through the code of your factorial function. We can travel just before `(factorial 2)` was called. For it, you will have to <b>expand the nodes</b> until you see the one that is calling the function with 2, and then <b>double click it</b>.</p>
 
@@ -109,14 +109,14 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>The numbers show <b>the position of the debugger in time</b> for this specific thread. The number at the left is the current position, and the one on the right shows how many \"expressions executions\" were recorded so far for this thread. You can think of FlowStorm recording the activity on each thread as a timeline of execution steps, in which you can move around.</p>
 
-<p>There are many ways of moving around in time in the `code stepping tool` but this are the basic ones :</p>
+<p>There are many ways of moving around in time in the `code stepping tool` but these are the basic ones :</p>
 
 <ol>
 <li>By using the arrows on the second row of the controls panel. They are stepping controls similar to what you can find on most debuggers, but with the extra ability to also step backwards. Check out the tooltips to know how they move and give them a try.</li>
 <li>By clicking on the highlights of the form. These are what FlowStorm captured as interesting debugging points for this frame. What it means by \"this frame\" is that clicking on a expression will take you to points in time inside the current function call. In the case of factorial that it is calling itself many times with clicks you get to navigate around the current call. You can click on any symbols and expressions. Whatever you click will get highlighted in green and the debugger will move to that point in time.</li>
 </ol>
 
-<p>Sometimes it is more practical to just click on the value you want to see instead of clicking the next-step button many times.</p>
+<p>When navigating a particular call sometimes it's faster to click on the expression you want to see instead of clicking the next or prev step buttons many times.</p>
 
 <p>Also notice that as you move through execution, two panels on the right change.</p>
 
@@ -126,16 +126,16 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>For that there is a value explorer, which we are going to cover in a couple of slides.</p>
 
-<p>There is also a quick way to jump to the first execution of a function and it is by using the <b>Quick jump box</b> on the toolbar. It will auto complete with all the recorded functions and selecting one will take you there. Give it a try!</p>
+<p>There is also a quick way to jump to the first execution of a function and it is by using the <b>Quick jump box</b> on the toolbar. It will auto complete with all the recorded functions and selecting one will take you there. It doesn't make much sense for this example since we have only one recorded function, but will be handy in more complex situations. Give it a try!</p>
 
-<p>There are many more features on the code stepping tool but since this tutorial covers just the basics, we are going to jump to another tool, the <b> functions list tool</b>. So go ahead and click on <b>the last tab</b> in the bottom left corner.</p>
+<p>There are many more features on the code stepping tool but given this tutorial covers just the basics, we are going to skip them and jump right to another tool. The <b> functions list tool</b>. So go ahead and click on <b>the last tab</b> in the bottom left corner.</p>
 
 "
 
    "
 <p>The <b>functions list tool</b> shows you all the functions next to how many times they have been called.</p>
 
-<p>This is another way of looking at your recordings, which is very useful in situations.</p>
+<p>This is another way of looking at your recordings, which is very useful in some situations.</p>
 
 <p>You should see at least a table with :</p>
 
@@ -152,9 +152,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>You can <b>double click on any of the calls</b> at the right to step over code at that specific point in time, or use the `args` or `ret` buttons to inspect the values if they have nested structure. We haven't look at the value inspector yet, but we will cover it soon.</p>
 
-<p>Give it a shot, double click on the call with arguments `[4]` to jump exactly to where `(factorial 4)` was called.</p>
+<p>Give it a shot, double click on the factorial call with arguments `[4]` to jump exactly to where `(factorial 4)` was called.</p>
 
-<p>And that is it for the code exploring tools! Next we will learn about <b>FlowStorm data exploring tools</b>, so when you are ready move next.</p>
+<p>And that is it for the code exploring tools! Next we will learn about <b>FlowStorm data exploring tools</b>, so when you are ready click next.</p>
 "
 
 
@@ -165,9 +165,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>This is handy in two situations. First, to get rid of old recorded data to <b>make everything cleaner</b>, and second, to <b>free the recorded data</b> so the garbage collector can get rid of it.</p>
 
-<p class=\"hl\">Note: there is a bar at the bottom right corner that will show your max heap and how much of it is currently used, so you can keep an eye on it and don't have to worry about recording too much.</p>
+<p class=\"hl\">Note: there is a bar at the bottom right corner that will show your max heap and how much of it is currently used. You can use this to keep an eye on your heap usage so you know when to clear or stop recording.</p>
 
-<p>So go ahead, clear the state and then evaluate the next form :</p>
+<p>So go ahead, clear your recordings and then evaluate the next form :</p>
 
 <code>
 (count (all-ns))
@@ -175,24 +175,23 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>Now double click on the tree node to jump to the code stepping tool (or find it on the bottom tabs), and then click on the highlighted expression of `(all-ns)` to see this expression value.</p>
 
-<p>As you can see on the top right panel, it is a sequence of namespaces objects.</p>
+<p>This Clojure function returns a list of all namespaces currently loaded, and as you can see on the top right panel, it is a sequence of namespaces objects.</p>
 
 <p>Go on and click on the `ins` button at the top of the panel to <b>open the value inspector</b>.</p>
 
-<p>This will open the Value Inspector in another window with a bunch of stuff. You can keep clicking on the highlighted values to dig into them.</p>
+<p>This will open the Value Inspector in another window with a bunch of stuff. Once in the inspector you can keep clicking on the highlighted values to dig into nested values.</p>
 
-<p>You can also go backwards by using the top bar breadcrumbs.</p>
+<p>You can also navigate back by using the top bar breadcrumbs.</p>
 
-<p>If while digging on values you feel like exploring that value at the repl, you can click on the `def` button. It will ask you for a name. Let's say you named it `mydata`, now you can go to your repl and find it bound to the `user/mydata` var. <b>You can define a value for the repl in any value panel</b> you see in FlowStorm, not just the value inspector.</p>
+<p>Now let's introduce a very powerful feature, the `def` button. You can take whatever value you are seeing in any FlowStorm panel back to your repl by giving it a name. You do this by clicking the `def` button, and it will ask you for a name. Let's say you named it `mydata`, now you can go to your repl and find it bound to the `user/mydata` var. <b>You can define a value for the repl in any value panel</b> you see in FlowStorm, not just the value inspector.</p>
 
-<p>There is also the `tap` value, to tap what you are seeing like with tap> which is pretty convenient if you want to send it to a different value explorer like portal, rebl, reveal, etc.</p>
+<p>There is also the `tap` value, to tap what you are seeing with tap> which is pretty convenient if you want to send the value to a different value explorer like morse, portal, reveal, etc.</p>
 "
 
-
    "
-<p>For the last feature, let's see <b>jumping to exceptions</b>.</p>
+<p>For the last of the basics features, let me introduce you to <b>exceptions</b> debugging.</p>
 
-<p>First get rid of the state (Ctrl-L) and then let's eval these buggy function and call it :</p>
+<p>First let's get rid of the recordings (Ctrl-L) and then eval these buggy function and call it :</p>
 
 <code>
 <pre>
@@ -216,11 +215,13 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 
 <p>which is pretty confusing.</p>
 
-<p>A <b>red dropdown should appear at the top</b>, showing all the recorded functions that throwed instead of returned.</p>
+<p>A <b>red dropdown should appear at the top</b>, showing all the recorded functions that throwed instead of returning.</p>
 
-<p>You can quickly jump right before the exception by selecting the last exception and then do a step back.</p>
+<p>Hovering over the exception will display the exception message.</p>
 
-<p>You can now step backwards and try to figure out where the bug is coming from.</p>
+<p>You can quickly jump right before an Exception by selecting the first function that throwed and then doing a step back.</p>
+
+<p>You can now keep stepping backwards and try to figure out where the bug is coming from.</p>
 
 <p>Give it a shot, try to see if you can figure it out!</p>
 "
@@ -238,19 +239,24 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_stack\">Navigating with the stack</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_bookmarks\">Bookmarks</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool\">Multi-thread timelines</a></li>
+<li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer_tool\">The printer tool</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging\">Programmable debugging</a></li>
 <li> And much more!!!</li>
 </ol>
 
-<p>Before finishing, keep in mind that even if FlowStorm is called a debugger (for lack of a better word) it was designed not just for chasing bugs, but for enhancing your interactive development experience by providing some transparency on what is going on as things execute. So try it more as a development companion than as a debugger</p>
+<p>You can always access the User's guide by clicking on the Help menu at the top.</p>
 
-<p>Also this are some tips I've found for using FlowStorm efficiently :</p>
+<p>Before finishing, keep in mind that even if FlowStorm is called a debugger (for lack of a better word) it was designed not just for chasing bugs, but for enhancing your interactive development experience by providing some visibility on what is going on as things execute, so it is pretty handy for other things like help you understanding a system from an execution POV or just running something and checking your assumptions.</p>
+
+<p>Also here are some tips I've found for using FlowStorm efficiently :</p>
 
 <ol>
 <li>Keep recording paused when not needed</li>
 <li>Get rid of all the state (Ctrl-L) before executing the actions you are interested in recording</li>
-<li>Most of the time you know the function name you want to see so use the Quick jump box to quickly jump to it</li>
-<li>When a function is called multiple times use the `functions list tool` to have an overview and jump to the call you are interested in.</li>
+<li>If you know the function name you want to see use the Quick jump box to quickly jump to it's first call.</li>
+<li>If you see multiple calls, use the functions list to quickly move between them.</li>
+<li>When exploring a system you know little about, the search, power-stepping and bookmarking tools can make wrapping your head around the new system much faster.</li>
+<li>If there is any kind of looping, mapping or a function is called multiple times the printer tool is your friend.</li>
 <li>Use the jvm options described in :help to configure it, so you don't record unnecessary stuff.</li>
 </ol>
 
