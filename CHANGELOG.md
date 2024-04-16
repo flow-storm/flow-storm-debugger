@@ -3,6 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes 
+
+### Bugs fixed
+
+    - Don't run #rtrace when recording is paused
+    
+## 3.15.0 (16-04-2024)
+	
+### New Features
 
     - Implement storm instrumentation management in the browser
     - Add "Copy qualified function symbol" and "Copy function calling form" to form menu
