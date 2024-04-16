@@ -42,11 +42,11 @@
   ;; REPL [un]instrument var ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (fs-api/instrument-var-clj 'clojure.set/difference)
+  (fs-api/vanilla-instrument-var-clj 'clojure.set/difference)
 
   (set/difference #{1 2 3} #{2})
 
-  (fs-api/uninstrument-var-clj 'clojure.set/difference)
+  (fs-api/vanilla-uninstrument-var-clj 'clojure.set/difference)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;; REPL [un]instrument namespaces ;;

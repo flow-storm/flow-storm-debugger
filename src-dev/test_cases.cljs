@@ -50,11 +50,11 @@ js/v
 ;; REPL [un]instrument var ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(fs-api/instrument-var-cljs 'clojure.set/difference {:build-id :browser-repl})
+(fs-api/vanilla-instrument-var-cljs 'clojure.set/difference {:build-id :browser-repl})
 
 (set/difference #{1 2 3} #{2})
 
-(fs-api/uninstrument-var-cljs 'clojure.set/difference {:build-id :browser-repl})
+(fs-api/vanilla-uninstrument-var-cljs 'clojure.set/difference {:build-id :browser-repl})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; REPL [un]instrument namespaces ;;

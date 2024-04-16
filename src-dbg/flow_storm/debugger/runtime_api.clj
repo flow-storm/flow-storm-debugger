@@ -343,7 +343,7 @@
       :clj (api-call :remote "vanilla-instrument-var" [:clj (symbol var-ns var-name) opts])
       :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
               (show-message "FlowStorm ClojureScript single var instrumentation is pretty limited. You can instrument them only once, and the only way of uninstrumenting them is by reloading your page or restarting your node process. Also deep instrumentation is missing some cases. So for most cases you are going to be better with [un]instrumenting entire namespaces." :warning)
-              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
+              (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/vanilla-instrument-var :cljs '%s/%s %s)" var-ns var-name opts)))))
 
   (vanilla-uninstrument-var [_ var-ns var-name opts]
     (case (dbg-state/env-kind)

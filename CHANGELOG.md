@@ -9,6 +9,8 @@
 ### Bugs fixed
 
     - Don't run #rtrace when recording is paused
+    - Fix vanilla-instrument-var for clojurescript
+    - Fix #rtrace for clojurescript
     
 ## 3.15.0 (16-04-2024)
 	

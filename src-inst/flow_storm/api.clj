@@ -7,7 +7,6 @@
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log] :as utils]
             [hansel.api :as hansel]
-            [hansel.instrument.runtime :refer [*runtime-ctx*]]
             [hansel.instrument.utils :as inst-utils]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
@@ -171,7 +170,7 @@
 
 (defn instrument-var-cljs
 
-  "Like `flow-storm.api/instrument-var-clj` but for using it from the shadow Clojure repl.
+  "Like `flow-storm.api/vanilla-instrument-var-clj` but for using it from the shadow Clojure repl.
 
   Arguments are the same as the Clojure version but `config` also accepts a `:build-id`"
 
@@ -207,24 +206,21 @@
   [prefixes config]
   (dbg-api/vanilla-uninstrument-namespaces :cljs prefixes config))
 
-(defn- runi* [{:keys [ns flow-id thread-trace-limit tracing-disabled? env] :as opts} form]
+(defn- runi* [{:keys [ns flow-id env] :as opts} form]
   ;; ~'flowstorm-runi is so it doesn't expand into flow-storm.api/flowstorm-runi which
   ;; doesn't work with fn* in clojurescript
   (utils/ensure-vanilla)
   (let [wrapped-form `(fn* ~'flowstorm-runi ([] ~form))
         ns (or ns (when-let [env-ns (-> env :ns :name)]
                     (str env-ns)))
-        hansel-config (tracer/hansel-config opts)
+        hansel-config (assoc (tracer/hansel-config opts)
+                             :env env)
         {:keys [inst-form init-forms]} (hansel/instrument-form hansel-config wrapped-form)]
     `(let [flow-id# ~(or flow-id (-> form meta :flow-id) 0)
            curr-ns# ~(or ns `(when *ns* (str (ns-name *ns*))) (-> env :ns :name str))]
-       (binding [*runtime-ctx* {:flow-id flow-id#
-                                :thread-trace-limit ~thread-trace-limit
-                                :tracing-disabled? ~tracing-disabled?}]
+       ~@init-forms
 
-         ~@init-forms
-
-         (~inst-form)))))
+       (~inst-form))))
 
 (defmacro runi
 
@@ -300,7 +296,9 @@
 
        (utils/storm-env?) (throw (ex-info "#rtrace and #trace can't be used with ClojureStorm, they aren't needed. All your configured compilations will be automatically instrumented. Please re-run the expression without it. Evaluation skipped." {}))
 
-       (not (tracer/recording?)) (log "FlowStorm recording is paused, please switch recording on before running with #rtrace.")
+       (not (tracer/recording?)) (do
+                                   (log "FlowStorm recording is paused, please switch recording on before running with #rtrace.")
+                                   ~form)
 
        :else (let [res# (runi ~full-config ~form)]
                (dbg-api/jump-to-last-expression-in-this-thread)
