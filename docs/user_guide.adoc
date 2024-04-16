@@ -54,10 +54,10 @@ You can start a repl with FlowStorm like this :
 [%nowrap,bash]
 ----
 ;; on Linux and OSX
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}' -A:dev
 
 ;; on Windows
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}' -A:dev
 ----
 
 [IMPORTANT]
@@ -75,8 +75,8 @@ It is possible to <<#_controlling_instrumentation,disable/enable instrumentation
 things like measuring performance.
 ====
 
-Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up just
-evaluate the `:tut/basics` keyword on it for a tour of the basics.
+Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up
+evaluate the `:dbg` keyword to bring up the UI and then click on  `Help->Tutorial` on the menu for a tour of the basics.
 
 After the tutorial you would want to add and configure it for your projects, or <<#_a_global_configuration, create a global config>> so here are the basics :
 

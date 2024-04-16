@@ -857,10 +857,10 @@ and forth by starting your repl with a different alias or lein profile.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true" "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}'</span> <span class="nt">-A</span>:dev
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}'</span> <span class="nt">-A</span>:dev
 
 <span class="p">;;</span> on Windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true""" """-Dclojure.storm.instrumentOnlyPrefixes=user"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -897,8 +897,8 @@ things like measuring performance.</p>
 </table>
 </div>
 <div class="paragraph">
-<p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up just
-evaluate the <code>:tut/basics</code> keyword on it for a tour of the basics.</p>
+<p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up
+evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
 </div>
 <div class="paragraph">
 <p>After the tutorial you would want to add and configure it for your projects, or <a href="#_a_global_configuration">create a global config</a> so here are the basics :</p>
@@ -3696,7 +3696,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-10 15:21:12 -0300
+Last updated 2024-04-16 08:33:03 -0300
 </div>
 </div>
 </body>
