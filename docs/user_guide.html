@@ -1281,7 +1281,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1289,7 +1289,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1297,7 +1297,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3694,7 +3694,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-16 08:40:54 -0300
+Last updated 2024-04-16 10:07:05 -0300
 </div>
 </div>
 </body>

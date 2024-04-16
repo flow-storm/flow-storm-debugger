@@ -344,21 +344,21 @@ You can use _FlowStorm_ and _ClojureScriptStorm_ with cljs.main.
 
 To compile instrumented files :
 
-[,bash]
+[%nowrap,bash]
 ----
 clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
 ----
 
 To run a repl that instrument everything under org.foo :
 
-[,bash]
+[%nowrap,bash]
 ----
 clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
 ----
 
 Then run the _FlowStorm_ UI :
 
-[,bash]
+[%nowrap,bash]
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}' -X flow-storm.debugger.main/start-debugger
 ----
