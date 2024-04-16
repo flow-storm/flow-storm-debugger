@@ -208,9 +208,8 @@ user> (require '[flow-storm.api :as fs-api]) ;; the only namespace you need to r
 user> (fs-api/local-connect) ;; will run the debugger GUI and get everything ready
 ----
 
-You should now see a empty debugger window.
-
-Let's debug something :
+You should now see a empty debugger window. Click on the recording button to leave the debugger in
+recording mode and the let's debug something:
 
 [%nowrap,clojure]
 ----
