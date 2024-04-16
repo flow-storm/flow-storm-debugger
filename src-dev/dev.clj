@@ -18,7 +18,7 @@
             [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.tracer :as tracer]
             [flow-storm.utils :refer [log-error log]]
-            [clojure.tools.namespace.repl :as tools-namespace-repl :refer [set-refresh-dirs disable-unload! disable-reload!]]
+            [clj-reload.core :as reload]
             [flow-storm.form-pprinter :as form-pprinter]
             [dev-tester]
             [flow-storm.fn-sampler.core :as sampler]
@@ -76,15 +76,16 @@
   (fs-api/stop {:skip-index-stop? (utils/storm-env?)}))
 
 (defn after-refresh []
-  (alter-var-root #'utils/out-print-writer (constantly *out*))
-  (log "Refresh done"))
+  )
 
 (defn refresh []
   (let [running? dbg-state/state]
     (when running?
       (log "System is running, stopping first ...")
       (fs-api/stop))
-    (tools-namespace-repl/refresh :after 'dev/after-refresh )))
+    (reload/reload)
+    (alter-var-root #'utils/out-print-writer (constantly *out*))
+    (log "Refresh done")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Playing at the repl ;;
