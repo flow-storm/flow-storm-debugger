@@ -7,6 +7,14 @@
 ### Changes 
 
 ### Bugs fixed
+            
+## 3.15.1 (16-04-2024)
+	
+### New Features
+    
+### Changes 
+
+### Bugs fixed
 
     - Don't run #rtrace when recording is paused
     - Fix vanilla-instrument-var for clojurescript
