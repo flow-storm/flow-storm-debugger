@@ -122,15 +122,15 @@
          :cljs (repl-eval-cljs code ns))))))
 
 
-(defn- connect-and-init [{:keys [repl-type runtime-host port build-id on-repl-up]}]
-  (let [runtime-host (or runtime-host "localhost")
+(defn- connect-and-init [{:keys [repl-type repl-host runtime-host port build-id on-repl-up]}]
+  (let [repl-host (or repl-host runtime-host "localhost")
         env-kind (if (#{:shadow} repl-type) :cljs :clj) ;; HACKY, this logic is replicated in `state`
         repl-kind :nrepl ;; HACKY, this logic is replicated in `state`
         log-file (io/file log-file-path)
         ^OutputStream log-output-stream (io/make-output-stream log-file {:append true
                                                                          :encoding "UTF-8"})
         connect (fn [] (case repl-kind
-                         :nrepl (nrepl/connect runtime-host port)))
+                         :nrepl (nrepl/connect repl-host port)))
 
         ;; repl here will be a map with :repl-eval (fn [code-str ns] ) and :close-connection (fn [])
         ;; :repl-eval fn will eval on the specific repl and return the value always as a string

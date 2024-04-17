@@ -146,11 +146,13 @@
 (s/def :repl/type #{:shadow :clojure})
 (s/def :repl/port int?)
 (s/def :repl.cljs/build-id keyword?)
+(s/def :repl/host (s/nilable string?))
 
 (s/def :config/repl (s/nilable
                      (s/keys :req [:repl/kind
                                    :repl/type
-                                   :repl/port]
+                                   :repl/port
+                                   :repl/host]
                              :opt [:repl.cljs/build-id])))
 
 (s/def :config/debugger-host string?)
@@ -183,7 +185,7 @@
                                 ::bookmarks
                                 ::unwinds]))
 
-(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
+(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host repl-host] :as config}]
   {:flows {}
    :printers {}
    :selected-font-size-style-idx 0
@@ -205,7 +207,8 @@
                      (when port
                        (cond-> {:repl/kind :nrepl
                                 :repl/type (or repl-type :clojure)
-                                :repl/port port}
+                                :repl/port port
+                                :repl/host repl-host}
                          (#{:shadow} repl-type) (assoc :repl.cljs/build-id (:build-id config))))
                      :debugger-host (or debugger-host "localhost")
                      :debugger-ws-port (or ws-port 7722)
