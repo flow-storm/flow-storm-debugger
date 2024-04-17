@@ -858,6 +858,15 @@
         (thread-prints-transd printers)
         (get-timeline flow-id thread-id)))
 
+(defn timelines-mod-timestamps []
+  (reduce (fn [acc [fid tid]]
+            (let [tl (get-timeline fid tid)]
+              (conj acc {:flow-id fid
+                         :thread-id tid
+                         :last-modified (index-protos/last-modified tl)})))
+          #{}
+   (all-threads)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

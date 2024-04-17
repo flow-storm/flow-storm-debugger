@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Timelines notification updates and thread refresh button
     
 ### Changes 
 

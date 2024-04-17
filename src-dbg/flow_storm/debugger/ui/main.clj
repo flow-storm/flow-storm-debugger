@@ -106,14 +106,15 @@
     box))
 
 (defn update-heap-indicator [{:keys [max-heap-bytes heap-size-bytes heap-free-bytes]}]
-  (ui-utils/run-later
-    (let [[^ProgressBar heap-bar] (obj-lookup "heap-bar")
-          [heap-max-lbl] (obj-lookup "heap-max-lbl")
-          occupied-bytes (- heap-size-bytes heap-free-bytes)
-          occ-perc (float (/ occupied-bytes max-heap-bytes))
-          max-gb (float (/ max-heap-bytes 1024 1024 1024))]
-      (.setProgress heap-bar occ-perc)
-      (ui-utils/set-text heap-max-lbl (format "%.2f Gb" max-gb)))))
+  (when max-heap-bytes
+    (ui-utils/run-later
+     (let [[^ProgressBar heap-bar] (obj-lookup "heap-bar")
+           [heap-max-lbl] (obj-lookup "heap-max-lbl")
+           occupied-bytes (- heap-size-bytes heap-free-bytes)
+           occ-perc (float (/ occupied-bytes max-heap-bytes))
+           max-gb (float (/ max-heap-bytes 1024 1024 1024))]
+       (.setProgress heap-bar occ-perc)
+       (ui-utils/set-text heap-max-lbl (format "%.2f Gb" max-gb))))))
 
 (defn set-conn-status-lbl [lbl-key status]
   (ui-utils/run-later

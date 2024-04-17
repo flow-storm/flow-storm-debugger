@@ -119,24 +119,15 @@
             (let [^TreeItem tree-item (.getTreeItem ^TreeCell this)
                   item-level (.getTreeItemLevel tree-view tree-item)
                   frame (runtime-api/callstack-node-frame rt-api tree-node)
-                  fn-call-idx (:fn-call-idx frame)
-                  update-tree-btn (ui/icon-button :icon-name "mdi-reload"
-                                                  :classes ["reload-tree-btn"]
-                                                  :on-click (fn []
-                                                              (binding [runtime-api/*cache-disabled?* true]
-                                                                (update-call-stack-tree-pane flow-id thread-id)))
-                                                  :tooltip "Refresh the content of the tree. Useful since the tree will not autoupdate after it is open.")]
+                  fn-call-idx (:fn-call-idx frame)]
 
               (if (:root? frame)
 
-                ;; it's the root dummy node, put update-tree-btn
+                ;; it's the root dummy node, put controls
                 (-> this
-                    (ui-utils/set-graphic (ui/h-box :childs [(ui/icon-button :icon-name "mdi-adjust"
-                                                                             :on-click (fn [] (highlight-current-frame flow-id thread-id))
-                                                                             :tooltip "Highlight current frame")
-                                                             update-tree-btn]
-                                                    :spacing 3
-                                                    :align :center-left))
+                    (ui-utils/set-graphic (ui/icon-button :icon-name "mdi-adjust"
+                                                          :on-click (fn [] (highlight-current-frame flow-id thread-id))
+                                                          :tooltip "Highlight current frame"))
                     (ui-utils/set-text nil))
 
                 ;; else, put the frame

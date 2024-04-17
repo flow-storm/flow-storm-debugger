@@ -1,6 +1,8 @@
 (ns flow-storm.jobs
   (:require [flow-storm.runtime.events :as rt-events]
-            [flow-storm.utils :as utils :refer [log]])
+            [flow-storm.utils :as utils :refer [log]]
+            [flow-storm.runtime.indexes.api :as indexes-api]
+            [clojure.set :as set])
   #?(:clj (:import [java.util.concurrent Executors TimeUnit])))
 
 (def mem-reporter-interval 1000)
@@ -34,12 +36,18 @@
   (let [mem-job-cancel (schedule-repeating-fn                   
                         (fn mem-reporter []
                           (let [heap-info (utils/get-memory-info)
-                                ev (rt-events/make-heap-info-update-event heap-info)]                            
+                                ev (rt-events/make-heap-info-update-event heap-info)]
                             (rt-events/publish-event! ev)))
                         mem-reporter-interval)
+        last-checked-stamps (atom nil)
         updates-job-cancel (schedule-repeating-fn                   
                             (fn timelines-updates []
-                              )
+                              (let [new-stamps (indexes-api/timelines-mod-timestamps)
+                                    needs-report (set/difference new-stamps @last-checked-stamps)]
+                                (doseq [{:keys [flow-id thread-id] } needs-report]
+                                  (rt-events/publish-event!
+                                   (rt-events/make-timeline-updated-event flow-id thread-id)))
+                                (reset! last-checked-stamps new-stamps)))
                             updates-reporter-interval)]
     (reset! cancel-jobs-fn (fn []
                              (mem-job-cancel)
@@ -49,3 +57,10 @@
   (when-let [stop-fn @cancel-jobs-fn]
     (stop-fn)))
 
+
+
+(comment
+
+  (indexes-api/timelines-mod-timestamps)
+
+  )

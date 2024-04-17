@@ -82,6 +82,23 @@
 
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
 
+(defn make-outdated-thread [flow-id thread-id]
+  (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]
+    (let [th-info (dbg-state/get-thread-info thread-id)
+          refresh-tab-content (ui/h-box
+                               :childs [(ui/label :text (:thread/name th-info))
+                                        (ui/icon-button :icon-name "mdi-reload"
+                                                        :on-click (fn []
+                                                                    (flow-tree/update-call-stack-tree-pane flow-id thread-id)
+                                                                    (flow-fns/update-functions-pane flow-id thread-id)
+                                                                    (doto tab
+                                                                      (.setText (:thread/name th-info))
+                                                                      (.setGraphic nil)))
+                                                        :classes ["thread-refresh" "btn-sm"])])]
+      (doto tab
+        (.setText nil)
+        (.setGraphic refresh-tab-content)))))
+
 (defn update-threads-list [flow-id]
   (let [[{:keys [set-items] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
     (when menu-data
@@ -203,6 +220,8 @@
                               (clean-objs flow-id thread-id)
                               (dbg-state/remove-thread flow-id thread-id)))
         (ui-utils/add-tab-pane-tab threads-tabs-pane thread-tab)
+
+        (store-obj flow-id thread-id "tab" thread-tab)
 
         (ui-utils/selection-select-obj sel-model thread-tab)))))
 

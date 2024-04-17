@@ -1530,7 +1530,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 </span><span class="p">(</span><span class="nf">tracer/hook-clojurescript-storm</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">dbg-api/setup-runtime</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-ws-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7722</span><span class="p">})</span></code></pre>
+</span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7722</span><span class="p">})</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1545,7 +1545,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 </span><span class="p">(</span><span class="nf">tracer/hook-clojurescript-storm</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">dbg-api/setup-runtime</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-ws-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7733</span><span class="p">})</span></code></pre>
+</span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7733</span><span class="p">})</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2175,22 +2175,6 @@ It will ask you the bookmark description.</p>
 <div class="content">
 <img src="user_guide_images/callstack_tree.png" alt="callstack tree">
 </div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">Tree refreshing</div>
-<div class="paragraph">
-<p>If <em>FlowStorm</em> keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
-You can use the refresh button at the root to update it.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>Use the button at the top left corner of the tree tool to show the current frame of the debugger in the tree.</p>
@@ -3694,7 +3678,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-16 10:07:05 -0300
+Last updated 2024-04-17 13:09:18 -0300
 </div>
 </div>
 </body>

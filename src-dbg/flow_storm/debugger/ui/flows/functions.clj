@@ -209,22 +209,14 @@
     (add-all fn-call-stats)))
 
 (defn create-functions-pane [flow-id thread-id]
-  (let [refresh-btn (ui/icon-button :icon-name "mdi-reload"
-                                    :on-click (fn [] (update-functions-pane flow-id thread-id))
-                                    :tooltip "Refresh the content of the functions list.")
-        controls-box (ui/h-box :childs [refresh-btn]
-                               :paddings [10])
-
-        fns-list-pane (create-fns-list-pane flow-id thread-id)
+  (let [fns-list-pane (create-fns-list-pane flow-id thread-id)
         fn-calls-list-pane (create-fn-calls-list-pane flow-id thread-id)
         split-pane (ui/split :orientation :horizontal
-                             :childs [fns-list-pane fn-calls-list-pane])
-        functions-pane (ui/v-box :childs [controls-box
-                                          split-pane])]
+                             :childs [fns-list-pane fn-calls-list-pane])]
 
     (HBox/setHgrow fn-calls-list-pane Priority/ALWAYS)
     (VBox/setVgrow split-pane Priority/ALWAYS)
 
     (update-functions-pane flow-id thread-id)
 
-    functions-pane))
+    split-pane))

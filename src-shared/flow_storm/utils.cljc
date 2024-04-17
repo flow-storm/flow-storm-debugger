@@ -145,9 +145,7 @@
   #?(:clj  {:max-heap-bytes (.maxMemory (Runtime/getRuntime))
             :heap-size-bytes (.totalMemory (Runtime/getRuntime))
             :heap-free-bytes (.freeMemory (Runtime/getRuntime))}
-     :cljs {:max-heap-bytes 0
-            :heap-size-bytes 0
-            :heap-free-bytes 0}))
+     :cljs nil))
 
 (defn storm-env? []
   #?(:clj (try

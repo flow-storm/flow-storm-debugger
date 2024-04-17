@@ -24,6 +24,9 @@
 (defn make-threads-updated-event [flow-id]
   [:threads-updated {:flow-id flow-id}])
 
+(defn make-timeline-updated-event [flow-id thread-id]
+  [:timeline-updated {:flow-id flow-id :thread-id thread-id}])
+
 (defn make-storm-instrumentation-updated-event [inst-data]
   [:storm-instrumentation-updated-event inst-data])
 
@@ -83,6 +86,6 @@
 
     (dispatch ev)
 
-    (when (not= ev-key :heap-info-update)
+    (when-not (#{:heap-info-update} ev-key )
       (locking pending-events
         (swap! pending-events conj ev)))))

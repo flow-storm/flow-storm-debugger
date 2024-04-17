@@ -92,8 +92,6 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>You can also click on any node and the bottom two panels will show you a pretty print of the arguments vector on the left and of the return value on the right.</p>
 
-<p class=\"hl\">Note: Once opened, the tree will not auto-refresh if the code is still running. Use the refresh button at the root of the tree to update it.</p>
-
 <p>Now let's say you are interested in stepping through the code of your factorial function. We can travel just before `(factorial 2)` was called. For it, you will have to <b>expand the nodes</b> until you see the one that is calling the function with 2, and then <b>double click it</b>.</p>
 
 <p>It should take you to the <b>code stepping tool</b> with the debugger positioned right at that point in time.</p>

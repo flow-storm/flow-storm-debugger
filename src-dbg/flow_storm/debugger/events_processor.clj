@@ -46,7 +46,11 @@
 
 (defn- threads-updated-event [{:keys [flow-id]}]
   (ui-utils/run-now
-   (flows-screen/update-threads-list flow-id)))
+    (flows-screen/update-threads-list flow-id)))
+
+(defn- timeline-updated-event [{:keys [flow-id thread-id]}]
+  (ui-utils/run-now
+    (flows-screen/make-outdated-thread flow-id thread-id)))
 
 (defn- task-submitted-event [_]
   (ui-main/set-task-cancel-btn-enable true))
@@ -92,6 +96,7 @@
     :storm-instrumentation-updated-event (storm-instrumentation-updated-event ev-args-map)
     :flow-created (flow-created-event ev-args-map)
     :threads-updated (threads-updated-event ev-args-map)
+    :timeline-updated (timeline-updated-event ev-args-map)
     :tap (tap-event ev-args-map)
 
     :task-submitted (task-submitted-event ev-args-map)

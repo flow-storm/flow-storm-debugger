@@ -107,6 +107,9 @@
 	-fx-icon-color: -fx-theme-button1-text;    
 }
 
+.thread-refresh {-fx-background-color: -fx-theme-base1;}
+.thread-refresh .ikonli-font-icon {-fx-icon-color: red;}
+
 .mirrored {
     -fx-scale-x: -1;
 }

@@ -525,7 +525,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 (tracer/hook-clojurescript-storm)
 (dbg-api/setup-runtime)
-(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7722})
+(dbg-api/remote-connect {:debugger-host "localhost" :debugger-ws-port 7722})
 ----
 
 `my_app.webworker_storm_preload.cljs`
@@ -539,7 +539,7 @@ You do this by writing different preloads for each of your builds, and then usin
 
 (tracer/hook-clojurescript-storm)
 (dbg-api/setup-runtime)
-(dbg-api/remote-connect {:debugger-ws-host "localhost" :debugger-ws-port 7733})
+(dbg-api/remote-connect {:debugger-host "localhost" :debugger-ws-port 7733})
 ----
 
 They are the same as `flow-storm.storm-preload` just with different port numbers.
@@ -896,13 +896,6 @@ The call stack tree is useful for a high level overview of a complex execution a
 You can jump to any point in time by double clicking on a node or by right clicking and on the context menu selecting `Step code`. 
 
 image::user_guide_images/callstack_tree.png[]
-
-[NOTE]
-.Tree refreshing
-====
-If _FlowStorm_ keeps receiving traces for the thread you are analyzing, it will keep building the tree but will not automatically refresh its visuals.
-You can use the refresh button at the root to update it.
-====
 
 Use the button at the top left corner of the tree tool to show the current frame of the debugger in the tree.
 
