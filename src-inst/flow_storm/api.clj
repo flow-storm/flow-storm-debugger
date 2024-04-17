@@ -11,7 +11,7 @@
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
-            [flow-storm.mem-reporter :as mem-reporter]
+            [flow-storm.jobs :as jobs]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.api :as index-api]
             [clojure.string :as str]
@@ -48,7 +48,7 @@
 
      (rt-values/clear-vals-ref-registry)
 
-     (mem-reporter/stop-mem-reporter)
+     (jobs/stop-jobs)
 
      ;; stop remote websocket client if needed
      (remote-websocket-client/stop-remote-websocket-client)

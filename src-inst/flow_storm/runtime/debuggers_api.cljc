@@ -9,7 +9,7 @@
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
-            #?@(:clj [[flow-storm.mem-reporter :as mem-reporter]])
+            [flow-storm.jobs :as jobs]
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
             #?@(:clj [[hansel.api :as hansel]                      
@@ -630,6 +630,7 @@
      (println "Value references cleared")
 
      (rt-taps/setup-tap!)
+     (jobs/run-jobs)
      (println "Runtime setup ready")))
 
 #?(:clj
@@ -653,7 +654,7 @@
 
        (rt-taps/setup-tap!)
 
-       (mem-reporter/run-mem-reporter))))
+       (jobs/run-jobs))))
 
 #?(:clj
    (defn remote-connect [config]
