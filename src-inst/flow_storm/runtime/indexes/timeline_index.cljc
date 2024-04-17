@@ -1,7 +1,8 @@
 (ns flow-storm.runtime.indexes.timeline-index
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.utils :as index-utils :refer [make-mutable-stack ms-peek ms-push ms-pop ms-count
-                                                                      make-mutable-list ml-get ml-add ml-count]]
+                                                                      make-mutable-list ml-get ml-add ml-count
+                                                                      mh-put make-mutable-hashmap mh-contains? mh-get mh->immutable-map]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]
@@ -9,6 +10,33 @@
             [flow-storm.utils :as utils]
             #?(:clj [clojure.core.protocols :as cp])))
 
+(deftype FnId
+    #?(:clj  [^int form-id fn-name fn-ns]
+       :cljs [form-id fn-name fn-ns]) ;; if I type hint this with in, then the compiler complains on -hash that form-id is a [number int]
+  
+
+  #?@(:cljs
+      [IHash
+       (-hash [_]              
+              (unchecked-add-int
+               (unchecked-multiply-int 31 form-id)
+               (hash fn-name)))
+       
+       IEquiv
+       (-equiv
+        [this other]        
+        (and (= ^js/Number (.-form-id this) ^js/Number (.-form-id other))
+             (= ^js/String (.-fn-name this) ^js/String (.-fn-name other))))])
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 (unchecked-add-int
+                  (unchecked-multiply-int 31 form-id)
+                  (.hashCode ^String fn-name)))
+
+       (equals [_ o]
+               (and (= form-id ^int (.-form-id ^FnId o))
+                    (.equals ^String fn-name ^String (.-fn-name ^FnId o))))]))
 
 (def fn-expr-limit
   #?(:cljs 9007199254740992 ;; MAX safe integer     
@@ -20,11 +48,17 @@
   (utils/format "#flow-storm/timeline [count: %d]" (count timeline)))
 
 (deftype ExecutionTimelineTree [;; an array of FnCall, Expr, FnRet, FnUnwind
-                                  timeline 
+                                timeline 
 
-                                  ;; a stack of pointers to prev FnCall
-                                  build-stack                                                                                                               
-                                  ]
+                                ;; a stack of pointers to prev FnCall
+                                build-stack
+
+                                ;; a hashmap of FnId -> long
+                                fn-call-stats
+                                
+                                ;; timestamp of the last fn-call addition to the timeline (currentTimeMillis)
+                                ^:unsynchronized-mutable ^long last-fn-timestamp
+                                ]
 
   index-protos/RecorderP                                       
   
@@ -38,10 +72,24 @@
                                                       form-id
                                                       args
                                                       tl-idx
-                                                      parent-idx)]
-        
-        (ms-push build-stack fn-call)        
+                                                      parent-idx)
+            fn-id (->FnId form-id fn-name fn-ns)]
+
+        ;; update our build stack
+        (ms-push build-stack fn-call)
+
+        ;; add the fn-call to the timeline
         (ml-add timeline fn-call)
+
+        ;; add the fn-id to the fn-call-stats
+        (if (mh-contains? fn-call-stats fn-id)
+          (let [cnt (mh-get fn-call-stats fn-id)]          
+            (mh-put fn-call-stats fn-id (inc cnt)))
+          (mh-put fn-call-stats fn-id 1))
+
+        ;; update last modified
+        (set! last-fn-timestamp (long (utils/get-timestamp)))
+        
         tl-idx)))
 
   (add-fn-return [this coord ret-val]
@@ -90,6 +138,20 @@
               bind-trace (bind-trace/make-bind-trace symb-name symb-val coord last-entry-idx)]
           (index-protos/add-binding curr-fn-call bind-trace)))))
 
+  index-protos/FnCallStatsP
+
+  (all-stats [_]    
+    (reduce-kv (fn [r ^FnId fc cnt]
+                 (let [k {:form-id (.-form-id fc)
+                          :fn-name (.-fn-name fc)
+                          :fn-ns (.-fn-ns fc)}]
+                   (assoc r k cnt)))
+               {}
+               (mh->immutable-map fn-call-stats)))
+
+  index-protos/ModifiableP
+  (last-modified [this] (locking this last-fn-timestamp))
+  
   index-protos/TreeBuilderP
   
   (reset-build-stack [this]
@@ -194,8 +256,9 @@
 
 (defn make-index []
   (let [build-stack (make-mutable-stack)
-        timeline (make-mutable-list)]    
-    (->ExecutionTimelineTree timeline build-stack)))
+        timeline (make-mutable-list)
+        stats (make-mutable-hashmap)]    
+    (->ExecutionTimelineTree timeline build-stack stats 0)))
 
 (defn- fn-call-exprs [timeline fn-call-idx]
   (locking timeline

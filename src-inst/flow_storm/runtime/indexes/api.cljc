@@ -93,7 +93,6 @@
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.timeline-index :as timeline-index]            
-            [flow-storm.runtime.indexes.fn-call-stats-index :as fn-call-stats-index]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
             [flow-storm.runtime.indexes.form-registry :as form-registry]
@@ -190,7 +189,6 @@
 
 #?(:clj
    (defn stop []
-     (println "@@@@@@@@@@@@ STOPPING")
      (when (utils/storm-env?)
        ((requiring-resolve 'flow-storm.tracer/unhook-clojure-storm))
        (utils/log "Storm functions unplugged"))     
@@ -210,7 +208,6 @@
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
   (let [thread-indexes {:timeline-index (timeline-index/make-index)
-                        :fn-call-stats-index (fn-call-stats-index/make-index)
                         :fn-call-limits (atom @fn-call-limits)
                         :thread-limited (atom nil)}]    
 
@@ -259,7 +256,7 @@
   (register-form trace))
 
 (defn add-fn-call-trace [flow-id thread-id thread-name fn-ns fn-name form-id args total-order-recording?]
-  (let [{:keys [timeline-index fn-call-stats-index fn-call-limits thread-limited]} (get-or-create-thread-indexes flow-id thread-id thread-name form-id)]
+  (let [{:keys [timeline-index fn-call-limits thread-limited]} (get-or-create-thread-indexes flow-id thread-id thread-name form-id)]
     (when timeline-index
       (if-not @thread-limited
         
@@ -267,10 +264,7 @@
           ;; if we are not limited, go ahead and record fn-call
           (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
             (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx)))
-            
-            (when fn-call-stats-index
-              (index-protos/add-fn-call fn-call-stats-index fn-ns fn-name form-id args)))
+              (index-protos/record-total-order-entry flow-thread-registry flow-id thread-id (get timeline-index tl-idx))))
 
           ;; we hitted the limit, limit the thread with depth 1
           (reset! thread-limited 1))
@@ -460,7 +454,7 @@
   maps containing {:keys [fn-ns fn-name form-id form form-def-kind dispatch-val cnt]}"
   
   [flow-id thread-id]
-  (let [{:keys [fn-call-stats-index]} (get-thread-indexes flow-id thread-id)]
+  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
     (into []
           (keep (fn [[fn-call cnt]]
                   (when-let [form (get-form (:form-id fn-call))]
@@ -472,7 +466,7 @@
                              :dispatch-val (:multimethod/dispatch-val form)
                              :cnt cnt}
                       (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form))))))
-          (index-protos/all-stats fn-call-stats-index))))
+          (index-protos/all-stats timeline-index))))
 
 (defn frame-data-transd
 

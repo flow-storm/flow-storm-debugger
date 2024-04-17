@@ -28,7 +28,6 @@
    'flow-storm.runtime.indexes.protocols
    'flow-storm.runtime.types.fn-return-trace
    'flow-storm.runtime.events
-   'flow-storm.runtime.indexes.fn-call-stats-index
    'flow-storm.runtime.indexes.thread-registry
    'flow-storm.runtime.indexes.form-registry
    'flow-storm.runtime.values

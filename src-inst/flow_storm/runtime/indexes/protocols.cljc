@@ -36,6 +36,9 @@
 (defprotocol ImmutableP
   (as-immutable [_]))
 
+(defprotocol ModifiableP
+  (last-modified [_]))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function stats protocols ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
