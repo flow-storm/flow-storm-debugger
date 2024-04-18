@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes 
+
+### Bugs fixed
+
+## 3.15.2 (18-04-2024)
+	
+### New Features
 
     - Timelines notification updates and thread refresh button
     
