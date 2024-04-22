@@ -86,8 +86,9 @@
   (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]
     (let [th-info (dbg-state/get-thread-info thread-id)
           refresh-tab-content (ui/h-box
-                               :childs [(ui/label :text (:thread/name th-info))
+                               :childs [(ui/label :text (ui/thread-label (:thread/id th-info)  (:thread/name th-info)))
                                         (ui/icon-button :icon-name "mdi-reload"
+                                                        :tooltip "There are new recordings for this thread, click this button to update the UI."
                                                         :on-click (fn []
                                                                     (flow-tree/update-call-stack-tree-pane flow-id thread-id)
                                                                     (flow-fns/update-functions-pane flow-id thread-id)
