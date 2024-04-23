@@ -293,13 +293,13 @@
                                           (when (ui-utils/mouse-secondary? mev)
                                             (ui-utils/show-context-menu
                                              :menu (ui/context-menu
-                                                    :items
-                                                    [{:text "Jump to first record here"
-                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
-                                                     {:text "Jump forward here"
-                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
-                                                     {:text "Jump backwards here"
-                                                      :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}])
+                                                    :items (into [{:text "Jump to first record here"
+                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
+                                                                  {:text "Jump forward here"
+                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
+                                                                  {:text "Jump backwards here"
+                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}]
+                                                                 ctx-menu-options))
                                              :parent form-code-area
                                              :mouse-ev mev))))))
 

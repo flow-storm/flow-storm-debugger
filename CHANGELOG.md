@@ -7,6 +7,7 @@
 ### Changes 
 
     - Show value inspector `def` on the same screen
+    - Show open in editor for any form that contains line meta
 
 ### Bugs fixed
 
