@@ -17,15 +17,17 @@
 
 (declare create-value-pane)
 
-(defn def-val [val]
-  (let [val-name (ui/ask-text-dialog
-                  :header "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user "
-                  :body "Var name :"
-                  :width  500
-                  :height 100
-                  :center-on-stage (dbg-state/main-jfx-stage))]
-    (when-not (str/blank? val-name)
-      (runtime-api/def-value rt-api (symbol val-name) val))))
+(defn def-val
+  ([val] (def-val val {:stage (dbg-state/main-jfx-stage)}))
+  ([val {:keys [stage]}]
+   (let [val-name (ui/ask-text-dialog
+                   :header "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user "
+                   :body "Var name :"
+                   :width  500
+                   :height 100
+                   :center-on-stage stage)]
+     (when-not (str/blank? val-name)
+       (runtime-api/def-value rt-api (symbol val-name) val)))))
 
 (defn- update-vals-panes [{:keys [^SplitPane main-split vals-stack]}]
   (let [[head prev & _] @vals-stack
@@ -98,7 +100,7 @@
     {:stack-txt stack-txt
      :val-pane (create-value-pane ctx shallow-val)
      :meta-pane (when shallow-meta (create-value-pane ctx shallow-meta))
-     :def-fn (fn [] (def-val vref))
+     :def-fn (fn [] (def-val vref ctx))
      :tap-fn (fn [] (runtime-api/tap-value rt-api vref))
      :find-val-fn (when find-and-jump-same-val
                     (fn [backward?] (find-and-jump-same-val vref backward?)))
@@ -151,14 +153,15 @@
                                                 (when load-next-page (partial load-next-page (:val/more shallow-val)))
                                                 on-selected)))))
 
-(defn- create-inspector-pane [vref {:keys [find-and-jump-same-val]}]
+(defn- create-inspector-pane [vref stage {:keys [find-and-jump-same-val]}]
   (let [*vals-stack (atom nil)
         stack-bar-pane (ui/h-box :childs []
                                  :class "value-inspector-stack-pane"
                                  :spacing 5)
         main-split (ui/split :orientation :horizontal
                              :sizes [0.5])
-        ctx {:stack-bar-pane stack-bar-pane
+        ctx {:stage stage
+             :stack-bar-pane stack-bar-pane
              :main-split main-split
              :vals-stack *vals-stack
              :find-and-jump-same-val find-and-jump-same-val}
@@ -178,10 +181,11 @@
   (try
     (let [inspector-w 1000
           inspector-h 600
-          scene (Scene. (create-inspector-pane vref opts) inspector-w inspector-h)
           stage (doto (Stage.)
-                  (.setTitle "FlowStorm value inspector")
-                  (.setScene scene))]
+                  (.setTitle "FlowStorm value inspector"))
+          scene (Scene. (create-inspector-pane vref stage opts) inspector-w inspector-h)]
+
+      (.setScene stage scene)
 
       (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
       (dbg-state/register-jfx-stage! stage)

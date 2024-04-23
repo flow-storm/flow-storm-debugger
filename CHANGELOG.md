@@ -6,6 +6,8 @@
     
 ### Changes 
 
+    - Show value inspector `def` on the same screen
+
 ### Bugs fixed
 
 ## 3.15.2 (18-04-2024)
