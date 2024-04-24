@@ -9,6 +9,7 @@
     - Show value inspector `def` on the same screen
     - Show open in editor for any form that contains line meta
     - Remove unnamed anonymous functions from Quick Jump 
+    - Add Goto file:line on the menu
 
 ### Bugs fixed
 

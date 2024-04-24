@@ -693,6 +693,7 @@ pre.rouge {
 <li><a href="#_locals">3.1.6. Locals</a></li>
 <li><a href="#_stack">3.1.7. Stack</a></li>
 <li><a href="#_value_panels">3.1.8. Value panels</a></li>
+<li><a href="#_goto_to_fileline">3.1.9. Goto to file:line</a></li>
 </ul>
 </li>
 <li><a href="#_bookmarks">3.2. Bookmarks</a></li>
@@ -2125,6 +2126,20 @@ there will be gaps.</p>
 <div class="paragraph">
 <p>You can use / to provide a namespace, otherwise will be defined under [cljs.]user</p>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_goto_to_fileline"><a class="anchor" href="#_goto_to_fileline"></a><a class="link" href="#_goto_to_fileline">3.1.9. Goto to file:line</a></h4>
+<div class="paragraph">
+<p>Clicking on the <code>Actions&#8594;Goto file:line</code> menu allows you to search and jump to the first recording of a expression
+with a file and line, given that one exists.</p>
+</div>
+<div class="paragraph">
+<p>It will ask you for a file and line in the format of <code>&lt;class-path-file-path&gt;:&lt;line&gt;</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you have a file like <code>src/org/my_app/core.clj</code> and you are interested in expressions evaluating on like 42
+you should search like <code>org/my_app/core.clj:42</code>.</p>
 </div>
 </div>
 </div>
@@ -3677,7 +3692,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-04-24 09:59:08 -0300
+Last updated 2024-04-24 15:55:47 -0300
 </div>
 </div>
 </body>

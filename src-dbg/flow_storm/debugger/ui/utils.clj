@@ -22,9 +22,13 @@
 
 
 (defn init-toolkit []
-  (try
-    (Platform/startup (fn [] (utils/log "JavaFX toolkit initialized")))
-    (catch Exception e)))
+  (let [p (promise)]
+    (try
+      (Platform/startup (fn [] (deliver p true)))
+      (catch Exception _ (deliver p false)))
+    (if @p
+      (utils/log "JavaFX toolkit initialized")
+      (utils/log "JavaFX toolkit already initialized"))))
 
 (defn run-later*
   [f]

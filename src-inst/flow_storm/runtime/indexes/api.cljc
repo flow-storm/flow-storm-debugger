@@ -665,13 +665,18 @@
         interrupt (fn [] (reset! interrupted? true))
         start (fn []
                 (let [find-next-batch (fn find-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] curr-idx]
+                                        
                                         (if (or @interrupted?
                                                 (nil? timeline))
                                           
                                           (on-end)
 
                                           ;; else keep searching
-                                          (let [to-idx (if backward?
+                                          (let [curr-idx (or curr-idx
+                                                             (if backward?
+                                                               (count timeline)
+                                                               0))
+                                                to-idx (if backward?
                                                          (max (- curr-idx batch-size) 0)
                                                          (min (+ curr-idx batch-size) (count timeline)))
                                                 entry (find-in-timeline-sub-range timeline curr-idx to-idx pred {:backward? backward? :needs-form-id? needs-form-id?})]
@@ -751,7 +756,14 @@
        (start)       
        @result-prom)))
 
-(defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id]}]
+(defn- entry-matches-file-and-line? [entry-form-id entry file line]
+  (let [form (get-form entry-form-id)]
+    (when (= file (:form/file form))
+      (let [coord (index-protos/get-coord-vec entry)
+            sub-form (hansel-utils/get-form-at-coord (:form/form form) coord)]
+        (-> sub-form meta :line (= line))))))
+
+(defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id file line]}]
   (let [coord (when coord (utils/stringify-coord coord))
         custom-pred-fn #?(:clj (when custom-pred-form (eval (read-string custom-pred-form)))
                           :cljs (do
@@ -759,12 +771,13 @@
                                   (constantly true)))]
     (fn [entry-form-id tl-entry]
       (when (and (or (fn-return-trace/fn-return-trace? tl-entry)
-                     (expr-trace/expr-trace? tl-entry))                             
-                 (if identity-val (identical? (index-protos/get-expr-val tl-entry) identity-val) true)
-                 (if equality-val (= (index-protos/get-expr-val tl-entry) equality-val)          true)
-                 (if coord        (= coord (index-protos/get-coord-raw tl-entry))                true)
-                 (if form-id      (= form-id entry-form-id)                                      true)
-                 (if custom-pred-fn (custom-pred-fn (index-protos/get-expr-val tl-entry))        true))
+                     (expr-trace/expr-trace? tl-entry))
+                 (if identity-val    (identical? (index-protos/get-expr-val tl-entry) identity-val)  true)
+                 (if equality-val    (= (index-protos/get-expr-val tl-entry) equality-val)           true)
+                 (if coord           (= coord (index-protos/get-coord-raw tl-entry))                 true)
+                 (if form-id         (= form-id entry-form-id)                                       true)
+                 (if (and file line) (entry-matches-file-and-line? entry-form-id tl-entry file line) true)
+                 (if custom-pred-fn  (custom-pred-fn (index-protos/get-expr-val tl-entry))           true))
         tl-entry))))
 
 #?(:clj  
@@ -781,6 +794,7 @@
   - identity-val, search this val with identical? over expressions values.
   - equality-val, search this val with = over expressions values.
   - form-id, search by the form-id of the expression.
+  - file and line, search by file name and line
   - coord, a vector with a coordinate to match, like [3 1 2].
   - custom-pred-form, a string with a form to use as a custom predicate over expression values, like \"(fn [v] (map? v))\"
   - skip-threads, a set of threads ids to skip.

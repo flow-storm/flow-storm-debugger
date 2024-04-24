@@ -195,6 +195,26 @@
     (when-not (str/blank? text)
       (runtime-api/set-thread-trace-limit rt-api {:limit (Integer/parseInt text) :break? bool}))))
 
+(defn- goto-file-line []
+  (let [file-and-line (ui/ask-text-dialog :header "Goto file and line"
+                                          :body   "<classpath-file-path>:<line>"
+                                          :width  800
+                                          :height 200
+                                          :center-on-stage (dbg-state/main-jfx-stage))
+        [file line] (when file-and-line
+                      (str/split file-and-line #":"))]
+    (when file-and-line
+      (tasks/submit-task runtime-api/find-expr-entry-task
+                         [{:file file
+                           :line (Integer/parseInt line)}]
+                         {:on-finished (fn [{:keys [result]}]
+                                         (if result
+                                           (let [{:keys [flow-id thread-id idx]} result]
+                                             (flows-screen/goto-location {:flow-id   flow-id
+                                                                          :thread-id thread-id
+                                                                          :idx       idx}))
+                                           (show-message (format "No recordings found for file %s at line %s" file line) :info)))}))))
+
 (defn- build-menu-bar []
   (let [view-menu (ui/menu :label "_View"
                            :items [{:text "Bookmarks"
@@ -231,7 +251,9 @@
                                       {:text "Unblock all threads"
                                        :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
                                        :accel {:mods [:ctrl]
-                                               :key-code KeyCode/U}}])
+                                               :key-code KeyCode/U}}
+                                      {:text "Goto file:line"
+                                       :on-click (fn [] (goto-file-line))}])
         config-menu (ui/menu :label "_Config"
                              :items [{:text "Set threads limit"
                                       :on-click (fn [] (ask-and-set-threads-limit))}])

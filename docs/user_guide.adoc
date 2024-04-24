@@ -869,6 +869,16 @@ Use the `def` button to define a var pointing to the current inspector value.
 
 You can use / to provide a namespace, otherwise will be defined under [cljs.]user
 
+=== Goto to file:line
+
+Clicking on the `Actions->Goto file:line` menu allows you to search and jump to the first recording of a expression
+with a file and line, given that one exists.
+
+It will ask you for a file and line in the format of `<class-path-file-path>:<line>`.
+
+If you have a file like `src/org/my_app/core.clj` and you are interested in expressions evaluating on like 42
+you should search like `org/my_app/core.clj:42`.
+
 == Bookmarks
 
 Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
