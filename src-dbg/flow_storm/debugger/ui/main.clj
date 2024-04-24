@@ -267,14 +267,15 @@
                                         :get-completions
                                         (fn []
                                           (into []
-                                                (map (fn [[fq-fn-name cnt]]
-                                                       {:text (format "%s (%d)" fq-fn-name cnt)
-                                                        :on-select (fn []
-                                                                     (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                        [(symbol fq-fn-name) 0 {}]
-                                                                                        {:on-finished (fn [{:keys [result]}]
-                                                                                                        (when result
-                                                                                                          (flows-screen/goto-location result)))}))}))
+                                                (keep (fn [[fq-fn-name cnt]]
+                                                        (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
+                                                            {:text (format "%s (%d)" fq-fn-name cnt)
+                                                             :on-select (fn []
+                                                                          (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                             [(symbol fq-fn-name) 0 {}]
+                                                                                             {:on-finished (fn [{:keys [result]}]
+                                                                                                             (when result
+                                                                                                               (flows-screen/goto-location result)))}))})))
                                                 (runtime-api/all-fn-call-stats rt-api))))]
                               :align :center-left)
 
