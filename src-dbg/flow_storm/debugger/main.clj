@@ -27,8 +27,8 @@
             [flow-storm.debugger.websocket]
             [flow-storm.debugger.repl.core :as repl-core]
             [flow-storm.utils :as utils]
-            [flow-storm.state-management :as state-management])
-  (:import [javafx.embed.swing JFXPanel]))
+            [flow-storm.state-management :as state-management]
+            [flow-storm.debugger.ui.utils :as ui-utils]))
 
 (def flow-storm-core-ns 'flow-storm.core)
 
@@ -76,8 +76,9 @@
 
   ;; Ensure a task bar icon is shown on MacOS.
   (System/setProperty "apple.awt.UIElement" "false")
+
   ;; Initialize the JavaFX toolkit
-  (JFXPanel.)
+  (ui-utils/init-toolkit)
 
   (if local?
 

@@ -17,8 +17,14 @@
            [javafx.geometry Insets Pos Rectangle2D]
            [com.jthemedetecor OsThemeDetector]
            [java.awt Toolkit]
-           [java.awt.datatransfer StringSelection]))
+           [java.awt.datatransfer StringSelection]
+           [javafx.application Platform]))
 
+
+(defn init-toolkit []
+  (try
+    (Platform/startup (fn [] (utils/log "JavaFX toolkit initialized")))
+    (catch Exception e)))
 
 (defn run-later*
   [f]

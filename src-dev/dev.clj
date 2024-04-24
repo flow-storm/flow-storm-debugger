@@ -17,7 +17,8 @@
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.runtime.indexes.timeline-index :as timeline-index]
             [flow-storm.tracer :as tracer]
-            [flow-storm.utils :refer [log-error log]]
+            [flow-storm.utils :refer [log-error log] :as utils]
+            [flow-storm.debugger.ui.utils :as ui-utils]
             [clj-reload.core :as reload]
             [flow-storm.form-pprinter :as form-pprinter]
             [dev-tester]
@@ -27,8 +28,6 @@
             [clojure.string :as str]
             [clojure.spec.alpha :as s]
             [flow-storm.runtime.indexes.protocols :as index-protos]))
-
-(javafx.embed.swing.JFXPanel.)
 
 (set! *warn-on-reflection* true)
 

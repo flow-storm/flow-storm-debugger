@@ -11,7 +11,6 @@
         org.openjfx/javafx-controls {:mvn/version "21.0.3-ea+1"}
         org.openjfx/javafx-base {:mvn/version "21.0.3-ea+1"}
         org.openjfx/javafx-graphics {:mvn/version "21.0.3-ea+1"}
-        org.openjfx/javafx-swing {:mvn/version "21.0.3-ea+1"}
         org.openjfx/javafx-web {:mvn/version "21.0.3-ea+1"}
 
         org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}

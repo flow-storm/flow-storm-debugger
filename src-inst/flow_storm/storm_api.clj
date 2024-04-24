@@ -59,7 +59,6 @@
         (println "   org.openjfx/javafx-controls {:mvn/version \"19.0.2\"}")
         (println "   org.openjfx/javafx-base     {:mvn/version \"19.0.2\"}")
         (println "   org.openjfx/javafx-graphics {:mvn/version \"19.0.2\"}")
-        (println "   org.openjfx/javafx-swing    {:mvn/version \"19.0.2\"}")
         (println)
 )
 
