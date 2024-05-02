@@ -186,7 +186,7 @@
         instrument-tab (ui/tab :graphic (ui/icon :name "mdi-format-list-numbers")
                                :content (flow-fns/create-functions-pane flow-id thread-id)
                                :tooltip "Functions list tool. Gives you a list of all function calls and how many time they have been called.")
-        thread-tools-tab-pane (ui/tab-pane :tabs [callstack-tree-tab code-tab instrument-tab]
+        thread-tools-tab-pane (ui/tab-pane :tabs [code-tab callstack-tree-tab instrument-tab]
                                            :side :bottom
                                            :closing-policy :unavailable)]
 

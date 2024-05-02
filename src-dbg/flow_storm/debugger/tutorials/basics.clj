@@ -72,9 +72,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>But let's say you now want to understand this function execution. For this you just go to the UI and put the debugger in recording mode, then run <code>(factorial 5)</code> again.</p>
 
-<p>This time you should see the debugger UI showing a expandable tree.</p>
+<p>This time you should see the debugger UI showing the code stepping tool, which we are going to cover next.</p>
 
-<p>This tree is inside a `flow-0` tab, which we are going to ignore for now, and inside a thread tab, probably called `[1] main`.</p>
+<p>This tool is inside a `flow-0` tab, which we are going to ignore for now, and inside a thread tab, probably called `[1] main`.</p>
 
 <p>This is the thread recordings exploration tab, which contains tools for exploring this thread execution.</p>
 
@@ -84,24 +84,7 @@ It will guide you over the basics and help you get started with FlowStorm.
 "
 
    "
-<p>The default tool is called the <b>call tree tool</b>.</p>
-
-<p>This tool will show you a expandable tree of the functions calls, which will serve as <b>an overview of your selected thread recordings</b>. It will be very handy when trying to understand an end to end execution, helping you create a mental model of what is going on.</p>
-
-<p>Expand the one that says `(factorial 5)` and keep expanding it. This already makes evident how this recursive factorial function works by calling itself. It shows you a tree of functions calls with its arguments.</p>
-
-<p>You can also click on any node and the bottom two panels will show you a pretty print of the arguments vector on the left and of the return value on the right.</p>
-
-<p>Now let's say you are interested in stepping through the code of your factorial function. We can travel just before `(factorial 2)` was called. For it, you will have to <b>expand the nodes</b> until you see the one that is calling the function with 2, and then <b>double click it</b>.</p>
-
-<p>It should take you to the <b>code stepping tool</b> with the debugger positioned right at that point in time.</p>
-
-<p>You can <b>jump between this tools</b> using the tabs at the bottom left corner.</p>
-
-"
-
-   "
-<p>There are a bunch of things going on at the <b>code stepping tool</b>.</p>
+<p>The default tool is called the <b>code stepping tool</b>.</p>
 
 <p>One thing to notice is that your factorial function code is showing there with some parts highlighted in pink, and also there is a bar at the top with some controls and some numbers.</p>
 
@@ -126,7 +109,24 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>There is also a quick way to jump to the first execution of a function and it is by using the <b>Quick jump box</b> on the toolbar. It will auto complete with all the recorded functions and selecting one will take you there. It doesn't make much sense for this example since we have only one recorded function, but will be handy in more complex situations. Give it a try!</p>
 
-<p>There are many more features on the code stepping tool but given this tutorial covers just the basics, we are going to skip them and jump right to another tool. The <b> functions list tool</b>. So go ahead and click on <b>the last tab</b> in the bottom left corner.</p>
+<p>There are many more features on the code stepping tool but given this tutorial covers just the basics, we are going to skip them and jump right to another tool. The <b>call tree tool</b>. So go ahead and click on <b>the second tab</b> in the bottom left corner.</p>
+
+"
+
+   "
+<p>Welcome to the <b>call tree tool</b>.</p>
+
+<p>This tool will show you a expandable tree of the functions calls, which will serve as <b>an overview of your selected thread recordings</b>. It will be very handy when trying to understand an end to end execution, helping you create a mental model of what is going on.</p>
+
+<p>Expand the one that says `(factorial 5)` and keep expanding it. This already makes evident how this recursive factorial function works by calling itself. It shows you a tree of functions calls with its arguments.</p>
+
+<p>You can also click on any node and the bottom two panels will show you a pretty print of the arguments vector on the left and of the return value on the right.</p>
+
+<p>Now let's say you are interested in stepping through the code of your factorial function. We can travel just before `(factorial 2)` was called. For it, you will have to <b>expand the nodes</b> until you see the one that is calling the function with 2, and then <b>double click it</b>.</p>
+
+<p>It should take you to the <b>code stepping tool</b> with the debugger positioned right at that point in time.</p>
+
+<p>You can <b>jump between this tools</b> using the tabs at the bottom left corner. So clicking on the third one, we are now going to learn yet another tool. The <b>functions list tool</b>.</p>
 
 "
 

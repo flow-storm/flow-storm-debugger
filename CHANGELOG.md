@@ -13,6 +13,7 @@
     - Remove unnamed anonymous functions from Quick Jump 
     - Remove docs builder (now on dyna-spec)
     - Remove tools.build as a dependency
+    - Make the coed stepper the default tab instead of the tree
 
 ### Bugs fixed
 

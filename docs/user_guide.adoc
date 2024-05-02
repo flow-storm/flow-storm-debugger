@@ -661,7 +661,7 @@ There are currently 3 tools to explore the recorded timelines, which we are goin
 
 image::user_guide_images/code_tool_tab.png[]
 
-The code tool is the second of the `Flows` tab. It provides most of the functionality found in a traditional debugger.
+The code tool is the first of the `Flows` tab. It provides most of the functionality found in a traditional debugger.
 You can use it to step over each expression, visualize values, locals and more.
 
 === Code stepping
@@ -897,7 +897,7 @@ Double clicking on any bookmark will make the debugger jump back to its position
 
 == Call Stack tree tool
 
-The call stack tree tool is the first one of the `Flows` tab. It allows you to see the execution flow by expanding its call stack tree.
+The call stack tree tool is the second one of the `Flows` tab. It allows you to see the execution flow by expanding its call stack tree.
 
 image::user_guide_images/callstack_tool_tab.png[]
 
