@@ -4,6 +4,14 @@
 	
 ### New Features
     
+### Changes 
+
+### Bugs fixed
+
+## 3.15.3 (02-05-2024)
+	
+### New Features
+    
     - Add Goto file:line on the menu
     - Show open in editor for any form that contains line meta
     
