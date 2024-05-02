@@ -192,6 +192,7 @@
              [(build-type-set-component return-types)])
 
     (ui-utils/observable-clear (.getChildren examples-box))
+
     (ui-utils/observable-add-all (.getChildren examples-box)
              (mapv (fn [{:keys [args ret]}]
                      (ui/v-box

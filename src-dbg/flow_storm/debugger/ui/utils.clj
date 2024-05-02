@@ -171,7 +171,8 @@
     (observable-add-all observable-list items)))
 
 (defn set-min-size-wrap-content [^Region node]
-  (.setMinHeight node (Region/USE_PREF_SIZE)))
+  (.setMinHeight node (Region/USE_PREF_SIZE))
+  node)
 
 (defn show-context-menu [& {:keys [^ContextMenu menu ^Node parent x y mouse-ev]}]
   (let [[^ContextMenu curr-menu] (obj-lookup "current_context_menu")

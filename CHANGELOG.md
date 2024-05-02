@@ -4,12 +4,15 @@
 	
 ### New Features
     
+    - Add Goto file:line on the menu
+    - Show open in editor for any form that contains line meta
+    
 ### Changes 
 
     - Show value inspector `def` on the same screen
-    - Show open in editor for any form that contains line meta
     - Remove unnamed anonymous functions from Quick Jump 
-    - Add Goto file:line on the menu
+    - Remove docs builder (now on dyna-spec)
+    - Remove tools.build as a dependency
 
 ### Bugs fixed
 

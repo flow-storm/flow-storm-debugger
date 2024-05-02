@@ -22,7 +22,6 @@
             [clj-reload.core :as reload]
             [flow-storm.form-pprinter :as form-pprinter]
             [dev-tester]
-            [flow-storm.fn-sampler.core :as sampler]
             [flow-storm.utils :as utils]
             [clojure.java.io :as io]
             [clojure.string :as str]
@@ -60,7 +59,8 @@
   )
 
 (defn start-local []
-  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))})
+  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))
+                         :title "MyFlowStorm"})
   (spec-instrument-state))
 
 
