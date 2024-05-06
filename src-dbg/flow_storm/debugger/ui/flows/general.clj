@@ -15,8 +15,8 @@
   (let [[^TabPane thread-tools-tab-pane] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")
         sel-model (.getSelectionModel thread-tools-tab-pane)
         idx (case tool
-              :call-tree 0
-              :code 1
+              :code 0
+              :call-tree 1
               :functions 2)]
     (ui-utils/selection-select-idx sel-model idx)
     (.requestFocus thread-tools-tab-pane)))

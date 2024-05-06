@@ -8,6 +8,8 @@
 
 ### Bugs fixed
 
+    - Fix auto tab switch on code jump
+    
 ## 3.15.3 (02-05-2024)
 	
 ### New Features
