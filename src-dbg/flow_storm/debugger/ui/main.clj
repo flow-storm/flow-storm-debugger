@@ -146,26 +146,32 @@
 (defn- main-tabs-pane []
   (let [flows-tab (ui/tab :text "Flows"
                           :class "vertical-tab"
-                          :content (flows-screen/main-pane))
+                          :content (flows-screen/main-pane)
+                          :id "tool-flows")
         browser-tab (ui/tab :text "Browser"
                             :class "vertical-tab"
-                            :content (browser-screen/main-pane))
+                            :content (browser-screen/main-pane)
+                            :id "tool-browser")
         taps-tab (ui/tab :text "Taps"
                          :class "vertical-tab"
                          :content (taps-screen/main-pane)
-                         :on-selection-changed (event-handler [_]))
+                         :on-selection-changed (event-handler [_])
+                         :id "tool-taps")
         docs-tab (ui/tab :text "Docs"
                          :class "vertical-tab"
                          :content (docs-screen/main-pane)
-                         :on-selection-changed (event-handler [_]))
+                         :on-selection-changed (event-handler [_])
+                         :id "tool-docs")
         timeline-tab (ui/tab :text "Timeline"
                              :class "vertical-tab"
                              :content (timeline-screen/main-pane)
-                             :on-selection-changed (event-handler [_]))
+                             :on-selection-changed (event-handler [_])
+                             :id "tool-timeline")
         printer-tab (ui/tab :text "Printer"
                             :class "vertical-tab"
                             :content (printer-screen/main-pane)
-                            :on-selection-changed (event-handler [_]))
+                            :on-selection-changed (event-handler [_])
+                            :id "tool-printer")
 
         tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab printer-tab]
                             :rotate? true
@@ -386,7 +392,7 @@
   (dbg-state/create-flow flow-id timestamp)
   (flows-screen/remove-flow flow-id)
   (flows-screen/create-empty-flow flow-id)
-  (ui-general/select-main-tools-tab :flows)
+  (ui-general/select-main-tools-tab "tool-flows")
   (flows-screen/update-threads-list flow-id))
 
 (defn setup-ui-from-runtime-config
@@ -462,10 +468,10 @@
                                   (key-combo-match? kev "g" [:ctrl])
                                   (runtime-api/interrupt-all-tasks rt-api)
 
-                                  (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab :flows)
-                                  (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab :browser)
-                                  (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab :taps)
-                                  (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab :docs)
+                                  (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab "tool-flows")
+                                  (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab "tool-browser")
+                                  (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab "tool-taps")
+                                  (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab "tool-docs")
                                   (= key-name "0")                    (open-flow-threads-menu 0)
                                   (= key-name "1")                    (open-flow-threads-menu 1)
                                   (= key-name "2")                    (open-flow-threads-menu 2)

@@ -26,7 +26,7 @@
                        :identity-val vref}]
                      {:on-finished (fn [{:keys [result]}]
                                      (when result
-                                       (ui-general/select-main-tools-tab :flows)
+                                       (ui-general/select-main-tools-tab "tool-flows")
                                        (flows-screen/goto-location result)))}))
 
 (defn main-pane []

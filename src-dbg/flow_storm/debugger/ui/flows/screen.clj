@@ -49,9 +49,9 @@
        [^KeyEvent kev]
      (let [key-txt (.getText kev)]
        (cond
-         (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id :call-tree)
-         (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id :code)
-         (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id :functions)
+         (= key-txt "t") (ui-general/select-thread-tool-tab flow-id thread-id "flows-call-tree")
+         (= key-txt "c") (ui-general/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
+         (= key-txt "f") (ui-general/select-thread-tool-tab flow-id thread-id "flows-functions")
 
          (= key-txt "P") (flow-code/step-prev-over flow-id thread-id)
          (= key-txt "p") (flow-code/step-prev flow-id thread-id)
@@ -80,7 +80,7 @@
     (when-let [tl-entry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
       (flow-code/jump-to-coord flow-id thread-id tl-entry))
 
-    (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) :call-tree)))
+    (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) "flows-call-tree")))
 
 (defn make-outdated-thread [flow-id thread-id]
   (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]
@@ -175,18 +175,21 @@
     (ui-utils/add-tab-pane-tab flows-tabs-pane flow-tab)))
 
 (defn- create-thread-pane [flow-id thread-id]
-  (let [code-tab (ui/tab :graphic (ui/icon :name "mdi-code-parentheses")
-                         :content (flow-code/create-code-pane flow-id thread-id)
-                         :tooltip "Code tool. Allows you to step over the traced code.")
+  (let [code-stepper-tab (ui/tab :graphic (ui/icon :name "mdi-code-parentheses")
+                                 :content (flow-code/create-code-pane flow-id thread-id)
+                                 :tooltip "Code tool. Allows you to step over the traced code."
+                                 :id "flows-code-stepper")
 
         callstack-tree-tab (ui/tab :graphic (ui/icon :name "mdi-file-tree")
                                    :content (flow-tree/create-call-stack-tree-pane flow-id thread-id)
-                                   :tooltip "Call tree tool. Allows you to explore the recorded execution tree.")
+                                   :tooltip "Call tree tool. Allows you to explore the recorded execution tree."
+                                   :id "flows-call-tree")
 
-        instrument-tab (ui/tab :graphic (ui/icon :name "mdi-format-list-numbers")
-                               :content (flow-fns/create-functions-pane flow-id thread-id)
-                               :tooltip "Functions list tool. Gives you a list of all function calls and how many time they have been called.")
-        thread-tools-tab-pane (ui/tab-pane :tabs [code-tab callstack-tree-tab instrument-tab]
+        functions-tab (ui/tab :graphic (ui/icon :name "mdi-format-list-numbers")
+                              :content (flow-fns/create-functions-pane flow-id thread-id)
+                              :tooltip "Functions list tool. Gives you a list of all function calls and how many time they have been called."
+                              :id "flows-functions")
+        thread-tools-tab-pane (ui/tab-pane :tabs [code-stepper-tab callstack-tree-tab functions-tab]
                                            :side :bottom
                                            :closing-policy :unavailable)]
 
@@ -247,11 +250,11 @@
             (ui-utils/selection-select-first list-selection)))))))
 
 (defn goto-location [{:keys [flow-id thread-id idx]}]
-  (ui-general/select-main-tools-tab :flows)
+  (ui-general/select-main-tools-tab "tool-flows")
   (select-flow-tab flow-id)
   (open-thread (assoc (dbg-state/get-thread-info thread-id)
                       :flow/id flow-id))
-  (ui-general/select-thread-tool-tab flow-id thread-id :code)
+  (ui-general/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
   (flow-code/jump-to-coord flow-id
                            thread-id
                            (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))

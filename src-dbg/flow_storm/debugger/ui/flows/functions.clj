@@ -139,7 +139,7 @@
 (defn- function-call-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
   (let [idx (-> selected-items first :fn-call-idx)
         jump-to-idx (fn []
-                      (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
+                      (ui-flows-gral/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
                       (flows-code/jump-to-coord flow-id
                                                 thread-id
                                                 (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))]

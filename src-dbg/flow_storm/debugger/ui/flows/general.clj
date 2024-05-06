@@ -11,24 +11,24 @@
            [java.net URL]))
 
 
-(defn select-thread-tool-tab [flow-id thread-id tool]
+(defn select-thread-tool-tab [flow-id thread-id tab-id]
   (let [[^TabPane thread-tools-tab-pane] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")
         sel-model (.getSelectionModel thread-tools-tab-pane)
-        idx (case tool
-              :code 0
-              :call-tree 1
-              :functions 2)]
-    (ui-utils/selection-select-idx sel-model idx)
+        tab (some (fn [t]
+                    (when (= tab-id (.getId t ))
+                      t))
+                  (.getTabs thread-tools-tab-pane))]
+    (ui-utils/selection-select-obj sel-model tab)
     (.requestFocus thread-tools-tab-pane)))
 
-(defn select-main-tools-tab [tool]
+(defn select-main-tools-tab [tab-id]
   (let [[^TabPane main-tools-tab] (obj-lookup "main-tools-tab")
-        sel-model (.getSelectionModel main-tools-tab)]
-    (case tool
-      :flows (ui-utils/selection-select-idx sel-model 0)
-      :browser (ui-utils/selection-select-idx sel-model 1)
-      :taps (ui-utils/selection-select-idx sel-model 2)
-      :docs (ui-utils/selection-select-idx sel-model 3))))
+        sel-model (.getSelectionModel main-tools-tab)
+        tab (some (fn [t]
+                    (when (= tab-id (.getId t ))
+                      t))
+                  (.getTabs main-tools-tab))]
+    (ui-utils/selection-select-obj sel-model tab)))
 
 (defn show-message [msg msg-type]
   (try

@@ -14,27 +14,27 @@
 (defn- vanilla-var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
-   (ui-general/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab "tool-browser")))
 
 (defn- vanilla-var-uninstrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-var var-ns var-name))
-   (ui-general/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab "tool-browser")))
 
 (defn- vanilla-namespace-instrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/add-to-instrumentation-list (browser-screen/make-inst-ns ns-name))
-   (ui-general/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab "tool-browser")))
 
 (defn- vanilla-namespace-uninstrumented-event [{:keys [ns-name]}]
   (ui-utils/run-later
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-ns ns-name))
-   (ui-general/select-main-tools-tab :browser)))
+   (ui-general/select-main-tools-tab "tool-browser")))
 
 (defn- storm-instrumentation-updated-event [data]
   (ui-utils/run-later
     (browser-screen/update-storm-instrumentation data)
-    (ui-general/select-main-tools-tab :browser)))
+    (ui-general/select-main-tools-tab "tool-browser")))
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
@@ -67,7 +67,7 @@
 
 (defn- show-doc-event [{:keys [var-symbol]}]
   (ui-utils/run-now
-   (ui-general/select-main-tools-tab :docs)
+   (ui-general/select-main-tools-tab "tool-docs")
    (docs-screen/show-doc var-symbol)))
 
 (defn- break-installed-event [{:keys [fq-fn-symb]}]

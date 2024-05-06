@@ -147,7 +147,7 @@
                                (runtime-api/callstack-node-frame rt-api sel-tree-node)))
         jump-to-selected-frame-code (fn [& _]
                                       (let [{:keys [fn-call-idx]} (get-selected-frame)]
-                                        (ui-flows-gral/select-thread-tool-tab flow-id thread-id :code)
+                                        (ui-flows-gral/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
                                         (flow-code/jump-to-coord flow-id
                                                                  thread-id
                                                                  (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at))))
