@@ -7,6 +7,14 @@
 ### Changes 
 
 ### Bugs fixed
+    
+## 3.15.4 (06-05-2024)
+	
+### New Features
+    
+### Changes 
+
+### Bugs fixed
 
     - Fix auto tab switch on code jump
     
