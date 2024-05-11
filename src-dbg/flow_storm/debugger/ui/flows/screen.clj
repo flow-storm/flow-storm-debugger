@@ -80,7 +80,7 @@
     (when-let [tl-entry (runtime-api/timeline-entry rt-api flow-id thread-id 0 :at)]
       (flow-code/jump-to-coord flow-id thread-id tl-entry))
 
-    (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) "flows-call-tree")))
+    (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) "flows-code-stepper")))
 
 (defn make-outdated-thread [flow-id thread-id]
   (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]

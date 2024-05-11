@@ -6,8 +6,10 @@
     
 ### Changes 
 
-### Bugs fixed
+    - Make the code stepper the default tab instead of the tree
     
+### Bugs fixed
+        
 ## 3.15.4 (06-05-2024)
 	
 ### New Features
