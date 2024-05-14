@@ -6,6 +6,8 @@
     
 ### Changes 
         
+    - #rtrace now clears the current recording flow before running again
+    
 ### Bugs fixed
 
 ## 3.15.5 (11-05-2024)

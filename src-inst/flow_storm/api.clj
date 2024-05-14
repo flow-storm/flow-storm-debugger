@@ -300,7 +300,8 @@
                                    (log "FlowStorm recording is paused, please switch recording on before running with #rtrace.")
                                    ~form)
 
-       :else (let [res# (runi ~full-config ~form)]
+       :else (let [_# (dbg-api/discard-flow (tracer/get-current-flow-id))
+                   res# (runi ~full-config ~form)]
                (dbg-api/jump-to-last-expression-in-this-thread)
                res#))))
 
