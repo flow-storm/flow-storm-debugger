@@ -12,6 +12,8 @@
     
 ### Bugs fixed
 
+    - Fix thread-id lost from thread tab after tab refresh
+
 ## 3.15.5 (11-05-2024)
 	
 ### New Features
