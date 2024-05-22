@@ -656,14 +656,28 @@
                                                                 :backward? backward?
                                                                 :from-idx from-idx})]
                           (assoc params :flow-id flow-id)))
+        val-first-btn (ui/icon-button :icon-name "mdi-ray-start"
+                                      :on-click (fn []
+                                                  (find-and-jump flow-id
+                                                                 thread-id
+                                                                 (-> (search-params false)
+                                                                     (assoc :from-idx 0))))
+                                      :tooltip "Power step to the first expression")
         val-prev-btn (ui/icon-button :icon-name "mdi-ray-end-arrow"
                                      :on-click (fn [] (find-and-jump flow-id thread-id (search-params true)))
-                                     :tooltip "Find the prev expression that contains this value")
+                                     :tooltip "Power step to the prev expression")
         val-next-btn (ui/icon-button :icon-name "mdi-ray-start-arrow"
                                      :on-click (fn [] (find-and-jump flow-id thread-id (search-params false)))
-                                     :tooltip "Find the next expression that contains this value")
+                                     :tooltip "Power step to the next expression")
+        val-last-btn (ui/icon-button :icon-name "mdi-ray-end"
+                                     :on-click (fn []
+                                                 (find-and-jump flow-id
+                                                                thread-id
+                                                                (-> (search-params true)
+                                                                    (dissoc :from-idx))))
+                                     :tooltip "Power step to the last expression")
 
-        power-stepping-pane (ui/h-box :childs [val-prev-btn val-next-btn step-type-combo custom-expression-txt]
+        power-stepping-pane (ui/h-box :childs [val-first-btn val-prev-btn val-next-btn val-last-btn step-type-combo custom-expression-txt]
                                       :spacing 3)]
     power-stepping-pane))
 

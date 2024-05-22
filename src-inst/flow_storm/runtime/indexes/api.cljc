@@ -609,7 +609,7 @@
 
 (defn find-in-timeline-sub-range
 
-  "Given a timeline tryies to find a entry using pred but only between
+  "Given a timeline tries to find a entry using pred but only between
   from-idx to to-idx. It can also search backwards.
   pred should be a fn of two args (fn [form-id entry]). When needs-form-id?
   is false (default) form-id will be nil. Done for perf reasons."
@@ -674,7 +674,7 @@
                                           ;; else keep searching
                                           (let [curr-idx (or curr-idx
                                                              (if backward?
-                                                               (count timeline)
+                                                               (dec (count timeline))
                                                                0))
                                                 to-idx (if backward?
                                                          (max (- curr-idx batch-size) 0)

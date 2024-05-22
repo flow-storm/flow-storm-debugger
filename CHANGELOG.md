@@ -4,6 +4,8 @@
 	
 ### New Features
     
+    - Add jump to first and last occurrences buttons to power stepping controls
+    
 ### Changes 
         
     - #rtrace now clears the current recording flow before running again
