@@ -13,7 +13,23 @@
   (let [strs ["a" "b" "c"]]
     (mapv String/.toUpperCase strs)))
 
+(defn functional-interfaces []
+  ;; converts even? to Predicate
+  (let [o (.removeIf (java.util.ArrayList. [1 2 3]) even?)
+        ;; pull up to let binding
+        ^java.util.function.Predicate p (fn [n] (even? n))]
+    (.removeIf (java.util.ArrayList. [1 2 3]) p)
+
+    ;; converts inc to UnaryOperator, uses new stream-seq!
+    (->> (java.util.stream.Stream/iterate 1 inc) stream-seq! (take 10) doall)
+
+    (mapv str
+          (java.nio.file.Files/newDirectoryStream
+           (.toPath (java.io.File. "."))
+           #(-> ^java.nio.file.Path % .toFile .isDirectory)))))
+
 (defn run []
   (+ (method-values)
      (count (instance-methods))
+     (functional-interfaces)
      42))
