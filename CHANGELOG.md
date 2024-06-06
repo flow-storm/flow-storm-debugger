@@ -9,6 +9,7 @@
 ### Changes 
         
     - #rtrace now clears the current recording flow before running again
+    - Upgrade ikonli-javafx to 12.3.1
     
 ### Bugs fixed
 

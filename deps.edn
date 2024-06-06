@@ -12,8 +12,9 @@
         org.openjfx/javafx-graphics {:mvn/version "21.0.3-ea+1"}
         org.openjfx/javafx-web {:mvn/version "21.0.3-ea+1"}
 
-        org.kordamp.ikonli/ikonli-javafx {:mvn/version "11.5.0"}
-        org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "11.5.0"}
+        org.kordamp.ikonli/ikonli-javafx {:mvn/version "12.3.1"}
+        org.kordamp.ikonli/ikonli-materialdesign-pack {:mvn/version "12.3.1"}
+
         com.github.jpmonettas/j-system-theme-detector {:mvn/version "3.8.1"}
         nrepl/nrepl {:mvn/version "1.1.1"}
         org.clojure/data.int-map {:mvn/version "1.2.1"}
