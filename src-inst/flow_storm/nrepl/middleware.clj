@@ -6,19 +6,13 @@
             [nrepl.middleware :as middleware :refer [set-descriptor!]]
             [cider.nrepl.middleware.util.error-handling :refer [base-error-response]]
             [nrepl.transport :as t]
-            [nrepl.bencode]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [flow-storm.form-pprinter :as form-pprinter]
             [cider.nrepl.middleware.util.cljs :as cljs-utils]
             [nrepl.middleware.caught :as caught :refer [wrap-caught]]
             [nrepl.middleware.print :refer [wrap-print]])
-  (:import [nrepl.transport Transport]
-           [flow_storm.types ValueRef]))
-
-(defmethod nrepl.bencode/write-bencode ValueRef
-  [output vr]
-  (nrepl.bencode/write-bencode output (:vid vr)))
+  (:import [nrepl.transport Transport]))
 
 (defn value-ref->int [m k]
   (if (contains? m k)
