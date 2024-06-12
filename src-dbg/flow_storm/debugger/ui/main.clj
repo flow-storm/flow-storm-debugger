@@ -39,9 +39,12 @@
             [flow-storm.debugger.docs]
             [flow-storm.debugger.tutorials.basics :as tut-basics]
             [flow-storm.debugger.user-guide :as user-guide]
+            [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
+           [java.awt Taskbar Toolkit Taskbar$Feature]
            [javafx.scene Scene]
+           [javafx.scene.image Image]
            [javafx.stage Stage]
            [javafx.application Platform]
            [javafx.scene.input KeyCode KeyEvent]
@@ -457,6 +460,17 @@
 
         (dbg-state/register-jfx-stage! stage)
         (dbg-state/reset-theming)
+
+        ;; set icon on application bar
+        (.add (.getIcons stage) (Image. (io/input-stream (io/resource "flowstorm/icon.png"))))
+
+        ;; set icon on taskbar/dock
+        (when (Taskbar/isTaskbarSupported)
+          (let [taskbar (Taskbar/getTaskbar)]
+            (when (.isSupported taskbar Taskbar$Feature/ICON_IMAGE)
+              (.setIconImage taskbar
+                             (.getImage (Toolkit/getDefaultToolkit)
+                                        (io/resource "flowstorm/icon.png"))))))
 
         (doto scene
           (.setOnKeyPressed (event-handler
