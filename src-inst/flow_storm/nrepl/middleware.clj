@@ -312,40 +312,42 @@
 (comment
   ;; For testing middlewares
 
-  (let [p (promise)
+  (let [fid 0
+        tid 30
+        p (promise)
         h (wrap-flow-storm (constantly true))]
     (with-redefs [t/send (fn [_ rsp] (deliver p rsp))]
 
       #_(h {:op "flow-storm-trace-count"
-          :flow-id nil
-          :thread-id 32})
+            :flow-id fid
+            :thread-id tid})
 
       #_(h {:op "flow-storm-find-fn-call"
             :fq-fn-symb "dev-tester/factorial"})
 
       #_(h {:op "flow-storm-find-flow-fn-call"
-          :flow-id nil})
+            :flow-id fid})
 
       #_(h {:op "flow-storm-get-form"
             :form-id -798068730})
 
       #_(h {:op "flow-storm-timeline-entry"
-          :flow-id nil
-          :thread-id 32
-          :idx 3
+            :flow-id fid
+            :thread-id tid
+            :idx 3
             :drift "at"})
 
       #_(h {:op "flow-storm-frame-data"
-          :flow-id nil
-          :thread-id 32
+            :flow-id fid
+            :thread-id tid
             :fn-call-idx 0})
 
       #_(h {:op "flow-storm-pprint"
             :val-ref 5})
 
       #_(h {:op "flow-storm-bindings"
-            :flow-id nil
-            :thread-id 32
+            :flow-id fid
+            :thread-id tid
             :idx 8
             :all-frame "true"})
 

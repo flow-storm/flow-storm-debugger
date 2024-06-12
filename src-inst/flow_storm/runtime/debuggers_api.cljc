@@ -3,7 +3,9 @@
             [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.json-serializer :as serializer]
             #?@(:clj  [[flow-storm.utils :as utils :refer [log]]]
-                :cljs [[flow-storm.utils :as utils :refer [log] :refer-macros [env-prop]]])
+                :cljs [[flow-storm.utils :as utils :refer [log] :refer-macros [env-prop]]]
+                :cljd [[flow-storm.utils :as utils :refer [log]]]
+                :cljd/clj-host [])
             [flow-storm.runtime.events :as rt-events]            
             [flow-storm.runtime.values :as rt-values :refer [reference-value! deref-value]]
             [flow-storm.runtime.taps :as rt-taps]
@@ -13,7 +15,8 @@
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
             #?@(:clj [[hansel.api :as hansel]                      
-                      [hansel.instrument.utils :as hansel-inst-utils]])
+                      [hansel.instrument.utils :as hansel-inst-utils]]
+                :cljd/clj-host nil)
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]))
@@ -674,7 +677,7 @@
 
                                (log "Remote Clojure runtime initialized"))))))
 
-   :cljs ;;----------------------------------------------------------------------------------------------
+   :cljs
    (defn remote-connect [config]
      ;; connect to the remote websocket
      
@@ -693,4 +696,25 @@
 
                                (println "Debugger connection ready. Events dispatch function set and pending events pushed."))))
        (catch :default e (utils/log-error "Couldn't connect to the debugger" e))))
+   
+   :cljd
+   (defn remote-connect [config]
+     ;; connect to the remote websocket
+     
+     (try
+       (remote-websocket-client/start-remote-websocket-client
+        (assoc config               
+               :api-call-fn call-by-name
+               :on-connected (fn []
+                               ;; subscribe and automatically push all events thru the websocket
+                               ;; if there were any events waiting to be dispatched
+                               (rt-events/set-dispatch-fn
+                                (fn ^:async [ev]
+                                  (-> [:event ev]
+                                      serializer/serialize
+                                      await
+                                      remote-websocket-client/send)))
+
+                               (println "Debugger connection ready. Events dispatch function set and pending events pushed."))))
+       (catch Exception e (utils/log-error "Couldn't connect to the debugger" e))))
    )

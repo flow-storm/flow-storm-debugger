@@ -8,10 +8,12 @@
             [flow-storm.runtime.types.expr-trace :as expr-trace]
             [flow-storm.runtime.types.bind-trace :as bind-trace]
             [flow-storm.utils :as utils]
-            #?(:clj [clojure.core.protocols :as cp])))
+            #?(:clj [clojure.core.protocols :as cp]
+               :cljd/clj-host nil)))
 
 (deftype FnId
     #?(:clj  [^int form-id fn-name fn-ns]
+       :cljd [form-id fn-name fn-ns]
        :cljs [form-id fn-name fn-ns]) ;; if I type hint this with in, then the compiler complains on -hash that form-id is a [number int]
   
 
@@ -27,6 +29,20 @@
         [this other]        
         (and (= ^js/Number (.-form-id this) ^js/Number (.-form-id other))
              (= ^js/String (.-fn-name this) ^js/String (.-fn-name other))))])
+
+  ;; #?@(:cljd
+  ;;     [IHash
+  ;;      (-hash [_]              
+  ;;             (unchecked-add-int
+  ;;              (unchecked-multiply-int 31 form-id)
+  ;;              (hash fn-name)))
+       
+  ;;      IEquiv
+  ;;      (-equiv
+  ;;       [this other]        
+  ;;       (and (= ^js/Number (.-form-id this) ^js/Number (.-form-id other))
+  ;;            (= ^js/String (.-fn-name this) ^js/String (.-fn-name other))))])
+  
   #?@(:clj
       [Object
        (hashCode [_]

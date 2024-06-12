@@ -5,6 +5,7 @@
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
+        io.github.wevre/transit-cljd {:git/tag "v0.8.18" :git/sha "23812d9"}
         com.github.flow-storm/hansel {:mvn/version "0.1.83"}
 
         org.openjfx/javafx-controls {:mvn/version "21.0.3-ea+1"}

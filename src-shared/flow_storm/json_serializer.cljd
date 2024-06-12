@@ -1,0 +1,25 @@
+(ns flow-storm.json-serializer
+  (:require [wevre.transit-cljd :as transit]
+            ["dart:async" :as async]
+            [flow-storm.utils :refer [log-error]]
+            [flow-storm.types :as types]))
+
+(defn ^:async serialize [obj]
+  (try
+    (let [codec (transit/json)]
+      (await
+       (-> (async/Stream.fromIterable [obj])
+           (.transform (.-encoder codec))
+           .toList)))
+    (catch Exception e
+      (println (str "Couldn't serialize " obj)))))
+
+(defn ^:async deserialize [s]
+  (try
+    (let [codec (transit/json)]
+      (await
+       (-> (async/Stream.fromIterable [s])
+           (. #/(cast String))
+           (.transform (.-decoder codec))
+           .toList)))
+    (catch Exception e (println (str "Error deserializing " s)) (throw e))))

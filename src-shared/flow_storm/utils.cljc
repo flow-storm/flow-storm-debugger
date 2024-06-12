@@ -101,7 +101,11 @@
        (apply println msgs)))
    :cljs
    (defn log [& msgs]
-     (apply js/console.log msgs)))
+     (apply js/console.log msgs))
+
+   :cljd
+   (defn log [& msgs]
+     (println msgs)))
 
 #?(:clj
    (defn log-error
@@ -115,7 +119,12 @@
    (defn log-error
      ([msg] (js/console.error msg))
      ([msg e]
-      (js/console.error msg e))))
+      (js/console.error msg e)))
+   :cljd
+   (defn log-error
+     ([msg] (println msg))
+     ([msg e]
+      (println msg e))))
 
 (defn rnd-uuid []
   #?(:clj (java.util.UUID/randomUUID)

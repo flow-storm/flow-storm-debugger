@@ -1,0 +1,51 @@
+(ns flow-storm.remote-websocket-client
+  (:refer-clojure :exclude [send])
+  (:require [flow-storm.json-serializer :as serializer]
+            [flow-storm.utils :refer [log log-error] :as utils]
+            ["package:web_socket_channel/web_socket_channel.dart" :as ws :refer [WebSocketChannel]]
+            ["package:web_socket_channel/status.dart" :as ws-status]))
+
+(def remote-websocket-client nil)
+
+(defn stop-remote-websocket-client []
+  (when remote-websocket-client
+    (.close (.-sink remote-websocket-client) ws-status/goingAway))
+  (alter-var-root #'remote-websocket-client (constantly nil)))
+
+(defn remote-connected? []
+  (boolean remote-websocket-client))
+
+(defn send [ser-packet]
+  (.add (.-sink remote-websocket-client) ser-packet))
+
+(defn ^:async start-remote-websocket-client [{:keys [debugger-host debugger-ws-port on-connected api-call-fn]}]
+  (let [debugger-host (or debugger-host "localhost")
+        debugger-ws-port (or debugger-ws-port 7722)
+        uri-str (format "ws://%s:%s/ws" debugger-host debugger-ws-port)
+        _ (println "About to connect to " uri-str)
+        ws-client (.connect WebSocketChannel uri-str)
+        _ (await (.-ready ws-client))
+        _ (on-connected)
+        stream-subscription (.listen (.-stream ch)
+                                     (fn ^:async [message]
+                                       (let [[packet-key :as in-packet] (await (serializer/deserialize message))
+                                             ret-packet (case packet-key
+                                                          :api-request (let [[_ request-id method args] in-packet]
+                                                                         (try
+                                                                           (let [ret-data (api-call-fn method args)]
+                                                                             [:api-response [request-id nil ret-data]])
+                                                                           (catch Exception e
+                                                                             [:api-response [request-id (.getMessage e) nil]])))
+                                                          (log-error "Unrecognized packet key"))
+                                             ret-packet-ser (await (serializer/serialize ret-packet))]
+
+                                         (.add (.-sink remote-websocket-client) ret-packet-ser))))
+        _ (.onDone stream-subscription (fn []
+                                         (prn "@@@@@@@@@ DONE")
+                                         ))
+        _ (.onError stream-subscription (fn [e]
+                                          (prn "@@@@@@@@@ ERROR" e)
+                                          (log-error (str "WebSocket error connection " uri-str) e)))]
+
+    (alter-var-root #'remote-websocket-client (constantly ws-client))
+    ws-client))
