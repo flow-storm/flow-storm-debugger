@@ -10,10 +10,13 @@
         
     - #rtrace now clears the current recording flow before running again
     - Upgrade ikonli-javafx to 12.3.1
+    - Add FlowStorm icon to the toolbar and taskbar
+    - Namespace FlowStorm resources so they don't collide with other resources
     
 ### Bugs fixed
 
     - Fix thread-id lost from thread tab after tab refresh
+    - Fix running with nrepl >= 1.2
 
 ## 3.15.5 (11-05-2024)
 	
