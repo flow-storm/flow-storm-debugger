@@ -462,7 +462,7 @@
         (dbg-state/reset-theming)
 
         ;; set icon on application bar
-        (.add (.getIcons stage) (Image. (io/input-stream (io/resource "flowstorm/icon.png"))))
+        (.add (.getIcons stage) (Image. (io/input-stream (io/resource "flowstorm/icons/icon.png"))))
 
         ;; set icon on taskbar/dock
         (when (Taskbar/isTaskbarSupported)

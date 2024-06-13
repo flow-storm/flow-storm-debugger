@@ -330,10 +330,10 @@
 (defn update-printer [form-id coord k new-val]
   (swap! state assoc-in [:printers form-id coord k] new-val))
 
-(def font-size-styles ["font-size-sm.css"
-                       "font-size-md.css"
-                       "font-size-lg.css"
-                       "font-size-xl.css"])
+(def font-size-styles ["flowstorm/styles/font-size-sm.css"
+                       "flowstorm/styles/font-size-md.css"
+                       "flowstorm/styles/font-size-lg.css"
+                       "flowstorm/styles/font-size-xl.css"])
 
 (defn inc-font-size []
   (-> (swap! state update :selected-font-size-style-idx
@@ -356,10 +356,10 @@
 
 (defn current-stylesheets []
   (let [{:keys [selected-theme extra-styles selected-font-size-style-idx]} @state
-        default-styles (str (io/resource "styles.css"))
+        default-styles (str (io/resource "flowstorm/styles/styles.css"))
         theme-base-styles (str (io/resource (case selected-theme
-                                              :dark  "theme_dark.css"
-                                              :light "theme_light.css")))
+                                              :dark  "flowstorm/styles/theme_dark.css"
+                                              :light "flowstorm/styles/theme_light.css")))
         font-size-style (-> (get font-size-styles selected-font-size-style-idx)
                             io/resource
                             str)
