@@ -1,6 +1,6 @@
 # Flow-storm debugger
 
-![logo](./docs/images/icon.png)
+<img src="./docs/images/icon.png" width="100">
 
 This is the central repository for [FlowStorm](http://www.flow-storm.org/) an omniscient time travel debugger for Clojure and ClojureScript.
 
