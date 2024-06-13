@@ -8,6 +8,16 @@
     
 ### Bugs fixed
 
+## 3.15.7 (13-06-2024)
+	
+### New Features
+    
+### Changes 
+    
+### Bugs fixed
+
+    - Fix FlowStorm not starting in OSX because of wrong taskbar icon url
+
 ## 3.15.6 (13-06-2024)
 	
 ### New Features
