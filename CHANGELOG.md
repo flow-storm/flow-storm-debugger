@@ -4,6 +4,14 @@
 	
 ### New Features
     
+### Changes 
+    
+### Bugs fixed
+
+## 3.15.6 (13-06-2024)
+	
+### New Features
+    
     - Add jump to first and last occurrences buttons to power stepping controls
     
 ### Changes 
