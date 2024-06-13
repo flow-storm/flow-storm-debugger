@@ -470,7 +470,7 @@
             (when (.isSupported taskbar Taskbar$Feature/ICON_IMAGE)
               (.setIconImage taskbar
                              (.getImage (Toolkit/getDefaultToolkit)
-                                        (io/resource "flowstorm/icon.png"))))))
+                                        (io/resource "flowstorm/icons/icon.png"))))))
 
         (doto scene
           (.setOnKeyPressed (event-handler
