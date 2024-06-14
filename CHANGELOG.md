@@ -5,6 +5,8 @@
 ### New Features
     
 ### Changes 
+
+    - Add recorded threads counter on the threads menu button
     
 ### Bugs fixed
 

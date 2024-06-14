@@ -3,7 +3,7 @@
 .btn-sm {-fx-font-size: 13;}
 .btn-xs {-fx-font-size: 11;}
 
-.threads-tab-pane > .tab-header-area {-fx-padding: 5 0 0 111;}
+.threads-tab-pane > .tab-header-area {-fx-padding: 5 0 0 134;}
 .flows-tab-pane > .tab-header-area {-fx-padding: 5 0 0 164 ;}
 
 .flows-combo {-fx-pref-width: 155; -fx-font-size: 15;}

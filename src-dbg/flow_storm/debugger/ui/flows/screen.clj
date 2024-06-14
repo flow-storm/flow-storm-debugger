@@ -102,7 +102,7 @@
         (.setGraphic refresh-tab-content)))))
 
 (defn update-threads-list [flow-id]
-  (let [[{:keys [set-items] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
+  (let [[{:keys [set-items menu-button] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
     (when menu-data
       (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)
             [threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")]
@@ -115,7 +115,8 @@
                    (zero? (count (.getTabs threads-tabs-pane))))
           (open-thread (first threads-info)))
 
-        (set-items threads-info)))))
+        (set-items threads-info)
+        (.setText menu-button (format "Threads [%d]" (count threads-info)))))))
 
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
