@@ -61,7 +61,8 @@
                 (let [{:keys [form/id form/form form/ns form/def-kind form/file form/line]} form
                       file-path (when-let [f (when (and file
                                                         (not= file "NO_SOURCE_PATH"))
-                                               (if (str/starts-with? file "/")
+                                               (if (or (str/starts-with? file "/")
+                                                       (re-find #"^[a-zA-Z]:[\\/].+" file))
                                                  (io/file file)
                                                  (io/resource file)))]
                                   (.getPath f))]
