@@ -61,9 +61,11 @@
                 (let [{:keys [form/id form/form form/ns form/def-kind form/file form/line]} form
                       file-path (when-let [f (when (and file
                                                         (not= file "NO_SOURCE_PATH"))
-                                               (if (or (str/starts-with? file "/")
-                                                       (re-find #"^[a-zA-Z]:[\\/].+" file))
+                                               (if (or (str/starts-with? file "/")          ;; it is a unix absolute path
+                                                       (re-find #"^[a-zA-Z]:[\\/].+" file)) ;; it is a windows absolute path
                                                  (io/file file)
+
+                                                 ;; if form/file is not an absolute path then it is a resource
                                                  (io/resource file)))]
                                   (.getPath f))]
                   {:status :done
