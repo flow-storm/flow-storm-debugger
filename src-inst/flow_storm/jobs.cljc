@@ -27,10 +27,10 @@
    :cljs
    (defn schedule-repeating-fn [f millis]
      (let [interval-id (js/setInterval f millis)]
-       (log (str f " function scheduled every " millis " millis"))
+       (log (str (.-name f) " function scheduled every " millis " millis"))
        (fn []
          (js/clearInterval interval-id)
-         (log (str f " scheduled function cancelled."))))))
+         (log (str (.-name f) " scheduled function cancelled."))))))
 
 (defn run-jobs []
   (let [mem-job-cancel (schedule-repeating-fn                   
