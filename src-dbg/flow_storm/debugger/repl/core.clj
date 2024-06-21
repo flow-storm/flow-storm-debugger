@@ -101,13 +101,13 @@
 
 (defn make-cljs-repl-init-sequence []
   [{:code "(do (in-ns 'shadow.user) nil)"                                      :ns nil         :repl-kind :clj}
-   {:code "(require '[flow-storm.runtime.debuggers-api])"                      :ns nil         :repl-kind :clj}
+   {:code "(require '[flow-storm.api :include-macros true])"                   :ns nil         :repl-kind :clj}
    {:code "(require '[flow-storm.runtime.debuggers-api :include-macros true])" :ns "cljs.user" :repl-kind :cljs}])
 
 (defn make-clj-repl-init-sequence []
   (let [opts (select-keys (dbg-state/debugger-config) [:debugger-host :debugger-ws-port])]
     [{:code "(do (in-ns 'user) nil)"                                                      :ns nil    :repl-kind :clj}
-     {:code "(require '[flow-storm.runtime.debuggers-api])"                               :ns "user" :repl-kind :clj}
+     {:code "(require '[flow-storm.api])"                                                 :ns "user" :repl-kind :clj}
      {:code (format "(flow-storm.runtime.debuggers-api/remote-connect %s)" (pr-str opts)) :ns "user" :repl-kind :clj}]))
 
 (defn init-repl

@@ -10,6 +10,8 @@
     
 ### Bugs fixed
 
+    - Fix remote debugging for vanilla
+
 ## 3.15.7 (13-06-2024)
 	
 ### New Features

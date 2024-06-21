@@ -371,7 +371,7 @@
                                                   (vanilla-uninstrument-namespaces del-vanilla-namespaces))
 
                                                 (doseq [v del-vanilla-vars]
-                                                  (del-vanilla-vars (:var-ns v) (:var-name v)))
+                                                  (vanilla-uninstrument-function (:var-ns v) (:var-name v)))
 
                                                 (doseq [b del-brks]
                                                   (remove-breakpoint (symbol (:var-ns b) (:var-name b)) {}))

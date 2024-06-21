@@ -357,7 +357,7 @@
       (case (dbg-state/env-kind)
         :cljs (let [opts (assoc opts :build-id (:repl.cljs/build-id (dbg-state/repl-config)))]
                 (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/vanilla-instrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
-        :clj (api-call :remote "instrument-namespaces-vanilla" [:clj nsnames opts]))))
+        :clj (api-call :remote "vanilla-instrument-namespaces" [:clj (into #{} nsnames) opts]))))
 
   (vanilla-uninstrument-namespaces [_ nsnames opts]
     (case (dbg-state/env-kind)
@@ -365,7 +365,7 @@
               (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/vanilla-uninstrument-namespaces :cljs %s %s)" (into #{} nsnames) opts)))
 
       ;; for Clojure just call the api
-      :clj (api-call :remote "uninstrument-namespaces" [:clj nsnames opts])))
+      :clj (api-call :remote "vanilla-uninstrument-namespaces" [:clj (into #{} nsnames) opts])))
 
   (modify-storm-instrumentation [_ operation opts]
     (case (dbg-state/env-kind)
