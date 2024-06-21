@@ -4,13 +4,23 @@
 	
 ### New Features
     
+### Changes
+    
+### Bugs fixed
+    
+## 3.15.8 (21-06-2024)
+	
+### New Features
+    
 ### Changes 
 
     - Add recorded threads counter on the threads menu button
+    - Clean initialization console logs for ClojureScript
     
 ### Bugs fixed
 
     - Fix remote debugging for vanilla
+    - Fix windows paths handling in middleware
 
 ## 3.15.7 (13-06-2024)
 	

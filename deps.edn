@@ -35,7 +35,7 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-alpha12"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-beta1"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"
                               ;;"-Dflowstorm.startRecording=false"
