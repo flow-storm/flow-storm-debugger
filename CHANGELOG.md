@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Add printer support to print on all threads
     
 ### Changes
     

@@ -101,12 +101,15 @@
                                (let [[_ flow-id thread-id] (re-find #"(.+)? ~ .* \[(.+)\]" sel-thread-str)]
                                  [(when flow-id (Long/parseLong flow-id))
                                   (Long/parseLong thread-id)]))))
+
         {:keys [list-view-pane list-view add-all clear] :as list-data}
         (ui/list-view :editable? false
-                      :cell-factory (fn [list-cell {:keys [text]}]
+                      :cell-factory (fn [list-cell {:keys [flow-id thread-id text]}]
                                       (-> list-cell
                                           (ui-utils/set-text nil)
-                                          (ui-utils/set-graphic (ui/label :text text))))
+                                          (ui-utils/set-graphic (ui/label :text text
+                                                                          :tooltip (format "FlowId: %s ThreadId: %s"
+                                                                                           flow-id thread-id)))))
                       :on-click (fn [mev sel-items _]
                                   (when (and (ui-utils/mouse-primary? mev)
                                              (ui-utils/double-click? mev))
@@ -120,19 +123,19 @@
 
         refresh-btn (ui/icon-button :icon-name "mdi-reload"
                                     :on-click (fn []
-                                                (if-let [[flow-id thread-id] (selected-fid-tid)]
-                                                  (do
-                                                    (clear)
-                                                    (tasks/submit-task runtime-api/thread-prints-task
-                                                                       [{:flow-id   flow-id
-                                                                         :thread-id thread-id
-                                                                         :printers  (prepare-printers (dbg-state/printers))}]
-                                                                       {:on-progress (fn [{:keys [batch]}]
-                                                                                       (add-all (into []
-                                                                                                      (map (fn [po] (assoc po :flow-id flow-id :thread-id thread-id)))
-                                                                                                      batch)))}))
-
-                                                  (show-message "You need to select a thread first" :error)))
+                                                (let [[flow-id thread-id] (selected-fid-tid)]
+                                                  (clear)
+                                                  (tasks/submit-task runtime-api/thread-prints-task
+                                                                     [(cond-> {:printers  (prepare-printers (dbg-state/printers))}
+                                                                        flow-id   (assoc :flow-id   flow-id)
+                                                                        thread-id (assoc :thread-id thread-id))]
+                                                                     {:on-progress (fn [{:keys [batch flow-id thread-id] :as a}]
+                                                                                     (add-all (into []
+                                                                                                    (map (fn [po]
+                                                                                                           (assoc po
+                                                                                                                  :flow-id flow-id
+                                                                                                                  :thread-id thread-id)))
+                                                                                                    batch)))})))
                                     :tooltip "Re print everything")
         prints-controls-pane (build-prints-controls)
         thread-box (ui/h-box :childs [(ui/label :text "Thread id:") thread-id-combo]

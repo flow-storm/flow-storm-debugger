@@ -161,12 +161,15 @@
 
     sp))
 
-(defn label [& {:keys [text class pref-width on-click]}]
+(defn label [& {:keys [text class pref-width on-click tooltip]}]
   (let [lbl (Label. text)]
     (when pref-width
       (.setPrefWidth lbl pref-width))
     (when class
       (ui-utils/add-class lbl class))
+
+    (when tooltip
+      (.setTooltip lbl (tool-tip :text tooltip)))
 
     (when on-click
       (.setOnMouseClicked lbl (event-handler [mev] (on-click mev))))

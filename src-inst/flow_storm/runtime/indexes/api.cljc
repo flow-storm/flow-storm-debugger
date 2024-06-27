@@ -544,9 +544,9 @@
   [{:keys [flow-id thread-id skip-threads] :as criteria}]
   (->> (all-threads)
        (keep (fn [[fid tid]]
-               (when (and (or (not (contains? criteria :flow-id))
+               (when (and (or (nil? flow-id)
                               (= flow-id fid))
-                          (or (not (contains? criteria :thread-id))
+                          (or (nil? thread-id)
                               (= thread-id tid))
                           (not (and (set? skip-threads)
                                     (skip-threads tid))))                                                          
