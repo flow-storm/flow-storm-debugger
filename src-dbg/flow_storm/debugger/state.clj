@@ -92,12 +92,14 @@
 (s/def :flow/threads-info (s/map-of :flow/id :thread/info))
 
 (s/def :printer/enable? boolean?)
-(s/def :printer/expr any?)
+(s/def :printer/source-expr any?)
+(s/def :printer/transform-expr-str string?)
 (s/def :printer/printer (s/keys :req-un [:flow-storm/coord
                                          ::print-level
                                          ::print-length
                                          :printer/enable?
-                                         :printer/expr]))
+                                         :printer/transform-expr-str
+                                         :printer/source-expr]))
 (s/def :printer/printers (s/map-of :flow-storm/form-id
                                    (s/map-of :flow-storm/coord
                                              :printer/printer)))

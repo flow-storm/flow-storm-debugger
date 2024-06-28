@@ -272,8 +272,10 @@
                             (on-change new-selected?))))))
     cb))
 
-(defn text-field [& {:keys [initial-text on-return-key on-change align prompt-text class pref-width]}]
+(defn text-field [& {:keys [initial-text on-return-key on-change align prompt-text class pref-width tooltip]}]
   (let [tf (TextField. "")]
+    (when tooltip
+      (.setTooltip tf (tool-tip :text tooltip)))
     (when pref-width
       (.setPrefWidth tf pref-width))
     (when prompt-text
@@ -728,6 +730,51 @@
 
     {:text (-> tdiag .getEditor .getText)
      :bool (ui-utils/checkbox-checked? checkb)}))
+
+(defn ask-text-dialog+
+  "bodies should be like :
+
+  [{:key :name :label \"Name\" :init-text \"\"}
+   {:key :age :label \"Age\" :init-text \"42\"}]
+
+  returns like :
+
+  {:name \"John\"
+   :age \"42\"}"
+  [& {:keys [header bodies width height center-on-stage]}]
+  ;;
+  (let [^TextInputDialog tdiag (doto (TextInputDialog.)
+                                 (.setHeaderText header))
+        bodies' (mapv (fn [{:keys [init-text tooltip] :as b} row]
+                        (assoc b
+                               :row row
+                               :text-field (text-field :initial-text init-text
+                                                       :tooltip tooltip)))
+                      bodies
+                      (range))
+        dialog-pane (.getDialogPane tdiag)]
+
+    (ui-utils/observable-add-all (.getStylesheets dialog-pane) (dbg-state/current-stylesheets))
+
+    (doseq [b bodies']
+      (.add ^GridPane (.getContent ^DialogPane (.getDialogPane tdiag)) (label :text (:label b)) 0 (:row b))
+      (.add ^GridPane (.getContent ^DialogPane (.getDialogPane tdiag)) (:text-field b)          1 (:row b)))
+
+    (when (and width height)
+      (.setPrefWidth dialog-pane width)
+      (.setPrefHeight dialog-pane height))
+
+    (when (and width height center-on-stage)
+      (let [{:keys [x y]} (ui-utils/stage-center-box center-on-stage width height)]
+        (.setX tdiag x)
+        (.setY tdiag y)))
+
+    (.showAndWait tdiag)
+
+    (reduce (fn [acc b]
+              (assoc acc (:key b) (.getText (:text-field b))))
+     {}
+     bodies')))
 
 (defn thread-label [thread-id thread-name]
   (if thread-name

@@ -5,6 +5,7 @@
 ### New Features
 
     - Add printer support to print on all threads
+    - Add printers transform expression (Clojure only)
     
 ### Changes
     

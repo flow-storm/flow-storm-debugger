@@ -75,18 +75,20 @@
   [flow-id thread-id {:keys [coord fn-call-idx]}]
   (let [{:keys [form-id fn-ns fn-name]} (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)
         form (runtime-api/get-form rt-api form-id)
-        expr (get-form-at-coord (:form/form form) coord)
-        format-str (ui/ask-text-dialog :header "Printer message. %s will be replaced by the value."
-                                       :body "Message : "
-                                       :width  800
-                                       :height 100
-                                       :center-on-stage (dbg-state/main-jfx-stage))]
+        source-expr (get-form-at-coord (:form/form form) coord)
+        params-map (ui/ask-text-dialog+ :header "Printer message. Check textfields tooltips for help."
+                                        :bodies [{:key :message-format :label "Message format" :tooltip "Use %s if you want to reposition the val in the message."}
+                                                 {:key :expr-str  :label "Expression" :tooltip "Use functions like #(str (:name %) (:age %)) to transform the value. (No ClojureScript support yet)"}]
+                                        :width  800
+                                        :height 100
+                                        :center-on-stage (dbg-state/main-jfx-stage))]
     (dbg-state/add-printer form-id coord (assoc (dissoc form :form/form)
                                                 :fn-ns fn-ns
                                                 :fn-name fn-name
                                                 :coord coord
-                                                :expr expr
-                                                :format-str format-str
+                                                :source-expr source-expr
+                                                :format-str (:message-format params-map)
+                                                :transform-expr-str (:expr-str params-map)
                                                 :print-length 5
                                                 :print-level  3
                                                 :enable? true))))

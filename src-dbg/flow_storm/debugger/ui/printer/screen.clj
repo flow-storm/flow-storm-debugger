@@ -5,7 +5,6 @@
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
-            [flow-storm.debugger.ui.flows.general :refer [show-message]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen])
   (:import [javafx.scene.layout Priority VBox]
@@ -27,10 +26,11 @@
                                       [])
                            (mapv (fn [printer]
                                    [(assoc printer :cell-type :function)
-                                    (assoc printer :cell-type :expr)
+                                    (assoc printer :cell-type :source-expr)
                                     (assoc printer :cell-type :print-level)
                                     (assoc printer :cell-type :print-length)
                                     (assoc printer :cell-type :format)
+                                    (assoc printer :cell-type :transform-expr)
                                     (assoc printer :cell-type :enable?)
                                     (assoc printer :cell-type :action)])))]
 
@@ -39,12 +39,12 @@
 
 (defn build-prints-controls []
   (let [{:keys [table-view-pane] :as table-data}
-        (ui/table-view :columns ["Function" "Expr" "*print-level*" "*print-length*" "Format" "Enable" "_"]
+        (ui/table-view :columns ["Function" "Expr" "*print-level*" "*print-length*" "Format" "Transform Fn" "Enable" "_"]
                        :resize-policy :constrained
-                       :cell-factory (fn [_ {:keys [form/id coord cell-type fn-ns fn-name expr print-level print-length format-str]}]
+                       :cell-factory (fn [_ {:keys [form/id coord cell-type fn-ns fn-name transform-expr-str source-expr print-level print-length format-str]}]
                                        (case cell-type
                                          :function     (ui/label :text (format "%s/%s" fn-ns fn-name))
-                                         :expr         (ui/label :text (pr-str expr))
+                                         :source-expr  (ui/label :text (pr-str source-expr))
                                          :print-level  (ui/text-field :initial-text (str print-level)
                                                                       :on-change (fn [val] (dbg-state/update-printer id coord :print-level (Long/parseLong val)))
                                                                       :align :center-right)
@@ -54,6 +54,9 @@
                                          :format       (ui/text-field :initial-text format-str
                                                                       :on-change (fn [val] (dbg-state/update-printer id coord :format-str val))
                                                                       :align :center-left)
+                                         :transform-expr  (ui/text-field :initial-text transform-expr-str
+                                                                         :on-change (fn [val] (dbg-state/update-printer id coord :transform-expr-str val))
+                                                                         :align :center-left)
                                          :enable?      (ui/check-box :on-change (fn [selected?]
                                                                                   (dbg-state/update-printer id coord :enable? selected?))
                                                                      :selected? true)
@@ -129,7 +132,7 @@
                                                                      [(cond-> {:printers  (prepare-printers (dbg-state/printers))}
                                                                         flow-id   (assoc :flow-id   flow-id)
                                                                         thread-id (assoc :thread-id thread-id))]
-                                                                     {:on-progress (fn [{:keys [batch flow-id thread-id] :as a}]
+                                                                     {:on-progress (fn [{:keys [batch flow-id thread-id]}]
                                                                                      (add-all (into []
                                                                                                     (map (fn [po]
                                                                                                            (assoc po

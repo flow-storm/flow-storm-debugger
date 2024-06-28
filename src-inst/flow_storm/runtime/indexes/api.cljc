@@ -541,7 +541,7 @@
   "Returns a collection of [flow-id thread-id timeline] that matches the optional criteria.
   skip-threads can be a set of thread ids."
   
-  [{:keys [flow-id thread-id skip-threads] :as criteria}]
+  [{:keys [flow-id thread-id skip-threads]}]
   (->> (all-threads)
        (keep (fn [[fid tid]]
                (when (and (or (nil? flow-id)
@@ -828,16 +828,30 @@
           timeline)))
 
 (defn thread-prints-transd [printers]
-  ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level}}}
+  ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level :transform-expr-str}}}
   (let [printers (utils/update-values
                   printers
                   (fn [corrds-map]
-                    (utils/update-keys
-                     corrds-map
-                     (fn [coord-vec]
-                       (let [scoord (str/join "," coord-vec)]
-                         #?(:cljs scoord
-                            :clj (.intern scoord)))))))
+                    (-> corrds-map
+                        (utils/update-keys (fn [coord-vec]
+                                             (let [scoord (str/join "," coord-vec)]
+                                               #?(:cljs scoord
+                                                  :clj (.intern scoord)))))
+                        (utils/update-values (fn [printer-params]
+                                               #?(:cljs printer-params
+                                                  
+                                                  :clj (let [trans-expr (:transform-expr-str printer-params)]
+                                                         (try
+                                                           (if-not (str/blank? trans-expr)
+                                                             (let [expr-fn (-> trans-expr
+                                                                               read-string
+                                                                               eval)]
+                                                               (assoc printer-params :transform-expr-fn expr-fn))
+                                                             printer-params)
+                                                           (catch Exception e
+                                                             (utils/log-error (str "Error evaluating printer transform expresion " trans-expr) e)
+                                                             printer-params)))))))))
+        
         maybe-print-entry (fn [curr-fn-call tl-entry]
                             (let [form-id (index-protos/get-form-id curr-fn-call)]
                               (when (contains? printers form-id)
@@ -845,11 +859,15 @@
                                       coord (index-protos/get-coord-raw tl-entry)]
                                   (when (contains? coords-map coord)
                                     ;; we are interested in this coord so lets print it
-                                    (let [{:keys [print-length print-level format-str]} (get coords-map coord)
+                                    (let [{:keys [print-length print-level format-str transform-expr-fn]} (get coords-map coord)
+                                          transform-expr-fn (or transform-expr-fn identity)
                                           val (index-protos/get-expr-val tl-entry)]
                                       (binding [*print-length* print-length
                                                 *print-level* print-level]
-                                        {:text (utils/format format-str (pr-str val))
+                                        {:text (->> val
+                                                    transform-expr-fn
+                                                    pr-str
+                                                    (utils/format format-str))
                                          :idx (index-protos/entry-idx tl-entry)})))))))
         thread-stack (atom ())]
     (keep (fn [tl-entry]
