@@ -2383,16 +2383,16 @@ the threads interleaving at a higher level.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p><em>FlowStorm</em> has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
-inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
+inefficient. Nonetheless, sometimes adding a bunch of print lines to specific places in your code base is a very powerful way
 of understanding your execution.</p>
 </div>
 <div class="paragraph">
 <p>For this cases <em>FlowStorm</em> has the <code>Printer tool</code>, which allows you to define, manage and visualize print points, without the need
-of re running your code again. It will work on your recordings as everything else.</p>
+of re running your code. It will work on your recordings as everything else.</p>
 </div>
 <div class="paragraph">
 <p>You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
-recorded expression. It will ask you for an optional message, which you can use to identify these particular prints in the output console.</p>
+recorded expression.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2400,9 +2400,26 @@ recorded expression. It will ask you for an optional message, which you can use 
 </div>
 </div>
 <div class="paragraph">
-<p>After you add them, the <code>Print tool</code> will show all your prints. You can use the panel at the top to manage them.
-Before printing anything you need to select the thread you would like to run the prints on. After selecting it, just click
-the <code>refresh</code> button and everything will be re-printed.</p>
+<p>It will ask you for a couple optional fields.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/printer_add_box.png" alt="printer add box">
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Message format</code> is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
+optionally use <code>%s</code> for the printed value, same as you would use it with format.</p>
+</div>
+<div class="paragraph">
+<p>The <code>Expression</code> field can be use to apply a transofmer function over the value before printing it. Usuful when you want to see a part of the value.</p>
+</div>
+<div class="paragraph">
+<p>After you add them, the <code>Print tool</code> will show all your prints. You can use the panel at the top to manage them.</p>
+</div>
+<div class="paragraph">
+<p>The threads selector will allow you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
+Clicking the <code>refresh</code> button will [re]run the printing again over the current recordings.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2410,27 +2427,11 @@ the <code>refresh</code> button and everything will be re-printed.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You can tweak your prints at any time, like changing the print-length, print-level, message or just temporarily disable any of them.
+<p>You can tweak your prints at any time, like changing the print-length, print-level, message, transform-fn or just temporarily disable any of them.
 When you are ok re-setting you prints, just click refresh and they will print again.</p>
 </div>
 <div class="paragraph">
 <p>Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">Print messages</div>
-<div class="paragraph">
-<p>You can use <code>%s</code> in your print messages to place the printed representation of your value. If you provide a message without <code>%s</code> it will
-be added after a space at the end.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
@@ -3691,7 +3692,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-06-06 10:16:34 -0300
+Last updated 2024-06-28 11:44:47 -0300
 </div>
 </div>
 </body>

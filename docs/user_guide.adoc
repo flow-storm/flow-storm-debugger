@@ -1019,35 +1019,37 @@ the threads interleaving at a higher level.
 = Printer tool
 
 _FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
-inefficient. Nonetheless, some times adding a bunch of print lines to specific places in your code base is a very powerful way
+inefficient. Nonetheless, sometimes adding a bunch of print lines to specific places in your code base is a very powerful way
 of understanding your execution.
 
 For this cases _FlowStorm_ has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
-of re running your code again. It will work on your recordings as everything else.
+of re running your code. It will work on your recordings as everything else.
 
 You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
-recorded expression. It will ask you for an optional message, which you can use to identify these particular prints in the output console.
+recorded expression.
 
 image::user_guide_images/printer_add.png[]
 
+It will ask you for a couple optional fields.
+
+image::user_guide_images/printer_add_box.png[]
+
+The `Message format` is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
+optionally use `%s` for the printed value, same as you would use it with format.
+
+The `Expression` field can be use to apply a transofmer function over the value before printing it. Usuful when you want to see a part of the value.
+
 After you add them, the `Print tool` will show all your prints. You can use the panel at the top to manage them.
-Before printing anything you need to select the thread you would like to run the prints on. After selecting it, just click
-the `refresh` button and everything will be re-printed.
+
+The threads selector will allow you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
+Clicking the `refresh` button will [re]run the printing again over the current recordings. 
 
 image::user_guide_images/printer.png[]
 
-You can tweak your prints at any time, like changing the print-length, print-level, message or just temporarily disable any of them.
+You can tweak your prints at any time, like changing the print-length, print-level, message, transform-fn or just temporarily disable any of them.
 When you are ok re-setting you prints, just click refresh and they will print again.
 
 Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.
-
-[NOTE]
-.Print messages
-====
-You can use `%s` in your print messages to place the printed representation of your value. If you provide a message without `%s` it will
-be added after a space at the end.
-====
-
 
 = Value inspector
 
