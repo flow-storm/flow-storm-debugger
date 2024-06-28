@@ -10,6 +10,8 @@
 ### Changes
     
 ### Bugs fixed
+
+    - Fix #181 close children windows if main window closed
     
 ## 3.15.8 (21-06-2024)
 	

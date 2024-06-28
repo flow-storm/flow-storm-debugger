@@ -383,9 +383,17 @@
       (.removeListener (OsThemeDetector/getDetector) theme-listener))
 
     ;; close all stages
-    (when-not *killing-ui-from-window-close?*
-      (doseq [stage (dbg-state/jfx-stages)]
-        (ui-utils/run-now (.close ^Stage stage))))))
+    (if *killing-ui-from-window-close?*
+      ;; if we are comming from window-close close all the stages but
+      ;; the first (the one being closed) in the javafx thread
+      (doseq [stage (rest (dbg-state/jfx-stages))]
+        (.close ^Stage stage))
+
+      ;; if we are not comming from a windows close, like a stop-system
+      ;; then block until we close all stages on the javafx thread
+      (ui-utils/run-now
+        (doseq [stage (dbg-state/jfx-stages)]
+          (.close ^Stage stage))))))
 
 (defn create-flow [{:keys [flow-id timestamp]}]
   ;; lets clear the entire cache every time a flow gets created, just to be sure
