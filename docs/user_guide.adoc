@@ -1037,7 +1037,7 @@ image::user_guide_images/printer_add_box.png[]
 The `Message format` is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
 optionally use `%s` for the printed value, same as you would use it with format.
 
-The `Expression` field can be use to apply a transofmer function over the value before printing it. Usuful when you want to see a part of the value.
+The `Expression` field can be use to apply a transfomer function over the value before printing it. Useful when you want to see a part of the value.
 
 After you add them, the `Print tool` will show all your prints. You can use the panel at the top to manage them.
 
