@@ -404,6 +404,7 @@
                            :next      (timeline-next-idx timeline idx)
                            :prev      (timeline-prev-idx timeline idx)
                            :at   idx)
+              target-idx (-> target-idx (max 0) (min last-idx)) ;; clamp the target-idx
               tl-entry (get timeline target-idx)]
           (index-protos/as-immutable tl-entry)))))
   

@@ -14,6 +14,7 @@
 ### Bugs fixed
 
     - Fix #181 close children windows if main window closed
+    - Fix out of boundaries on step-prev-over and step-next-over
     
 ## 3.15.8 (21-06-2024)
 	
