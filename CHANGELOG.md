@@ -8,6 +8,8 @@
     - Add printers transform expression (Clojure only)
     
 ### Changes
+
+    - Set a UI limit of 200 on the Exceptions menu entries to improve UI responsiveness under deep recursions exceptions.
     
 ### Bugs fixed
 

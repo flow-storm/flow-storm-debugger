@@ -9,7 +9,8 @@
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
-            [flow-storm.debugger.state :as dbg-state]))
+            [flow-storm.debugger.state :as dbg-state]
+            [flow-storm.utils :refer [log]]))
 
 (defn- vanilla-var-instrumented-event [{:keys [var-ns var-name]}]
   (ui-utils/run-later
@@ -82,9 +83,13 @@
   (ui-main/set-recording-btn recording?))
 
 (defn- function-unwinded-event [unwind-data]
-  (dbg-state/add-fn-unwind unwind-data)
-  (ui-utils/run-later
-    (flows-screen/update-exceptions-combo)))
+  (let [ui-unwinds-limit 200]
+    (if (< (count (dbg-state/get-fn-unwinds)) ui-unwinds-limit)
+      (do
+        (dbg-state/add-fn-unwind unwind-data)
+        (ui-utils/run-later
+         (flows-screen/update-exceptions-combo)))
+      (log (format "Functions unwinds limit of %d exceeded, not adding more exceptions to the Exceptions menu." ui-unwinds-limit)))))
 
 (defn process-event [[ev-type ev-args-map]]
 
