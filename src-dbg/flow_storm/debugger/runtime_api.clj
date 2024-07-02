@@ -98,8 +98,8 @@
 
   (stack-for-frame [_ flow-id thread-id fn-call-idx])
   (toggle-recording [_])
+  (toggle-multi-timeline-recording [_])
   (switch-record-to-flow [_ flow-id])
-  (set-total-order-recording [_ x])
   (all-fn-call-stats [_])
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts])
   (set-thread-trace-limit [_ limit]))
@@ -269,11 +269,11 @@
   (toggle-recording [_]
     (api-call :local "toggle-recording" []))
 
+  (toggle-multi-timeline-recording [_]
+    (api-call :local "toggle-multi-timeline-recording" []))
+
   (switch-record-to-flow [_ flow-id]
     (api-call :local "switch-record-to-flow" [flow-id]))
-
-  (set-total-order-recording [_ x]
-    (api-call :local "set-total-order-recording" [x]))
 
   (all-fn-call-stats [_]
     (api-call :local "all-fn-call-stats" []))
@@ -434,11 +434,11 @@
   (toggle-recording [_]
     (api-call :remote "toggle-recording" []))
 
+  (toggle-multi-timeline-recording [_]
+    (api-call :remote "toggle-multi-timeline-recording" []))
+
   (switch-record-to-flow [_ flow-id]
     (api-call :remote "switch-record-to-flow" [flow-id]))
-
-  (set-total-order-recording [_ x]
-    (api-call :remote "set-total-order-recording" [x]))
 
   (all-fn-call-stats [_]
     (api-call :remote "all-fn-call-stats" []))

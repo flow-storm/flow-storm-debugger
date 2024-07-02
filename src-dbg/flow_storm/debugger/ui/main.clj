@@ -24,11 +24,11 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
+            [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
-            [flow-storm.debugger.ui.timeline.screen :as timeline-screen]
             [flow-storm.debugger.ui.printer.screen :as printer-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.flows.search :as search]
@@ -71,7 +71,7 @@
 
   (ui-utils/run-later
     (browser-screen/clear-instrumentation-list)
-    (timeline-screen/clear-timeline)
+    (multi-thread-timeline/clear-timeline)
     (printer-screen/clear-prints)))
 
 (defn clear-all []
@@ -84,7 +84,7 @@
   (runtime-api/clear-recordings rt-api)
   (runtime-api/clear-api-cache rt-api)
 
-  (timeline-screen/clear-timeline)
+  (multi-thread-timeline/clear-timeline)
   (printer-screen/clear-prints))
 
 (defn bottom-box []
@@ -165,18 +165,13 @@
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
-        timeline-tab (ui/tab :text "Timeline"
-                             :class "vertical-tab"
-                             :content (timeline-screen/main-pane)
-                             :on-selection-changed (event-handler [_])
-                             :id "tool-timeline")
         printer-tab (ui/tab :text "Printer"
                             :class "vertical-tab"
                             :content (printer-screen/main-pane)
                             :on-selection-changed (event-handler [_])
                             :id "tool-printer")
 
-        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab timeline-tab printer-tab]
+        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab printer-tab]
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
@@ -277,9 +272,25 @@
 
     (ui/menu-bar :menues [view-menu actions-menu config-menu help-menu])))
 
+(defn- build-top-tool-bar-pane []
+  (let [task-cancel-btn (ui/icon-button :icon-name "mdi-playlist-remove"
+                                        :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
+                                        :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
+                                        :disable true)
+        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
+                                  :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
+                                  :on-click (fn [] (clear-all)))
+
+        tools [clear-btn
+               task-cancel-btn]]
+
+    (store-obj "task-cancel-btn" task-cancel-btn)
+    (ui/toolbar :childs tools)))
+
 (defn- build-top-bar-pane []
   (ui/v-box
-   :childs [(build-menu-bar)]
+   :childs [(build-menu-bar)
+            (build-top-tool-bar-pane)]
    :spacing 5))
 
 (defn set-task-cancel-btn-enable [enable?]
@@ -289,15 +300,6 @@
       (if enable?
         (ui-utils/add-class task-cancel-btn "attention")
         (ui-utils/rm-class task-cancel-btn "attention")))))
-
-(defn set-recording-btn [recording?]
-  (ui-utils/run-later
-    (let [[record-btn] (obj-lookup "record-btn")]
-      (ui-utils/update-button-icon
-       record-btn
-       (if recording?
-         "mdi-pause"
-         "mdi-record")))))
 
 (defn- build-main-pane []
   (ui/border-pane :top (build-top-bar-pane)
@@ -361,8 +363,8 @@
                               (map first)
                               (into #{}))]
        (dbg-state/set-runtime-config runtime-config)
-       (set-recording-btn recording?)
-       (timeline-screen/set-recording-check total-order-recording?)
+       (flows-screen/set-recording-btn recording?)
+       (flows-screen/set-multi-timeline-recording-btn total-order-recording?)
        (printer-screen/update-prints-controls)
 
        (when storm?

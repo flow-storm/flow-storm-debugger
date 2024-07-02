@@ -4,11 +4,11 @@
 
   (:require [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
-  (:import [javafx.scene.control ScrollPane ComboBox ListCell Button ButtonBase Labeled SelectionModel TabPane
+  (:import [javafx.scene.control ScrollPane ComboBox ListCell ButtonBase Labeled SelectionModel TabPane
             Tab CheckBox TextInputControl ContextMenu]
            [javafx.scene.input KeyCharacterCombination KeyCombination$Modifier KeyCombination MouseButton MouseEvent]
            [javafx.event Event]
-           [javafx.scene.layout Region Pane]
+           [javafx.scene.layout HBox Region Pane]
            [javafx.stage Screen Stage]
            [javafx.scene Node]
            [java.util.function Predicate]
@@ -153,8 +153,11 @@
 (defn clear-classes [^Node node]
   (.clear (.getStyleClass node)))
 
-(defn update-button-icon [btn new-icon-name]
-  (.setGraphic ^Button btn (FontIcon. ^String new-icon-name)))
+(defn update-button-icon [btn icon-name]
+  (doto btn
+    (.setGraphic (if (string? icon-name)
+                   (FontIcon. ^String icon-name)
+                   (HBox. (into-array Node (mapv (fn [in] (FontIcon. ^String in)) icon-name)))))))
 
 (defn observable-add-all [^ObservableList olist coll]
   (.addAll olist ^objects (into-array Object coll)))

@@ -131,7 +131,7 @@
     (cond-> {:env-kind env-kind
              :storm? storm?
              :recording? (tracer/recording?)
-             :total-order-recording? (tracer/total-order-recording?)
+             :total-order-recording? (tracer/multi-timeline-recording?)
              :breakpoints (tracer/all-breakpoints)})))
 
 (defn val-pprint [vref opts]
@@ -346,15 +346,25 @@
   (tracer/set-recording enable?)
   (rt-events/publish-event! (rt-events/make-recording-updated-event enable?)))
 
+(defn set-multi-timeline-recording [enable?]
+  (tracer/set-multi-timeline-recording enable?)
+  (rt-events/publish-event! (rt-events/make-multi-timeline-recording-updated-event enable?)))
+
 (def set-thread-trace-limit tracer/set-thread-trace-limit)
 
 (defn toggle-recording []
   (if (tracer/recording?)
-    (set-recording false)
+    (do
+      (set-recording false)
+      (set-multi-timeline-recording false))
     (set-recording true)))
 
-(defn set-total-order-recording [x]
-  (tracer/set-total-order-recording x))
+(defn toggle-multi-timeline-recording []
+  (if (tracer/multi-timeline-recording?)
+    (set-multi-timeline-recording false)
+    (do
+      (set-multi-timeline-recording true)
+      (set-recording true))))
 
 (defn switch-record-to-flow [flow-id]
   (tracer/set-current-flow-id flow-id))
@@ -555,7 +565,7 @@
              :all-flows-threads all-flows-threads
              :stack-for-frame stack-for-frame
              :toggle-recording toggle-recording
-             :set-total-order-recording set-total-order-recording
+             :toggle-multi-timeline-recording toggle-multi-timeline-recording
              :switch-record-to-flow switch-record-to-flow
              :all-fn-call-stats all-fn-call-stats
              :set-thread-trace-limit set-thread-trace-limit

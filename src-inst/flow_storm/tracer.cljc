@@ -22,10 +22,11 @@
 
     (reset! recording false)))
 
-(defn recording? [] @recording)
-
-(defn set-total-order-recording [x]
+(defn set-multi-timeline-recording [x]
   (reset! total-order-recording (boolean x)))
+
+(defn recording? [] @recording)
+(defn multi-timeline-recording? [] @total-order-recording)
 
 (defn set-current-flow-id [flow-id]
   (reset! current-flow-id flow-id))
@@ -42,9 +43,6 @@
      (do
        (set! thread-trace-limit limit)
        (set! throw-on-trace-limit? break?))))
-
-(defn total-order-recording? []
-  @total-order-recording)
 
 #?(:clj
    (defn- block-this-thread [flow-id breakpoint]

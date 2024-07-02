@@ -80,7 +80,10 @@
    (browser-screen/remove-from-instrumentation-list (browser-screen/make-inst-break fq-fn-symb))))
 
 (defn- recording-updated-event [{:keys [recording?]}]
-  (ui-main/set-recording-btn recording?))
+  (flows-screen/set-recording-btn recording?))
+
+(defn- multi-timeline-recording-updated-event [{:keys [recording?]}]
+  (flows-screen/set-multi-timeline-recording-btn recording?))
 
 (defn- function-unwinded-event [unwind-data]
   (let [ui-unwinds-limit 200]
@@ -113,6 +116,7 @@
     :break-installed (break-installed-event ev-args-map)
     :break-removed (break-removed-event ev-args-map)
     :recording-updated (recording-updated-event ev-args-map)
+    :multi-timeline-recording-updated (multi-timeline-recording-updated-event ev-args-map)
     :function-unwinded-event (function-unwinded-event ev-args-map)
     nil ;; events-processor doesn't handle every event, specially tasks processing
     ))

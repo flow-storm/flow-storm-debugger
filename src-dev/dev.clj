@@ -177,11 +177,14 @@
   ;; -------------------------------------------------------------------------------------------
 
   (require '[flow-storm.form-pprinter :as form-pprinter])
+  (require '[flow-storm.runtime.indexes.api :as index-api])
+  (require '[flow-storm.utils :as utils])
   (def idx (atom 0))
+  (def flow-id 0)
+  (def thread-id 30)
 
   (defn show-current []
-    (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
+    (let [{:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
           {:keys [form-id]} (index-api/frame-data flow-id thread-id fn-call-idx {})
           {:keys [form/form]} (index-api/get-form form-id)]
       (case type
@@ -199,10 +202,6 @@
   (defn step-prev []
     (swap! idx dec)
     (show-current))
-
-  ;; use the debugger
-  (index-api/print-threads)
-  (index-api/select-thread nil 18)
 
   (step-next)
   (step-prev))

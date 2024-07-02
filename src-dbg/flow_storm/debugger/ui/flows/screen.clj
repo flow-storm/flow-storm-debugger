@@ -5,6 +5,7 @@
             [flow-storm.debugger.ui.flows.functions :as flow-fns]
             [flow-storm.debugger.ui.flows.search :as search]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
+            [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler key-combo-match?]]
@@ -279,22 +280,33 @@
                         :idx idx})
                      unwinds))))
 
-(defn- clear-all-flows []
-  (doseq [fid (dbg-state/all-flows-ids)]
-    (fully-remove-flow fid)))
+(defn set-recording-btn [recording?]
+  (ui-utils/run-later
+    (let [[record-btn] (obj-lookup "record-btn")]
+      (ui-utils/update-button-icon
+       record-btn
+       (if recording?
+         "mdi-pause"
+         "mdi-record")))))
 
-(defn- build-top-tool-bar-pane []
+(defn set-multi-timeline-recording-btn [recording?]
+  (ui-utils/run-later
+    (let [[btn] (obj-lookup "multi-timeline-record-btn")]
+      (ui-utils/update-button-icon
+       btn
+       (if recording?
+         ["mdi-chart-timeline" "mdi-pause"]
+         ["mdi-chart-timeline" "mdi-record"])))))
+
+(defn- build-flows-tool-bar-pane []
   (let [record-btn (ui/icon-button :icon-name "mdi-record"
                                    :tooltip "Start/Stop recording"
                                    :on-click (fn [] (runtime-api/toggle-recording rt-api))
                                    :classes ["record-btn"])
-        task-cancel-btn (ui/icon-button :icon-name "mdi-playlist-remove"
-                                        :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
-                                        :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
-                                        :disable true)
-        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
-                                  :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                                  :on-click (fn [] (clear-all-flows)))
+        multi-timeline-record-btn (ui/icon-button
+                                   :icon-name ["mdi-chart-timeline" "mdi-record"]
+                                   :tooltip "Start/Stop recording of the multi-thread timeline"
+                                   :on-click (fn [] (runtime-api/toggle-multi-timeline-recording rt-api)))
         search-btn (ui/icon-button :icon-name "mdi-magnify"
                                    :tooltip "Open the search window"
                                    :on-click (fn [] (search/search-window)))
@@ -324,19 +336,28 @@
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
+        tools-menu  (ui/menu-button :title "More tools"
+                                    :items [{:key :multi-thread-timeline
+                                             :text "Multi-thread timeline browser"}]
+                                    :on-action (fn [item]
+                                                 (case (:key item)
+                                                   :multi-thread-timeline (multi-thread-timeline/open-timeline-window))))
+        left-tools-box (ui/h-box :childs [record-btn
+                                          multi-timeline-record-btn
+                                          search-btn
+                                          quick-jump-textfield
+                                          exceptions-box]
+                                 :spacing 4)
+        right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
+                                  :spacing 4)]
 
-        tools [record-btn
-               clear-btn
-               task-cancel-btn
-               search-btn
-               quick-jump-textfield
-               exceptions-box]]
-
-    (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "exceptions-box" exceptions-box)
     (store-obj "exceptions-menu-data" exceptions-menu-data)
     (store-obj "record-btn" record-btn)
-    (ui/toolbar :childs tools)))
+    (store-obj "multi-timeline-record-btn" multi-timeline-record-btn)
+    (ui/border-pane :left  left-tools-box
+                    :right right-tools-box
+                    :paddings [5 5 0 5])))
 
 (defn main-pane []
   (let [flows-tpane (ui/tab-pane :closing-policy :all-tabs
@@ -357,7 +378,7 @@
                               {:node flows-combo
                                :top-anchor 8.0
                                :left-anchor 10.0}])
-        flows-box (ui/v-box :childs [(build-top-tool-bar-pane)
+        flows-box (ui/v-box :childs [(build-flows-tool-bar-pane)
                                      flow-anchor])]
 
     (store-obj "flows_tabs_pane" flows-tpane)

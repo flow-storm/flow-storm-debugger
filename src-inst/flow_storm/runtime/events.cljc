@@ -75,6 +75,9 @@
 (defn make-recording-updated-event [recording?]
   [:recording-updated {:recording? recording?}])
 
+(defn make-multi-timeline-recording-updated-event [recording?]
+  [:multi-timeline-recording-updated {:recording? recording?}])
+
 (defn make-function-unwinded-event [ev-data]
   [:function-unwinded-event ev-data])
 

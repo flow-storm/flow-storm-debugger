@@ -83,9 +83,8 @@
     b))
 
 (defn icon-button [& {:keys [icon-name classes on-click disable tooltip mirrored?]}]
-  (let [b (doto (Button.)
-            (.setGraphic (FontIcon. ^String icon-name)))]
-
+  (let [b (Button.)]
+    (ui-utils/update-button-icon b icon-name)
     (when tooltip (.setTooltip b (tool-tip :text tooltip)))
     (when on-click
       (.setOnAction b (event-handler [_] (on-click))))
