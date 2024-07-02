@@ -1,41 +1,42 @@
-(ns flow-storm.debugger.ui.printer.screen
-  (:require [flow-storm.debugger.ui.utils :as ui-utils]
+(ns flow-storm.debugger.ui.flows.printer
+  (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]
-            [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
-            [flow-storm.debugger.ui.flows.screen :as flows-screen])
+            [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]])
   (:import [javafx.scene.layout Priority VBox]
-           [javafx.scene.control ComboBox SelectionModel]))
+           [javafx.scene.control ComboBox SelectionModel]
+           [javafx.scene Scene]
+           [javafx.stage Stage]))
 
 
 (defn clear-prints []
-  (let [[{:keys [clear]}] (obj-lookup "printer-print-outs-list")]
+  (when-let [[{:keys [clear]}] (obj-lookup "printer-print-outs-list")]
     (clear)))
 
 (defn update-prints-controls []
-  (let [[{:keys [clear add-all]}] (obj-lookup "printer-prints-controls-table")
-        printers-rows (->> (dbg-state/printers)
-                           (reduce-kv (fn [r _ frm-printers]
-                                        (reduce-kv (fn [rr _ p]
-                                                     (conj rr p))
-                                                   r
-                                                   frm-printers))
-                                      [])
-                           (mapv (fn [printer]
-                                   [(assoc printer :cell-type :function)
-                                    (assoc printer :cell-type :source-expr)
-                                    (assoc printer :cell-type :print-level)
-                                    (assoc printer :cell-type :print-length)
-                                    (assoc printer :cell-type :format)
-                                    (assoc printer :cell-type :transform-expr)
-                                    (assoc printer :cell-type :enable?)
-                                    (assoc printer :cell-type :action)])))]
+  (when-let [[{:keys [clear add-all]}] (obj-lookup "printer-prints-controls-table")]
+    (let [printers-rows (->> (dbg-state/printers)
+                             (reduce-kv (fn [r _ frm-printers]
+                                          (reduce-kv (fn [rr _ p]
+                                                       (conj rr p))
+                                                     r
+                                                     frm-printers))
+                                        [])
+                             (mapv (fn [printer]
+                                     [(assoc printer :cell-type :function)
+                                      (assoc printer :cell-type :source-expr)
+                                      (assoc printer :cell-type :print-level)
+                                      (assoc printer :cell-type :print-length)
+                                      (assoc printer :cell-type :format)
+                                      (assoc printer :cell-type :transform-expr)
+                                      (assoc printer :cell-type :enable?)
+                                      (assoc printer :cell-type :action)])))]
 
-    (clear)
-    (add-all printers-rows)))
+      (clear)
+      (add-all printers-rows))))
 
 (defn build-prints-controls []
   (let [{:keys [table-view-pane] :as table-data}
@@ -86,7 +87,7 @@
                 {}
                 form-printers))))
 
-(defn main-pane []
+(defn- main-pane []
   (let [^ComboBox thread-id-combo (ui/combo-box :items []
                                                 :on-showing (fn [cb]
                                                               (let [flows-threads (runtime-api/all-flows-threads rt-api)
@@ -116,10 +117,11 @@
                       :on-click (fn [mev sel-items _]
                                   (when (and (ui-utils/mouse-primary? mev)
                                              (ui-utils/double-click? mev))
-                                    (let [{:keys [idx flow-id thread-id]}  (first sel-items)]
-                                      (flows-screen/goto-location {:flow-id flow-id
-                                                                   :thread-id thread-id
-                                                                   :idx idx}))))
+                                    (let [{:keys [idx flow-id thread-id]}  (first sel-items)
+                                          goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
+                                      (goto-loc {:flow-id flow-id
+                                                 :thread-id thread-id
+                                                 :idx idx}))))
                       :selection-mode :single
                       :search-predicate (fn [{:keys [text]} search-str]
                                           (str/includes? text search-str)))
@@ -154,7 +156,8 @@
                          :spacing 5)
 
                    :center split-pane
-                   :class "printer-tool")]
+                   :class "printer-tool"
+                   :paddings [10 10 10 10])]
 
     (store-obj "printer-thread-id-combo" thread-id-combo)
     (store-obj "printer-print-outs-list" list-data)
@@ -163,6 +166,24 @@
 
     main-pane))
 
+(defn open-printers-window []
+  (let [window-w 1000
+        window-h 1000
+        scene (Scene. (main-pane) window-w window-h)
+        stage (doto (Stage.)
+                (.setTitle "FlowStorm printers")
+                (.setScene scene))]
+
+    (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
+    (dbg-state/register-jfx-stage! stage)
+
+    (let [{:keys [x y]} (ui-utils/stage-center-box (dbg-state/main-jfx-stage) window-w window-h)]
+      (.setX stage x)
+      (.setY stage y))
+
+    (update-prints-controls)
+
+    (-> stage .show)))
 (comment
 
   )

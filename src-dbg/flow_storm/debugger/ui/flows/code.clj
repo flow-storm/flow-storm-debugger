@@ -11,7 +11,8 @@
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.tasks :as tasks]
-            [hansel.utils :refer [get-form-at-coord]])
+            [hansel.utils :refer [get-form-at-coord]]
+            [flow-storm.debugger.ui.flows.printer :as printer])
   (:import [javafx.scene Node]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.control ScrollPane Label SelectionModel TextField ComboBox]
@@ -91,7 +92,8 @@
                                                 :transform-expr-str (:expr-str params-map)
                                                 :print-length 5
                                                 :print-level  3
-                                                :enable? true))))
+                                                :enable? true))
+    (printer/update-prints-controls)))
 
 (defn- calculate-execution-idx-range [spans curr-coord]
   (when curr-coord

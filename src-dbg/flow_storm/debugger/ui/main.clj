@@ -25,11 +25,11 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
+            [flow-storm.debugger.ui.flows.printer :as printer]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
-            [flow-storm.debugger.ui.printer.screen :as printer-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.flows.search :as search]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -72,7 +72,7 @@
   (ui-utils/run-later
     (browser-screen/clear-instrumentation-list)
     (multi-thread-timeline/clear-timeline)
-    (printer-screen/clear-prints)))
+    (printer/clear-prints)))
 
 (defn clear-all []
   ;; CAREFULL the order here matters
@@ -85,7 +85,7 @@
   (runtime-api/clear-api-cache rt-api)
 
   (multi-thread-timeline/clear-timeline)
-  (printer-screen/clear-prints))
+  (printer/clear-prints))
 
 (defn bottom-box []
   (let [progress-box (ui/h-box :childs [])
@@ -165,20 +165,13 @@
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
-        printer-tab (ui/tab :text "Printer"
-                            :class "vertical-tab"
-                            :content (printer-screen/main-pane)
-                            :on-selection-changed (event-handler [_])
-                            :id "tool-printer")
-
-        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab printer-tab]
+        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab]
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
                             :on-tab-change (fn [_ to-tab]
                                              (cond
-                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces)
-                                               (= to-tab printer-tab) (printer-screen/update-prints-controls))))
+                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces))))
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
@@ -365,7 +358,7 @@
        (dbg-state/set-runtime-config runtime-config)
        (flows-screen/set-recording-btn recording?)
        (flows-screen/set-multi-timeline-recording-btn total-order-recording?)
-       (printer-screen/update-prints-controls)
+       (printer/update-prints-controls)
 
        (when storm?
          (let [storm-prefixes (runtime-api/get-storm-instrumentation rt-api)]

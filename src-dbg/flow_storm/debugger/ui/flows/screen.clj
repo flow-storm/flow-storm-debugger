@@ -6,6 +6,7 @@
             [flow-storm.debugger.ui.flows.search :as search]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
+            [flow-storm.debugger.ui.flows.printer :as printer]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler key-combo-match?]]
@@ -338,10 +339,13 @@
                                  :align :center-left)
         tools-menu  (ui/menu-button :title "More tools"
                                     :items [{:key :multi-thread-timeline
-                                             :text "Multi-thread timeline browser"}]
+                                             :text "Multi-thread timeline browser"}
+                                            {:key :printers
+                                             :text "Printers"}]
                                     :on-action (fn [item]
                                                  (case (:key item)
-                                                   :multi-thread-timeline (multi-thread-timeline/open-timeline-window))))
+                                                   :multi-thread-timeline (multi-thread-timeline/open-timeline-window)
+                                                   :printers (printer/open-printers-window))))
         left-tools-box (ui/h-box :childs [record-btn
                                           multi-timeline-record-btn
                                           search-btn
