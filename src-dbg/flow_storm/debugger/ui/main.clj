@@ -277,65 +277,9 @@
 
     (ui/menu-bar :menues [view-menu actions-menu config-menu help-menu])))
 
-(defn- build-top-tool-bar-pane []
-  (let [record-btn (ui/icon-button :icon-name "mdi-record"
-                                   :tooltip "Start/Stop recording"
-                                   :on-click (fn [] (runtime-api/toggle-recording rt-api))
-                                   :classes ["record-btn"])
-        task-cancel-btn (ui/icon-button :icon-name "mdi-playlist-remove"
-                                        :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
-                                        :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
-                                        :disable true)
-        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
-                                  :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                                  :on-click (fn [] (clear-all)))
-        search-btn (ui/icon-button :icon-name "mdi-magnify"
-                                   :tooltip "Open the search window"
-                                   :on-click (fn [] (search/search-window)))
-        quick-jump-textfield (ui/h-box
-                              :childs [(ui/label :text "Quick jump:")
-                                       (ui/autocomplete-textfield
-                                        :get-completions
-                                        (fn []
-                                          (into []
-                                                (keep (fn [[fq-fn-name cnt]]
-                                                        (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
-                                                            {:text (format "%s (%d)" fq-fn-name cnt)
-                                                             :on-select (fn []
-                                                                          (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                             [(symbol fq-fn-name) 0 {}]
-                                                                                             {:on-finished (fn [{:keys [result]}]
-                                                                                                             (when result
-                                                                                                               (flows-screen/goto-location result)))}))})))
-                                                (runtime-api/all-fn-call-stats rt-api))))]
-                              :align :center-left)
-
-        exceptions-menu-data (ui/menu-button
-                              :title "Exceptions"
-                              :on-action (fn [loc] (flows-screen/goto-location loc))
-                              :items []
-                              :class "important-combo")
-        exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
-                                 :class "hidden-pane"
-                                 :align :center-left)
-
-        tools [record-btn
-               clear-btn
-               task-cancel-btn
-               search-btn
-               quick-jump-textfield
-               exceptions-box]]
-
-    (store-obj "task-cancel-btn" task-cancel-btn)
-    (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-menu-data" exceptions-menu-data)
-    (store-obj "record-btn" record-btn)
-    (ui/toolbar :childs tools)))
-
 (defn- build-top-bar-pane []
   (ui/v-box
-   :childs [(build-menu-bar)
-            (build-top-tool-bar-pane)]
+   :childs [(build-menu-bar)]
    :spacing 5))
 
 (defn set-task-cancel-btn-enable [enable?]
