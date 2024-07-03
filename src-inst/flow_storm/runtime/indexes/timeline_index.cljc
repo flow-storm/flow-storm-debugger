@@ -140,14 +140,15 @@
 
   index-protos/FnCallStatsP
 
-  (all-stats [_]    
-    (reduce-kv (fn [r ^FnId fc cnt]
-                 (let [k {:form-id (.-form-id fc)
-                          :fn-name (.-fn-name fc)
-                          :fn-ns (.-fn-ns fc)}]
-                   (assoc r k cnt)))
-               {}
-               (mh->immutable-map fn-call-stats)))
+  (all-stats [this]    
+    (locking this
+      (reduce-kv (fn [r ^FnId fc cnt]
+                  (let [k {:form-id (.-form-id fc)
+                           :fn-name (.-fn-name fc)
+                           :fn-ns (.-fn-ns fc)}]
+                    (assoc r k cnt)))
+                {}
+                (mh->immutable-map fn-call-stats))))
 
   index-protos/ModifiableP
   (last-modified [this] (locking this last-fn-timestamp))
