@@ -615,11 +615,9 @@ image::user_guide_images/toolbar.png[]
 
 From left to right :
 
-- Start/Stop recording. You can keep code instrumented but keep your heap from growing by stopping recording when you are not debugging.
-- Discard all recordings so far.
+
+- Clear the state. Discard all recordings, taps, etc so far.
 - Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
-- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
-- This will not always be visible but if your recordings contains any exceptions they will be shown here.
 
 = Flows tool
 
@@ -628,8 +626,8 @@ The `Flows` tab contains a bunch of tools for analyzing all recorded executions.
 First of all, what are Flows?
 
 A Flow is a "execution flow" recording unit. The only purpose of a flow is to group recording activity.
-This grouping allows us for example to run some code and record it under "flow-0", then modify our code, run it again, and
-record this second run (or flow) under "flow-1". Now we can access both recordings separately.
+This grouping allows us for example to run some code and record it under `flow-0`, then modify our code, run it again, and
+record this second run (or flow) under `flow-1`. Now we can access both recordings separately.
 
 You can use the `Rec on` combo-box to select under what flow new recordings are going to be stored.
 
@@ -643,17 +641,33 @@ Let's say for example we have selected to record under `flow-1` and run some mul
 
 We are going to see something like this :
 
-image::user_guide_images/thread_outer_form.png[]
+image::user_guide_images/multi_flows_1.png[]
 
 There is a lot going on in the screenshot above, but the most important are :
 
       - we have configured FlowStorm to record under `flow-1`
       - we have recorded stuff under `flow-1` and `flow-0`      
-      - we are currently looking at `flow-1`, we have opened to explore thread 18 and we are exploring it in the code stepper
-      
-image::user_guide_images/thread_inner_form.png[]
+      - we are currently looking at `flow-1`, we have opened to explore the thread with id `1` called `main` and we are exploring it in <<#_code_stepping,the code stepper>>
+      - `Threads [5]` indicates we have recorded activity in 5 threads, which you can access via this menu
 
-This second image shows us exploring another thread on `flow-1`.
+Now for a different example :
+
+image::user_guide_images/multi_flows_2.png[]
+
+This second image shows us exploring the recordings of thread `507`, called `pool-4-thread-2` on `flow-0`.
+
+The `Flows tool` also contains a toolbar.
+
+image::user_guide_images/flows_toolbar.png[]
+
+From left to right :
+
+- Start/Stop recording. You can keep your heap from growing by stopping recording when you don't need it.
+- Start/Stop recording the multi-thread timeline. Check out the <<#_multi_thread_timeline, multi-thread timeline>> tool.
+- Open <<#_searching,the search tool>> 
+- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
+
+
 
 There are currently 3 tools to explore the recorded timelines, which we are going to describe next.
 
@@ -813,7 +827,7 @@ before and 10 values after of your current position.
 Clicking on any of this entries will take you to that position in time.
 
 If this is not enough, and you want to see all the values taken by some expression along the loop, you can always
-use the <<#_printer_tool, printer tool>>.
+use the <<#_printer, printer tool>>.
 
 === Exceptions debugging
 
@@ -940,6 +954,85 @@ Double clicking on any row in the functions call list will jump to the stepper a
 
 You can also use the `args` and `ret` buttons to open the values on the inspector.
 
+== Multi-thread timeline
+
+You can use this tool to record, display and navigate a total order of your recordings in a timeline.
+This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.
+
+You enable/disable the multi-thread timeline recording using its button on the toolbar. Recording on the multi-thread
+timeline will make your program execution a little slower so it is recommended to have it paused unless you need it.
+
+When you have something recorded on the multi-thread timeline you access the tool from the top right corner.
+
+image::user_guide_images/multi_timeline_access.png[]
+
+As an example, let's say you record the execution this function :
+
+[,clojure]
+----
+(defn run-parallel []
+  (->> (range 4)
+       (pmap (fn [i] (factorial i)))
+       (reduce +)))
+----
+
+By opening the tool a window like this should pop up :
+
+image::user_guide_images/timeline.png[]
+
+As you can see the timeline tool displays a linear representation of your expressions. Times flows from top to bottom and
+each thread gets assigned a different color. Every time a function is called or returns you will see it under the `Function`
+column, and for each expression executed you will see a row with its `Expression` and `Value`.
+
+Double clicking any row will take you to the `Flows tool` code at that point in time.
+
+[NOTE]
+.Big recordings timeline
+====
+Rendering the timeline needs some processing to render each sub-form and print each value so be aware it could be slow
+if you try it on big recordings.
+====
+
+There is also a `Only functions?` checkbox at the top that will retrieve only function calls and can be used to visualize
+the threads interleaving at a higher level.
+
+== Printer
+
+_FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
+inefficient. Nonetheless, sometimes adding a bunch of print lines to specific places in your code is a very powerful way
+of understanding execution.
+
+For this cases _FlowStorm_ has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
+of re running your code. It will work on your recordings as everything else.
+
+You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
+recorded expression.
+
+image::user_guide_images/printer_add.png[]
+
+It will ask you for a couple optional fields.
+
+image::user_guide_images/printer_add_box.png[]
+
+The `Message format` is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
+optionally use `%s` for the printed value, same as you would use it with format.
+
+The `Expression` field can be use to apply a transfomer function over the value before printing it. Useful when you want to see a part of the value.
+
+image::user_guide_images/printer_access.png[]
+
+After you add them, you can access the `Printers tool` by navigating to `More tools -> Printers`.
+
+The threads selector allows you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
+Clicking the `refresh` button will [re]run the printing again over the current recordings. 
+
+image::user_guide_images/printer.png[]
+
+You can tweak your prints at any time, like changing the print-length, print-level, message, transform-fn or just temporarily disable any of them.
+When you are ok re-setting you prints, just click refresh and they will print again.
+
+Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.
+
 = Browser tool
 
 The browser tool is pretty straight forward. It allows you to navigate your namespaces and vars,
@@ -976,80 +1069,6 @@ A `#tap` tag will also be available, which will tap and return so you can use it
 Use the `clear` button to clear the list.
 
 There is also `#tap-stack-trace`. It will tap the current stack trace.
-
-= Timeline tool
-
-You can use this tool to record, display and navigate a total order of your recordings in a timeline, in the order they executed.
-This can be used, for example, to visualize how multiple threads expressions interleave, which is sometimes useful to debug race conditions.
-
-By default recording this total ordering is disabled, but you can enable it just by clicking the `Enable` checkbox at the top, like this :
-
-image::user_guide_images/timeline_enable.png[]
-
-Once it is enable _FlowStorm_ will record everything as usual but also record the total order for your function calls and expressions,
-which you can then retrieve and update by clicking on the refresh button at the top.
-
-As an example, let's say you record this code :
-
-[,clojure]
-----
-(pmap (fn my-sum [i] (+ i i)) (range 4))
-----
-
-after hitting refresh you should see something like this :
-
-image::user_guide_images/timeline.png[]
-
-As you can see the timeline tool displays a linear representation of your expressions. Times flows from top to bottom and
-each thread gets assigned a different color. Every time a function is called or returns you will see it under the `Function`
-column, and for each expression executed you will see a row with its `Expression` and `Value`.
-
-Double clicking any row will take you to the `Flows tool` code at that point in time.
-
-[NOTE]
-.Big recordings timeline
-====
-Rendering the timeline needs some processing to render each sub-form and print each value so be aware it could be slow
-if you try it on big recordings.
-====
-
-There is also a `Only functions?` checkbox at the top that will retrieve only function calls and can be used to visualize
-the threads interleaving at a higher level.
-
-= Printer tool
-
-_FlowStorm_ has a lot of functionality to replace printing to the console as a debugging method since most of the time it is pretty
-inefficient. Nonetheless, sometimes adding a bunch of print lines to specific places in your code base is a very powerful way
-of understanding your execution.
-
-For this cases _FlowStorm_ has the `Printer tool`, which allows you to define, manage and visualize print points, without the need
-of re running your code. It will work on your recordings as everything else.
-
-You can add and re run print points over your recordings as many times as you need. To add a print point, just right click on any
-recorded expression.
-
-image::user_guide_images/printer_add.png[]
-
-It will ask you for a couple optional fields.
-
-image::user_guide_images/printer_add_box.png[]
-
-The `Message format` is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
-optionally use `%s` for the printed value, same as you would use it with format.
-
-The `Expression` field can be use to apply a transfomer function over the value before printing it. Useful when you want to see a part of the value.
-
-After you add them, the `Print tool` will show all your prints. You can use the panel at the top to manage them.
-
-The threads selector will allow you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
-Clicking the `refresh` button will [re]run the printing again over the current recordings. 
-
-image::user_guide_images/printer.png[]
-
-You can tweak your prints at any time, like changing the print-length, print-level, message, transform-fn or just temporarily disable any of them.
-When you are ok re-setting you prints, just click refresh and they will print again.
-
-Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.
 
 = Value inspector
 
