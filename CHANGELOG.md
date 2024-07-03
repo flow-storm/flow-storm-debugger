@@ -2,6 +2,14 @@
 
 ## master (unreleased)
 	
+### New Features 
+    
+### Changes
+
+### Bugs fixed
+
+## 3.16.0 (03-07-2024)
+	
 ### New Features
 
     - Add printer support to print on all threads
