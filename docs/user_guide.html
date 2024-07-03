@@ -2380,7 +2380,8 @@ optionally use <code>%s</code> for the printed value, same as you would use it w
 <p>After you add them, you can access the <code>Printers tool</code> by navigating to <code>More tools &#8594; Printers</code>.</p>
 </div>
 <div class="paragraph">
-<p>The threads selector allows you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
+<p>The threads selector allows you to select the thread the prints are going to run on.
+Leaving it blank will run prints over all threads recordings (checkout the notes for caveats).
 Clicking the <code>refresh</code> button will [re]run the printing again over the current recordings.</p>
 </div>
 <div class="imageblock">
@@ -2394,6 +2395,23 @@ When you are ok re-setting you prints, just click refresh and they will print ag
 </div>
 <div class="paragraph">
 <p>Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+<div class="title">Multi-thread prints order</div>
+<div class="paragraph">
+<p>Currently the printer doesn&#8217;t use the multi-thread timeline, so the order of the prints will be sorted for each thread, but not between threads.
+The printer is currently scanning each thread timeline sequentially and applying the printers. Use the <a href="#_multi_thread_timeline">multi-thread timeline</a> for
+thread interleaving debugging.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -3720,7 +3738,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-03 10:12:03 -0300
+Last updated 2024-07-03 16:09:34 -0300
 </div>
 </div>
 </body>

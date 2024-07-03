@@ -1023,7 +1023,8 @@ image::user_guide_images/printer_access.png[]
 
 After you add them, you can access the `Printers tool` by navigating to `More tools -> Printers`.
 
-The threads selector allows you to select the thread the prints are going to run on. Leaving it blank will run prints over all threads recordings.
+The threads selector allows you to select the thread the prints are going to run on.
+Leaving it blank will run prints over all threads recordings (checkout the notes for caveats).
 Clicking the `refresh` button will [re]run the printing again over the current recordings. 
 
 image::user_guide_images/printer.png[]
@@ -1032,6 +1033,14 @@ You can tweak your prints at any time, like changing the print-length, print-lev
 When you are ok re-setting you prints, just click refresh and they will print again.
 
 Double clicking on any printed line will jump to the Flows code tab, with the debugger pointed to the expression that generated the print.
+
+[IMPORTANT]
+.Multi-thread prints order
+====
+Currently the printer doesn't use the multi-thread timeline, so the order of the prints will be sorted for each thread, but not between threads.
+The printer is currently scanning each thread timeline sequentially and applying the printers. Use the <<#_multi_thread_timeline, multi-thread timeline>> for
+thread interleaving debugging.
+====
 
 = Browser tool
 
