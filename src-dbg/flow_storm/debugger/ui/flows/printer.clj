@@ -4,6 +4,7 @@
             [flow-storm.utils :as utils]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.flows.general :refer [show-message]]
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]])
   (:import [javafx.scene.layout Priority VBox]
@@ -130,6 +131,10 @@
                                     :on-click (fn []
                                                 (let [[flow-id thread-id] (selected-fid-tid)]
                                                   (clear)
+
+                                                  (when (nil? thread-id)
+                                                    (show-message "Currently the printer doesn't use the multi-thread timeline, so the order of the prints will be sorted for each thread, but not between threads. The printer is currently scanning each thread timeline sequentially and applying the printers. Use the multi-thread timelin tool for thread interleaving debugging." :warning))
+
                                                   (tasks/submit-task runtime-api/thread-prints-task
                                                                      [(cond-> {:printers  (prepare-printers (dbg-state/printers))}
                                                                         flow-id   (assoc :flow-id   flow-id)

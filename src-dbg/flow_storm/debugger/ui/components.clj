@@ -322,7 +322,7 @@
 
     t))
 
-(defn alert-dialog [& {:keys [type message buttons center-on-stage]
+(defn alert-dialog [& {:keys [type message buttons center-on-stage width height]
                        :or {type :none}}]
   (let [alert-type (get {:error        Alert$AlertType/ERROR
                          :confirmation Alert$AlertType/CONFIRMATION
@@ -337,8 +337,8 @@
                                        :cancel ButtonType/CANCEL}
                                       b)))
                          (into-array ButtonType))
-        alert-width  700
-        alert-height 100
+        alert-width  (or width 700)
+        alert-height (or height 100)
         alert (Alert. alert-type message buttons-vec)
         ^DialogPane dialog-pane (.getDialogPane alert)]
 

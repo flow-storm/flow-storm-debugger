@@ -36,7 +36,9 @@
       (ui/alert-dialog :type msg-type
                        :message msg
                        :buttons [:close]
-                       :center-on-stage (dbg-state/main-jfx-stage)))
+                       :center-on-stage (dbg-state/main-jfx-stage)
+                       :height 200
+                       :width 700))
     (catch Exception _)))
 
 (defn open-form-in-editor
