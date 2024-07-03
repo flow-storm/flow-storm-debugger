@@ -238,8 +238,8 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_loops\">Debugging loops</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_stack\">Navigating with the stack</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_bookmarks\">Bookmarks</a></li>
-<li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool\">Multi-thread timelines</a></li>
-<li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer_tool\">The printer tool</a></li>
+<li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_multi_thread_timeline\">Multi-thread timelines</a></li>
+<li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer\">The printer tool</a></li>
 <li> <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging\">Programmable debugging</a></li>
 <li> And much more!!!</li>
 </ol>
