@@ -175,8 +175,11 @@
 
     lbl))
 
-(defn text-area [& {:keys [text editable? on-change] :or {editable? true}}]
+(defn text-area [& {:keys [text editable? on-change class] :or {editable? true}}]
   (let [ta (TextArea.)]
+
+    (when class
+      (ui-utils/add-class ta class))
 
     (when text
       (.setText ta text))

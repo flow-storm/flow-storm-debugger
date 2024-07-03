@@ -183,6 +183,10 @@
     -fx-fill: -fx-theme-flow-code-text;
 }
 
+.value-pprint {
+    -fx-font-family: 'monospaced';
+}
+
 .code-token.executing { 
     -rtfx-background-color: -fx-theme-flow-code-executing-background;
     -fx-fill: -fx-theme-flow-code-executing-text;

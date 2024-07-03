@@ -17,8 +17,10 @@
     #_else           (ui/label :text text :class "anonymous")))
 
 (defn create-pprint-pane [flow-id thread-id pane-id]
-  (let [^TextArea result-txt (ui/text-area :text ""
-                                 :editable? false)
+  (let [^TextArea result-txt (ui/text-area
+                              :text ""
+                              :editable? false
+                              :class "value-pprint")
         print-meta-chk (ui/check-box :selected? false)
         print-level-txt  (ui/text-field :initial-text "5"
                                         :align :center
