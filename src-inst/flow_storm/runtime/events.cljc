@@ -21,6 +21,9 @@
                   :form (pr-str form)
                   :timestamp timestamp}])
 
+(defn make-flow-discarded-event [flow-id]
+  [:flow-discarded {:flow-id flow-id}])
+
 (defn make-threads-updated-event [flow-id]
   [:threads-updated {:flow-id flow-id}])
 

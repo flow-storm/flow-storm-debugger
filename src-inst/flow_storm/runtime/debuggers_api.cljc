@@ -330,7 +330,8 @@
                        (map first)
                        (into #{}))]
     (doseq [fid flows-ids]
-      (discard-flow fid))
+      (discard-flow fid)
+      (rt-events/publish-event! (rt-events/make-flow-discarded-event fid)))
     
     (rt-values/clear-vals-ref-registry)))
 

@@ -43,7 +43,11 @@
 
 (defn- flow-created-event [flow-info]
   (ui-utils/run-now
-   (ui-main/create-flow flow-info)))
+    (ui-main/create-flow flow-info)))
+
+(defn- flow-discarded-event [flow-info]
+  (ui-utils/run-now
+    (flows-screen/remove-flow (:flow-id flow-info))))
 
 (defn- threads-updated-event [{:keys [flow-id]}]
   (ui-utils/run-now
@@ -103,6 +107,7 @@
     :vanilla-namespace-uninstrumented (vanilla-namespace-uninstrumented-event ev-args-map)
     :storm-instrumentation-updated-event (storm-instrumentation-updated-event ev-args-map)
     :flow-created (flow-created-event ev-args-map)
+    :flow-discarded (flow-discarded-event ev-args-map)
     :threads-updated (threads-updated-event ev-args-map)
     :timeline-updated (timeline-updated-event ev-args-map)
     :tap (tap-event ev-args-map)

@@ -314,49 +314,51 @@
 
 (comment
   ;; For testing middlewares
-
-  (let [p (promise)
+  #_:clj-kondo/ignore
+  (let [flow-id 0
+        thread-id 30
+        p (promise)
         h (wrap-flow-storm (constantly true))]
     (with-redefs [t/send (fn [_ rsp] (deliver p rsp))]
 
       #_(h {:op "flow-storm-trace-count"
-          :flow-id nil
-          :thread-id 32})
+          :flow-id flow-id
+          :thread-id thread-id})
 
       #_(h {:op "flow-storm-find-fn-call"
             :fq-fn-symb "dev-tester/factorial"})
 
       #_(h {:op "flow-storm-find-flow-fn-call"
-          :flow-id nil})
+          :flow-id flow-id})
 
       #_(h {:op "flow-storm-get-form"
             :form-id -798068730})
 
       #_(h {:op "flow-storm-timeline-entry"
-          :flow-id nil
-          :thread-id 32
+          :flow-id flow-id
+          :thread-id thread-id
           :idx 3
             :drift "at"})
 
       #_(h {:op "flow-storm-frame-data"
-          :flow-id nil
-          :thread-id 32
+          :flow-id flow-id
+          :thread-id thread-id
             :fn-call-idx 0})
 
       #_(h {:op "flow-storm-pprint"
             :val-ref 5})
 
       #_(h {:op "flow-storm-bindings"
-            :flow-id nil
-            :thread-id 32
+            :flow-id flow-id
+            :thread-id thread-id
             :idx 8
             :all-frame "true"})
 
       #_(h {:op "flow-storm-toggle-recording"})
 
-      (h {:op "flow-storm-recorded-functions"})
+      #_(h {:op "flow-storm-recorded-functions"})
 
-      #_(h {:op "flow-storm-clear-recordings"})
+      (h {:op "flow-storm-clear-recordings"})
 
       (deref p 1000 :no-response)))
   )
