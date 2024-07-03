@@ -13,7 +13,7 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup clean-objs]])
   (:import [javafx.scene.control Tab TabPane ListView]
-           [javafx.scene.layout Pane]
+           [javafx.scene.layout Pane VBox Priority]
            [javafx.scene.input KeyEvent]))
 
 
@@ -345,7 +345,8 @@
                                     :on-action (fn [item]
                                                  (case (:key item)
                                                    :multi-thread-timeline (multi-thread-timeline/open-timeline-window)
-                                                   :printers (printer/open-printers-window))))
+                                                   :printers (printer/open-printers-window)))
+                                    :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [record-btn
                                           multi-timeline-record-btn
                                           search-btn
@@ -384,6 +385,9 @@
                                :left-anchor 10.0}])
         flows-box (ui/v-box :childs [(build-flows-tool-bar-pane)
                                      flow-anchor])]
+
+    (VBox/setVgrow flow-anchor Priority/ALWAYS)
+    (VBox/setVgrow flows-box Priority/ALWAYS)
 
     (store-obj "flows_tabs_pane" flows-tpane)
     flows-box))

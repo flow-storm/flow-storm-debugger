@@ -8,7 +8,7 @@
             ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane]
            [javafx.scene.input KeyCombination$Modifier KeyCodeCombination KeyEvent KeyCode]
            [javafx.scene.layout HBox VBox BorderPane Priority GridPane AnchorPane]
-           [javafx.geometry Side Orientation]
+           [javafx.geometry Side Orientation NodeOrientation]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
            [javafx.beans.value ObservableValue]
@@ -192,7 +192,7 @@
 
     ta))
 
-(defn menu-button [& {:keys [title items disable? item-factory on-action class]}]
+(defn menu-button [& {:keys [title items disable? item-factory on-action class orientation]}]
   (let [mb (MenuButton. title)
         clear-items (fn [] (-> mb .getItems .clear))
         item-factory (or item-factory
@@ -212,6 +212,10 @@
                     (doseq [item new-items]
                       (add-item item)))]
 
+    (when orientation
+      (.setNodeOrientation mb (case orientation
+                                :left-to-right NodeOrientation/LEFT_TO_RIGHT
+                                :right-to-left NodeOrientation/RIGHT_TO_LEFT)))
     (when class (ui-utils/add-class mb class))
 
     (when disable? (.setDisable mb true))
@@ -777,7 +781,7 @@
 
 (defn thread-label [thread-id thread-name]
   (if thread-name
-    (format "[%d] %s" thread-id thread-name)
+    (format "(%d) %s" thread-id thread-name)
     (format "thread-%d" thread-id)))
 
 (defn toolbar [& {:keys [childs]}]
