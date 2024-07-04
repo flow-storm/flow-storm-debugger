@@ -1,14 +1,11 @@
-<mxfile host="Electron" modified="2024-02-14T17:37:20.044Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.1 Chrome/112.0.5615.204 Electron/24.6.1 Safari/537.36" etag="VuXXr4iUrE8VydTaEEPD" version="21.6.1" type="device">
+<mxfile host="Electron" modified="2024-07-04T11:53:59.100Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.1 Chrome/112.0.5615.204 Electron/24.6.1 Safari/537.36" etag="1yvTiH4sse0H08ZKMtEX" version="21.6.1" type="device">
   <diagram name="Page-1" id="GOtxmTl-x517z7Cm9fr0">
-    <mxGraphModel dx="2074" dy="1244" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4681" pageHeight="3300" math="0" shadow="0">
+    <mxGraphModel dx="1434" dy="884" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4681" pageHeight="3300" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="MPshjHnfK2mcv_0NpmO8-30" value="&lt;font style=&quot;font-size: 21px;&quot;&gt;&lt;b&gt;Schema of the main storage structure. The timeline&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="430" y="360" width="520" height="30" as="geometry" />
-        </mxCell>
         <mxCell id="MPshjHnfK2mcv_0NpmO8-31" value="" style="swimlane;startSize=0;" parent="1" vertex="1">
-          <mxGeometry x="130" y="290" width="1100" height="640" as="geometry" />
+          <mxGeometry x="130" y="290" width="1100" height="1200" as="geometry" />
         </mxCell>
         <mxCell id="yXxu-ckIG8VWti2M3FYv-1" value="" style="triangle;whiteSpace=wrap;html=1;rotation=-180;dashed=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="MPshjHnfK2mcv_0NpmO8-31" vertex="1">
           <mxGeometry x="830" y="265" width="30" height="40" as="geometry" />
@@ -113,6 +110,36 @@
         </mxCell>
         <mxCell id="MPshjHnfK2mcv_0NpmO8-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=none;endFill=0;dashed=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="MPshjHnfK2mcv_0NpmO8-31" source="MPshjHnfK2mcv_0NpmO8-7" target="MPshjHnfK2mcv_0NpmO8-18" edge="1">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="MPshjHnfK2mcv_0NpmO8-30" value="&lt;font style=&quot;font-size: 21px;&quot;&gt;&lt;b&gt;Schema of a flow main storage structures&lt;/b&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="MPshjHnfK2mcv_0NpmO8-31" vertex="1">
+          <mxGeometry x="300" y="10" width="520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-1" value="&lt;span style=&quot;font-size: 21px;&quot;&gt;A thread timeline&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="MPshjHnfK2mcv_0NpmO8-31">
+          <mxGeometry x="300" y="100" width="520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-2" value="&lt;span style=&quot;font-size: 21px;&quot;&gt;The multi-thread timeline&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="MPshjHnfK2mcv_0NpmO8-31">
+          <mxGeometry x="295" y="640" width="520" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-16" value="A multi-thread timeline" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="MPshjHnfK2mcv_0NpmO8-31">
+          <mxGeometry x="442.5" y="720" width="215" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-20" value="TOTE-0" style="rounded=0;whiteSpace=wrap;html=1;flipV=1;rotation=-90;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="cvbeNvJm6m_hZsHkrufq-16">
+          <mxGeometry y="85" width="85" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-23" value="TOTE-1" style="rounded=0;whiteSpace=wrap;html=1;flipV=1;rotation=-90;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="cvbeNvJm6m_hZsHkrufq-16">
+          <mxGeometry x="30" y="85" width="85" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-24" value="TOTE-N" style="rounded=0;whiteSpace=wrap;html=1;flipV=1;rotation=-90;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="cvbeNvJm6m_hZsHkrufq-16">
+          <mxGeometry x="115" y="85" width="85" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-25" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="cvbeNvJm6m_hZsHkrufq-16">
+          <mxGeometry x="85" y="85" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;dashed=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" edge="1" parent="MPshjHnfK2mcv_0NpmO8-31" source="cvbeNvJm6m_hZsHkrufq-26" target="cvbeNvJm6m_hZsHkrufq-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cvbeNvJm6m_hZsHkrufq-26" value="&lt;b&gt;Total Order Timeline Entry&lt;br&gt;&lt;/b&gt;&lt;br&gt;- thread-timeline (ref)&lt;br&gt;- thread-timeline-entry (ref)" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="MPshjHnfK2mcv_0NpmO8-31">
+          <mxGeometry x="140" y="780" width="160" height="105" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

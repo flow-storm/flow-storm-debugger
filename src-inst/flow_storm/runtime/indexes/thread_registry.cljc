@@ -91,7 +91,7 @@
 
     ;; discard the entire total-order-timeline list if we
     ;; discard any threads
-    (total-order-timeline/clear-all total-order-timeline))
+    (index-protos/tot-clear-all total-order-timeline))
 
   (start-thread-registry [thread-reg callbacks]    
     (reset! *callbacks callbacks)
@@ -99,8 +99,8 @@
 
   (stop-thread-registry [_])
 
-  (record-total-order-entry [_ flow-id thread-id entry]    
-    (total-order-timeline/add-entry total-order-timeline flow-id thread-id entry))
+  (record-total-order-entry [_ th-timeline entry]    
+    (index-protos/tot-add-entry total-order-timeline th-timeline entry))
 
   (total-order-timeline [_]
     total-order-timeline))

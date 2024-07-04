@@ -45,9 +45,14 @@
 (def tree-root-idx -1)
 
 (defn- print-it [timeline]
-  (utils/format "#flow-storm/timeline [count: %d]" (count timeline)))
+  (utils/format "#flow-storm/timeline [thread-id: %d count: %d]"
+                (index-protos/thread-id timeline)
+                (count timeline)))
 
-(deftype ExecutionTimelineTree [;; an array of FnCall, Expr, FnRet, FnUnwind
+(deftype ExecutionTimelineTree [;; this timeline thread id
+                                tid
+                                
+                                ;; an array of FnCall, Expr, FnRet, FnUnwind
                                 timeline 
 
                                 ;; a stack of pointers to prev FnCall
@@ -60,7 +65,11 @@
                                 ^:unsynchronized-mutable ^long last-fn-timestamp
                                 ]
 
-  index-protos/RecorderP                                       
+  index-protos/TimelineP
+  
+  (thread-id [_] tid)
+  
+  index-protos/ThreadTimelineRecorderP                                       
   
   (add-fn-call [this fn-ns fn-name form-id args]
     (locking this
@@ -255,11 +264,11 @@
    (defmethod print-method ExecutionTimelineTree [timeline ^java.io.Writer w]
       (.write w ^String (print-it timeline))))
 
-(defn make-index []
+(defn make-index [thread-id]
   (let [build-stack (make-mutable-stack)
         timeline (make-mutable-list)
         stats (make-mutable-hashmap)]    
-    (->ExecutionTimelineTree timeline build-stack stats 0)))
+    (->ExecutionTimelineTree thread-id timeline build-stack stats 0)))
 
 (defn- fn-call-exprs [timeline fn-call-idx]
   (locking timeline

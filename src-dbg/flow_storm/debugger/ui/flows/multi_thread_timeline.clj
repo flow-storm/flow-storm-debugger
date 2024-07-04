@@ -20,7 +20,7 @@
   (when-let [[{:keys [clear]}] (obj-lookup "total-order-table-data")]
     (clear)))
 
-(defn- main-pane []
+(defn- main-pane [flow-id]
   (let [{:keys [table-view-pane table-view add-all clear] :as table-data}
         (ui/table-view :columns ["Thread" "Thread Idx" "Function" "Expression" "Value" "Value type"]
                        :resize-policy :constrained
@@ -35,7 +35,7 @@
                                          [mev]
                                          (when (and (ui-utils/mouse-primary? mev)
                                                     (ui-utils/double-click? mev))
-                                           (let [{:keys [flow-id thread-id thread-timeline-idx]} (meta row-vec)
+                                           (let [{:keys [thread-id thread-timeline-idx]} (meta row-vec)
                                                  goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
                                              (goto-loc {:flow-id flow-id
                                                         :thread-id thread-id
@@ -104,10 +104,10 @@
 
     main-pane))
 
-(defn open-timeline-window []
+(defn open-timeline-window [flow-id]
   (let [window-w 1000
         window-h 1000
-        scene (Scene. (main-pane) window-w window-h)
+        scene (Scene. (main-pane flow-id) window-w window-h)
         stage (doto (Stage.)
                 (.setTitle "FlowStorm multi-thread timeline browser")
                 (.setScene scene))]

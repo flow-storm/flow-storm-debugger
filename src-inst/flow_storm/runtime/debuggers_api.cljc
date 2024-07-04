@@ -272,7 +272,7 @@
   (let [timeline (index-api/total-order-timeline)
         xf (cond->> (total-order-timeline/detailed-timeline-transd index-api/forms-registry)
              only-functions? (comp (filter (fn [tote]
-                                             (let [entry (index-protos/tote-entry tote)]
+                                             (let [entry (index-protos/tote-thread-timeline-entry tote)]
                                                (fn-call-trace/fn-call-trace? entry))))))]    
     (submit-async-interruptible-batched-process-timelines-task [[nil nil timeline]] xf)))
 

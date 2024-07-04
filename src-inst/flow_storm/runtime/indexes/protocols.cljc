@@ -4,7 +4,7 @@
 ;; Timeline protocols ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol RecorderP
+(defprotocol ThreadTimelineRecorderP
   (add-fn-call [_ fn-ns fn-name form-id args])
   (add-fn-return [_ coord ret-val])
   (add-fn-unwind [_ coord throwable])
@@ -13,6 +13,9 @@
 
 (defprotocol TreeBuilderP
   (reset-build-stack [_]))
+
+(defprotocol TimelineP
+  (thread-id [_]))
 
 (defprotocol TimelineEntryP
   (entry-type [_])
@@ -38,6 +41,14 @@
 
 (defprotocol ModifiableP
   (last-modified [_]))
+
+(defprotocol TotalOrderTimelineP
+  (tot-add-entry [_ th-timeline entry])
+  (tot-clear-all [_]))
+
+(defprotocol TotalOrderTimelineEntryP
+  (tote-thread-timeline [_])
+  (tote-thread-timeline-entry [_]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function stats protocols ;;
@@ -68,7 +79,7 @@
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
-  (record-total-order-entry [_ flow-id thread-id entry])
+  (record-total-order-entry [_ th-timeline entry])
   (total-order-timeline [_])
   (discard-threads [_ flow-threads-ids])
   (start-thread-registry [_ callbacks])
@@ -94,12 +105,3 @@
 (defprotocol BindTraceP
   (get-bind-sym-name [_])
   (get-bind-val [_]))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Total order timeline ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defprotocol TotalOrderTimelineEntryP
-  (tote-flow-id [_])
-  (tote-thread-id [_])
-  (tote-entry [_]))

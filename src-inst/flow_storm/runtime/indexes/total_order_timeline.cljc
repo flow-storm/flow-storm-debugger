@@ -7,95 +7,88 @@
             [hansel.utils :as hansel-utils]
             #?(:clj [clojure.core.protocols :as cp])))
 
-(def ^:dynamic *printing-expr-val* false)
-
-(defprotocol TotalOrderTimelineP
-  (add-entry [_ flow-id thread-id entry])
-  (clear-all [_]))
-
-(deftype TotalOrderTimelineEntry [flow-id thread-id entry]
+(deftype TotalOrderTimelineEntry [th-timeline entry]
 
   index-protos/ImmutableP
   (as-immutable [_]
-    (merge {:flow-id flow-id
-            :thread-id thread-id}
+    (merge {:thread-id (index-protos/thread-id th-timeline)}
            (index-protos/as-immutable entry)))
   
   index-protos/TotalOrderTimelineEntryP
   
-  (tote-flow-id [_] flow-id)
-  (tote-thread-id [_] thread-id)  
-  (tote-entry [_] entry))
+  (tote-thread-timeline [_] th-timeline)
+  (tote-thread-timeline-entry [_] entry)
 
-(deftype TotalOrderTimeline [timeline]
+  )
 
-  TotalOrderTimelineP
+(deftype TotalOrderTimeline [mt-timeline]
 
-  (add-entry [this flow-id thread-id entry]
-    ;; HACKY: `build-detailed-timeline` will print expr-vals which because of laziness can fire
-    ;; instrumented code that will try to add to the timeline under the same thread, which will end
-    ;; in a java.util.ConcurrentModificationException
-    ;; The *printing-expr-val* flag is to prevent this
-    (when-not *printing-expr-val*      
-      (locking this
-        (ml-add timeline (TotalOrderTimelineEntry. flow-id thread-id entry)))))
+  index-protos/TimelineP
   
-  (clear-all [_]
-    (locking timeline
-      (ml-clear timeline)))
+  (thread-id [_] :multi-thread)
+  
+  index-protos/TotalOrderTimelineP
+
+  (tot-add-entry [this th-timeline entry]    
+    (locking this
+      (ml-add mt-timeline (TotalOrderTimelineEntry. th-timeline entry))))
+  
+  (tot-clear-all [this]
+    (locking this
+      (ml-clear mt-timeline)))
   
   #?@(:clj
       [clojure.lang.Counted       
        (count
         [this]
         (locking this
-          (ml-count timeline)))
+          (ml-count mt-timeline)))
 
        clojure.lang.Seqable
        (seq
         [this]
         (locking this
-          (doall (seq timeline))))       
+          (doall (seq mt-timeline))))       
 
        cp/CollReduce
        (coll-reduce
         [this f]        
         (locking this
-          (cp/coll-reduce timeline f)))
+          (cp/coll-reduce mt-timeline f)))
        
        (coll-reduce
         [this f v]        
         (locking this
-          (cp/coll-reduce timeline f v)))
+          (cp/coll-reduce mt-timeline f v)))
 
        clojure.lang.ILookup
-       (valAt [this k] (locking this (ml-get timeline k)))
-       (valAt [this k not-found] (locking this (or (ml-get timeline k) not-found)))
+       (valAt [this k] (locking this (ml-get mt-timeline k)))
+       (valAt [this k not-found] (locking this (or (ml-get mt-timeline k) not-found)))
 
        clojure.lang.Indexed
-       (nth [this k] (locking this (ml-get timeline k)))
-       (nth [this k not-found] (locking this (or (ml-get timeline k) not-found)))]
+       (nth [this k] (locking this (ml-get mt-timeline k)))
+       (nth [this k not-found] (locking this (or (ml-get mt-timeline k) not-found)))]
 
       :cljs
       [ICounted
-       (-count [_] (ml-count timeline))
+       (-count [_] (ml-count mt-timeline))
 
        ISeqable
-       (-seq [_] (seq timeline))
+       (-seq [_] (seq mt-timeline))
        
        IReduce
        (-reduce [_ f]
-                (reduce f timeline))
+                (reduce f mt-timeline))
        (-reduce [_ f start]
-                (reduce f start timeline))
+                (reduce f start mt-timeline))
 
        ILookup
-       (-lookup [_ k] (ml-get timeline k))
-       (-lookup [_ k not-found] (or (ml-get timeline k) not-found))
+       (-lookup [_ k] (ml-get mt-timeline k))
+       (-lookup [_ k not-found] (or (ml-get mt-timeline k) not-found))
 
        IIndexed
-       (-nth [_ n] (ml-get timeline n))
-       (-nth [_ n not-found] (or (ml-get timeline n) not-found))]))
+       (-nth [_ n] (ml-get mt-timeline n))
+       (-nth [_ n not-found] (or (ml-get mt-timeline n) not-found))]))
 
 (defn make-total-order-timeline []
   (TotalOrderTimeline. (make-mutable-list)))
@@ -103,16 +96,16 @@
 (defn detailed-timeline-transd [forms-registry]
   (let [threads-stacks (atom {})]
     (map (fn [tote]
-           (let [entry (index-protos/tote-entry tote)
-                 fid   (index-protos/tote-flow-id tote)
-                 tid   (index-protos/tote-thread-id tote)
-                 tidx  (index-protos/entry-idx entry)]
+           (let [entry (index-protos/tote-thread-timeline-entry tote)
+                 tidx  (index-protos/entry-idx entry)
+                 tid   (-> tote
+                           index-protos/tote-thread-timeline
+                           index-protos/thread-id)]
              (cond
                (fn-call-trace? entry)
                (do
                  (swap! threads-stacks update tid conj entry)
                  {:type                :fn-call
-                  :flow-id             fid
                   :thread-id           tid
                   :thread-timeline-idx tidx
                   :fn-ns               (index-protos/get-fn-ns entry)
@@ -124,7 +117,6 @@
                  {:type                (if (fn-return-trace/fn-return-trace? entry)
                                          :fn-return
                                          :fn-unwind)
-                  :flow-id             fid
                   :thread-id           tid
                   :thread-timeline-idx tidx})
                
@@ -136,7 +128,6 @@
                      expr-val (index-protos/get-expr-val entry)]
                  
                  {:type                :expr-exec
-                  :flow-id             fid
                   :thread-id           tid
                   :thread-timeline-idx tidx
                   :expr-str            (binding [*print-length* 5
@@ -146,6 +137,5 @@
                                                                           coord)))
                   :expr-type (pr-str (type expr-val))
                   :expr-val-str  (binding [*print-length* 3
-                                           *print-level*  2
-                                           *printing-expr-val* true]
+                                           *print-level*  2]
                                    (pr-str expr-val))})))))))

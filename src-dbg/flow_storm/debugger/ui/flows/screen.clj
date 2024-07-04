@@ -122,6 +122,90 @@
         (set-items threads-info)
         (.setText menu-button (format "Threads [%d]" (count threads-info)))))))
 
+(defn select-flow-tab [flow-id]
+  (let [[^TabPane flows-tabs-pane] (obj-lookup "flows_tabs_pane")
+        sel-model (.getSelectionModel flows-tabs-pane)
+        all-tabs (.getTabs flows-tabs-pane)
+        tab-for-flow (some (fn [^Tab t]
+                             (when (= (.getId t) (str "flow-tab-" flow-id))
+                               t))
+                           all-tabs)]
+
+    ;; select the flow tab
+    (when tab-for-flow
+      (ui-utils/selection-select-obj sel-model tab-for-flow)
+
+      ;; focus the threads list
+      (let [[{:keys [^ListView list-view]}] (obj-lookup flow-id "flow_threads_list")]
+        (when list-view
+          (let [list-selection (.getSelectionModel list-view)]
+            (.requestFocus list-view)
+            (ui-utils/selection-select-first list-selection)))))))
+
+(defn goto-location [{:keys [flow-id thread-id idx]}]
+  (ui-general/select-main-tools-tab "tool-flows")
+  (select-flow-tab flow-id)
+  (open-thread (assoc (dbg-state/get-thread-info thread-id)
+                      :flow/id flow-id))
+  (ui-general/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
+  (flow-code/jump-to-coord flow-id
+                           thread-id
+                           (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))
+
+(defn- build-flow-tool-bar-pane [flow-id]
+  (let [quick-jump-textfield (ui/h-box
+                              :childs [(ui/label :text "Quick jump:")
+                                       (ui/autocomplete-textfield
+                                        :get-completions
+                                        (fn []
+                                          (into []
+                                                (keep (fn [[fq-fn-name cnt]]
+                                                        (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
+                                                          {:text (format "%s (%d)" fq-fn-name cnt)
+                                                           :on-select (fn []
+                                                                        (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                           [(symbol fq-fn-name) 0 {}]
+                                                                                           {:on-finished (fn [{:keys [result]}]
+                                                                                                           (when result
+                                                                                                             (goto-location result)))}))})))
+                                                (runtime-api/all-fn-call-stats rt-api))))]
+                              :align :center-left)
+
+        exceptions-menu-data (ui/menu-button
+                              :title "Exceptions"
+                              :on-action (fn [loc] (goto-location loc))
+                              :items []
+                              :class "important-combo")
+        exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
+                                 :class "hidden-pane"
+                                 :align :center-left)
+        tools-menu  (ui/menu-button :title "More tools"
+                                    :items [{:key :search
+                                             :text "Search"}
+                                            {:key :multi-thread-timeline
+                                             :text "Multi-thread timeline browser"}
+                                            {:key :printers
+                                             :text "Printers"}]
+
+                                    :on-action (fn [item]
+                                                 (case (:key item)
+                                                   :search                (search/search-window)
+                                                   :multi-thread-timeline (multi-thread-timeline/open-timeline-window flow-id)
+                                                   :printers              (printer/open-printers-window)))
+                                    :orientation :right-to-left)
+        left-tools-box (ui/h-box :childs [quick-jump-textfield
+                                          exceptions-box]
+                                 :spacing 4)
+        right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
+                                  :spacing 4)]
+
+    (store-obj "exceptions-box" exceptions-box)
+    (store-obj "exceptions-menu-data" exceptions-menu-data)
+
+    (ui/border-pane :left  left-tools-box
+                    :right right-tools-box
+                    :paddings [5 5 0 5])))
+
 (defn create-empty-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         threads-tab-pane (ui/tab-pane :closing-policy :all-tabs
@@ -150,19 +234,27 @@
                            ;; if not blocked just render a label
                            (ui/label :text (ui/thread-label id name))))
          :class "hl-combo")
-        flow-box (ui/anchor-pane
-                  :childs [{:node threads-tab-pane
-                            :top-anchor 5.0
-                            :left-anchor 5.0
-                            :right-anchor 5.0
-                            :bottom-anchor 5.0}
-                           {:node menu-button
-                            :top-anchor 8.0
-                            :left-anchor 10.0}])
+
+        flow-toolbar (build-flow-tool-bar-pane flow-id)
+        flow-anchor (ui/anchor-pane
+                     :childs [{:node threads-tab-pane
+                               :top-anchor 5.0
+                               :left-anchor 5.0
+                               :right-anchor 5.0
+                               :bottom-anchor 5.0}
+                              {:node menu-button
+                               :top-anchor 8.0
+                               :left-anchor 10.0}])
+
+        flow-box (ui/v-box :childs [flow-toolbar
+                                     flow-anchor])
 
         flow-tab (ui/tab :id (str "flow-tab-" flow-id)
                          :text (str "flow-" flow-id)
                          :content flow-box)]
+
+    (VBox/setVgrow flow-anchor Priority/ALWAYS)
+    (VBox/setVgrow flow-box Priority/ALWAYS)
 
     (.setOnCloseRequest ^Tab flow-tab
                         (event-handler
@@ -235,36 +327,6 @@
 
         (ui-utils/selection-select-obj sel-model thread-tab)))))
 
-(defn select-flow-tab [flow-id]
-  (let [[^TabPane flows-tabs-pane] (obj-lookup "flows_tabs_pane")
-        sel-model (.getSelectionModel flows-tabs-pane)
-        all-tabs (.getTabs flows-tabs-pane)
-        tab-for-flow (some (fn [^Tab t]
-                             (when (= (.getId t) (str "flow-tab-" flow-id))
-                               t))
-                           all-tabs)]
-
-    ;; select the flow tab
-    (when tab-for-flow
-      (ui-utils/selection-select-obj sel-model tab-for-flow)
-
-      ;; focus the threads list
-      (let [[{:keys [^ListView list-view]}] (obj-lookup flow-id "flow_threads_list")]
-        (when list-view
-          (let [list-selection (.getSelectionModel list-view)]
-            (.requestFocus list-view)
-            (ui-utils/selection-select-first list-selection)))))))
-
-(defn goto-location [{:keys [flow-id thread-id idx]}]
-  (ui-general/select-main-tools-tab "tool-flows")
-  (select-flow-tab flow-id)
-  (open-thread (assoc (dbg-state/get-thread-info thread-id)
-                      :flow/id flow-id))
-  (ui-general/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
-  (flow-code/jump-to-coord flow-id
-                           thread-id
-                           (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))
-
 (defn update-exceptions-combo []
   (let [unwinds (dbg-state/get-fn-unwinds)
         [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
@@ -299,71 +361,6 @@
          ["mdi-chart-timeline" "mdi-pause"]
          ["mdi-chart-timeline" "mdi-record"])))))
 
-(defn- build-flows-tool-bar-pane []
-  (let [record-btn (ui/icon-button :icon-name "mdi-record"
-                                   :tooltip "Start/Stop recording"
-                                   :on-click (fn [] (runtime-api/toggle-recording rt-api))
-                                   :classes ["record-btn"])
-        multi-timeline-record-btn (ui/icon-button
-                                   :icon-name ["mdi-chart-timeline" "mdi-record"]
-                                   :tooltip "Start/Stop recording of the multi-thread timeline"
-                                   :on-click (fn [] (runtime-api/toggle-multi-timeline-recording rt-api)))
-        search-btn (ui/icon-button :icon-name "mdi-magnify"
-                                   :tooltip "Open the search window"
-                                   :on-click (fn [] (search/search-window)))
-        quick-jump-textfield (ui/h-box
-                              :childs [(ui/label :text "Quick jump:")
-                                       (ui/autocomplete-textfield
-                                        :get-completions
-                                        (fn []
-                                          (into []
-                                                (keep (fn [[fq-fn-name cnt]]
-                                                        (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
-                                                          {:text (format "%s (%d)" fq-fn-name cnt)
-                                                           :on-select (fn []
-                                                                        (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                           [(symbol fq-fn-name) 0 {}]
-                                                                                           {:on-finished (fn [{:keys [result]}]
-                                                                                                           (when result
-                                                                                                             (goto-location result)))}))})))
-                                                (runtime-api/all-fn-call-stats rt-api))))]
-                              :align :center-left)
-
-        exceptions-menu-data (ui/menu-button
-                              :title "Exceptions"
-                              :on-action (fn [loc] (goto-location loc))
-                              :items []
-                              :class "important-combo")
-        exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
-                                 :class "hidden-pane"
-                                 :align :center-left)
-        tools-menu  (ui/menu-button :title "More tools"
-                                    :items [{:key :multi-thread-timeline
-                                             :text "Multi-thread timeline browser"}
-                                            {:key :printers
-                                             :text "Printers"}]
-                                    :on-action (fn [item]
-                                                 (case (:key item)
-                                                   :multi-thread-timeline (multi-thread-timeline/open-timeline-window)
-                                                   :printers (printer/open-printers-window)))
-                                    :orientation :right-to-left)
-        left-tools-box (ui/h-box :childs [record-btn
-                                          multi-timeline-record-btn
-                                          search-btn
-                                          quick-jump-textfield
-                                          exceptions-box]
-                                 :spacing 4)
-        right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
-                                  :spacing 4)]
-
-    (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-menu-data" exceptions-menu-data)
-    (store-obj "record-btn" record-btn)
-    (store-obj "multi-timeline-record-btn" multi-timeline-record-btn)
-    (ui/border-pane :left  left-tools-box
-                    :right right-tools-box
-                    :paddings [5 5 0 5])))
-
 (defn main-pane []
   (let [flows-tpane (ui/tab-pane :closing-policy :all-tabs
                                  :side :top
@@ -374,20 +371,34 @@
                                   :on-change (fn [_ new-flow-id]
                                                (runtime-api/switch-record-to-flow rt-api new-flow-id))
                                   :classes ["hl-combo" "flows-combo"])
+        record-btn (ui/icon-button :icon-name "mdi-record"
+                                   :tooltip "Start/Stop recording"
+                                   :on-click (fn [] (runtime-api/toggle-recording rt-api))
+                                   :classes ["record-btn"])
+        multi-timeline-record-btn (ui/icon-button
+                                   :icon-name ["mdi-chart-timeline" "mdi-record"]
+                                   :tooltip "Start/Stop recording of the multi-thread timeline"
+                                   :on-click (fn [] (runtime-api/toggle-multi-timeline-recording rt-api)))
+        record-controls (ui/h-box :childs [record-btn
+                                           multi-timeline-record-btn
+                                           flows-combo]
+                                  :paddings [4 4 4 4]
+                                  :spacing 4)
         flow-anchor (ui/anchor-pane
                      :childs [{:node flows-tpane
                                :top-anchor 5.0
                                :left-anchor 5.0
                                :right-anchor 5.0
                                :bottom-anchor 5.0}
-                              {:node flows-combo
+                              {:node record-controls
                                :top-anchor 8.0
                                :left-anchor 10.0}])
-        flows-box (ui/v-box :childs [(build-flows-tool-bar-pane)
-                                     flow-anchor])]
+        flows-box (ui/v-box :childs [flow-anchor])]
 
     (VBox/setVgrow flow-anchor Priority/ALWAYS)
     (VBox/setVgrow flows-box Priority/ALWAYS)
 
+    (store-obj "record-btn" record-btn)
+    (store-obj "multi-timeline-record-btn" multi-timeline-record-btn)
     (store-obj "flows_tabs_pane" flows-tpane)
     flows-box))
