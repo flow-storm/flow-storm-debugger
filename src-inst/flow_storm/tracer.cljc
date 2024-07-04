@@ -18,7 +18,7 @@
   (if x
     (do
       (reset! recording true)
-      (indexes-api/reset-all-threads-trees-build-stack nil))
+      (indexes-api/reset-all-threads-trees-build-stack @current-flow-id))
 
     (reset! recording false)))
 

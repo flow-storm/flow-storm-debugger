@@ -53,7 +53,8 @@
         refresh (fn []
                   (clear)
                   (let [thread-selected-colors (atom {})
-                        params {:only-functions? (ui-utils/checkbox-checked? only-functions-cb)}
+                        params {:only-functions? (ui-utils/checkbox-checked? only-functions-cb)
+                                :flow-id flow-id}
                         timeline-task-id (rt-api/total-order-timeline-task rt-api params)
                         thread-color (fn [thread-id]
                                        (if-let [color (get @thread-selected-colors thread-id)]

@@ -268,8 +268,8 @@
                                     criteria                                    
                                     {:result-transform reference-timeline-entry!})))
 
-(defn total-order-timeline-task [{:keys [only-functions?]}]
-  (let [timeline (index-api/total-order-timeline)
+(defn total-order-timeline-task [{:keys [flow-id only-functions?]}]
+  (let [timeline (index-api/total-order-timeline flow-id)
         xf (cond->> (total-order-timeline/detailed-timeline-transd index-api/forms-registry)
              only-functions? (comp (filter (fn [tote]
                                              (let [entry (index-protos/tote-thread-timeline-entry tote)]

@@ -5,29 +5,28 @@
             [clojure.string :as str])
   #?(:clj (:import [clojure.data.int_map PersistentIntMap])))
 
-(defn flow-id-key [fid]
-  (or fid 10))
 
-(defn flow-key-id [fk]
-  (when-not (= fk 10)
-    fk))
+(defrecord ThreadRegistry [;; atom of int-map with flow-id -> thread-id -> indexes
+                           registry
 
-(defrecord ThreadRegistry [registry
-                           total-order-timeline
-                           *callbacks]
+                           ;; atom of int-map with flow-id -> TotalOrderTimeline
+                           total-order-timelines
+
+                           ;; atom with threads events callbacks, like thread creation
+                           callbacks]
 
   index-protos/ThreadRegistryP
 
   (all-threads [_]
-    (reduce-kv (fn [all-ths fk threads]
+    (reduce-kv (fn [all-ths fid threads]
                  (into all-ths (mapv
-                                (fn [tid] [(flow-key-id fk) tid])
+                                (fn [tid] [fid tid])
                                 (keys threads))))
                #{}
      @registry))
 
   (flow-threads-info [_ flow-id]
-    (->> (get @registry (flow-id-key flow-id))
+    (->> (get @registry flow-id)
          vals
          (mapv (fn [tinfo]
                  {:flow/id flow-id
@@ -36,34 +35,34 @@
                   :thread/blocked (:thread/blocked tinfo)}))))
 
   (flow-exists? [_ flow-id]
-    (let [flow-int-key (flow-id-key flow-id)]
-      (contains? @registry flow-int-key)))
+    (contains? @registry flow-id))
 
   (get-thread-indexes [_ flow-id thread-id]
-    (let [flow-int-key (flow-id-key flow-id)]      
-      #?(:clj
-         (some-> ^PersistentIntMap                @registry
-                 ^PersistentIntMap                (.get flow-int-key)
-                 ^clojure.lang.PersistentArrayMap (.get thread-id)
-                                                  (.get :thread/indexes))
-         :cljs
-         (some-> @registry
-                 (get flow-int-key)
-                 (get thread-id)
-                 (get :thread/indexes)))))
+    #?(:clj
+       (some-> ^PersistentIntMap                @registry
+               ^PersistentIntMap                (.get flow-id)
+               ^clojure.lang.PersistentArrayMap (.get thread-id)
+               (.get :thread/indexes))
+       :cljs
+       (some-> @registry
+               (get flow-id)
+               (get thread-id)
+               (get :thread/indexes))))
 
-  (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes]
-    (let [flow-int-key (flow-id-key flow-id)]
-      (swap! registry update flow-int-key
-             (fn [threads]               
-               (assoc (or threads (int-map)) thread-id {:thread/id thread-id
-                                                        :thread/name (if (str/blank? thread-name)
-                                                                       (str "Thread-" thread-id)
-                                                                       thread-name)
-                                                        :thread/indexes indexes
-                                                        :thread/blocked nil}))))
+  (register-thread-indexes [this flow-id thread-id thread-name form-id indexes]
+    (when-not (index-protos/flow-exists? this flow-id)
+      (swap! total-order-timelines assoc flow-id (total-order-timeline/make-total-order-timeline)))
     
-    (when-let [otc (:on-thread-created @*callbacks)]
+    (swap! registry update flow-id
+           (fn [threads]               
+             (assoc (or threads (int-map)) thread-id {:thread/id thread-id
+                                                      :thread/name (if (str/blank? thread-name)
+                                                                     (str "Thread-" thread-id)
+                                                                     thread-name)
+                                                      :thread/indexes indexes
+                                                      :thread/blocked nil})))
+    
+    (when-let [otc (:on-thread-created @callbacks)]
       (otc {:flow-id flow-id
             :thread-id thread-id
             :thread-name thread-name
@@ -71,41 +70,39 @@
 
   (set-thread-blocked [this flow-id thread-id breakpoint]
     (when (index-protos/get-thread-indexes this flow-id thread-id)
-      (let [flow-int-key (flow-id-key flow-id)]
-        (swap! registry assoc-in [flow-int-key thread-id :thread/blocked]  breakpoint))))
+      (swap! registry assoc-in [flow-id thread-id :thread/blocked]  breakpoint)))
 
-  (discard-threads [_ flow-threads-ids]
+  (discard-threads [this flow-threads-ids]
     (doseq [[fid tid] flow-threads-ids]
-      (let [fk (flow-id-key fid)]
-        (swap! registry update fk dissoc tid)))
+      (swap! registry update fid dissoc tid))
     
     ;; remove empty flows from the registry since flow-exist? uses it
     ;; kind of HACKY...
-    (let [empty-flow-keys (reduce-kv (fn [efks fk threads-map]
+    (let [empty-flow-ids (reduce-kv (fn [efids fid threads-map]
                                        (if (empty? threads-map)
-                                         (conj efks fk)
-                                         efks))
+                                         (conj efids fid)
+                                         efids))
                                      #{}
                                      @registry)]      
-      (swap! registry (fn [flows-map] (apply dissoc flows-map empty-flow-keys))))
+      (swap! registry (fn [flows-map] (apply dissoc flows-map empty-flow-ids))))
 
-    ;; discard the entire total-order-timeline list if we
-    ;; discard any threads
-    (index-protos/tot-clear-all total-order-timeline))
+    (doseq [[fid] flow-threads-ids]
+      (index-protos/tot-clear-all (index-protos/total-order-timeline this fid))))
 
-  (start-thread-registry [thread-reg callbacks]    
-    (reset! *callbacks callbacks)
+  (start-thread-registry [thread-reg cbs]    
+    (reset! callbacks cbs)
     thread-reg)
 
   (stop-thread-registry [_])
 
-  (record-total-order-entry [_ th-timeline entry]    
-    (index-protos/tot-add-entry total-order-timeline th-timeline entry))
+  (record-total-order-entry [_ flow-id th-timeline entry]
+    (-> (get @total-order-timelines flow-id)
+        (index-protos/tot-add-entry th-timeline entry)))
 
-  (total-order-timeline [_]
-    total-order-timeline))
+  (total-order-timeline [_ flow-id]
+    (get @total-order-timelines flow-id)))
 
 (defn make-thread-registry []
-  (map->ThreadRegistry {:registry (atom (int-map))
-                        :total-order-timeline (total-order-timeline/make-total-order-timeline)
-                        :*callbacks (atom {})}))
+  (map->ThreadRegistry {:registry (atom (int-map)) 
+                        :total-order-timelines (atom (int-map))
+                        :callbacks (atom {})}))

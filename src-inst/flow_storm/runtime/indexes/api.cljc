@@ -264,7 +264,7 @@
           ;; if we are not limited, go ahead and record fn-call
           (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
             (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry timeline-index (get timeline-index tl-idx))))
+              (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx))))
 
           ;; we hitted the limit, limit the thread with depth 1
           (reset! thread-limited 1))
@@ -279,7 +279,7 @@
         ;; when not limited, go ahead
         (let [tl-idx (index-protos/add-fn-return timeline-index coord ret-val)]
           (when (and tl-idx total-order-recording?)
-            (index-protos/record-total-order-entry flow-thread-registry timeline-index (get timeline-index tl-idx))))
+            (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx))))
 
         ;; if we are limited decrease the limit depth or remove it when it reaches to 0
         (do
@@ -308,7 +308,7 @@
                                                          :ex-message (ex-message throwable)})]
 
             (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry timeline-index (get timeline-index tl-idx)))
+              (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))
 
             (events/publish-event! ev)))
 
@@ -325,7 +325,7 @@
     (when (and timeline-index (not @thread-limited))      
       (let [tl-idx (index-protos/add-expr-exec timeline-index coord expr-val)]
         (when (and tl-idx total-order-recording?)
-          (index-protos/record-total-order-entry flow-thread-registry timeline-index (get timeline-index tl-idx)))))))
+          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))))))
 
 (defn add-bind-trace [flow-id thread-id coord symb-name symb-val]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
@@ -815,14 +815,14 @@
 
 (defn total-order-timeline
   
-  "Retrieves the total order timeline if there is one recorded.
+  "Retrieves the total order timeline for a flow-id if there is one recorded.
   Look at this namespace docstring for more info."
   
-  []
-  (index-protos/total-order-timeline flow-thread-registry))
+  [flow-id]
+  (index-protos/total-order-timeline flow-thread-registry flow-id))
 
-(defn detailed-total-order-timeline []
-  (let [timeline (total-order-timeline)]
+(defn detailed-total-order-timeline [flow-id]
+  (let [timeline (total-order-timeline flow-id)]
     (into []
           (total-order-timeline/detailed-timeline-transd forms-registry)
           timeline)))
