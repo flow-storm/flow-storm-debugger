@@ -1671,7 +1671,7 @@ If you are using _ClojureStorm_ you can also provide them with :
    -Dflowstorm.theme=dark
    -Dflowstorm.styles=~/.flow-storm/big-fonts.css
    
-You can overwrite all the styles defined here https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/styles.css
+You can overwrite all the styles defined here https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/flowstorm/styles/styles.css
 
 = Key bindings
 
