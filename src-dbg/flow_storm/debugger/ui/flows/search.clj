@@ -10,24 +10,23 @@
            [javafx.scene.layout VBox Priority]))
 
 
-(defn search [{:keys [print-level print-length] :as criteria}]
-  (let [[{:keys [add-all clear]}] (obj-lookup "search_results_table_data")]
+(defn search [{:keys [flow-id print-level print-length] :as criteria}]
+  (let [[{:keys [add-all clear]}] (obj-lookup flow-id "search_results_table_data")]
     (clear)
     (tasks/submit-task rt-api/search-collect-timelines-entries-task
                        [criteria
                         {:print-level (Integer/parseInt (or print-level "3"))
                          :print-length (Integer/parseInt (or print-length "3"))}]
-                       {:on-progress (fn [{:keys [flow-id thread-id batch]}]
+                       {:on-progress (fn [{:keys [batch]}]
                                        (add-all (->> batch
                                                      (mapv (fn [entry]
-                                                             (let [entry (assoc entry :flow-id flow-id :thread-id thread-id)]
-                                                               [(assoc entry :cell-type :flow-id)
-                                                                (assoc entry :cell-type :thread-id)
-                                                                (assoc entry :cell-type :idx)
-                                                                (assoc entry :cell-type :preview)]))))))})))
+                                                             [(assoc entry :cell-type :thread-id)
+                                                              (assoc entry :cell-type :idx)
+                                                              (assoc entry :cell-type :preview)])))))})))
 
-(defn create-search-params-pane []
-  (let [criteria (atom {:query-str ""
+(defn create-search-params-pane [flow-id]
+  (let [criteria (atom {:flow-id flow-id
+                        :query-str ""
                         :predicate-code-str "(fn [v] v)"
                         :print-length "3"
                         :print-level "3"
@@ -40,17 +39,26 @@
         search-btn (ui/icon-button :icon-name "mdi-magnify"
                                    :class "tree-search"
                                    :on-click (fn [] (search @criteria)))
-        flows-threads (rt-api/all-flows-threads rt-api)
-        flow-combo (ui/combo-box :items (into ["All"] (mapv first flows-threads))
-                                 :on-change (fn [_ new-flow-id]
-                                              (if (= "All" new-flow-id)
-                                                (swap! criteria dissoc :flow-id)
-                                                (swap! criteria assoc :flow-id new-flow-id))))
-        thread-combo (ui/combo-box :items (into ["All"] (mapv second flows-threads))
-                                   :on-change (fn [_ new-thread-id]
-                                                (if (= "All" new-thread-id)
-                                                  (swap! criteria dissoc :thread-id)
-                                                  (swap! criteria assoc :thread-id new-thread-id))))
+
+        thread-combo (ui/combo-box :items (let [flows-threads (rt-api/all-flows-threads rt-api)]
+                                            (->> (keep (fn [[fid tid]]
+                                                         (when (= fid flow-id)
+                                                           {:thread-id tid
+                                                            :thread-name (:thread/name (dbg-state/get-thread-info tid))}))
+                                                       flows-threads)
+                                                 (into [{:thread-name "All"}])))
+                                   :cell-factory (fn [_ {:keys [thread-id thread-name]}]
+                                                   (ui/label :text (if thread-id
+                                                                     (ui/thread-label thread-id thread-name)
+                                                                     thread-name)))
+                                   :button-factory (fn [_ {:keys [thread-id thread-name]}]
+                                                     (ui/label :text (if thread-id
+                                                                       (ui/thread-label thread-id thread-name)
+                                                                       thread-name)))
+                                   :on-change (fn [_ {:keys [thread-id]}]
+                                                (if thread-id
+                                                  (swap! criteria assoc :thread-id thread-id)
+                                                  (swap! criteria dissoc :thread-id))))
 
         pr-len-txt (ui/text-field :initial-text (:print-length @criteria)
                                   :on-change (fn [new-txt] (swap! criteria assoc :print-length new-txt)))
@@ -88,8 +96,7 @@
                                                  (= :clj (dbg-state/env-kind)) (into ["Search by predicate"]))
                                         :on-change change-pred-or-prn-combo)
 
-        gral-row-box (ui/h-box :childs [(ui/label :text "Flow:")   flow-combo
-                                        (ui/label :text "Thread:") thread-combo
+        gral-row-box (ui/h-box :childs [(ui/label :text "Thread:") thread-combo
                                         pred-or-prn-combo
                                         search-btn]
                                :spacing 5)]
@@ -101,14 +108,13 @@
                     :right custom-pred-params-box
                     :paddings [10])))
 
-(defn create-results-table-pane []
+(defn create-results-table-pane [flow-id]
   (let [{:keys [table-view-pane table-view] :as tv-data}
         (ui/table-view
-         :columns ["Flow Id" "Thread Id" "Index" "Preview"]
+         :columns ["Thread Id" "Index" "Preview"]
          :columns-width-percs [0.1 0.1 0.1 0.7]
          :cell-factory (fn [_ item]
                          (let [^Label lbl (ui/label :text (case (:cell-type item)
-                                                            :flow-id   (str (:flow-id item))
                                                             :thread-id (str (:thread-id item))
                                                             :idx       (str (:idx item))
                                                             :preview   (str (:entry-preview item))))]
@@ -119,27 +125,29 @@
          :on-click (fn [mev items _]
                      (when (and (ui-utils/mouse-primary? mev)
                                 (ui-utils/double-click? mev))
-                       (let [{:keys [flow-id thread-id idx]} (ffirst items)
+                       (let [{:keys [thread-id idx]} (ffirst items)
                              goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
                          (goto-loc {:flow-id   flow-id
                                     :thread-id thread-id
                                     :idx       idx})))))]
 
-    (store-obj "search_results_table_data" tv-data)
+    (store-obj flow-id "search_results_table_data" tv-data)
     (VBox/setVgrow table-view Priority/ALWAYS)
 
     table-view-pane))
 
-(defn create-search-pane []
-  (ui/split :orientation :vertical
-            :childs [(create-search-params-pane)
-                     (create-results-table-pane)]
-            :sizes [0.3 0.7]))
+(defn create-search-pane [flow-id]
+  (ui/v-box
+   :childs [(ui/label :text (format "Flow: %d" flow-id))
+            (ui/split :orientation :vertical
+                      :childs [(create-search-params-pane flow-id)
+                               (create-results-table-pane flow-id)]
+                      :sizes [0.3 0.7])]))
 
-(defn search-window []
+(defn search-window [flow-id]
   (let [window-w 1000
         window-h 600
-        scene (Scene. (create-search-pane) window-w window-h)
+        scene (Scene. (create-search-pane flow-id) window-w window-h)
         stage (doto (Stage.)
                 (.setTitle "FlowStorm search")
                 (.setScene scene))]

@@ -5,13 +5,22 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace :refer [fn-call-trace?]]
             [flow-storm.runtime.types.expr-trace :as expr-trace :refer [expr-trace?]]
             [hansel.utils :as hansel-utils]
+            [flow-storm.utils :as utils]
             #?(:clj [clojure.core.protocols :as cp])))
+
+(defn- print-tote [tote]
+  (let [th-tl (index-protos/tote-thread-timeline tote)
+        th-tle (index-protos/tote-thread-timeline-entry tote)
+        th-idx (index-protos/entry-idx th-tle)
+        th-id (index-protos/thread-id th-tl th-idx)]
+    (utils/format "#flow-storm/total-order-timeline-entry [ThreadId: %d, Idx: %d]"
+                  th-id th-idx)))
 
 (deftype TotalOrderTimelineEntry [th-timeline entry]
 
   index-protos/ImmutableP
   (as-immutable [_]
-    (merge {:thread-id (index-protos/thread-id th-timeline)}
+    (merge {:thread-id (index-protos/thread-id th-timeline 0)}
            (index-protos/as-immutable entry)))
   
   index-protos/TotalOrderTimelineEntryP
@@ -19,13 +28,27 @@
   (tote-thread-timeline [_] th-timeline)
   (tote-thread-timeline-entry [_] entry)
 
-  )
+  #?@(:cljs
+      [IPrintWithWriter
+       (-pr-writer [this writer _]
+                   (write-all writer (print-tote this)))]))
+
+(defn total-order-timeline-entry? [x]
+  (instance? TotalOrderTimelineEntry x))
+
+#?(:clj
+   (defmethod print-method TotalOrderTimelineEntry [tote ^java.io.Writer w]
+     (.write w ^String (print-tote tote))))
 
 (deftype TotalOrderTimeline [mt-timeline]
 
   index-protos/TimelineP
   
-  (thread-id [_] :multi-thread)
+  (thread-id [this idx]
+    (locking this
+      (let [tote (ml-get mt-timeline idx)
+            th-tl (index-protos/tote-thread-timeline tote)]
+        (index-protos/thread-id th-tl 0))))
   
   index-protos/TotalOrderTimelineP
 
@@ -93,49 +116,45 @@
 (defn make-total-order-timeline []
   (TotalOrderTimeline. (make-mutable-list)))
 
-(defn detailed-timeline-transd [forms-registry]
+(defn make-detailed-timeline-mapper [forms-registry]
   (let [threads-stacks (atom {})]
-    (map (fn [tote]
-           (let [entry (index-protos/tote-thread-timeline-entry tote)
-                 tidx  (index-protos/entry-idx entry)
-                 tid   (-> tote
-                           index-protos/tote-thread-timeline
-                           index-protos/thread-id)]
-             (cond
-               (fn-call-trace? entry)
-               (do
-                 (swap! threads-stacks update tid conj entry)
-                 {:type                :fn-call
-                  :thread-id           tid
-                  :thread-timeline-idx tidx
-                  :fn-ns               (index-protos/get-fn-ns entry)
-                  :fn-name             (index-protos/get-fn-name entry)})
-               
-               (fn-end-trace? entry)
-               (do
-                 (swap! threads-stacks update tid pop)
-                 {:type                (if (fn-return-trace/fn-return-trace? entry)
-                                         :fn-return
-                                         :fn-unwind)
-                  :thread-id           tid
-                  :thread-timeline-idx tidx})
-               
-               (expr-trace? entry)
-               (let [[curr-fn-call] (get @threads-stacks tid)
-                     form-id (index-protos/get-form-id curr-fn-call)
-                     form-data (index-protos/get-form forms-registry form-id)
-                     coord (index-protos/get-coord-vec entry)
-                     expr-val (index-protos/get-expr-val entry)]
-                 
-                 {:type                :expr-exec
-                  :thread-id           tid
-                  :thread-timeline-idx tidx
-                  :expr-str            (binding [*print-length* 5
-                                                 *print-level*  3]
-                                         (pr-str
-                                          (hansel-utils/get-form-at-coord (:form/form form-data)
-                                                                          coord)))
-                  :expr-type (pr-str (type expr-val))
-                  :expr-val-str  (binding [*print-length* 3
-                                           *print-level*  2]
-                                   (pr-str expr-val))})))))))
+    (fn [thread-id entry]
+      (let [te-idx (index-protos/entry-idx entry)]
+        (cond
+          (fn-call-trace? entry)
+          (do
+            (swap! threads-stacks update thread-id conj entry)
+            {:type                :fn-call
+             :thread-id           thread-id
+             :thread-timeline-idx te-idx
+             :fn-ns               (index-protos/get-fn-ns entry)
+             :fn-name             (index-protos/get-fn-name entry)})
+          
+          (fn-end-trace? entry)
+          (do
+            (swap! threads-stacks update thread-id pop)
+            {:type                (if (fn-return-trace/fn-return-trace? entry)
+                                    :fn-return
+                                    :fn-unwind)
+             :thread-id           thread-id
+             :thread-timeline-idx te-idx})
+          
+          (expr-trace? entry)
+          (let [[curr-fn-call] (get @threads-stacks thread-id)
+                form-id (index-protos/get-form-id curr-fn-call)
+                form-data (index-protos/get-form forms-registry form-id)
+                coord (index-protos/get-coord-vec entry)
+                expr-val (index-protos/get-expr-val entry)]
+            
+            {:type                :expr-exec
+             :thread-id           thread-id
+             :thread-timeline-idx te-idx
+             :expr-str            (binding [*print-length* 5
+                                            *print-level*  3]
+                                    (pr-str
+                                     (hansel-utils/get-form-at-coord (:form/form form-data)
+                                                                     coord)))
+             :expr-type (pr-str (type expr-val))
+             :expr-val-str  (binding [*print-length* 3
+                                      *print-level*  2]
+                              (pr-str expr-val))}))))))

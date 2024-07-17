@@ -100,9 +100,13 @@
                                          :printer/enable?
                                          :printer/transform-expr-str
                                          :printer/source-expr]))
-(s/def :printer/printers (s/map-of :flow-storm/form-id
+
+(s/def :printer/flow-printers (s/map-of :flow-storm/form-id
                                    (s/map-of :flow-storm/coord
                                              :printer/printer)))
+
+(s/def :printer/printers (s/map-of :flow/id :printer/flow-printers))
+
 (s/def :ui/selected-font-size-style-idx int?)
 (s/def :ui/selected-theme #{:light :dark})
 (s/def :ui/extra-styles (s/nilable string?))
@@ -320,17 +324,17 @@
   (let [hidden-set (get-in @state [:flows flow-id :flow/threads thread-id :thread/callstack-tree-hidden-fns])]
     (contains? hidden-set {:name fn-name :ns fn-ns})))
 
-(defn add-printer [form-id coord printer-data]
-  (swap! state assoc-in [:printers form-id coord] printer-data))
+(defn add-printer [flow-id form-id coord printer-data]
+  (swap! state assoc-in [:printers flow-id form-id coord] printer-data))
 
-(defn printers []
-  (get @state :printers))
+(defn printers [flow-id]
+  (get-in @state [:printers flow-id]))
 
-(defn remove-printer [form-id coord]
-  (swap! state update-in [:printers form-id] dissoc coord))
+(defn remove-printer [flow-id form-id coord]
+  (swap! state update-in [:printers flow-id form-id] dissoc coord))
 
-(defn update-printer [form-id coord k new-val]
-  (swap! state assoc-in [:printers form-id coord k] new-val))
+(defn update-printer [flow-id form-id coord k new-val]
+  (swap! state assoc-in [:printers flow-id form-id coord k] new-val))
 
 (def font-size-styles ["flowstorm/styles/font-size-sm.css"
                        "flowstorm/styles/font-size-md.css"

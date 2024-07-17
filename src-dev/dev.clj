@@ -136,32 +136,23 @@
 
 (comment
 
-  (index-api/print-threads)
-  (index-api/select-thread nil 32)
-  (index-api/print-forms)
-
-
   ;; Synthesizing all the spec information for parameters that flow into a function
-  (defn fn-signatures [fn-ns fn-name]
-    (let [[flow-id thread-id] @index-api/selected-thread
-          frames (index-api/all-frames flow-id thread-id (fn [fns fname _ _]
-                                                           (and (= fn-name fname)
-                                                                (= fn-ns fns))))
+  (defn fn-signatures [flow-id thread-id fn-ns fn-name]
+    (let [frames (index-api/find-fn-frames flow-id thread-id fn-ns fn-name nil)
           signature-types (->> frames
                                (reduce (fn [coll-samples frame]
                                          (conj coll-samples (mapv type (:args-vec frame))))
                                        #{}))]
       signature-types))
 
-  (fn-signatures "dev-tester" "factorial")
-  (fn-signatures "dev-tester" "other-function")
+  (fn-signatures 0 29 "dev-tester" "factorial")
+  (fn-signatures 0 29 "dev-tester" "other-function")
 
   ;; Visualization lenses over traces: say I have a loop-recur process in which I am computing
   ;; new versions of an accumulated data structure, but I want to see only some derived data
   ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
-  (defn frame-similar-values [idx]
-    (let [[flow-id thread-id] @index-api/selected-thread
-          {:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
+  (defn frame-similar-values [flow-id thread-id idx]
+    (let [{:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
           {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
 
       (->> expr-executions
@@ -171,7 +162,7 @@
                        coll-vals))
                    []))))
 
-  (frame-similar-values (dec 161)) ;; sum
+  (frame-similar-values 0 29 (dec 161)) ;; sum
 
   ;; Create a small debugger for the repl
   ;; -------------------------------------------------------------------------------------------
@@ -181,7 +172,7 @@
   (require '[flow-storm.utils :as utils])
   (def idx (atom 0))
   (def flow-id 0)
-  (def thread-id 30)
+  (def thread-id 29)
 
   (defn show-current []
     (let [{:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
@@ -214,7 +205,7 @@
   (require 'dev-tester-12)
   (dev-tester-12/run)
 
-  (def tl (index-api/get-timeline 18))
+  (def tl (index-api/get-timeline 30))
 
   (->> tl
       (take 10)
@@ -231,7 +222,7 @@
   (nth tl 0)
   (empty? tl)
 
-  (def total-timeline (index-api/total-order-timeline))
+  (def total-timeline (index-api/total-order-timeline 0))
   (->> total-timeline
        (take 10)
        (map index-api/as-immutable))

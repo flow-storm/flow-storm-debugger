@@ -31,7 +31,6 @@
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
-            [flow-storm.debugger.ui.flows.search :as search]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
@@ -67,25 +66,25 @@
 
   (doseq [fid (dbg-state/all-flows-ids)]
     (dbg-state/remove-flow fid)
-    (ui-utils/run-later (flows-screen/remove-flow fid)))
+    (ui-utils/run-later
+      (flows-screen/remove-flow fid)
+      (multi-thread-timeline/clear-timeline fid)
+      (printer/clear-prints fid)))
 
   (ui-utils/run-later
-    (browser-screen/clear-instrumentation-list)
-    (multi-thread-timeline/clear-timeline)
-    (printer/clear-prints)))
+    (browser-screen/clear-instrumentation-list)))
 
 (defn clear-all []
   ;; CAREFULL the order here matters
   (taps-screen/clear-all-taps)
 
   (doseq [fid (dbg-state/all-flows-ids)]
-    (flows-screen/fully-remove-flow fid))
+    (flows-screen/fully-remove-flow fid)
+    (multi-thread-timeline/clear-timeline fid)
+    (printer/clear-prints fid))
 
   (runtime-api/clear-recordings rt-api)
-  (runtime-api/clear-api-cache rt-api)
-
-  (multi-thread-timeline/clear-timeline)
-  (printer/clear-prints))
+  (runtime-api/clear-api-cache rt-api))
 
 (defn bottom-box []
   (let [progress-box (ui/h-box :childs [])
@@ -216,8 +215,6 @@
   (let [view-menu (ui/menu :label "_View"
                            :items [{:text "Bookmarks"
                                     :on-click (fn [] (bookmarks/show-bookmarks))}
-                                   {:text "Search"
-                                    :on-click (fn [] (search/search-window))}
                                    {:text "Toggle theme"
                                     :on-click (fn []
                                                 (dbg-state/rotate-theme)
@@ -358,7 +355,6 @@
        (dbg-state/set-runtime-config runtime-config)
        (flows-screen/set-recording-btn recording?)
        (flows-screen/set-multi-timeline-recording-btn total-order-recording?)
-       (printer/update-prints-controls)
 
        (when storm?
          (let [storm-prefixes (runtime-api/get-storm-instrumentation rt-api)]

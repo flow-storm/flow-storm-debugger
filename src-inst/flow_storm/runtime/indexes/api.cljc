@@ -5,15 +5,15 @@
   Find more documentation on the docstrings of each specific function.
   
   From the UI you can retrieve the flow-id and thread-id of your recordings
-  which you will need for accessing it from the repl.
+  which you will need for accessing them from the repl.
 
   TIMELINES
   ---------
   
-  Let's say you want to explore recordings on thread 18, you can retrieve the timeline
+  Let's say you want to explore recordings on flow 0 thread 18, you can retrieve the timeline
   by using `get-timeline` like this :
 
-  (def timeline (get-timeline 18))
+  (def timeline (get-timeline 0 18))
 
   Once you have the timeline you can start exploring it.
   The timeline implements many of the Clojure basic interfaces, so you can :
@@ -71,9 +71,9 @@
   MULTI-THREAD TIMELINES
   ----------------------
   
-  If you have recorded a multi-thread timeline, you can retrieve with `total-order-timeline` like this :
+  If you have recorded a multi-thread timeline on flow 0, you can retrieve with `total-order-timeline` like this :
 
-  (def mt-timeline (total-order-timeline))
+  (def mt-timeline (total-order-timeline 0))
 
   which you can iterate using normal Clojure functions (map, filter, reduce, get, etc).
   The easiest way to explore it is with some code like this :
@@ -468,33 +468,15 @@
                       (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form))))))
           (index-protos/all-stats timeline-index))))
 
-(defn frame-data-transd
 
-  "Returns a transducer that given fn-calls will return
-  frame data."
-  
-  [timeline-index]
-  (map (fn [fn-call]
-         (timeline-index/tree-frame-data timeline-index (index-protos/entry-idx fn-call) {}))))
-
-(defn fn-calls-transd
-  
-  "Returns a transducer that given timeline entries will
-  filter fn-calls that matches pred."
-  
-  ([pred]  
-   (keep (fn [tl-entry]
-           (when (and (fn-call-trace/fn-call-trace? tl-entry)
-                      (pred tl-entry))
-             tl-entry))))
-
-  ([fn-ns fn-name form-id]
-   (keep (fn [tl-entry]
-           (when (and (fn-call-trace/fn-call-trace? tl-entry)
-                      (if form-id (= form-id (index-protos/get-form-id tl-entry)) true)
-                      (if fn-ns   (= fn-ns   (index-protos/get-fn-ns tl-entry))   true)
-                      (if fn-name (= fn-name (index-protos/get-fn-name tl-entry)) true))
-             tl-entry)))))
+(defn make-frame-keeper [flow-id thread-id fn-ns fn-name form-id]
+  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+    (fn [tl-entry]
+      (when (and (fn-call-trace/fn-call-trace? tl-entry)
+                 (if form-id (= form-id (index-protos/get-form-id tl-entry)) true)
+                 (if fn-ns   (= fn-ns   (index-protos/get-fn-ns tl-entry))   true)
+                 (if fn-name (= fn-name (index-protos/get-fn-name tl-entry)) true))
+        (timeline-index/tree-frame-data timeline-index (index-protos/entry-idx tl-entry) {})))))
 
 (defn find-fn-frames
   
@@ -503,14 +485,15 @@
   ([flow-id thread-id pred]
    
    (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-     (into [] (comp (fn-calls-transd pred)
-                    (frame-data-transd timeline-index))
+     (into [] (keep (fn [tl-entry]
+                      (when (and (fn-call-trace/fn-call-trace? tl-entry)
+                                 (pred tl-entry))
+                        (timeline-index/tree-frame-data timeline-index (index-protos/entry-idx tl-entry) {}))))
            timeline-index)))
   
   ([flow-id thread-id fn-ns fn-name form-id]
    (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-     (into [] (comp (fn-calls-transd fn-ns fn-name form-id)                    
-                    (frame-data-transd timeline-index))
+     (into [] (keep (make-frame-keeper flow-id thread-id fn-ns fn-name form-id))
            timeline-index))))
 
 (defn discard-flow [flow-id] 
@@ -536,7 +519,7 @@
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id nil)
     (events/publish-event! (events/make-threads-updated-event flow-id))))
 
-(defn make-fid-tid-timelines
+(defn timelines-for
 
   "Returns a collection of [flow-id thread-id timeline] that matches the optional criteria.
   skip-threads can be a set of thread ids."
@@ -550,59 +533,72 @@
                               (= thread-id tid))
                           (not (and (set? skip-threads)
                                     (skip-threads tid))))                                                          
-                 [fid tid (get-timeline fid tid)])))))
+                 (get-timeline fid tid))))))
 
-(defn async-interruptible-batched-process-timelines
+(defn- keep-timeline-sub-range
 
-  "Process timelines with xf in batches of size batch-size. Returns a map {:keys [start interrupt]}
-  with two functions which can be used to interrupt the collection processing between batches.
+  "Given a timeline and a sub range [from to] applies f like clojure.core/keep.
+  The provided function f will be called with two args: thread-id and timeline-entry. "
+
+  [timeline from to f]
+  
+  (when (<= 0 from to (count timeline))
+    (loop [i from
+           batch-res (transient [])]
+      (if (< i to)
+        (let [tl-entry (get timeline i)
+              tl-entry (if (total-order-timeline/total-order-timeline-entry? tl-entry)
+                         (index-protos/tote-thread-timeline-entry tl-entry)
+                         tl-entry)
+              ;; we get the thread-id for each entry to support multi-thread-timelines
+              tl-thread-id (index-protos/thread-id timeline i)]
+          (if-let [e (f tl-thread-id tl-entry)]             
+            (recur (inc i) (conj! batch-res e))
+            (recur (inc i) batch-res)))
+        (persistent! batch-res)))))
+
+(defn async-interruptible-batched-timelines-keep
+
+  "Like clojure.core/keep over timelines entries but async, applying f in batches of size batch-size.
+  The provided function f will be called with two args: thread-id and timeline-entry.
+  Returns a map {:keys [start interrupt]} with two functions which can be used to interrupt the collection processing between batches.
   on-batch should be a callback of 3 args, that will be called with the
   flow-id thread-id and the result of processing each batch with xf.
-  on-end will be called with no args for signaling the end.
-  
-  fid-tid-timelines are the subset of timelines to be processed and
-  can be built using `make-fid-tid-timelines`"
+  on-end will be called with no args for signaling the end."
 
-  [xf fid-tid-timelines {:keys [on-batch on-end]}]
+  [f timelines {:keys [on-batch on-end]}]
 
   (let [batch-size 10000
         interrupted? (atom false)
         interrupt (fn interrupt [] (reset! interrupted? true))
         start (fn start []
-                     (let [process-next-batch (fn process-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] from-idx]
-                                                (if (or @interrupted?
-                                                        (nil? timeline))
-                                                  
-                                                  (on-end)
+                (let [process-next-batch (fn process-next-batch [[timeline & rtimelines :as work-timelines] from-idx]
+                                           (if (or @interrupted?
+                                                   (nil? timeline))
+                                             
+                                             (on-end)
 
-                                                  ;; else keep collecting
-                                                  (let [to-idx (min (+ from-idx batch-size) (count timeline))
-                                                        batch-res (locking timeline
-                                                                    ;; this locking because the timeline is mutable,
-                                                                    ;; but maybe the timeline should expose a way of iterating sub sequences
-                                                                    (utils/transduce-sub-range timeline from-idx to-idx xf))]
-                                                    (if (reduced? batch-res)
-                                                      
-                                                      ;; if the xf marks a reduced? report what we have so far and end everything
-                                                      (do 
-                                                        (on-batch flow-id thread-id (deref batch-res))
-                                                        (on-end))
+                                             ;; else keep collecting
+                                             (let [to-idx (min (+ from-idx batch-size) (count timeline))
+                                                   batch-res (locking timeline
+                                                               ;; this locking because the timeline is mutable,
+                                                               ;; but maybe the timeline should expose a way of iterating sub sequences
+                                                               (keep-timeline-sub-range timeline from-idx to-idx f))]
+                                               
+                                               
+                                               (on-batch batch-res)
+                                               (if (= to-idx (count timeline))
 
-                                                      ;; else report the batch and keep collecting
-                                                      (do
-                                                        (on-batch flow-id thread-id batch-res)
-                                                        (if (= to-idx (count timeline))
+                                                 ;; if the batch we just processed was the last one of the timeline,
+                                                 ;; change timelines
+                                                 #?(:clj (recur rtimelines 0)
+                                                    :cljs (js/setTimeout process-next-batch 0 rtimelines 0))
 
-                                                          ;; if the batch we just processed was the last one of the timeline,
-                                                          ;; change timelines
-                                                          #?(:clj (recur rtimelines 0)
-                                                             :cljs (js/setTimeout process-next-batch 0 rtimelines 0))
-
-                                                          ;; else keep collecting from the current timeline
-                                                          #?(:clj (recur work-timelines to-idx)
-                                                             :cljs (js/setTimeout process-next-batch 0 work-timelines to-idx))))))))]
-                       
-                       (process-next-batch fid-tid-timelines 0)))]
+                                                 ;; else keep collecting from the current timeline
+                                                 #?(:clj (recur work-timelines to-idx)
+                                                    :cljs (js/setTimeout process-next-batch 0 work-timelines to-idx))))))]
+                  
+                  (process-next-batch timelines 0)))]
     {:interrupt interrupt
      :start     start}))
 
@@ -622,7 +618,7 @@
       (loop [idx from-idx]
         (when-not (= idx to-idx)
           (let [entry (get timeline idx)
-               form-id (when needs-form-id?
+                form-id (when needs-form-id?
                          (let [fn-call (if (fn-call-trace/fn-call-trace? entry)
                                          entry
                                          (get timeline (index-protos/fn-call-idx entry)))]
@@ -651,8 +647,7 @@
   Returns a map of {:keys [start interrupt]}, two functions of zero args you should call to start the process
   or interrupt it while it is running."
 
-  [pred fid-tid-timelines {:keys [from-idx backward? needs-form-id?]} {:keys [on-progress on-match on-end]}]
-
+  [pred timelines {:keys [from-idx backward? needs-form-id?]} {:keys [on-progress on-match on-end]}]
   (let [batch-size 10000
         total-batches (max 1
                            (->> (all-threads)
@@ -664,8 +659,7 @@
         interrupted? (atom false)
         interrupt (fn [] (reset! interrupted? true))
         start (fn []
-                (let [find-next-batch (fn find-next-batch [[[flow-id thread-id timeline] & rtimelines :as work-timelines] curr-idx]
-                                        
+                (let [find-next-batch (fn find-next-batch [[timeline & rtimelines :as work-timelines] curr-idx]
                                         (if (or @interrupted?
                                                 (nil? timeline))
                                           
@@ -676,6 +670,7 @@
                                                              (if backward?
                                                                (dec (count timeline))
                                                                0))
+                                                thread-id (index-protos/thread-id timeline curr-idx)
                                                 to-idx (if backward?
                                                          (max (- curr-idx batch-size) 0)
                                                          (min (+ curr-idx batch-size) (count timeline)))
@@ -685,8 +680,7 @@
                                               ;; if we found the entry report the match and finish
                                               (on-match (-> entry
                                                             index-protos/as-immutable
-                                                            (assoc :flow-id flow-id
-                                                                   :thread-id thread-id)))
+                                                            (assoc :thread-id thread-id)))
                                               
                                               ;; else report progress and continue searching
                                               (do
@@ -703,7 +697,7 @@
                                                   #?(:clj (recur work-timelines to-idx)
                                                      :cljs (js/setTimeout find-next-batch 0 work-timelines to-idx)))))))
                                         )]
-                  (find-next-batch fid-tid-timelines from-idx)))]
+                  (find-next-batch timelines from-idx)))]
     {:interrupt interrupt
      :start start}))
 
@@ -749,7 +743,7 @@
      (let [result-prom (promise)
            {:keys [start]} (timelines-async-interruptible-find-entry
                             (build-find-fn-call-entry-predicate criteria)
-                            (make-fid-tid-timelines criteria)
+                            (timelines-for criteria)
                             criteria
                             {:on-match (fn [m] (deliver result-prom m))
                              :on-end   (fn []  (deliver result-prom nil))})]
@@ -806,7 +800,7 @@
      (let [result-prom (promise)
            {:keys [start]} (timelines-async-interruptible-find-entry
                             (build-find-expr-entry-predicate criteria)
-                            (make-fid-tid-timelines criteria)
+                            (timelines-for criteria)
                             criteria
                             {:on-match (fn [m] (deliver result-prom m))
                              :on-end   (fn []  (deliver result-prom nil))})]
@@ -824,10 +818,10 @@
 (defn detailed-total-order-timeline [flow-id]
   (let [timeline (total-order-timeline flow-id)]
     (into []
-          (total-order-timeline/detailed-timeline-transd forms-registry)
+          (keep (total-order-timeline/make-detailed-timeline-mapper forms-registry))
           timeline)))
 
-(defn thread-prints-transd [printers]
+(defn make-thread-prints-keeper [printers]
   ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level :transform-expr-str}}}
   (let [printers (utils/update-values
                   printers
@@ -852,43 +846,42 @@
                                                              (utils/log-error (str "Error evaluating printer transform expresion " trans-expr) e)
                                                              printer-params)))))))))
         
-        maybe-print-entry (fn [curr-fn-call tl-entry]
-                            (let [form-id (index-protos/get-form-id curr-fn-call)]
-                              (when (contains? printers form-id)
-                                (let [coords-map (get printers form-id)
-                                      coord (index-protos/get-coord-raw tl-entry)]
-                                  (when (contains? coords-map coord)
-                                    ;; we are interested in this coord so lets print it
-                                    (let [{:keys [print-length print-level format-str transform-expr-fn]} (get coords-map coord)
-                                          transform-expr-fn (or transform-expr-fn identity)
-                                          val (index-protos/get-expr-val tl-entry)]
-                                      (binding [*print-length* print-length
-                                                *print-level* print-level]
-                                        {:text (->> val
-                                                    transform-expr-fn
-                                                    pr-str
-                                                    (utils/format format-str))
-                                         :idx (index-protos/entry-idx tl-entry)})))))))
-        thread-stack (atom ())]
-    (keep (fn [tl-entry]
-            (cond
-              (fn-call-trace/fn-call-trace? tl-entry)
-              (do
-                (swap! thread-stack conj tl-entry)
-                nil)
-              
-              (fn-return-trace/fn-end-trace? tl-entry)
-              (let [p (maybe-print-entry (first @thread-stack) tl-entry)]
-                (swap! thread-stack pop)
-                p)
+        maybe-print-entry (fn [form-id thread-id tl-entry]
+                            (when (contains? printers form-id)
+                              (let [coords-map (get printers form-id)
+                                    coord (index-protos/get-coord-raw tl-entry)]
+                                (when (contains? coords-map coord)
+                                  ;; we are interested in this coord so lets print it
+                                  (let [{:keys [print-length print-level format-str transform-expr-fn]} (get coords-map coord)
+                                        transform-expr-fn (or transform-expr-fn identity)
+                                        val (index-protos/get-expr-val tl-entry)
+                                        entry-idx (index-protos/entry-idx tl-entry)]
+                                    (binding [*print-length* print-length
+                                              *print-level* print-level]
+                                      {:text (->> val
+                                                  transform-expr-fn
+                                                  pr-str
+                                                  (utils/format format-str))
+                                       :idx entry-idx                                       
+                                       :thread-id thread-id}))))))
+        threads-stacks (atom {})]
+    (fn [thread-id tl-entry]
+      (let [form-id (when-let [thread-fn-call (first (get @threads-stacks thread-id))]
+                      (index-protos/get-form-id thread-fn-call))]
+        
+        (cond
+          (fn-call-trace/fn-call-trace? tl-entry)
+          (do
+            (swap! threads-stacks (fn [ths-stks] (update ths-stks thread-id conj tl-entry)))
+            nil)
+          
+          (fn-return-trace/fn-end-trace? tl-entry)
+          (let [p (maybe-print-entry form-id thread-id tl-entry)]
+            (swap! threads-stacks (fn [ths-stks] (update ths-stks thread-id pop)))
+            p)
 
-              (expr-trace/expr-trace? tl-entry)
-              (maybe-print-entry (first @thread-stack) tl-entry))))))
-
-(defn thread-prints [{:keys [flow-id thread-id printers]}]
-  (into []
-        (thread-prints-transd printers)
-        (get-timeline flow-id thread-id)))
+          (expr-trace/expr-trace? tl-entry)
+          (maybe-print-entry form-id thread-id tl-entry))))))
 
 (defn timelines-mod-timestamps []
   (reduce (fn [acc [fid tid]]
@@ -982,7 +975,8 @@
 (defn tote-thread-id
   [entry]
   (index-protos/thread-id
-   (index-protos/tote-thread-timeline entry)))
+   (index-protos/tote-thread-timeline entry)
+   0))
 
 (defn tote-entry
   [entry]

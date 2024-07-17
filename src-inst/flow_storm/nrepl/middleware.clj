@@ -33,7 +33,7 @@
                   :fn-name (name fq-fn-call-symb)}
         result (promise)
         {:keys [start]} (index-api/timelines-async-interruptible-find-entry (index-api/build-find-fn-call-entry-predicate criteria)
-                                                                            (index-api/make-fid-tid-timelines {})
+                                                                            (index-api/timelines-for {})
                                                                             criteria
                                                                             {:on-match (fn [m] (deliver result m))
                                                                              :on-end   (fn []  (deliver result nil))})]

@@ -53,7 +53,8 @@ It will record everything in two registries `flow-storm.runtime.indexes.api/form
 
 The forms registry will store all the instrumented forms by form-id, which is a hash of the form.
 
-The threads registry on the other side will be storing one timeline per thread.
+The threads registry on the other side will be storing one timeline per thread plus a multi-thread timeline when
+its recording is on.
 The timeline is the main recording structure, and what every FlowStorm functionality is build upon.
 
 You can see a diagram of the timeline internal structure

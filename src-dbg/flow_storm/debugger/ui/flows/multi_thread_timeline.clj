@@ -16,8 +16,8 @@
 
 (def thread-possible-colors #{"#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"})
 
-(defn clear-timeline []
-  (when-let [[{:keys [clear]}] (obj-lookup "total-order-table-data")]
+(defn clear-timeline [flow-id]
+  (when-let [[{:keys [clear]}] (obj-lookup flow-id "total-order-table-data")]
     (clear)))
 
 (defn- main-pane [flow-id]
@@ -87,17 +87,19 @@
         refresh-btn (ui/icon-button :icon-name "mdi-reload"
                                     :on-click refresh
                                     :tooltip "Refresh the content of the timeline")
-        main-pane (ui/border-pane
-                   :top (ui/h-box
-                         :childs [refresh-btn
-                                  (ui/label :text "Only functions? :") only-functions-cb]
-                         :class "controls-box"
-                         :spacing 5)
 
+        main-pane (ui/border-pane
+                   :top (ui/v-box
+                         :childs [(ui/label :text (format "Flow: %d" flow-id))
+                                  (ui/h-box
+                                   :childs [refresh-btn
+                                            (ui/label :text "Only functions? :") only-functions-cb]
+                                   :class "controls-box"
+                                   :spacing 5)])
                    :center table-view-pane
                    :class "timeline-tool")]
 
-    (store-obj "total-order-table-data" table-data)
+    (store-obj flow-id "total-order-table-data" table-data)
 
     (VBox/setVgrow table-view Priority/ALWAYS)
 

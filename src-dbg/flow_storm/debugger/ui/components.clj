@@ -261,7 +261,8 @@
     (when on-showing
       (.setOnShowing
        cb
-       (event-handler [_] (on-showing cb))))
+       (event-handler [_]
+         (on-showing cb))))
     cb))
 
 (defn check-box [& {:keys [on-change selected? focus-traversable?]}]

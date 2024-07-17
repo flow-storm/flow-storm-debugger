@@ -83,17 +83,20 @@
                                         :width  800
                                         :height 100
                                         :center-on-stage (dbg-state/main-jfx-stage))]
-    (dbg-state/add-printer form-id coord (assoc (dissoc form :form/form)
-                                                :fn-ns fn-ns
-                                                :fn-name fn-name
-                                                :coord coord
-                                                :source-expr source-expr
-                                                :format-str (:message-format params-map)
-                                                :transform-expr-str (:expr-str params-map)
-                                                :print-length 5
-                                                :print-level  3
-                                                :enable? true))
-    (printer/update-prints-controls)))
+    (dbg-state/add-printer flow-id
+                           form-id
+                           coord
+                           (assoc (dissoc form :form/form)
+                                  :fn-ns fn-ns
+                                  :fn-name fn-name
+                                  :coord coord
+                                  :source-expr source-expr
+                                  :format-str (:message-format params-map)
+                                  :transform-expr-str (:expr-str params-map)
+                                  :print-length 5
+                                  :print-level  3
+                                  :enable? true))
+    (printer/update-prints-controls flow-id)))
 
 (defn- calculate-execution-idx-range [spans curr-coord]
   (when curr-coord
@@ -592,11 +595,11 @@
                      [search-params]
                      {:on-finished (fn [{:keys [result]}]
                                      (when result
-                                       (let [{:keys [flow-id thread-id idx] :as next-tentry} result]
-                                         (if (and (= current-flow-id flow-id) (= current-thread-id thread-id))
-                                           (jump-to-coord flow-id thread-id next-tentry)
+                                       (let [{:keys [thread-id idx] :as next-tentry} result]
+                                         (if (= current-thread-id thread-id)
+                                           (jump-to-coord current-flow-id current-thread-id next-tentry)
                                            (let [goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
-                                             (goto-loc {:flow-id   flow-id
+                                             (goto-loc {:flow-id   current-flow-id
                                                         :thread-id thread-id
                                                         :idx       idx}))))))}))
 

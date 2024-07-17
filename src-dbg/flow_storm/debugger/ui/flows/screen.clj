@@ -167,7 +167,8 @@
                                                                                            [(symbol fq-fn-name) 0 {}]
                                                                                            {:on-finished (fn [{:keys [result]}]
                                                                                                            (when result
-                                                                                                             (goto-location result)))}))})))
+                                                                                                             (goto-location (assoc result
+                                                                                                                                   :flow-id flow-id))))}))})))
                                                 (runtime-api/all-fn-call-stats rt-api))))]
                               :align :center-left)
 
@@ -189,9 +190,9 @@
 
                                     :on-action (fn [item]
                                                  (case (:key item)
-                                                   :search                (search/search-window)
+                                                   :search                (search/search-window flow-id)
                                                    :multi-thread-timeline (multi-thread-timeline/open-timeline-window flow-id)
-                                                   :printers              (printer/open-printers-window)))
+                                                   :printers              (printer/open-printers-window flow-id)))
                                     :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [quick-jump-textfield
                                           exceptions-box]

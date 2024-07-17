@@ -8,18 +8,18 @@
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]])
   (:import [javafx.scene.layout Priority VBox]
-           [javafx.scene.control ComboBox SelectionModel]
+           [javafx.scene.control ComboBox]
            [javafx.scene Scene]
            [javafx.stage Stage]))
 
 
-(defn clear-prints []
-  (when-let [[{:keys [clear]}] (obj-lookup "printer-print-outs-list")]
+(defn clear-prints [flow-id]
+  (when-let [[{:keys [clear]}] (obj-lookup flow-id "printer-print-outs-list")]
     (clear)))
 
-(defn update-prints-controls []
-  (when-let [[{:keys [clear add-all]}] (obj-lookup "printer-prints-controls-table")]
-    (let [printers-rows (->> (dbg-state/printers)
+(defn update-prints-controls [flow-id]
+  (when-let [[{:keys [clear add-all]}] (obj-lookup flow-id "printer-prints-controls-table")]
+    (let [printers-rows (->> (dbg-state/printers flow-id)
                              (reduce-kv (fn [r _ frm-printers]
                                           (reduce-kv (fn [rr _ p]
                                                        (conj rr p))
@@ -39,7 +39,7 @@
       (clear)
       (add-all printers-rows))))
 
-(defn build-prints-controls []
+(defn build-prints-controls [flow-id]
   (let [{:keys [table-view-pane] :as table-data}
         (ui/table-view :columns ["Function" "Expr" "*print-level*" "*print-length*" "Format" "Transform Fn" "Enable" "_"]
                        :resize-policy :constrained
@@ -48,28 +48,28 @@
                                          :function     (ui/label :text (format "%s/%s" fn-ns fn-name))
                                          :source-expr  (ui/label :text (pr-str source-expr))
                                          :print-level  (ui/text-field :initial-text (str print-level)
-                                                                      :on-change (fn [val] (dbg-state/update-printer id coord :print-level (Long/parseLong val)))
+                                                                      :on-change (fn [val] (dbg-state/update-printer flow-id id coord :print-level (Long/parseLong val)))
                                                                       :align :center-right)
                                          :print-length (ui/text-field :initial-text (str print-length)
-                                                                      :on-change (fn [val] (dbg-state/update-printer id coord :print-length (Long/parseLong val)))
+                                                                      :on-change (fn [val] (dbg-state/update-printer flow-id id coord :print-length (Long/parseLong val)))
                                                                       :align :center-right)
                                          :format       (ui/text-field :initial-text format-str
-                                                                      :on-change (fn [val] (dbg-state/update-printer id coord :format-str val))
+                                                                      :on-change (fn [val] (dbg-state/update-printer flow-id id coord :format-str val))
                                                                       :align :center-left)
                                          :transform-expr  (ui/text-field :initial-text transform-expr-str
-                                                                         :on-change (fn [val] (dbg-state/update-printer id coord :transform-expr-str val))
+                                                                         :on-change (fn [val] (dbg-state/update-printer flow-id id coord :transform-expr-str val))
                                                                          :align :center-left)
                                          :enable?      (ui/check-box :on-change (fn [selected?]
-                                                                                  (dbg-state/update-printer id coord :enable? selected?))
+                                                                                  (dbg-state/update-printer flow-id id coord :enable? selected?))
                                                                      :selected? true)
 
                                          :action       (ui/icon-button :icon-name "mdi-delete-forever"
                                                                        :on-click (fn []
-                                                                                   (dbg-state/remove-printer id coord)
-                                                                                   (update-prints-controls)))))
+                                                                                   (dbg-state/remove-printer flow-id id coord)
+                                                                                   (update-prints-controls flow-id)))))
                        :items [])]
 
-    (store-obj "printer-prints-controls-table" table-data)
+    (store-obj flow-id "printer-prints-controls-table" table-data)
 
     table-view-pane))
 
@@ -88,37 +88,37 @@
                 {}
                 form-printers))))
 
-(defn- main-pane []
-  (let [^ComboBox thread-id-combo (ui/combo-box :items []
-                                                :on-showing (fn [cb]
-                                                              (let [flows-threads (runtime-api/all-flows-threads rt-api)
-                                                                    thread-ids (->> flows-threads
-                                                                                    (mapv (fn [[fid tid]]
-                                                                                            (let [th-name (:thread/name (dbg-state/get-thread-info tid))]
-                                                                                              (format "%s ~ %s [%d]"
-                                                                                                      (if fid fid "")
-                                                                                                      th-name
-                                                                                                      tid)))))]
-                                                                (ui-utils/combo-box-set-items cb thread-ids))))
-        selected-fid-tid (fn []
-                           (let [^SelectionModel cb-sel-model (.getSelectionModel thread-id-combo)]
-                             (when-let [sel-thread-str (.getSelectedItem cb-sel-model)]
-                               (let [[_ flow-id thread-id] (re-find #"(.+)? ~ .* \[(.+)\]" sel-thread-str)]
-                                 [(when flow-id (Long/parseLong flow-id))
-                                  (Long/parseLong thread-id)]))))
+(defn- main-pane [flow-id]
+  (let [selected-thread-id (atom nil)
+        ^ComboBox thread-id-combo (ui/combo-box :items (let [flows-threads (runtime-api/all-flows-threads rt-api)]
+                                                         (->> (keep (fn [[fid tid]]
+                                                                      (when (= fid flow-id)
+                                                                        {:thread-id tid
+                                                                         :thread-name (:thread/name (dbg-state/get-thread-info tid))}))
+                                                                    flows-threads)
+                                                              (into [{:thread-name "All"}])))
+                                                :cell-factory (fn [_ {:keys [thread-id thread-name]}]
+                                                                (ui/label :text (if thread-id
+                                                                                  (ui/thread-label thread-id thread-name)
+                                                                                  thread-name)))
+                                                :button-factory (fn [_ {:keys [thread-id thread-name]}]
+                                                                (ui/label :text (if thread-id
+                                                                                  (ui/thread-label thread-id thread-name)
+                                                                                  thread-name)))
+                                                :on-change (fn [_ {:keys [thread-id]}]
+                                                             (reset! selected-thread-id thread-id)))
 
         {:keys [list-view-pane list-view add-all clear] :as list-data}
         (ui/list-view :editable? false
-                      :cell-factory (fn [list-cell {:keys [flow-id thread-id text]}]
+                      :cell-factory (fn [list-cell {:keys [thread-id text]}]
                                       (-> list-cell
                                           (ui-utils/set-text nil)
                                           (ui-utils/set-graphic (ui/label :text text
-                                                                          :tooltip (format "FlowId: %s ThreadId: %s"
-                                                                                           flow-id thread-id)))))
+                                                                          :tooltip (format "ThreadId: %s" thread-id)))))
                       :on-click (fn [mev sel-items _]
                                   (when (and (ui-utils/mouse-primary? mev)
                                              (ui-utils/double-click? mev))
-                                    (let [{:keys [idx flow-id thread-id]}  (first sel-items)
+                                    (let [{:keys [idx thread-id]}  (first sel-items)
                                           goto-loc (requiring-resolve 'flow-storm.debugger.ui.flows.screen/goto-location)]
                                       (goto-loc {:flow-id flow-id
                                                  :thread-id thread-id
@@ -129,25 +129,25 @@
 
         refresh-btn (ui/icon-button :icon-name "mdi-reload"
                                     :on-click (fn []
-                                                (let [[flow-id thread-id] (selected-fid-tid)]
+                                                (let [thread-id @selected-thread-id]
                                                   (clear)
 
-                                                  (when (nil? thread-id)
-                                                    (show-message "Currently the printer doesn't use the multi-thread timeline, so the order of the prints will be sorted for each thread, but not between threads. The printer is currently scanning each thread timeline sequentially and applying the printers. Use the multi-thread timelin tool for thread interleaving debugging." :warning))
+                                                  (when (and (nil? thread-id)
+                                                             (zero? (runtime-api/multi-thread-timeline-count rt-api flow-id)))
+                                                    (show-message "If you don't select any threads and you haven't recorded on the multi-thread timeline the prints will be sorted by thread." :warning))
 
                                                   (tasks/submit-task runtime-api/thread-prints-task
-                                                                     [(cond-> {:printers  (prepare-printers (dbg-state/printers))}
-                                                                        flow-id   (assoc :flow-id   flow-id)
+                                                                     [(cond-> {:printers  (prepare-printers (dbg-state/printers flow-id))
+                                                                               :flow-id   flow-id}
                                                                         thread-id (assoc :thread-id thread-id))]
-                                                                     {:on-progress (fn [{:keys [batch flow-id thread-id]}]
+                                                                     {:on-progress (fn [{:keys [batch]}]
                                                                                      (add-all (into []
                                                                                                     (map (fn [po]
                                                                                                            (assoc po
-                                                                                                                  :flow-id flow-id
-                                                                                                                  :thread-id thread-id)))
+                                                                                                                  :flow-id flow-id)))
                                                                                                     batch)))})))
                                     :tooltip "Re print everything")
-        prints-controls-pane (build-prints-controls)
+        prints-controls-pane (build-prints-controls flow-id)
         thread-box (ui/h-box :childs [(ui/label :text "Thread id:") thread-id-combo]
                              :spacing 5)
 
@@ -155,26 +155,28 @@
                              :childs [prints-controls-pane list-view-pane]
                              :sizes [0.3])
         main-pane (ui/border-pane
-                   :top (ui/h-box
-                         :childs [refresh-btn thread-box]
-                         :class "controls-box"
-                         :spacing 5)
+                   :top (ui/v-box
+                         :childs [(ui/label :text (format "Flow: %d" flow-id))
+                                  (ui/h-box
+                                   :childs [refresh-btn thread-box]
+                                   :class "controls-box"
+                                   :spacing 5)])
 
                    :center split-pane
                    :class "printer-tool"
                    :paddings [10 10 10 10])]
 
-    (store-obj "printer-thread-id-combo" thread-id-combo)
-    (store-obj "printer-print-outs-list" list-data)
+    (store-obj flow-id "printer-thread-id-combo" thread-id-combo)
+    (store-obj flow-id "printer-print-outs-list" list-data)
 
     (VBox/setVgrow list-view Priority/ALWAYS)
 
     main-pane))
 
-(defn open-printers-window []
+(defn open-printers-window [flow-id]
   (let [window-w 1000
         window-h 1000
-        scene (Scene. (main-pane) window-w window-h)
+        scene (Scene. (main-pane flow-id) window-w window-h)
         stage (doto (Stage.)
                 (.setTitle "FlowStorm printers")
                 (.setScene scene))]
@@ -186,7 +188,7 @@
       (.setX stage x)
       (.setY stage y))
 
-    (update-prints-controls)
+    (update-prints-controls flow-id)
 
     (-> stage .show)))
 (comment

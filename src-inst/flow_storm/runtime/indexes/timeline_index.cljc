@@ -46,7 +46,7 @@
 
 (defn- print-it [timeline]
   (utils/format "#flow-storm/timeline [thread-id: %d count: %d]"
-                (index-protos/thread-id timeline)
+                (index-protos/thread-id timeline 0)
                 (count timeline)))
 
 (deftype ExecutionTimelineTree [;; this timeline thread id
@@ -67,7 +67,7 @@
 
   index-protos/TimelineP
   
-  (thread-id [_] tid)
+  (thread-id [_ _] tid)
   
   index-protos/ThreadTimelineRecorderP                                       
   

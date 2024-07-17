@@ -51,6 +51,7 @@
   (get-form [_ form-id])
   (timeline-count [_ flow-id thread-id])
   (timeline-entry [_ flow-id thread-id idx drift])
+  (multi-thread-timeline-count [_ flow-id])
   (frame-data [_ flow-id thread-id idx opts])
   (bindings [_ flow-id thread-id idx opts])
   (callstack-tree-root-node [_ flow-id thread-id])
@@ -159,6 +160,7 @@
   (get-form [_ form-id] (api-call :local "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :local "timeline-entry" [flow-id thread-id idx drift]))
+  (multi-thread-timeline-count [_ flow-id] (api-call :local "multi-thread-timeline-count" [flow-id]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :local "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx opts] (api-call :local "bindings" [flow-id thread-id idx opts]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :local "callstack-tree-root-node" [flow-id thread-id]))
@@ -298,6 +300,7 @@
   (get-form [_ form-id] (api-call :remote "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :remote "timeline-entry" [flow-id thread-id idx drift]))
+  (multi-thread-timeline-count [_ flow-id] (api-call :remote "multi-thread-timeline-count" [flow-id]))
   (frame-data [_ flow-id thread-id idx opts] (api-call :remote "frame-data" [flow-id thread-id idx opts]))
   (bindings [_ flow-id thread-id idx opts] (api-call :remote "bindings" [flow-id thread-id idx opts]))
   (callstack-tree-root-node [_ flow-id thread-id] (api-call :remote "callstack-tree-root-node" [flow-id thread-id]))
