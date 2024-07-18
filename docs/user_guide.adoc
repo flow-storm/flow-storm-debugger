@@ -621,15 +621,21 @@ From left to right :
 
 = Flows tool
 
-The `Flows` tab contains a bunch of tools for analyzing all recorded executions.
+The `Flows` vertical tab contains a bunch of tools for recording and analyzing your programs executions.
 
 First of all, what are Flows?
 
-A Flow is a "execution flow" recording unit. The only purpose of a flow is to group recording activity.
+A Flow is an "execution flow" recording unit. The only purpose of a flow is to group recording activity.
 This grouping allows us for example to run some code and record it under `flow-0`, then modify our code, run it again, and
 record this second run (or flow) under `flow-1`. Now we can access both recordings separately.
 
-You can use the `Rec on` combo-box to select under what flow new recordings are going to be stored.
+image::user_guide_images/recording_controls.png[]
+
+When you first open FlowStorm UI you will see three things, from left to right :
+
+- Start/Stop recording. You can keep your heap from growing by stopping recording when you don't need it.
+- Start/Stop recording the multi-thread timeline. Check out the <<#_multi_thread_timeline, multi-thread timeline>> tool.
+- The `Rec on` combo-box to select under what flow new recordings are going to be stored.
 
 Whenever there is something recorded for a flow, a new tab with the flow name will appear.
 
@@ -645,31 +651,25 @@ image::user_guide_images/multi_flows_1.png[]
 
 There is a lot going on in the screenshot above, but the most important are :
 
-      - we have configured FlowStorm to record under `flow-1`
-      - we have recorded stuff under `flow-1` and `flow-0`      
+      - we have configured FlowStorm to record new executions under `flow-1`
+      - we have recorded stuff under `flow-1` and there are also some previous recordings under `flow-0`       
       - we are currently looking at `flow-1`, we have opened to explore the thread with id `1` called `main` and we are exploring it in <<#_code_stepping,the code stepper>>
-      - `Threads [5]` indicates we have recorded activity in 5 threads, which you can access via this menu
+      - `Threads [4]` indicates we have recorded activity in 4 threads, which we can access via this menu
 
 Now for a different example :
 
 image::user_guide_images/multi_flows_2.png[]
 
-This second image shows us exploring the recordings of thread `507`, called `pool-4-thread-2` on `flow-0`.
-
-The `Flows tool` also contains a toolbar.
+This second image shows us exploring the recordings of a thread with id `474`, called `pool-4-thread-4` on `flow-0`.
 
 image::user_guide_images/flows_toolbar.png[]
 
-From left to right :
+The `Flows tool` also contains a toolbar that contains the Quick jump box.
+Use it for quickly opening the first recording of a function in <<#_code_stepping,the code stepper>>.
+Will autocomplete the first 25 matches.
 
-- Start/Stop recording. You can keep your heap from growing by stopping recording when you don't need it.
-- Start/Stop recording the multi-thread timeline. Check out the <<#_multi_thread_timeline, multi-thread timeline>> tool.
-- Open <<#_searching,the search tool>> 
-- Quick jump. Use it for quickly jumping to the first recording of a function. Will autocomplete the first 25 matches.
-
-
-
-There are currently 3 tools to explore the recorded timelines, which we are going to describe next.
+In the screenshot above we see analyzing the recordings in <<#_code_stepping,the code stepper>> but there are many tools to explore the recorded timelines,
+which we are going to describe next.
 
 == Code tool
 
@@ -782,12 +782,13 @@ Custom power stepping is only supported in Clojure now.
 
 === Searching
 
-You can use the search tool to search over all your recorded values. Find the search tool on the toolbar (the magnifier glass)
-or under `View -> Search`.
+image::user_guide_images/search_access.png[]
+
+On each flow you can use the search tool to search over all your flow recorded values. Find the search tool under `More tools -> Search`.
 
 image::user_guide_images/search.png[]
 
-The first row let us constrain our search to a specific Flow or Thread and also let us select one of two
+The first row let us constrain our search to a specific thread and also let us select one of two
 types of searches.
 
 `Search by pr-str` let us provide a query string, a print-level and a print length and it will walk the specified
@@ -801,7 +802,7 @@ After configuring your search, click on the magnifier glass on the first row (ne
 run the search. You should start seeing results as the match and you can always cancel the search by the normal
 means.
 
-Double clicking on any of the search results will take you to that point in time.
+Double clicking on any of the search results will take you to the code stepper at that point in time.
 
 === Loops
 
@@ -893,22 +894,6 @@ It will ask you for a file and line in the format of `<class-path-file-path>:<li
 If you have a file like `src/org/my_app/core.clj` and you are interested in expressions evaluating on like 42
 you should search like `org/my_app/core.clj:42`.
 
-== Bookmarks
-
-Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
-you to mark execution positions so you can come back to them later.
-
-image::user_guide_images/bookmarks_add_btn.png[]
-
-You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
-It will ask you the bookmark description.
-
-You can find you bookmarks on the top menu `View -> Bookmarks`.
-
-image::user_guide_images/bookmarks.png[]
-
-Double clicking on any bookmark will make the debugger jump back to its position.
-
 == Call Stack tree tool
 
 The call stack tree tool is the second one of the `Flows` tab. It allows you to see the execution flow by expanding its call stack tree.
@@ -984,7 +969,7 @@ As you can see the timeline tool displays a linear representation of your expres
 each thread gets assigned a different color. Every time a function is called or returns you will see it under the `Function`
 column, and for each expression executed you will see a row with its `Expression` and `Value`.
 
-Double clicking any row will take you to the `Flows tool` code at that point in time.
+Double clicking any row will take you to the code at that point in time.
 
 [NOTE]
 .Big recordings timeline
@@ -1037,10 +1022,26 @@ Double clicking on any printed line will jump to the Flows code tab, with the de
 [IMPORTANT]
 .Multi-thread prints order
 ====
-Currently the printer doesn't use the multi-thread timeline, so the order of the prints will be sorted for each thread, but not between threads.
-The printer is currently scanning each thread timeline sequentially and applying the printers. Use the <<#_multi_thread_timeline, multi-thread timeline>> for
-thread interleaving debugging.
+If you select `All` threads, and have a multi-thread timeline recording, then the printer will use it and you can use prints to debug threads
+interleaving for example, but if you run your printers with `All` threads selected without a multi-thread timeline recording they will print
+sorted by thread and not in the order they happened.
 ====
+
+== Bookmarks
+
+Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
+you to mark execution positions so you can come back to them later.
+
+image::user_guide_images/bookmarks_add_btn.png[]
+
+You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
+It will ask you the bookmark description.
+
+You can find you bookmarks on the top menu `View -> Bookmarks`.
+
+image::user_guide_images/bookmarks.png[]
+
+Double clicking on any bookmark will make the debugger jump back to its position.
 
 = Browser tool
 
