@@ -4,8 +4,13 @@
 	
 ### New Features 
     
+    - Make Search, Printer and Multi-thread-timeline tools work per flow
+    - Pake Printer use the multi-thread timeline if available to allow for thread interleaving print debugging
+
 ### Changes
 
+    - Flows UI refactor
+    
 ### Bugs fixed
 
 ## 3.16.0 (03-07-2024)
