@@ -43,9 +43,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>These are prefixes, so this means that for the `tutorial` word any code compiled under `tutorial`, `tutorial.server`, `tutorial.server.core`, etc, will get instrumented. Normally adding prefixes for the top namespace of your project and some libs you are interested in debugging will be enough.</p>
 
-<p>After that, we are done with instrumentation setup for this tutorial.</p>
+<p>Now we are done with instrumentation setup for this tutorial, so <b>let's go back to the Flows vertical tab </b>, which is called the Flows tool and is what we are going to be using for the rest of the tutorial.</p>
 
-<p>Another <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
+<p>The next <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the Flows tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
 
 <p>Now go back to your repl and let's create a tutorial namespace by typing :</p>
 
@@ -74,11 +74,11 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>This time you should see the debugger UI showing the code stepping tool, which we are going to cover next.</p>
 
-<p>This tool is inside a `flow-0` tab, which we are going to ignore for now, and inside a thread tab, probably called `[1] main`.</p>
+<p>This tool is inside a `flow-0` tab, which we are going to ignore for now, and inside a thread tab, probably called `[1] main` if you are running your repl from a terminal.</p>
 
 <p>This is the thread recordings exploration tab, which contains tools for exploring this thread execution.</p>
 
-<p>Whenever you see a red refresh button next to a thread tab, it means that the UI still doesn't have the latest recordings, click it to refresh it.</p>
+<p>Whenever you see a red refresh button next to a thread tab, it means that the UI status is outdated for the thread, click it to refresh it.</p>
 
 <p>On the next slide we will start exploring the execution.</p>
 
@@ -154,7 +154,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>Give it a shot, double click on the factorial call with arguments `[4]` to jump exactly to where `(factorial 4)` was called.</p>
 
-<p>And that is it for the code exploring tools! Next we will learn about <b>FlowStorm data exploring tools</b>, so when you are ready click next.</p>
+<p>And that's it for the basic code exploring tools. There are more tools under the `More tools` menu but they are out of the scope of this tutorial!</p>
+
+<p>Next we will learn about <b>FlowStorm data exploring tools</b>, so when you are ready click next.</p>
 "
 
 
@@ -262,9 +264,7 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 
 <p>And that is all for the basics. If you find any issues or suggestions feel free to open a issue in https://github.com/flow-storm/flow-storm-debugger</p>
 
-<p>Now you are ready to go add it to your current projects! give it a try!</p>
-
-<p>https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojurestorm</p>
+<p>Now you are ready, so go and <a href=\"https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojurestorm\">add it to your projects </a>! Give it a try!</p>
 
 <p>Bye!</p>
 "
