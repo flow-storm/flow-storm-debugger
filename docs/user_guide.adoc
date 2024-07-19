@@ -772,6 +772,7 @@ There are currently six power stepping tools :
   different thread. This has some limitations. If there are more than two threads working with this identity there is no way
   of choosing which thread to go. If you need more control, checkout the <<#_programmable_debugging,programmable debugging>>
   section, specially the `find-expr-entry` function.
+- `fn-call`, allows you to provide a function to step to.
 
 [NOTE]
 .Custom stepping

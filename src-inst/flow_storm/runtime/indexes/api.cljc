@@ -757,6 +757,13 @@
             sub-form (hansel-utils/get-form-at-coord (:form/form form) coord)]
         (-> sub-form meta :line (= line))))))
 
+(defn build-find-fn-call-entry-predicate [{:keys [fn-call-ns fn-call-name]}]
+  (fn [entry-form-id tl-entry]
+    (when (and (fn-call-trace/fn-call-trace? tl-entry)
+               (= (index-protos/get-fn-ns tl-entry) fn-call-ns)
+               (= (index-protos/get-fn-name tl-entry) fn-call-name))
+      tl-entry)))
+
 (defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id file line]}]
   (let [coord (when coord (utils/stringify-coord coord))
         custom-pred-fn #?(:clj (when custom-pred-form (eval (read-string custom-pred-form)))

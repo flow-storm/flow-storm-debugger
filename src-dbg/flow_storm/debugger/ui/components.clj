@@ -628,9 +628,10 @@
   "Creates a textfield with autocompletion.
   `get-completions` should be a fn that will be called with no args when the text length
   changes from 0 to 1 which should to retrieve the autocompletion list as a collection of
-  {:text \"...\" :on-select (fn [] ..)} objects. A max of 25 items is displayed.
+  {:text \"...\" :on-select (fn [] ..)} objects. A max of 40 items is displayed.
+  When `on-select-set-text?` is true, selection will will set the selected :text as the value of the text field.
   Returns a TextField."
-  [& {:keys [get-completions]}]
+  [& {:keys [get-completions on-select-set-text?]}]
   (let [^TextField tf (TextField.)
         ^ContextMenu options-menu (ContextMenu.)
         options (atom nil)]
@@ -646,12 +647,14 @@
                         (reset! options (get-completions)))
 
                       (let [new-items (reduce (fn [r {:keys [text on-select]}]
-                                                (if (< (count r) 25)
+                                                (if (< (count r) 40)
                                                   (if (str/includes? text new-val)
                                                     (conj r (doto (MenuItem. text)
                                                               (.setOnAction (event-handler
                                                                              [_]
-                                                                             (.setText tf "")
+                                                                              (.setText tf (if on-select-set-text?
+                                                                                             text
+                                                                                             ""))
                                                                              (on-select)))))
                                                     r)
                                                   (reduced r)))

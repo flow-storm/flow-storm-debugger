@@ -613,27 +613,44 @@
                                       :from-idx from-idx})))
 
 (defn- power-stepping-pane [flow-id thread-id]
-  (let [^TextField custom-expression-txt (ui/text-field :initial-text "(fn [v] v)")
-        show-custom-field (fn [show?]
-                            (doto custom-expression-txt
-                              (.setVisible show?)
-                              (.setPrefWidth (if show? 200 0))))
-        _ (show-custom-field false)
-        ^ComboBox step-type-combo (ui/combo-box :items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord"]
-                                                :on-change (fn [_ new-val]
-                                                             (case new-val
-                                                               "identity"              (show-custom-field false)
-                                                               "identity-other-thread" (show-custom-field false)
-                                                               "equality"              (show-custom-field false)
-                                                               "same-coord"            (show-custom-field false)
-                                                               "custom"                (show-custom-field true)
-                                                               "custom-same-coord"     (show-custom-field true))))
+  (let [custom-expression-txt (ui/text-field :initial-text "(fn [v] v)")
+        *selected-fn (atom nil)
+        fn-selector (ui/autocomplete-textfield
+                     :on-select-set-text? true
+                     :get-completions
+                     (fn []
+                       (into []
+                             (keep (fn [[fq-fn-name]]
+                                     (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
+                                       {:text (str fq-fn-name)
+                                        :on-select (fn []
+                                                     (reset! *selected-fn (symbol fq-fn-name)))})))
+                             (runtime-api/all-fn-call-stats rt-api))))
+        show-custom-field (fn [field]
+                            (doto custom-expression-txt (.setVisible false) (.setPrefWidth 0))
+                            (doto fn-selector (.setVisible false) (.setPrefWidth 0))
+                            (case field
+                              :custom-txt  (doto custom-expression-txt (.setVisible true) (.setPrefWidth 200))
+                              :fn-selector (doto fn-selector (.setVisible true) (.setPrefWidth 200))
+                              nil))
+        _ (show-custom-field nil)
+        step-type-combo (ui/combo-box :items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord" "fn-call"]
+                                      :on-change (fn [_ new-val]
+                                                   (case new-val
+                                                     "identity"              (show-custom-field nil)
+                                                     "identity-other-thread" (show-custom-field nil)
+                                                     "equality"              (show-custom-field nil)
+                                                     "same-coord"            (show-custom-field nil)
+                                                     "custom"                (show-custom-field :custom-txt)
+                                                     "custom-same-coord"     (show-custom-field :custom-txt)
+                                                     "fn-call"               (show-custom-field :fn-selector))))
         search-params (fn [backward?]
                         (let [^SelectionModel sel-model (.getSelectionModel step-type-combo)
                               step-type-val (.getSelectedItem sel-model)
                               {:keys [idx result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
                               {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
                               from-idx (if backward? (dec idx) (inc idx))
+                              sel-fn-call-symb @*selected-fn
                               params (case step-type-val
                                        "identity"              {:identity-val result
                                                                 :thread-id thread-id
@@ -661,7 +678,12 @@
                                                                 :form-id form-id
                                                                 :thread-id thread-id
                                                                 :backward? backward?
-                                                                :from-idx from-idx})]
+                                                                :from-idx from-idx}
+                                       "fn-call"               {:fn-call-ns   (namespace sel-fn-call-symb)
+                                                                :fn-call-name (name sel-fn-call-symb)
+                                                                :from-idx from-idx
+                                                                :thread-id thread-id
+                                                                :backward? backward?})]
                           (assoc params :flow-id flow-id)))
         val-first-btn (ui/icon-button :icon-name "mdi-ray-start"
                                       :on-click (fn []
@@ -684,7 +706,7 @@
                                                                     (dissoc :from-idx))))
                                      :tooltip "Power step to the last expression")
 
-        power-stepping-pane (ui/h-box :childs [val-first-btn val-prev-btn val-next-btn val-last-btn step-type-combo custom-expression-txt]
+        power-stepping-pane (ui/h-box :childs [val-first-btn val-prev-btn val-next-btn val-last-btn step-type-combo custom-expression-txt fn-selector]
                                       :spacing 3)]
     power-stepping-pane))
 
