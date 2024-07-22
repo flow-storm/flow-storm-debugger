@@ -5,6 +5,7 @@
             [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.debugger.ui.flows.general :refer [show-message]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.ns-reload-utils :refer [reload-all]]
             [clojure.string :as str]))
 
 
@@ -168,6 +169,33 @@
   (let [all-namespaces (runtime-api/get-all-namespaces rt-api)]
     (ui-utils/run-later (update-namespaces-pane all-namespaces))))
 
+(defn- modify-storm-instrumentation
+  ([mod-data] (modify-storm-instrumentation mod-data {}))
+  ([{:keys [inst-kind prefix regex] :as mod-data} opts]
+   (runtime-api/modify-storm-instrumentation rt-api mod-data opts)
+   (let [reload-regex-pattern (case inst-kind
+                                :inst-only-prefix (format "^%s.*" (str/replace prefix "." "\\."))
+                                :inst-skip-prefix (format "^%s.*" (str/replace prefix "." "\\."))
+                                :inst-skip-regex  regex)
+         reload? (= :apply
+                    (ui/alert-dialog :type :confirmation
+                                     :width 1000 :height 100
+                                     :message (format "Do you want FlowStorm to reload all namespaces that matches #\"%s\" so the instrumentation changes take effect?" reload-regex-pattern)
+                                     :buttons [:apply :cancel]
+                                     :center-on-stage (dbg-state/main-jfx-stage)))]
+     (when reload?
+       (reload-all (re-pattern reload-regex-pattern))))))
+
+(defn- all-prefixes [full-ns-str]
+  (let [ns-parts (str/split full-ns-str #"\.")
+        ns-parts-cnt (count ns-parts)]
+    (mapv (fn [i]
+            (->>
+             ns-parts
+             (take (inc i) )
+             (str/join ".")))
+          (range ns-parts-cnt))))
+
 (defn create-namespaces-pane []
   (let [{:keys [list-view-pane] :as lv-data}
         (ui/list-view :editable? false
@@ -177,19 +205,23 @@
                                           (ui-utils/set-graphic (ui/label :text ns-name))))
                       :on-click (fn [mev sel-items {:keys [list-view-pane]}]
                                   (when (ui-utils/mouse-secondary? mev)
-                                    (let [menu-items (if (dbg-state/clojure-storm-env?)
-                                                       [{:text "Reload namespace"
-                                                         :on-click (fn []
-                                                                     (doseq [ns-n sel-items]
-                                                                       (runtime-api/reload-namespace
-                                                                        rt-api
-                                                                        {:namespace-name ns-n})))}]
-                                                       [{:text "Instrument namespace :light"
-                                                         :on-click (fn []
-                                                                     (vanilla-instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
-                                                        {:text "Instrument namespace :full"
-                                                         :on-click (fn []
-                                                                     (vanilla-instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}])
+                                    (let [menu-items (if (and (dbg-state/clojure-storm-env?)
+                                                              (= 1 (count sel-items)))
+                                                       (->> (all-prefixes (first sel-items))
+                                                            (mapv (fn [prefix]
+                                                                    {:text (format "Add instr prefix for %s.*" prefix)
+                                                                     :on-click (fn []
+                                                                                 (modify-storm-instrumentation
+                                                                                  {:inst-kind :inst-only-prefix
+                                                                                   :op :add :prefix prefix}))})))
+
+                                                       (when-not (dbg-state/clojure-storm-env?)
+                                                         [{:text "Instrument namespace :light"
+                                                           :on-click (fn []
+                                                                       (vanilla-instrument-namespaces (map #(make-inst-ns % :light) sel-items)))}
+                                                          {:text "Instrument namespace :full"
+                                                           :on-click (fn []
+                                                                       (vanilla-instrument-namespaces (map #(make-inst-ns % :full) sel-items)))}]))
                                           ctx-menu (ui/context-menu :items menu-items)]
 
                                       (ui-utils/show-context-menu :menu ctx-menu
@@ -296,12 +328,10 @@
                                                    inst-del-btn (ui/button :label "del"
                                                                            :classes ["browser-instr-del-btn" "btn-sm"]
                                                                            :on-click (fn []
-                                                                                       (runtime-api/modify-storm-instrumentation
-                                                                                        rt-api
+                                                                                       (modify-storm-instrumentation
                                                                                         {:inst-kind :inst-only-prefix
                                                                                          :op :rm
-                                                                                         :prefix prefix}
-                                                                                        {})))]
+                                                                                         :prefix prefix})))]
                                                (ui/h-box :childs [inst-lbl inst-del-btn]
                                                          :spacing 10
                                                          :align :center-left))
@@ -313,12 +343,10 @@
                                                    inst-del-btn (ui/button :label "del"
                                                                            :classes ["browser-instr-del-btn" "btn-sm"]
                                                                            :on-click (fn []
-                                                                                       (runtime-api/modify-storm-instrumentation
-                                                                                        rt-api
+                                                                                       (modify-storm-instrumentation
                                                                                         {:inst-kind :inst-skip-prefix
                                                                                          :op :rm
-                                                                                         :prefix prefix}
-                                                                                        {})))]
+                                                                                         :prefix prefix})))]
                                                (ui/h-box :childs [inst-lbl inst-del-btn]
                                                          :spacing 10
                                                          :align :center-left))
@@ -330,12 +358,10 @@
                                                   inst-del-btn (ui/button :label "del"
                                                                           :classes ["browser-instr-del-btn" "btn-sm"]
                                                                           :on-click (fn []
-                                                                                      (runtime-api/modify-storm-instrumentation
-                                                                                       rt-api
+                                                                                      (modify-storm-instrumentation
                                                                                        {:inst-kind :inst-skip-regex
                                                                                         :op :rm
-                                                                                        :regex regex}
-                                                                                       {})))]
+                                                                                        :regex regex})))]
                                               (ui/h-box :childs [inst-lbl inst-del-btn]
                                                         :spacing 10
                                                         :align :center-left))
@@ -377,13 +403,13 @@
                                                   (remove-breakpoint (symbol (:var-ns b) (:var-name b)) {}))
 
                                                 (doseq [{:keys [prefix]} del-storm-inst-only-prefix]
-                                                  (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-only-prefix :op :rm :prefix prefix} {}))
+                                                  (modify-storm-instrumentation {:inst-kind :inst-only-prefix :op :rm :prefix prefix}))
 
                                                 (doseq [{:keys [prefix]} del-storm-inst-skip-prefix]
-                                                  (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-skip-prefix :op :rm :prefix prefix} {}))
+                                                  (modify-storm-instrumentation {:inst-kind :inst-skip-prefix :op :rm :prefix prefix}))
 
                                                 (doseq [{:keys [regex]} del-storm-inst-skip-regex]
-                                                  (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-skip-regex :op :rm :regex regex} {})))))
+                                                  (modify-storm-instrumentation {:inst-kind :inst-skip-regex :op :rm :regex regex})))))
         en-dis-chk (ui/check-box :selected? true)
 
         ask-and-add-storm-inst (fn [inst-kind]
@@ -398,15 +424,13 @@
                                                                 :height 200
                                                                 :center-on-stage (dbg-state/main-jfx-stage))]
                                    (when-not (str/blank? data)
-                                     (runtime-api/modify-storm-instrumentation rt-api
-                                                                               (if (= :inst-skip-regex inst-kind)
-                                                                                 (assoc operation
-                                                                                        :regex data
-                                                                                        :op :set)
-                                                                                 (assoc operation
-                                                                                        :prefix data
-                                                                                        :op :add))
-                                                                               {}))))
+                                     (modify-storm-instrumentation (if (= :inst-skip-regex inst-kind)
+                                                                     (assoc operation
+                                                                            :regex data
+                                                                            :op :set)
+                                                                     (assoc operation
+                                                                            :prefix data
+                                                                            :op :add))))))
         storm-add-inst-menu-data (ui/menu-button
                                   :title "Add"
                                   :disable? true
@@ -461,13 +485,13 @@
 
                                     (let [op (if (ui-utils/checkbox-checked? en-dis-chk) :add :rm)]
                                       (doseq [{:keys [prefix]} storm-inst-only-prefix]
-                                        (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-only-prefix :op op :prefix prefix} {:disable-events? true}))
+                                        (modify-storm-instrumentation {:inst-kind :inst-only-prefix :op op :prefix prefix} {:disable-events? true}))
 
                                       (doseq [{:keys [prefix]} storm-inst-skip-prefix]
-                                        (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-skip-prefix :op op :prefix prefix} {:disable-events? true}))
+                                        (modify-storm-instrumentation {:inst-kind :inst-skip-prefix :op op :prefix prefix} {:disable-events? true}))
 
                                       (doseq [{:keys [regex]} storm-inst-skip-regex]
-                                        (runtime-api/modify-storm-instrumentation rt-api {:inst-kind :inst-skip-regex :op op :regex regex} {:disable-events? true}))))))
+                                        (modify-storm-instrumentation {:inst-kind :inst-skip-regex :op op :regex regex} {:disable-events? true}))))))
 
     (store-obj "browser-observable-instrumentations-list-data" lv-data)
     (store-obj "browser-storm-instrumentation-menu-btn" (:menu-button storm-add-inst-menu-data))

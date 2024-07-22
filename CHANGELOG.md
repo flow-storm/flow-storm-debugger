@@ -7,6 +7,7 @@
     - Make Search, Printer and Multi-thread-timeline tools work per flow
     - Pake Printer use the multi-thread timeline if available to allow for thread interleaving print debugging
     - New fn-call power stepper
+    - Optional automatic namespaces reload after changing prefixes for storm
     
 ### Changes
 

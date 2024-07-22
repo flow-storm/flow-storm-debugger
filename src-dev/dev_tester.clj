@@ -6,7 +6,7 @@
 
 (defn uncatched-throw []
   (let [a (+ 1 2)]
-    (throw (Exception. "damn"))
+    (/ a 0)
     (+ a 3)))
 
 (defn throw-forwarder []

@@ -1510,8 +1510,10 @@ You can use the `Browser tool` to check and change on the fly the prefixes you c
 
 image::user_guide_images/browser_storm_instrumentation_1.png[]
 
+Right clicking any namespace will give you options for what level of a namespace you want to instrument.
+
 On the bottom pane (instrumentations) you will see your current instrumentation configution (if any). Here we can see that everything under
-`ring` and `compojure` will get instrumented but anything under `compojure.middleware` will be skipped.
+`ring.middleware.anti-forgery` will be instrumented every time something inside it gets compiled.
 
 You can remove entries using the `del` buttons or temporarly disable/enable them using the `Enable all` checkbox.
 
@@ -1519,14 +1521,17 @@ image::user_guide_images/browser_storm_instrumentation_2.png[]
 
 You can use the `Add` menu in the picure above to add instrumentation prefixes.
 
+After changing any prefix FlowStorm will ask if you want it to reload the affected namespaces for you. Namespace reloading will
+all reload all namespaces it depends on in topological order, so it shoulnd't break your system in any way.
+
+image::user_guide_images/browser_storm_instrumentation_3.png[]
+
 [NOTE]
 .Instrumentation
 ====
-Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
-You can recompile it as usual with your editor commands, or by using the `Reload namespace` option in the context menu
-on any namespace, which will execute a `(require 'the-selected.namespace :reload)` expression for you.
-You can bulk reload by selecting many namespace on the browser or by using Clojure's reload-all functionality
-by running on your repl `(require 'my-core-namespace :reload-all)`.
+Just changing the prefixes without reloading will not make your currently loaded code [un]instrumented.
+If you haven't let FlowStorm reload them for you, you can always recompile them as usual with your editor commands or
+by executing something like `(require 'the-selected.namespace :reload)`.
 ====
 
 == Instrumentation in Vanilla FlowStorm

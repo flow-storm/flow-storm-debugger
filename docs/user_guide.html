@@ -3151,8 +3151,11 @@ repl.</p>
 </div>
 </div>
 <div class="paragraph">
+<p>Right clicking any namespace will give you options for what level of a namespace you want to instrument.</p>
+</div>
+<div class="paragraph">
 <p>On the bottom pane (instrumentations) you will see your current instrumentation configution (if any). Here we can see that everything under
-<code>ring</code> and <code>compojure</code> will get instrumented but anything under <code>compojure.middleware</code> will be skipped.</p>
+<code>ring.middleware.anti-forgery</code> will be instrumented every time something inside it gets compiled.</p>
 </div>
 <div class="paragraph">
 <p>You can remove entries using the <code>del</code> buttons or temporarly disable/enable them using the <code>Enable all</code> checkbox.</p>
@@ -3165,6 +3168,15 @@ repl.</p>
 <div class="paragraph">
 <p>You can use the <code>Add</code> menu in the picure above to add instrumentation prefixes.</p>
 </div>
+<div class="paragraph">
+<p>After changing any prefix FlowStorm will ask if you want it to reload the affected namespaces for you. Namespace reloading will
+all reload all namespaces it depends on in topological order, so it shoulnd&#8217;t break your system in any way.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/browser_storm_instrumentation_3.png" alt="browser storm instrumentation 3">
+</div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -3174,11 +3186,9 @@ repl.</p>
 <td class="content">
 <div class="title">Instrumentation</div>
 <div class="paragraph">
-<p>Just changing the prefixes will not make your currently loaded code [un]instrumented. You still need to recompile the code.
-You can recompile it as usual with your editor commands, or by using the <code>Reload namespace</code> option in the context menu
-on any namespace, which will execute a <code>(require 'the-selected.namespace :reload)</code> expression for you.
-You can bulk reload by selecting many namespace on the browser or by using Clojure&#8217;s reload-all functionality
-by running on your repl <code>(require 'my-core-namespace :reload-all)</code>.</p>
+<p>Just changing the prefixes without reloading will not make your currently loaded code [un]instrumented.
+If you haven&#8217;t let FlowStorm reload them for you, you can always recompile them as usual with your editor commands or
+by executing something like <code>(require 'the-selected.namespace :reload)</code>.</p>
 </div>
 </td>
 </tr>
@@ -3747,7 +3757,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-19 12:29:33 -0300
+Last updated 2024-07-22 10:21:02 -0300
 </div>
 </div>
 </body>

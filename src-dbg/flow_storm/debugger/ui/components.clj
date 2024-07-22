@@ -1,7 +1,8 @@
 (ns flow-storm.debugger.ui.components
   (:require [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
             [clojure.string :as str]
-            [flow-storm.debugger.state :as dbg-state])
+            [flow-storm.debugger.state :as dbg-state]
+            [clojure.set :as set])
   (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton CustomMenuItem
@@ -325,18 +326,18 @@
 
 (defn alert-dialog [& {:keys [type message buttons center-on-stage width height]
                        :or {type :none}}]
-  (let [alert-type (get {:error        Alert$AlertType/ERROR
+  (let [btn-key->btn-type {:apply  ButtonType/APPLY
+                           :close  ButtonType/CLOSE
+                           :cancel ButtonType/CANCEL}
+        btn-type->btn-key (set/map-invert btn-key->btn-type)
+        alert-type (get {:error        Alert$AlertType/ERROR
                          :confirmation Alert$AlertType/CONFIRMATION
                          :information  Alert$AlertType/INFORMATION
                          :warning      Alert$AlertType/WARNING
                          :none         Alert$AlertType/NONE}
                         type)
         buttons-vec (->> buttons
-                         (mapv (fn [b]
-                                 (get {:apply  ButtonType/APPLY
-                                       :close  ButtonType/CLOSE
-                                       :cancel ButtonType/CANCEL}
-                                      b)))
+                         (mapv btn-key->btn-type)
                          (into-array ButtonType))
         alert-width  (or width 700)
         alert-height (or height 100)
@@ -359,7 +360,8 @@
           (.setX x)
           (.setY y))))
 
-    (.show alert)))
+    (let [btn (.orElse (.showAndWait alert) nil)]
+      (btn-type->btn-key btn))))
 
 (defn progress-indicator [& {:keys [size]}]
   (doto (ProgressIndicator.)

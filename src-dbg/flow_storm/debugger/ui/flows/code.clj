@@ -15,7 +15,7 @@
             [flow-storm.debugger.ui.flows.printer :as printer])
   (:import [javafx.scene Node]
            [javafx.scene.layout Priority VBox HBox]
-           [javafx.scene.control ScrollPane Label SelectionModel TextField ComboBox]
+           [javafx.scene.control ScrollPane Label SelectionModel]
            [javafx.scene.text Font]
            [javafx.scene.input KeyEvent ScrollEvent MouseEvent]
            [org.fxmisc.richtext CodeArea]
