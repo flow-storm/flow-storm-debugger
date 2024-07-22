@@ -679,8 +679,8 @@
                                                                 :thread-id thread-id
                                                                 :backward? backward?
                                                                 :from-idx from-idx}
-                                       "fn-call"               {:fn-call-ns   (namespace sel-fn-call-symb)
-                                                                :fn-call-name (name sel-fn-call-symb)
+                                       "fn-call"               {:fn-ns   (namespace sel-fn-call-symb)
+                                                                :fn-name (name sel-fn-call-symb)
                                                                 :from-idx from-idx
                                                                 :thread-id thread-id
                                                                 :backward? backward?})]

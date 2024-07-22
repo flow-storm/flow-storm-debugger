@@ -249,12 +249,12 @@
   (some-> (index-api/find-flow-fn-call flow-id)
           reference-timeline-entry!))
 
-(defn find-expr-entry-task [{:keys [identity-val equality-val fn-call-name] :as criteria}]
+(defn find-expr-entry-task [{:keys [identity-val equality-val fn-name] :as criteria}]
   (let [criteria (cond-> criteria
                    identity-val (update :identity-val deref-value)
                    equality-val (update :equality-val deref-value)
                    true         (assoc  :needs-form-id? true))
-        search-pred (if fn-call-name
+        search-pred (if fn-name
                       (index-api/build-find-fn-call-entry-predicate criteria)
                       (index-api/build-find-expr-entry-predicate criteria))]
     
