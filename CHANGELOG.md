@@ -12,6 +12,7 @@
 ### Changes
 
     - Flows UI refactor
+    - Make stack click jump to beg of the fn instead of prev step
     
 ### Bugs fixed
 

@@ -437,7 +437,7 @@
                                   (ui-utils/double-click? mev))
                          (jump-to-coord flow-id
                                         thread-id
-                                        (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :prev)))))
+                                        (runtime-api/timeline-entry rt-api flow-id thread-id fn-call-idx :at)))))
         {:keys [list-view-pane] :as lv-data}
         (ui/list-view :editable? false
                       :selection-mode :single
