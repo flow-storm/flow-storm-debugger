@@ -22,16 +22,16 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)
-  - `[com.github.flow-storm/flow-storm-dbg "3.16.0"]`
+  - `[com.github.flow-storm/flow-storm-dbg "3.17.0"]`
 - A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
-  - `[com.github.flow-storm/flow-storm-inst "3.16.0"]`
+  - `[com.github.flow-storm/flow-storm-inst "3.17.0"]`
 
 ClojureStorm latest stable releases : 
 
 - Clojure 1.12
-  - `[com.github.flow-storm/clojure "1.12.0-beta1"]`
+  - `[com.github.flow-storm/clojure "1.12.0-beta1_1"]`
 - Clojure 1.11*)
-  - `[com.github.flow-storm/clojure "1.11.3-1"]`
+  - `[com.github.flow-storm/clojure "1.11.3-2"]`
 
 ClojureScriptStorm latest stable releases : 
 

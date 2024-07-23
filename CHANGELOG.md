@@ -3,6 +3,12 @@
 ## master (unreleased)
 	
 ### New Features 
+        
+### Changes
+
+## 3.17.0 (23-07-2024)
+	
+### New Features 
     
     - Make Search, Printer and Multi-thread-timeline tools work per flow
     - Pake Printer use the multi-thread timeline if available to allow for thread interleaving print debugging
