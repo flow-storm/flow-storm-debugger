@@ -173,18 +173,19 @@
   ([mod-data] (modify-storm-instrumentation mod-data {}))
   ([{:keys [inst-kind prefix regex] :as mod-data} opts]
    (runtime-api/modify-storm-instrumentation rt-api mod-data opts)
-   (let [reload-regex-pattern (case inst-kind
-                                :inst-only-prefix (format "^%s.*" (str/replace prefix "." "\\."))
-                                :inst-skip-prefix (format "^%s.*" (str/replace prefix "." "\\."))
-                                :inst-skip-regex  regex)
-         reload? (= :apply
-                    (ui/alert-dialog :type :confirmation
-                                     :width 1000 :height 100
-                                     :message (format "Do you want FlowStorm to reload all namespaces that matches #\"%s\" so the instrumentation changes take effect?" reload-regex-pattern)
-                                     :buttons [:apply :cancel]
-                                     :center-on-stage (dbg-state/main-jfx-stage)))]
-     (when reload?
-       (reload-all (re-pattern reload-regex-pattern))))))
+   (when (= :clj (dbg-state/env-kind))
+     (let [reload-regex-pattern (case inst-kind
+                                  :inst-only-prefix (format "^%s.*" (str/replace prefix "." "\\."))
+                                  :inst-skip-prefix (format "^%s.*" (str/replace prefix "." "\\."))
+                                  :inst-skip-regex  regex)
+           reload? (= :apply
+                      (ui/alert-dialog :type :confirmation
+                                       :width 1000 :height 100
+                                       :message (format "Do you want FlowStorm to reload all namespaces that matches #\"%s\" so the instrumentation changes take effect?" reload-regex-pattern)
+                                       :buttons [:apply :cancel]
+                                       :center-on-stage (dbg-state/main-jfx-stage)))]
+       (when reload?
+         (reload-all (re-pattern reload-regex-pattern)))))))
 
 (defn- all-prefixes [full-ns-str]
   (let [ns-parts (str/split full-ns-str #"\.")
