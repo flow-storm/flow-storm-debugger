@@ -6,6 +6,10 @@
         
 ### Changes
 
+### Bugs fixed
+
+    - Improve ns auto reload for namespaces loaded with load-file
+    
 ## 3.17.0 (23-07-2024)
 	
 ### New Features 

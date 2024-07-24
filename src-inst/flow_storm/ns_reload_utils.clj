@@ -197,14 +197,11 @@
        (log "Failed to read" (.getPath file) (.getMessage e))
        (ex-info (str "Failed to read" (.getPath file)) {:file file} e)))))
 
-(defn- read-resource
+(defn- read-file-or-resource
 
-  "Like read-file but will read any resource from res-path.
-  Returns the same as `read-file`."
+  [path]
 
-  [res-path]
-
-  (when-let [f-url (io/resource res-path)]
+  (when-let [f-url (or (io/resource path) (some-> (io/file path) (.toURL)))]
     (let [rdr (string-reader (slurp (io/reader f-url)))]
       (read-file rdr f-url))))
 
@@ -307,7 +304,7 @@
 
         ;; build the namespaces map
         namespaces (reduce (fn [nss path]
-                             (let [res (read-resource path)]
+                             (let [res (read-file-or-resource path)]
                                ;; throwables here are caused for example by reading
                                ;; files which contains "#{`ns 'ns}". This is because
                                ;; of reading with dummy-resolver
