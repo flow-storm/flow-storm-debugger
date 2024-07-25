@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features 
+
+    - Add before-reload and after-reload hooks for the namespace reloading utilities
         
 ### Changes
 

@@ -3177,6 +3177,15 @@ all reload all namespaces it depends on in topological order, so it shoulnd&#821
 <img src="user_guide_images/browser_storm_instrumentation_3.png" alt="browser storm instrumentation 3">
 </div>
 </div>
+<div class="paragraph">
+<p>You can also provide functions to be called before and after reloading in case you need to stop and start your system with :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">flow-storm.api/set-before-reload-callback!</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"Before reloading"</span><span class="p">)))</span><span class="w">
+</span><span class="p">(</span><span class="nf">flow-storm.api/set-after-reload-callback!</span><span class="w">  </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">(</span><span class="nb">println</span><span class="w"> </span><span class="s">"After reloading"</span><span class="p">)))</span></code></pre>
+</div>
+</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -3757,7 +3766,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-22 10:21:02 -0300
+Last updated 2024-07-25 09:49:16 -0300
 </div>
 </div>
 </body>

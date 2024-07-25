@@ -286,6 +286,15 @@
       (log "  failed to load" ns t)
       t)))
 
+(def before-reload-callback nil)
+(def after-reload-callback nil)
+
+(defn set-before-reload-callback! [cb]
+  (alter-var-root #'before-reload-callback (constantly cb)))
+
+(defn set-after-reload-callback! [cb]
+  (alter-var-root #'after-reload-callback (constantly cb)))
+
 (defn reload-all
 
   "Reload all loaded namespaces that contains at least one var, which matches
@@ -324,12 +333,15 @@
                          topo-sort)
         to-unload (reverse to-reload)]
 
+    (when before-reload-callback (before-reload-callback))
     (doseq [ns to-unload]
       (ns-unload ns))
 
     (doseq [ns to-reload]
       (doseq [ns-files (get-in namespaces [ns :ns-files])]
-        (ns-load ns ns-files)))))
+        (ns-load ns ns-files)))
+
+    (when after-reload-callback (after-reload-callback))))
 
 (comment
   (reload-all #"hanse.*")

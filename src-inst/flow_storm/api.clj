@@ -6,6 +6,7 @@
   (:require [flow-storm.tracer :as tracer]
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.utils :refer [log] :as utils]
+            [flow-storm.ns-reload-utils :as reload-utils]
             [hansel.api :as hansel]
             [hansel.instrument.utils :as inst-utils]
             [flow-storm.runtime.debuggers-api :as dbg-api]
@@ -335,3 +336,9 @@
 
 (defn start-recording [] (dbg-api/set-recording true))
 (defn stop-recording [] (dbg-api/set-recording false))
+
+(defn set-before-reload-callback! [cb]
+  (reload-utils/set-before-reload-callback! cb))
+
+(defn set-after-reload-callback! [cb]
+  (reload-utils/set-after-reload-callback! cb))

@@ -1526,6 +1526,15 @@ all reload all namespaces it depends on in topological order, so it shoulnd't br
 
 image::user_guide_images/browser_storm_instrumentation_3.png[]
 
+You can also provide functions to be called before and after reloading in case you need to stop and start your system with :
+
+[,clojure]
+----
+(flow-storm.api/set-before-reload-callback! (fn [] (println "Before reloading")))
+(flow-storm.api/set-after-reload-callback!  (fn [] (println "After reloading")))
+----
+
+
 [NOTE]
 .Instrumentation
 ====
