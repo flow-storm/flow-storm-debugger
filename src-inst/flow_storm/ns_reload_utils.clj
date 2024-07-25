@@ -201,11 +201,11 @@
 
   [path]
 
-  (when-let [f-url (try
-                     (or (io/resource path) (some-> (io/file path) (.toURL)))
-                     (catch Exception _ nil))]
-    (let [rdr (string-reader (slurp (io/reader f-url)))]
-      (read-file rdr f-url))))
+  (try
+    (when-let [f-url (or (io/resource path) (some-> (io/file path) (.toURL)))]
+      (let [rdr (string-reader (slurp (io/reader f-url)))]
+        (read-file rdr f-url)))
+    (catch Exception _ (log "Failed to read" path "ignoring...") nil)))
 
 (defn- dependees
   "Inverts the requies graph. Returns {ns -> #{downstream-ns ...}}"
