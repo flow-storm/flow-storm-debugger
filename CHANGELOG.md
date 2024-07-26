@@ -3,11 +3,21 @@
 ## master (unreleased)
 	
 ### New Features 
+    
+### Changes
+
+### Bugs fixed
+
+## 3.17.1 (26-07-2024)
+	
+### New Features 
 
     - Add before-reload and after-reload hooks for the namespace reloading utilities
         
 ### Changes
 
+    - Update tutorial
+    
 ### Bugs fixed
 
     - Improve ns auto reload for namespaces loaded with load-file
