@@ -29,31 +29,37 @@ It will guide you over the basics and help you get started with FlowStorm.
    "
 <p>Great! Since we are going to be using the UI throughout the tutorial, let's do it comfortably.</p>
 
-<p> You can <b>toggle the debugger's UI between light/dark themes by hitting (Ctrl-t)</b> or using the <b>View menu</b> which also allows you to  increase/decrease the font size. You can <b>also toggle this tutorial theme by using the button at the bottom right corner</b>, so go ahead and make yourself comfortable first.</p>
+<p> You can <b>toggle the debugger's UI between light/dark themes by hitting (Ctrl-t)</b> or using the <b>View menu</b> which also allows you to  increase/decrease the font size. You can <b>also toggle this tutorial theme by using the button at the bottom right corner</b>, so go ahead and set yourself comfortable first.</p>
 
-<p>Now we are ready! The first thing we need to do is to <b>tell FlowStorm what namespaces to instrument</b>, so we can record their function's executions.</p>
-
-<p>We can do this by setting some JVM properties before starting the repl or <b>by using the FlowStorm Browser</b> (second vertical tab from the top).</p>
-
-<p>For most of your projects you probably want to setup instrumentation via JVM properties, so you don't need to tell FlowStorm what to instrument every time you start your project's repl, but this time we are going to use the browser.</p>
-
-<p><b>Click on the Browser tab and look at the Instrumentations bottom panel</b>.</p>
-
-<p>Click on <b>Add</b> and then <b>Add instrumentation prefix</b>. It will ask you for a prefix. Let's type the word `tutorial` (without quotes) there and add a instrumentation prefix by clicking Ok.</p>
-
-<p>These are prefixes, so this means that for the `tutorial` word any code compiled under `tutorial`, `tutorial.server`, `tutorial.server.core`, etc, will get instrumented. Normally adding prefixes for the top namespace of your project and some libs you are interested in debugging will be enough.</p>
-
-<p>Now we are done with instrumentation setup for this tutorial, so <b>let's go back to the Flows vertical tab </b>, which is called the Flows tool and is what we are going to be using for the rest of the tutorial.</p>
-
-<p>The next <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the Flows tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
-
-<p>Now go back to your repl and let's create a tutorial namespace by typing :</p>
+<p>Now we are ready! The first thing we are going to do is to create and jump to a namespace for our tutorial. So go ahead and paste the following code in your repl : </p>
 
 <code>
 (ns tutorial)
 </code>
 
-<p>On the next slide we are going to start evaluating some code under it.</p>
+<p> Next thing we need is to <b>tell FlowStorm what namespaces to instrument</b>, so we can record their function's executions.</p>
+
+<p>We can do this by setting some JVM properties before starting the repl or <b>by using the FlowStorm Browser</b> (second vertical tab from the top).</p>
+
+<p>For most of your projects you probably want to setup instrumentation via JVM properties, so you don't need to tell FlowStorm what to instrument every time you start your project's repl, but this time we are going to use the browser.</p>
+
+<p><b>Click on the Browser tab and look at the instrumentations bottom panel</b>.</p>
+
+<p>There are two ways of adding instrumentation prefixes from the browser. We can find our namespace on the namespaces browser, right click on them, and then select our prefix, or we can use the <b>Add</b> button in the instrumentations bottom panel.</p>
+
+<p>Let's find our `tutorial` namespace on the list (you can filter them using the input at the top), right click on it, and click on `Add instr prefix for tutorial.*`</p>
+
+<p>A window will popup asking if we want to reload all namespaces related to our new prefix, which we can cancel since we don't have anything in our ns yet. </p>
+
+<p>Reloading is important when you add a prefix for namespaces with many functions already loaded. When you reload them you will be recompiling all the functions, and because there is a instrumentation prefix for them now, the functions will compile instrumented, so you can record their execution. </p>
+
+<p>These are prefixes, so this means that for the `tutorial` prefix any code compiled under `tutorial`, `tutorial.server`, `tutorial.server.core`, etc, will get instrumented. Normally adding prefixes for the top namespace of your project and some libs you are interested in will be enough.</p>
+
+<p>Now we are done with instrumentation setup for this tutorial, so <b>let's go back to the Flows vertical tab </b>, which is called the Flows tool and is what we are going to be using for the rest of the tutorial.</p>
+
+<p>The next <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the Flows tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
+
+<p>On the next slide we are going to start evaluating some code.</p>
 "
 
    "
@@ -323,7 +329,7 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 (defn start-tutorials-ui []
   (step-reset)
   (let [window-w 1000
-        window-h 800
+        window-h 1000
         {:keys [x y]} (ui-utils/stage-center-box (dbg-state/main-jfx-stage) window-w window-h)]
     (ui/stage :scene (ui/scene :root (create-tutorial-pane)
                                :window-width  window-w
