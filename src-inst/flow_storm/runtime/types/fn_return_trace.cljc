@@ -43,6 +43,18 @@
      :fn-call-idx (index-protos/fn-call-idx this)
      :idx (index-protos/entry-idx this)})
 
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 (-> (unchecked-multiply-int 31 (.hashCode coord))
+                     (unchecked-add-int (.hashCode retVal))))
+
+       (equals [this o]
+               (or (identical? this o)
+                   (and (instance? FnReturnTrace o)
+                        (.equals coord (.-coord ^FnReturnTrace o))
+                        (.equals retVal (.-retVal ^FnReturnTrace o)))))])
+  
   #?@(:cljs
       [IPrintWithWriter
        (-pr-writer [this writer _]
@@ -99,6 +111,18 @@
      :fn-call-idx (index-protos/fn-call-idx this)
      :idx (index-protos/entry-idx this)})
 
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 (-> (unchecked-multiply-int 31 (.hashCode coord))
+                     (unchecked-add-int (.hashCode throwable))))
+
+       (equals [this o]
+               (or (identical? this o)
+                   (and (instance? FnUnwindTrace o)
+                        (.equals coord (.-coord ^FnUnwindTrace o))
+                        (.equals (.getMessage throwable) (.getMessage (.-throwable ^FnUnwindTrace o))))))])
+  
   #?@(:cljs
       [IPrintWithWriter
        (-pr-writer [this writer _]

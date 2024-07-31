@@ -37,6 +37,8 @@
     -fx-theme-list-selection:                     #788da1;
     -fx-theme-hl-combos:                          #555478;
     -fx-theme-important-combos:                   #792a6c;
+    -fx-theme-diff-delete:                        #821515;
+    -fx-theme-diff-add:                           #036b07;
 }
 
 .root {

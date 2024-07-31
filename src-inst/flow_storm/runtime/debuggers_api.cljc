@@ -9,6 +9,7 @@
             [flow-storm.runtime.taps :as rt-taps]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
+            [flow-storm.runtime.indexes.timelines-diffs :as timelines-diffs]
             [flow-storm.jobs :as jobs]
             [flow-storm.tracer :as tracer]
             [clojure.string :as str]
@@ -359,6 +360,12 @@
 
 (def set-thread-trace-limit tracer/set-thread-trace-limit)
 
+(defn diff-timelines [src-flow-id src-thread-id target-flow-id target-thread-id]
+  (let [src-tl (index-api/get-timeline src-flow-id src-thread-id)
+        target-tl (index-api/get-timeline target-flow-id target-thread-id)]
+    (timelines-diffs/diff src-tl target-tl)))
+
+
 (defn toggle-recording []
   (if (tracer/recording?)
     (do
@@ -577,6 +584,7 @@
              :switch-record-to-flow switch-record-to-flow
              :all-fn-call-stats all-fn-call-stats
              :set-thread-trace-limit set-thread-trace-limit
+             :diff-timelines diff-timelines
              :ping ping
              #?@(:clj
                  [:def-value def-value

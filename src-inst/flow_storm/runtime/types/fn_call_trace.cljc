@@ -66,6 +66,23 @@
      :parent-indx (index-protos/get-parent-idx this)
      :ret-idx (index-protos/get-ret-idx this)})
 
+
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 (-> (unchecked-multiply-int 31 formId)
+                     (unchecked-add-int (.hashCode ^String fnName))
+                     (unchecked-add-int (.hashCode ^String fnNs))
+                     (unchecked-add-int (.hashCode fnArgs))))
+
+       (equals [this o]
+               (or (identical? this o)
+                   (and (instance? FnCallTrace o)
+                        (= formId ^int (.-formId ^FnCallTrace o))
+                        (.equals ^String fnName ^String (.-fnName ^FnCallTrace o))
+                        (.equals ^String fnNs ^String (.-fnNs ^FnCallTrace o))
+                        (= fnArgs (.-fnArgs ^FnCallTrace o)))))])
+
   #?@(:cljs
       [IPrintWithWriter
        (-pr-writer [this writer _]

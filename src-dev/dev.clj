@@ -199,6 +199,9 @@
 
 (comment
 
+  (dev-tester/boo [1 "hello" 4])
+  (dev-tester/boo [1 "world" 4])
+
   (dev-tester/run)
   (dev-tester/run-parallel)
 

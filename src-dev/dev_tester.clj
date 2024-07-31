@@ -94,7 +94,7 @@
 (defn boo [xs]
   (let [a 25
         yy (other-function 4 5)
-        hh (range)
+        ;; hh (range)
         *a (atom 10)
         _ (inc-atom *a)
         xx @*a
