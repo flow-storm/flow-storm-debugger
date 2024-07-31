@@ -71,6 +71,7 @@
 
   (def-value [_ var-symb val-ref])
   (tap-value [_ v])
+  (diff-timelines [_ src-flow-id src-thread-id target-flow-id target-thread-id])
 
   (get-all-namespaces [_])
   (get-all-vars-for-ns [_ nsname])
@@ -179,6 +180,7 @@
   (discard-flow [_ flow-id] (api-call :local "discard-flow" [flow-id]))
   (def-value [_ var-symb val-ref] (api-call :local "def-value" [(or (namespace var-symb) "user") (name var-symb) val-ref]))
   (tap-value [_ vref] (api-call :local "tap-value" [vref]))
+  (diff-timelines [_ src-flow-id src-thread-id target-flow-id target-thread-id] (api-call :local "diff-timelines" [src-flow-id src-thread-id target-flow-id target-thread-id]))
 
   (get-all-namespaces [_] (mapv (comp str ns-name) (all-ns)))
   (get-all-vars-for-ns [_ nsname] (->> (ns-interns (symbol nsname)) keys (map str)))
@@ -325,6 +327,7 @@
                                              (:vid val-ref))
                                      (or (namespace var-symb) "cljs.user"))))
   (tap-value [_ vref] (api-call :remote "tap-value" [vref]))
+  (diff-timelines [_ src-flow-id src-thread-id target-flow-id target-thread-id] (api-call :remote "diff-timelines" [src-flow-id src-thread-id target-flow-id target-thread-id]))
 
   (get-all-namespaces [_]
     (case (dbg-state/env-kind)

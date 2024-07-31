@@ -44,7 +44,7 @@
                                             (->> (keep (fn [[fid tid]]
                                                          (when (= fid flow-id)
                                                            {:thread-id tid
-                                                            :thread-name (:thread/name (dbg-state/get-thread-info tid))}))
+                                                            :thread-name (:thread/name (dbg-state/get-thread-info flow-id tid))}))
                                                        flows-threads)
                                                  (into [{:thread-name "All"}])))
                                    :cell-factory (fn [_ {:keys [thread-id thread-name]}]

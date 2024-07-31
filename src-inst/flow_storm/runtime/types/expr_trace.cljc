@@ -42,6 +42,18 @@
      :fn-call-idx (index-protos/fn-call-idx this)
      :idx (index-protos/entry-idx this)})
 
+  #?@(:clj
+      [Object
+       (hashCode [_]
+                 (-> (unchecked-multiply-int 31 (.hashCode coord))
+                     (unchecked-add-int (.hashCode exprVal))))
+
+       (equals [this o]
+               (or (identical? this o)
+                   (and (instance? ExprTrace o)
+                        (.equals coord (.-coord ^ExprTrace o))
+                        (.equals exprVal (.-exprVal ^ExprTrace o)))))])
+  
   #?@(:cljs
       [IPrintWithWriter
        (-pr-writer [this writer _]

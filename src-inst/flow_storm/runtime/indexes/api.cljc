@@ -99,7 +99,7 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]            
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace]            
             [flow-storm.runtime.types.expr-trace :as expr-trace]
-            [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
+            [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]            
             [flow-storm.utils :as utils]
             [hansel.utils :as hansel-utils]
             [clojure.pprint :as pp]

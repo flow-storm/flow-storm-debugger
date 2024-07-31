@@ -26,6 +26,7 @@
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
             [flow-storm.debugger.ui.flows.printer :as printer]
+            [flow-storm.debugger.ui.flows.diff-timelines :as diff-timelines]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.taps.screen :as taps-screen]
@@ -242,6 +243,8 @@
                                        :on-click (fn [] (clear-all))
                                        :accel {:mods [:ctrl]
                                                :key-code KeyCode/L}}
+                                      {:text "Diff threads"
+                                       :on-click (fn [] (diff-timelines/diff-timelines-window))}
                                       {:text "Unblock all threads"
                                        :on-click (fn [] (runtime-api/unblock-all-threads rt-api))
                                        :accel {:mods [:ctrl]

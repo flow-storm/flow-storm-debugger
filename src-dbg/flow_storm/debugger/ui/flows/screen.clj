@@ -88,7 +88,7 @@
 
 (defn make-outdated-thread [flow-id thread-id]
   (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]
-    (let [th-info (dbg-state/get-thread-info thread-id)
+    (let [th-info (dbg-state/get-thread-info flow-id thread-id)
           thread-label (ui/thread-label (:thread/id th-info)  (:thread/name th-info))
           refresh-tab-content (ui/h-box
                                :childs [(ui/label :text thread-label)
@@ -112,7 +112,7 @@
             [threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")]
 
         (doseq [tinfo threads-info]
-          (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
+          (dbg-state/update-thread-info flow-id (:thread/id tinfo) tinfo))
 
         (when (and (seq threads-info)
                    threads-tabs-pane
@@ -145,7 +145,7 @@
 (defn goto-location [{:keys [flow-id thread-id idx]}]
   (ui-general/select-main-tools-tab "tool-flows")
   (select-flow-tab flow-id)
-  (open-thread (assoc (dbg-state/get-thread-info thread-id)
+  (open-thread (assoc (dbg-state/get-thread-info flow-id thread-id)
                       :flow/id flow-id))
   (ui-general/select-thread-tool-tab flow-id thread-id "flows-code-stepper")
   (flow-code/jump-to-coord flow-id

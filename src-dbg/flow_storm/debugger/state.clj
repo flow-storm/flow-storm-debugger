@@ -80,7 +80,9 @@
 (s/def :flow/threads (s/map-of :thread/id :flow/thread))
 
 (s/def :flow/id int?)
+(s/def :flow/threads-info (s/map-of :thread/id :thread/info))
 (s/def :flow/flow (s/keys :req [:flow/id
+                                :flow/threads-info
                                 :flow/threads]
                           :req-un [::timestamp]))
 
@@ -89,7 +91,7 @@
                                   :thread/id
                                   :thread/name]
                             :opt [:thread/blocked?]))
-(s/def :flow/threads-info (s/map-of :flow/id :thread/info))
+
 
 (s/def :printer/enable? boolean?)
 (s/def :printer/source-expr any?)
@@ -174,7 +176,6 @@
 (s/def ::bookmarks (s/map-of :bookmark/id string?))
 
 (s/def ::state (s/keys :req-un [:flow/flows
-                                :flow/threads-info
                                 :printer/printers
                                 :ui/selected-font-size-style-idx
                                 :ui/selected-theme
@@ -193,7 +194,6 @@
   {:flows {}
    :printers {}
    :selected-font-size-style-idx 0
-   :threads-info {}
    :selected-theme (case theme
                      :light :light
                      :dark  :dark
@@ -269,6 +269,7 @@
   ;; will be GCed
 
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
+                                          :flow/threads-info {}
                                           :flow/threads {}
                                           :timestamp timestamp}))
 
@@ -278,11 +279,11 @@
 (defn all-flows-ids []
   (keys (get @state :flows)))
 
-(defn update-thread-info [thread-id info]
-  (swap! state assoc-in [:threads-info thread-id] info))
+(defn update-thread-info [flow-id thread-id info]
+  (swap! state assoc-in [:flows flow-id :flow/threads-info thread-id] info))
 
-(defn get-thread-info [thread-id]
-  (get-in @state [:threads-info thread-id]))
+(defn get-thread-info [flow-id thread-id]
+  (get-in @state [:flows flow-id :flow/threads-info thread-id]))
 
 (defn get-flow [flow-id]
   (get-in @state [:flows flow-id]))

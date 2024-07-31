@@ -5,7 +5,7 @@
             [clojure.spec.alpha :as s]))
 
 (def version (or (System/getenv "VERSION")
-                 "3.17.2"))
+                 "3.18.0-SNAPSHOT"))
 
 (def target-dir "target")
 (def class-dir (str target-dir "/classes"))
@@ -87,7 +87,9 @@
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
                                               'com.github.flow-storm/hansel {:mvn/version "0.1.83"}
                                               'org.clojure/data.int-map {:mvn/version "1.2.1"}
-                                              'amalloy/ring-buffer {:mvn/version "1.3.1"}}
+                                              'amalloy/ring-buffer {:mvn/version "1.3.1"}
+                                              'io.github.java-diff-utils/java-diff-utils {:mvn/version "4.12"}
+                                              'juji/editscript {:mvn/version "0.6.3"}}
 
                                        :paths src-dirs}})
         jar-file (format "%s/%s.jar" target-dir (name lib))]
