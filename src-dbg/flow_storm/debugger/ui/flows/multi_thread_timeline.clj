@@ -14,7 +14,16 @@
            [javafx.stage Stage]))
 
 
-(def thread-possible-colors #{"#DAE8FC" "#D5E8D4" "#FFE6CC" "#F8CECC" "#E1D5E7" "#60A917" "#4C0099" "#CC00CC"})
+(def thread-possible-colors #{"#DAE8FC"
+                              "#D5E8D4"
+                              "#FFE6CC"
+                              "#F8CECC"
+                              "#E1D5E7"
+                              "#60A917"
+                              "#d45757"
+                              "#30cfcf"
+                              "#ed55e8"
+                              "#d3d929"})
 
 (defn clear-timeline [flow-id]
   (when-let [[{:keys [clear]}] (obj-lookup flow-id "total-order-table-data")]

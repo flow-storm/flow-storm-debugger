@@ -131,7 +131,8 @@
        {:ref/snapshot (deref x)}
        {:ref/timeout x}))
 
-    (utils/derefable? x)
+    (and (utils/derefable? x)
+         (not (delay? x)))
     {:ref/snapshot (deref x)
      :ref/type (type x)}
 

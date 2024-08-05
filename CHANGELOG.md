@@ -6,8 +6,12 @@
     
 ### Changes
 
+    - Improved multi-thread timeline colors
+    
 ### Bugs fixed
 
+    - Do not deref delays when tracing values
+    
 ## 3.17.1 (26-07-2024)
 	
 ### New Features 
