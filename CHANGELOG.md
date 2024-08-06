@@ -7,6 +7,7 @@
 ### Changes
 
     - Improved multi-thread timeline colors
+    - Do not deref all derefables automatically, just atoms, refs, agents and vars and pending realized ones. Leave the reast to snapshot-value system
     
 ### Bugs fixed
 

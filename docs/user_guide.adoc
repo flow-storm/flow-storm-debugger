@@ -1464,10 +1464,10 @@ instrumented to avoid an infinite recursion.
 Be aware that this is tricky in multithreading situations, as always with mutable values.
 
 [NOTE]
-.Atoms and derefable values
+.Automatic derefing
 ====
-If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snapshot will be created automatically by derefing the object, 
-so no need to implement `flow-storm.runtime.values/snapshot-value`
+FlowStorm will automatically deref Atoms, Refs, Agents, Vars and all pending-realized derefables on tracing
+so no need to implement `flow-storm.runtime.values/snapshot-value` for them.
 ====
 
 = Controlling instrumentation

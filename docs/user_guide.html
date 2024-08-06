@@ -3087,10 +3087,10 @@ instrumented to avoid an infinite recursion.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-<div class="title">Atoms and derefable values</div>
+<div class="title">Automatic derefing</div>
 <div class="paragraph">
-<p>If the value implements clojure.lang.IDeref (or cljs.core.IDeref in Cljs) a snapshot will be created automatically by derefing the object,
-so no need to implement <code>flow-storm.runtime.values/snapshot-value</code></p>
+<p>FlowStorm will automatically deref Atoms, Refs, Agents, Vars and all pending-realized derefables on tracing
+so no need to implement <code>flow-storm.runtime.values/snapshot-value</code> for them.</p>
 </div>
 </td>
 </tr>
@@ -3766,7 +3766,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-07-25 09:49:16 -0300
+Last updated 2024-08-06 09:38:32 -0300
 </div>
 </div>
 </body>

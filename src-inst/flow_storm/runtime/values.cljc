@@ -120,23 +120,39 @@
   nil
   (snapshot-value [_] nil))
 
+(extend-protocol SnapshotP
+  #?(:clj clojure.lang.Atom :cljs cljs.core/Atom)
+  (snapshot-value [a]
+    {:ref/snapshot (deref a) :ref/type (type a)}))
+
+#?(:clj
+   (extend-protocol SnapshotP
+     clojure.lang.Agent
+     (snapshot-value [a]
+       {:ref/snapshot (deref a) :ref/type (type a)})))
+
+#?(:clj
+   (extend-protocol SnapshotP
+     clojure.lang.Ref
+     (snapshot-value [r]
+       {:ref/snapshot (deref r) :ref/type (type r)})))
+
+#?(:clj
+   (extend-protocol SnapshotP
+     clojure.lang.Var
+     (snapshot-value [v]
+       {:ref/snapshot (deref v) :ref/type (type v)})))
+
 (defn snapshot-reference [x]
-  (cond
+  (if (and (utils/derefable? x) (utils/pending? x) (realized? x))
+    ;; If the value is already realized it should be safe to call deref.
+    ;; If it is a non realized pending derefable we don't mess with it
+    ;; because we don't want to interfere with the program behavior, since
+    ;; people can do side effectful things on deref, like in the case of delay
+    ;; This will cover basically realized promises, futures and delays
+    {:ref/snapshot (deref x) :ref/type (type x)}
 
-    (and (utils/blocking-derefable? x)
-         (utils/pending? x))
-    (merge
-     {:ref/type (type x)}
-     (if (realized? x)
-       {:ref/snapshot (deref x)}
-       {:ref/timeout x}))
-
-    (and (utils/derefable? x)
-         (not (delay? x)))
-    {:ref/snapshot (deref x)
-     :ref/type (type x)}
-
-    :else (snapshot-value x)))
+    (snapshot-value x)))
 
 (defn value-type [v]
   (if (and (map? v)

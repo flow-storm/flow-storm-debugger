@@ -95,13 +95,14 @@
   (let [a 25
         yy (other-function 4 5)
         hh (range)
+        dly (delay (+ 1 2 (* 3 4)))
         *a (atom 10)
         _ (inc-atom *a)
         xx @*a
         b (dummy-sum-macro a 4)
         m ^{:meta1 true :meta2 "nice-meta-value"} {:a 5 :b ^:interesting-vector [1 2 3]}
         mm (assoc m :c 10)
-        c (+ a b 7)
+        c (+ a b 7 @dly)
         d (add (->ARecord 5))
         e (add (AType. 10))
         j (loop [i 100
