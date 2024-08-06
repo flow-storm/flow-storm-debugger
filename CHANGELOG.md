@@ -5,6 +5,14 @@
 ### New Features 
     
 ### Changes
+        
+### Bugs fixed
+    
+## 3.17.2 (06-08-2024)
+	
+### New Features 
+    
+### Changes
 
     - Improved multi-thread timeline colors
     - Do not deref all derefables automatically, just atoms, refs, agents and vars and pending realized ones. Leave the reast to snapshot-value system
