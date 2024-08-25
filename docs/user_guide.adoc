@@ -970,7 +970,7 @@ As you can see the timeline tool displays a linear representation of your expres
 each thread gets assigned a different color. Every time a function is called or returns you will see it under the `Function`
 column, and for each expression executed you will see a row with its `Expression` and `Value`.
 
-Double clicking any row will take you to the code at that point in time.
+Double clicking any row will make your code stepper (on the main window) jump to the code at that point in time.
 
 [NOTE]
 .Big recordings timeline
