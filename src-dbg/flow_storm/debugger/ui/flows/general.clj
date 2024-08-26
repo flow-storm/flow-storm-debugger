@@ -94,6 +94,6 @@
 
            (when command
              (utils/log (str "Running : " command))
-             (apply shell/sh (str/split command #"\s"))))))
+             (apply shell/sh (utils/quoted-string-split command \space))))))
      (catch Exception e
        (utils/log-error (.getMessage e))))))

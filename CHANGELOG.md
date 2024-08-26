@@ -5,6 +5,8 @@
 ### New Features 
     
 ### Changes
+
+    - Use quoted-string-split on editor open commands
         
 ### Bugs fixed
     

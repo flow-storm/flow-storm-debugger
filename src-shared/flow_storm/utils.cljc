@@ -353,3 +353,25 @@
      (let [klass (Class/forName class-name)
            method (.getMethod klass method-name (into-array java.lang.Class (mapv class args)))]       
        (.invoke method nil (into-array args)))))
+
+(defn quoted-string-split
+
+  "Split string s with sep-char but don't split inside single quotes."
+
+  [s sep-char]
+  (loop [[c & rinput] s
+         quote-on? false
+         tokens []
+         curr-tok ""]
+    (if-not c
+      (conj tokens curr-tok)
+
+      (cond
+        (= c \')
+        (recur rinput (not quote-on?) tokens curr-tok)
+
+        (and (= c sep-char) (not quote-on?))
+        (recur rinput quote-on? (conj tokens curr-tok) "")
+
+        :else
+        (recur rinput quote-on? tokens (str curr-tok c))))))
