@@ -6,6 +6,14 @@
     
 ### Changes
 
+### Bugs fixed
+
+## 3.17.3 (27-08-2024)
+	
+### New Features 
+    
+### Changes
+
     - Use quoted-string-split on editor open commands
         
 ### Bugs fixed
