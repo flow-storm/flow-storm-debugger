@@ -977,9 +977,9 @@ or <code>lein profile</code> so you don&#8217;t have to modify each of your proj
             </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentAutoPrefixes=true"</span><span class="w">
-                       </span><span class="c1">;; with whatever editor you have</span><span class="w">
-                       </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
+                       </span><span class="c1">;; change for your specific editor</span><span class="w">
                        </span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="w">
+                       </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span><span class="w">
                        </span><span class="p">]}}}</span></code></pre>
 </div>
 </div>
@@ -1004,9 +1004,10 @@ and use the instructions there to finetune them.</p>
   </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
              </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
              </span><span class="s">"-Dclojure.storm.instrumentAutoPrefixes=true"</span><span class="w">
-             </span><span class="c1">;; with whatever editor you have</span><span class="w">
-             </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
-             </span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="p">]}}</span></code></pre>
+             </span><span class="c1">;; change for your specific editor</span><span class="w">
+             </span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="w">
+             </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span><span class="w">
+             </span><span class="p">]}}</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3657,8 +3658,14 @@ which should open the file at that specific line (useful for long forms).</p>
 <h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">17.1. Emacs</a></h3>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
-</span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span></code></pre>
+<pre class="rouge highlight"><code data-lang="clojure"><span class="c1">;; for opening your project files</span><span class="w">
+</span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="w">
+
+</span><span class="c1">;; simple way for opening files inside jars (works on linux only)</span><span class="w">
+</span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;"</span><span class="w">
+
+</span><span class="c1">;; for opening files inside jars that works on every OS (requires FlowStorm &gt;= 3.17.3)</span><span class="w">
+</span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span></code></pre>
 </div>
 </div>
 </div>
@@ -3767,7 +3774,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-08-25 14:46:47 -0300
+Last updated 2024-08-27 09:08:16 -0300
 </div>
 </div>
 </body>

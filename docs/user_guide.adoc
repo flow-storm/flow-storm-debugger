@@ -139,9 +139,9 @@ For example you can modify your ~/.clojure/deps.edn like this :
             :jvm-opts ["-Dflowstorm.startRecording=false"
                        "-Dclojure.storm.instrumentEnable=true"
                        "-Dclojure.storm.instrumentAutoPrefixes=true"
-                       ;; with whatever editor you have
-                       "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+                       ;; change for your specific editor
                        "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+                       "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"
                        ]}}}
 ----
 
@@ -163,9 +163,10 @@ If you are using leiningen instead, you can modify your ~/.lein/profiles.clj lik
   :jvm-opts ["-Dflowstorm.startRecording=false"
              "-Dclojure.storm.instrumentEnable=true"
              "-Dclojure.storm.instrumentAutoPrefixes=true"
-             ;; with whatever editor you have
-             "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
-             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}}
+             ;; change for your specific editor
+             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+             "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"
+             ]}}
 ----
 
 
@@ -1786,8 +1787,14 @@ Here are some known setups for most common editors :
 
 [,clojure]
 ----
-"-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+;; for opening your project files
 "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+
+;; simple way for opening files inside jars (works on linux only)
+"-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+
+;; for opening files inside jars that works on every OS (requires FlowStorm >= 3.17.3)
+"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"
 ----
 
 == VSCode
