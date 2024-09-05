@@ -1753,23 +1753,14 @@ npm install websocket --save
 
 = Working on Windows with WSL2
 
-For those using WSL2 on Windows. You'll need to set up an X-Server on Windows, make sure you drill a hole in the firewall for the port, and then specify the display for the WSL process.
+For those using current versions of WSL2 on Windows it should be pretty straight forward.
 
-Then everything should work. The steps are:
+    - export DISPLAY=:0
+    - export WSL2_GUI_APPS_ENABLED=1
 
-    . Install VcXsrv on Windows.
-    . Run the XLaunch app on Windows, Choose Multiple Windows, Display Number 0, Start no client, Check all settings on the Extra Settings screen (specifically "Disable access control"
-    . In the WSL2 terminal, run ip addr | grep eth0 to determine the ip of the xserver
-    . On Windows, go to Firewall and network protection, select Advanced Settings, and add a new Inbound Rule in the Windows Defender window that pops up.
-    . For the rule, select Port, then TCP, specific port 6000, then click next twice, and finally name the rule something appropriate, like "XServer rule".
-    . Now find the rule you just created, right click, select Properties, then the Scope tab, and enter the IP address you found at step 3 with an appropriate range in order to allow the port through for the WSL2 subsystem.
-    . Now find the ip address of your windows machine by typing ipconfig in a windows terminal
-    . Now, in the WSL2 terminal, type export DISPLAY=IP_ADDERSS_FOUND_ON_STEP_7:0.0
-    . Also in the WSL2 terminal, type export LIBGL_ALWAYS_INDIRECT=1
-    . Now you can start clojure with the command clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'
-    . That should get you into the REPL, where you should type (require '[flow-storm.api :as fs-api])
-    . Finally, type (fs-api/local-connect) and you're done!
-
+Font issues had been reported on some distros, like `java.lang.NullPointerException: Cannot read field "firstFont" because "<local4>" is null` which
+seams to be solved just by installing font packages like `dejavu-fonts` or `ttf-dejavu` depending on the distro.
+    
 = Opening forms in editors
 
 You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :
