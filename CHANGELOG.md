@@ -7,7 +7,9 @@
 ### Changes
 
 ### Bugs fixed
-
+    
+    - Fix thread trace count not updating on thread tab refresh
+    
 ## 3.17.3 (27-08-2024)
 	
 ### New Features 

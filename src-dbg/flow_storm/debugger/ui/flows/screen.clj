@@ -97,6 +97,7 @@
                                                         :on-click (fn []
                                                                     (flow-tree/update-call-stack-tree-pane flow-id thread-id)
                                                                     (flow-fns/update-functions-pane flow-id thread-id)
+                                                                    (flow-code/update-thread-trace-count-lbl flow-id thread-id)
                                                                     (doto tab
                                                                       (.setText thread-label)
                                                                       (.setGraphic nil)))

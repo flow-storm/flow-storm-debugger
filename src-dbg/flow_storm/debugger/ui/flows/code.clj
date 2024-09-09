@@ -453,9 +453,10 @@
     (clear)
     (add-all stack)))
 
-(defn- update-thread-trace-count-lbl [flow-id thread-id cnt]
-  (let [[lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
-    (ui-utils/set-text lbl (str (dec cnt)))))
+(defn update-thread-trace-count-lbl [flow-id thread-id]
+  (when-let [[lbl] (obj-lookup flow-id thread-id "thread_trace_count_lbl")]
+    (let [cnt (runtime-api/timeline-count rt-api flow-id thread-id)]
+      (ui-utils/set-text lbl (str (dec cnt))))))
 
 (defn- unhighlight-form [flow-id thread-id form-id]
   (let [[form-pane] (obj-lookup flow-id thread-id (ui-utils/thread-form-box-id form-id))]
@@ -486,8 +487,7 @@
   (try
     (when (:debug-mode? (dbg-state/debugger-config))
       (utils/log (str "Jump to " next-tentry)))
-    (let [trace-count (runtime-api/timeline-count rt-api flow-id thread-id)
-          curr-frame (if-let [cfr (dbg-state/current-frame flow-id thread-id)]
+    (let [curr-frame (if-let [cfr (dbg-state/current-frame flow-id thread-id)]
                        cfr
                        ;; if we don't have a current frame it means it is the first
                        ;; jump so, initialize the debugger thread state
@@ -517,7 +517,7 @@
 
       ;; update thread current trace label and total traces
       (ui-utils/set-text-input-text curr-trace-text-field (str next-idx))
-      (update-thread-trace-count-lbl flow-id thread-id trace-count)
+      (update-thread-trace-count-lbl flow-id thread-id)
 
       (when (or first-jump? changing-frame?)
 
