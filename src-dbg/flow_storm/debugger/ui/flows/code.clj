@@ -311,10 +311,11 @@
                                              :mouse-ev mev))))))
 
                                   ;; else clicked on the form background
-                                  (ui-utils/show-context-menu
-                                   :menu (ui/context-menu :items ctx-menu-options)
-                                   :parent form-code-area
-                                   :mouse-ev mev)))))))))
+                                  (when (ui-utils/mouse-secondary? mev)
+                                    (ui-utils/show-context-menu
+                                     :menu (ui/context-menu :items ctx-menu-options)
+                                     :parent form-code-area
+                                     :mouse-ev mev))))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."

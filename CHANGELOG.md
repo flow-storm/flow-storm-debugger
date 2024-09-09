@@ -9,6 +9,7 @@
 ### Bugs fixed
     
     - Fix thread trace count not updating on thread tab refresh
+    - Fix ctx menu showing on forms background with left click
     
 ## 3.17.3 (27-08-2024)
 	
