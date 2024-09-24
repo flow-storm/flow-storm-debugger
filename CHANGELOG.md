@@ -7,6 +7,14 @@
 ### Changes
 
 ### Bugs fixed
+
+## 3.17.4 (24-09-2024)
+	
+### New Features 
+    
+### Changes
+
+### Bugs fixed
     
     - Fix thread trace count not updating on thread tab refresh
     - Fix ctx menu showing on forms background with left click
