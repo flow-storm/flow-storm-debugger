@@ -82,8 +82,7 @@
    :eof       ::eof})
 
 (defn- read-form [reader]
-  (binding [*read-eval*       false
-            *suppress-read*   true
+  (binding [*suppress-read*   true
             *reader-resolver* dummy-resolver]
     (read reader-opts reader)))
 

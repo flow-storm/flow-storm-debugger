@@ -10,6 +10,7 @@
     
     - Fix thread trace count not updating on thread tab refresh
     - Fix ctx menu showing on forms background with left click
+    - For ns reload functionality don't read forms with *read-eval* false
     
 ## 3.17.3 (27-08-2024)
 	
