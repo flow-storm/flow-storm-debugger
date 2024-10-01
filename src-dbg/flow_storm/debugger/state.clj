@@ -218,7 +218,9 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false}
    :bookmarks {}
-   :unwinds []})
+   :unwinds []
+   :visualizers {}
+   :data-windows {}})
 
 ;; so linter doesn't complain
 (declare state)
@@ -590,6 +592,37 @@
 
 (defn get-selected-function-list-fn [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id :thread.ui/selected-functions-list-fn]))
+
+;;;;;;;;;;;;;;;;;;
+;; Data Windows ;;
+;;;;;;;;;;;;;;;;;;
+
+;; TODO: spec data-windows
+
+(defn data-window-create [dw-id breadcrums-box visualizers-combo-box val-box]
+  (swap! state assoc-in [:data-windows dw-id] {:breadcrums-box breadcrums-box
+                                               :visualizers-combo-box visualizers-combo-box
+                                               :val-box val-box
+                                               :stack ()}))
+
+(defn data-window [dw-id]
+  (get-in @state [:data-windows dw-id]))
+
+(defn data-window-push-frame [dw-id val-frame]
+  (swap! state update-in [:data-windows dw-id :stack] conj val-frame))
+
+(defn data-window-update-top-frame [dw-id new-frame-data]
+  (swap! state update-in [:data-windows dw-id :stack]
+         (fn [stack]
+           (conj (pop stack) (merge (peek stack) new-frame-data)))))
+
+(defn data-window-pop-stack-to-depth [dw-id depth]
+  (swap! state update-in [:data-windows dw-id :stack]
+         (fn [stack]
+           (reduce (fn [st _] (pop st))
+                   stack
+                   (range (- (count stack) depth))))))
+
 
 ;;;;;;;;;;;
 ;; Other ;;

@@ -6,10 +6,10 @@
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.code :as flows-code]
-            [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.ui.tasks :as tasks]
             [clojure.pprint :refer [cl-format]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
   (:import [javafx.scene.layout Priority HBox VBox]))
 
 
@@ -101,27 +101,25 @@
     table-view-pane))
 
 (defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str]}]
-  (let [create-inspector (fn [vref]
-                           (value-inspector/create-inspector vref {:find-and-jump-same-val (partial flows-code/find-and-jump-same-val flow-id thread-id)}))
-        args-node (when-not (str/blank? args-vec-str)
+  (let [args-node (when-not (str/blank? args-vec-str)
                     (ui/h-box :childs [(ui/button :label "args"
                                                   :classes ["def-btn" "btn-sm"]
                                                   :tooltip "Open this value in the value inspector."
-                                                  :on-click (fn [] (create-inspector args-vec)))
+                                                  :on-click (fn [] (data-windows/create-data-window-for-vref args-vec)))
                                        (ui/label :text args-vec-str)]
                               :spacing 5))
         ret-node (when ret-str
                    (ui/h-box :childs [(ui/button :label "ret"
                                                  :classes ["def-btn" "btn-sm"]
                                                  :tooltip "Open this value in the value inspector."
-                                                 :on-click (fn [] (create-inspector ret)))
+                                                 :on-click (fn [] (data-windows/create-data-window-for-vref ret)))
                                       (ui/label :text ret-str)]
                              :spacing 5))
         throwable-node (when throwable-str
                          (ui/h-box :childs [(ui/button :label "throw"
                                                        :classes ["def-btn" "btn-sm"]
                                                        :tooltip "Open this value in the value inspector."
-                                                       :on-click (fn [] (create-inspector throwable)))
+                                                       :on-click (fn [] (data-windows/create-data-window-for-vref throwable)))
                                             (ui/label :text throwable-str
                                                       :class "fail")]
                                    :spacing 5))

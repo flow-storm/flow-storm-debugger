@@ -87,6 +87,12 @@
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 
+(defn make-data-window-push-val-data-event [dw-id vdata]
+  [:data-window-push-val-data {:dw-id dw-id :val-data vdata}])
+
+(defn make-data-window-update-event [dw-id data]
+  [:data-window-update {:dw-id dw-id :data data}])
+
 (defn publish-event! [[ev-key :as ev]]
   (if-let [dispatch @*dispatch]
 

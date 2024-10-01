@@ -5,8 +5,8 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.value-inspector :as value-inspector]
-            [flow-storm.debugger.ui.flows.general :as ui-general])
+            [flow-storm.debugger.ui.flows.general :as ui-general]
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
   (:import [javafx.scene.layout Priority VBox]))
 
 
@@ -45,7 +45,7 @@
                                     (cond
                                       (and (ui-utils/mouse-primary? mev)
                                            (ui-utils/double-click? mev))
-                                      (value-inspector/create-inspector val {})
+                                      (data-windows/create-data-window-for-vref val)
 
                                       (ui-utils/mouse-secondary? mev)
                                       (let [ctx-menu (ui/context-menu

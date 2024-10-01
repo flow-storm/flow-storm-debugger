@@ -3,7 +3,8 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.value-inspector :as value-inspector]
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
   (:import [javafx.scene.layout VBox Priority]
            [javafx.scene.control TextArea TextField]))
 
@@ -68,7 +69,7 @@
     (store-obj flow-id thread-id (ui-utils/thread-pprint-tap-btn-id pane-id) tap-btn)
     box))
 
-(defn update-pprint-pane [flow-id thread-id pane-id {:keys [val-ref extra-text class]} opts]
+(defn update-pprint-pane [flow-id thread-id pane-id {:keys [val-ref extra-text class]} _]
   (let [[result-type-lbl] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-type-lbl-id pane-id))
         [result-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-area-id pane-id))
         [print-level-txt] (obj-lookup flow-id thread-id (ui-utils/thread-pprint-level-txt-id pane-id))
@@ -84,7 +85,7 @@
                                                                              :print-meta? (ui-utils/checkbox-checked? print-meta-chk)
                                                                              :pprint? true}))]
     (ui-utils/set-button-action def-btn (fn [] (value-inspector/def-val val-ref)))
-    (ui-utils/set-button-action inspect-btn (fn [] (value-inspector/create-inspector val-ref opts)))
+    (ui-utils/set-button-action inspect-btn (fn [] (data-windows/create-data-window-for-vref val-ref)))
     (ui-utils/set-button-action tap-btn (fn [] (runtime-api/tap-value rt-api val-ref)))
 
     (ui-utils/set-text extra-lbl (or extra-text ""))

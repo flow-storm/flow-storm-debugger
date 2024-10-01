@@ -265,3 +265,56 @@
      (intern (symbol var-ns)
              (symbol var-name)
              (deref-value x))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defonce values-datafiers-registry (atom {}))
+
+(defn register-data-aspect-extractor [{:keys [id] :as extractor}]
+  (swap! values-datafiers-registry assoc id extractor))
+
+(defn unregister-data-aspect-extractor [id]
+  (swap! values-datafiers-registry dissoc id))
+
+(defn extract-data-aspects [o]
+  (reduce (fn [aspects {:keys [pred extractor]}]
+            (if (pred o)
+              (merge aspects (extractor o))
+              aspects))
+          {}
+          (vals @values-datafiers-registry)))
+
+(register-data-aspect-extractor
+   {:id :typer
+    :pred any?
+    :extractor (fn [o]
+                 {::type (pr-str (type o))})})
+  
+  (register-data-aspect-extractor
+   {:id :previewer
+    :pred any?
+    :extractor (fn [o]
+                 {:preview-str (-> o
+                                   (val-pprint {:pprint? true
+                                                :print-length 10
+                                                :print-level 5
+                                                :print-meta? false})
+                                   :val-str)})})
+  
+  (register-data-aspect-extractor
+   {:id :maps
+    :pred map?
+    :extractor (fn [m]
+                 {::kind :map
+                  :map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (keys m))
+                  :map/keys-refs     (mapv reference-value! (keys m))
+                  :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (vals m))
+                  :map/vals-refs     (mapv reference-value! (vals m))})})
+
+(comment
+
+  
+
+  (extract-data-aspects 120)
+  (extract-data-aspects {:a 20 :b 40})
+  )

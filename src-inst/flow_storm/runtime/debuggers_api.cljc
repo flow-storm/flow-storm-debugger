@@ -139,6 +139,16 @@
 (defn shallow-val [vref]
   (rt-values/shallow-val vref))
 
+(defn data-window-push-val-data [dw-id vref extra]
+  (let [v (rt-values/deref-value vref)
+        vdata (-> (rt-values/extract-data-aspects v)
+                  (merge extra))]
+    (rt-events/publish-event! (rt-events/make-data-window-push-val-data-event dw-id vdata))))
+
+(defn data-window-update-data [dw-id data]
+  (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id data)))
+
+
 #?(:clj (def def-value rt-values/def-value))
 
 (def tap-value rt-values/tap-value)
@@ -542,7 +552,10 @@
 
 (def api-fn {:runtime-config runtime-config
              :val-pprint val-pprint
+
              :shallow-val shallow-val
+             :data-window-push-val-data data-window-push-val-data
+             
              :get-form get-form
              :timeline-count timeline-count
              :timeline-entry timeline-entry

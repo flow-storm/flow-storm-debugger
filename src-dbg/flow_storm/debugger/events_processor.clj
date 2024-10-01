@@ -9,6 +9,7 @@
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.utils :refer [log]]))
 
@@ -98,6 +99,12 @@
          (flows-screen/update-exceptions-combo)))
       (log (format "Functions unwinds limit of %d exceeded, not adding more exceptions to the Exceptions menu." ui-unwinds-limit)))))
 
+(defn data-window-push-val-data-event [{:keys [dw-id val-data]}]
+  (data-windows/push-val dw-id val-data))
+
+(defn data-window-update-event [{:keys [dw-id data]}]
+  (data-windows/update-val dw-id data))
+
 (defn process-event [[ev-type ev-args-map]]
 
   (case ev-type
@@ -123,5 +130,8 @@
     :recording-updated (recording-updated-event ev-args-map)
     :multi-timeline-recording-updated (multi-timeline-recording-updated-event ev-args-map)
     :function-unwinded-event (function-unwinded-event ev-args-map)
+
+    :data-window-push-val-data (data-window-push-val-data-event ev-args-map)
+    :data-window-update (data-window-update-event ev-args-map)
     nil ;; events-processor doesn't handle every event, specially tasks processing
     ))

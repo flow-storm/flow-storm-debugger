@@ -168,11 +168,6 @@
 (defn set-disable [^Node node x]
   (.setDisable node x))
 
-(defn combo-box-set-items [^ComboBox cbox items]
-  (let [observable-list (FXCollections/observableArrayList)]
-    (.setItems cbox observable-list)
-    (observable-add-all observable-list items)))
-
 (defn set-min-size-wrap-content [^Region node]
   (.setMinHeight node (Region/USE_PREF_SIZE))
   node)
@@ -285,6 +280,14 @@
 
 (defn selection-select-first [^SelectionModel model]
   (.selectFirst model))
+
+(defn combo-box-set-items [^ComboBox cbox items]
+  (let [observable-list (FXCollections/observableArrayList)]
+    (.setItems cbox observable-list)
+    (observable-add-all observable-list items)))
+
+(defn combo-box-set-selected [^ComboBox cbox item]
+  (selection-select-obj (.getSelectionModel cbox) item))
 
 (defn add-tab-pane-tab [^TabPane tp ^Tab t]
   (observable-add-all (.getTabs tp) [t]))

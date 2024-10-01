@@ -12,7 +12,8 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.tasks :as tasks]
             [hansel.utils :refer [get-form-at-coord]]
-            [flow-storm.debugger.ui.flows.printer :as printer])
+            [flow-storm.debugger.ui.flows.printer :as printer]
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
   (:import [javafx.scene Node]
            [javafx.scene.layout Priority VBox HBox]
            [javafx.scene.control ScrollPane Label SelectionModel]
@@ -406,7 +407,7 @@
                                                   (runtime-api/tap-value rt-api val))}
                                      {:text "Inspect"
                                       :on-click (fn []
-                                                  (value-inspector/create-inspector val {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)}))}])]
+                                                  (data-windows/create-data-window-for-vref val))}])]
       (ui-utils/show-context-menu :menu ctx-menu
                                   :parent list-view-pane
                                   :mouse-ev mev))))
