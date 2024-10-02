@@ -100,7 +100,7 @@
 
     table-view-pane))
 
-(defn- functions-calls-cell-factory [flow-id thread-id list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str]}]
+(defn- functions-calls-cell-factory [list-cell {:keys [args-vec ret throwable args-vec-str ret-str throwable-str]}]
   (let [args-node (when-not (str/blank? args-vec-str)
                     (ui/h-box :childs [(ui/button :label "args"
                                                   :classes ["def-btn" "btn-sm"]
@@ -163,7 +163,7 @@
                                                               :focus-traversable? false)))
 
         {:keys [list-view-pane] :as lv-data} (ui/list-view :editable? false
-                                                           :cell-factory (partial functions-calls-cell-factory flow-id thread-id)
+                                                           :cell-factory functions-calls-cell-factory
                                                            :on-click (partial function-call-click flow-id thread-id)
                                                            :selection-mode :single)
         args-print-type-checks (ui/h-box

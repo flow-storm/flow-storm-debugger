@@ -287,27 +287,6 @@
 	-fx-background-color: -fx-theme-button2-background;
 }
 
-/*******************/
-/* Value inspector */
-/*******************/
-
-.value-inspector-main-pane {
-	-fx-padding: 10;
-}
-
-.value-inspector-header {
-	-fx-padding: 10;
-}
-
-.value-inspector-stack-pane {
-	-fx-padding: 10;
-	-fx-background-color: -fx-theme-base2;
-}
-
-.value-inspector-stack-pane .stack-bar-btn {
-	-fx-background-color: -fx-theme-breadcrums; 
-}
-
 /****************/
 /* Docs browser */
 /****************/

@@ -1,6 +1,5 @@
 (ns flow-storm.runtime.values
   (:require [clojure.pprint :as pp]
-            [clojure.datafy :as datafy]
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]))
 
@@ -201,60 +200,6 @@
 (defn val-pprint-ref [vref opts]  
   (let [val (deref-value vref)]
     (val-pprint val opts)))
-
-(defn- maybe-ref! [x]
-  (if (or (boolean? x)
-          (nil? x))
-    
-    x
-
-    (reference-value! x)))
-
-(defn- build-shallow-map [data]
-  (let [entries (->> (into {} data)
-                     (mapv (fn [[k v]]
-                             [(maybe-ref! k) (maybe-ref! v)])))]
-    {:val/kind :map
-     :val/map-entries entries}))
-
-(defn- build-shallow-seq [data]  
-  (let [{:keys [page/offset] :or {offset 0}} (meta data)
-        page-size 50
-        cnt (when (counted? data) (count data))
-        shallow-page (->> data
-                          (map #(maybe-ref! %))
-                          (take page-size)
-                          doall)
-        shallow-page-cnt (count shallow-page)
-        more-elems (drop shallow-page-cnt data)]
-    (cond-> {:val/kind :seq
-             :val/page shallow-page
-             :page/offset offset
-             :total-count cnt}
-      (seq more-elems) (assoc :val/more (reference-value! (with-meta more-elems {:page/offset (+ offset shallow-page-cnt)}))))))
-
-(defn shallow-val
-  
-  [vref]  
-  (let [v (deref-value vref)
-        v-meta (meta v)
-        data (cond-> (datafy/datafy v) ;; forward meta since we are storing meta like :page/offset in references
-               v-meta (with-meta v-meta))
-        type-name (value-type v)
-        shallow-data (cond
-                       (utils/map-like? data)
-                       (build-shallow-map data)
-
-                       (or (coll? data) (utils/seq-like? data))
-                       (build-shallow-seq data)
-
-                       :else {:val/kind :object
-                              :val/str (pr-str v)})
-        shallow-data (assoc shallow-data
-                            :val/type type-name                            
-                            :val/shallow-meta (when-let [m (meta v)]
-                                                (shallow-val m)))]    
-    shallow-data))
 
 (defn tap-value [vref]
   (let [v (deref-value vref)]

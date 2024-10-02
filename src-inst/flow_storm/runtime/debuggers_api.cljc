@@ -136,9 +136,6 @@
 (defn val-pprint [vref opts]
   (rt-values/val-pprint-ref vref opts))
 
-(defn shallow-val [vref]
-  (rt-values/shallow-val vref))
-
 (defn data-window-push-val-data [dw-id vref extra]
   (let [v (rt-values/deref-value vref)
         vdata (-> (rt-values/extract-data-aspects v)
@@ -552,10 +549,7 @@
 
 (def api-fn {:runtime-config runtime-config
              :val-pprint val-pprint
-
-             :shallow-val shallow-val
              :data-window-push-val-data data-window-push-val-data
-             
              :get-form get-form
              :timeline-count timeline-count
              :timeline-entry timeline-entry

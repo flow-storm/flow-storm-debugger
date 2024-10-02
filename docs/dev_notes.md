@@ -161,9 +161,8 @@ They are stored into a registry, and a reference to them is returned. This refer
 
 Whatever is using `flow-storm.runtime.debuggers-api` will deal with this `ValueRef`s instead of actual values. 
 
-Two functions are also exposed by `flow-storm.runtime.debuggers-api` to work with `ValueRef`s : 
+Functions are also exposed by `flow-storm.runtime.debuggers-api` to work with `ValueRef`s : 
   * `val-pprint` for printing a value into a string representation with provided `print-level` and `print-length`
-  * `shallow-val` for returning the "first level" of the value and more `ValueRef`s to keep exploring it
   
 The values registry implementation is a little more involved than just a map from (hash value) -> value because not all
 values can be hashed, specially infinite sequences. For that, every value is wrapped in a
