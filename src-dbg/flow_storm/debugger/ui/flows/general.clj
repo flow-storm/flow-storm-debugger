@@ -1,6 +1,5 @@
 (ns flow-storm.debugger.ui.flows.general
   (:require [flow-storm.debugger.state :as dbg-state :refer [obj-lookup]]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.utils :as utils]
@@ -10,19 +9,6 @@
   (:import [javafx.scene.control TabPane]
            [java.io File]
            [java.net URL]))
-
-(defn def-val
-  ([val] (def-val val {:stage (dbg-state/main-jfx-stage)}))
-  ([val {:keys [stage]}]
-   (let [val-name (ui/ask-text-dialog
-                   :header "Def var with name. You can use / to provide a namespace, otherwise will be defined under [cljs.]user "
-                   :body "Var name :"
-                   :width  500
-                   :height 100
-                   :center-on-stage stage)]
-     (when-not (str/blank? val-name)
-       (runtime-api/def-value rt-api (symbol val-name) val)))))
-
 
 (defn select-thread-tool-tab [flow-id thread-id tab-id]
   (let [[^TabPane thread-tools-tab-pane] (obj-lookup flow-id thread-id "thread_tool_tab_pane_id")

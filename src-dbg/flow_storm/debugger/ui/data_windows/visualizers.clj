@@ -1,7 +1,9 @@
 (ns flow-storm.debugger.ui.data-windows.visualizers
-  (:require [flow-storm.debugger.ui.utils :as ui-utils]
-            [flow-storm.debugger.ui.components :as ui]
-            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]))
+  (:require [flow-storm.debugger.ui.components :as ui]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.utils :as ui-utils])
+  (:import [javafx.scene.canvas Canvas GraphicsContext]
+           [javafx.animation AnimationTimer]))
 
 (defonce *visualizers (atom {}))
 (defonce *types->defaults (atom {}))
@@ -37,7 +39,9 @@
                {:fx/node (ui/text-area
                           :text preview-str
                           :editable? false
-                          :class "value-pprint")})})
+                          :class "value-pprint")})
+  :on-update (fn [_ {:keys [fx/node]} {:keys [new-val]}]
+               (ui-utils/set-text-input-text node (str new-val)))})
 
 (register-visualizer
  {:id :map
@@ -66,12 +70,44 @@
                       :pred (fn [val] (= :vec (:flow-storm.runtime.values/kind val)))
                       :on-create (fn [{:keys []}]
                                    {:fx/node (ui/label :text "A VEC")})})
-
+(set! *warn-on-reflection* true)
 (register-visualizer {:id :scope
-                      :pred (fn [val] (= :number (:flow-storm.runtime.values/kind val)))
+                      :pred (fn [val] (:number? val))
                       :on-create (fn [{:keys [val]}]
-                                   {:fx/node (ui/label :text (str "Val" val))})
-                      :on-update (fn [_ {:keys [fx/node]} {:keys [new-val]}]
-                                   (ui-utils/set-text node (str "Val " new-val)))})
+                                   (let [capture-window-size 1000
+                                         ^doubles captured-samples (double-array capture-window-size 0)
+                                         curr-pos (atom 0)
+                                         canvas-width 1000
+                                         canvas-height 500
+                                         canvas (Canvas. canvas-width canvas-height)
+                                         gc (.getGraphicsContext2D canvas)
+                                         x-step (long (/ canvas-width capture-window-size))
+                                         mid-y (/ canvas-height 2)
+                                         anim-timer (proxy [AnimationTimer] []
+                                                      (handle [^long now]
+                                                        (.clearRect ^GraphicsContext gc 0 0 canvas-width canvas-height)
+                                                        (loop [i 0
+                                                               x 0]
+                                                          (when (< i (dec capture-window-size))
+                                                            (let [y1 (- mid-y (aget captured-samples i))
+                                                                  y2 (- mid-y (aget captured-samples (inc i)))]
+                                                              (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
+                                                              (recur (inc i) (+ x x-step)))))))
+                                         add-sample (fn add-sample [^double s]
+                                                      (aset-double captured-samples @curr-pos s)
+                                                      (swap! curr-pos (fn [cp]
+                                                                        (if (< cp (dec capture-window-size))
+                                                                          (inc cp)
+                                                                          0))))]
+                                     (add-sample val)
+                                     (.start anim-timer)
+                                     {:fx/node canvas
+                                      :add-sample add-sample
+                                      :stop-timer (fn []
+                                                    (.stop anim-timer)
+                                                    )}))
+                      :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
+                                   (add-sample new-val))
+                      :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
 
 (set-default-visualizer "clojure.lang.PersistentArrayMap" :map)

@@ -1,7 +1,7 @@
 (ns flow-storm.debugger.ui.flows.components
   (:require [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.components :as ui]
-            [flow-storm.debugger.ui.flows.general :refer [def-val]]
+            [flow-storm.debugger.ui.commons :refer [def-val]]
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])

@@ -234,6 +234,12 @@
     :pred any?
     :extractor (fn [o]
                  {::type (pr-str (type o))})})
+
+(register-data-aspect-extractor
+   {:id :number
+    :pred number?
+    :extractor (fn [n] {:number? true
+                        :val n})})
   
   (register-data-aspect-extractor
    {:id :previewer

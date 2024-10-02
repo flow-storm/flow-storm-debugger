@@ -1,7 +1,8 @@
 (ns flow-storm.debugger.ui.flows.code
   (:require [clojure.pprint :as pp]
             [flow-storm.form-pprinter :as form-pprinter]
-            [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor def-val]]
+            [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor]]
+            [flow-storm.debugger.ui.commons :refer [def-val]]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
             [flow-storm.debugger.ui.components :as ui]

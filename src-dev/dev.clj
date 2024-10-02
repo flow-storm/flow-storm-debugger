@@ -234,3 +234,25 @@
                               :equality-val 42})
 
   )
+(comment
+  (tap> {:a {:name {:other :hello
+                   :bla "world"}}
+         :b {:age 10}})
+
+  (def scale-factor (atom 100))
+  (reset! scale-factor 150)
+  (def dw-id :scope5)
+
+  (fs-api/data-window-push-val dw-id 0)
+
+  (def th (Thread.
+           (fn []
+             (loop [x 0]
+               (when-not (Thread/interrupted)
+                 (Thread/sleep 10)
+                 (fs-api/data-window-val-update dw-id (* @scale-factor (Math/sin x)))
+                 (recur (+ x 0.1)))))))
+
+  (.start th)
+  (.interrupt th)
+  )

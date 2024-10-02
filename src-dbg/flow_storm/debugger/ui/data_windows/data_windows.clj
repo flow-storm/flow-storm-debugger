@@ -80,7 +80,10 @@
           viz-combo (ui/combo-box :items visualizers
                                   :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))
                                   :button-factory (fn [_ {:keys [id]}] (ui/label :text (str id)))
-                                  :on-change (fn [_ new-visualizer] (update-visualizer new-visualizer)))
+                                  :on-change (fn [old-visualizer new-visualizer]
+                                               (when-let [destroy (:on-destroy old-visualizer)]
+                                                 (destroy (:visualizer-val-ctx old-visualizer)))
+                                               (update-visualizer new-visualizer)))
 
           reset-breadcrums (fn reset-breadcrums []
                              (let [stack (:stack (dbg-state/data-window dw-id))
@@ -115,8 +118,9 @@
   (let [{:keys [stack]} (dbg-state/data-window dw-id)
         {:keys [val-data visualizer visualizer-val-ctx]} (peek stack)
         {:keys [on-update]} visualizer]
-    (ui-utils/run-later
-      (on-update val-data visualizer-val-ctx update-data))))
+    (when on-update
+      (ui-utils/run-later
+        (on-update val-data visualizer-val-ctx update-data)))))
 
 
 (comment

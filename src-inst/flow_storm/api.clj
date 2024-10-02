@@ -342,3 +342,14 @@
 
 (defn set-after-reload-callback! [cb]
   (reload-utils/set-after-reload-callback! cb))
+
+(defn data-window-push-val
+  ([dw-id val] (data-window-push-val dw-id val nil))
+  ([dw-id val stack-key]
+   (let [vdata (assoc (rt-values/extract-data-aspects val)
+                      :flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                      :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key)]
+     (rt-events/publish-event! (rt-events/make-data-window-push-val-data-event dw-id vdata)))))
+
+(defn data-window-val-update [dw-id new-val]
+  (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id {:new-val new-val})))
