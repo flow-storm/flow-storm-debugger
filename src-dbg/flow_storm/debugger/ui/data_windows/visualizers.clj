@@ -34,10 +34,10 @@
 
 (register-visualizer
  {:id :preview
-  :pred (fn [val] (contains? val :preview-str))
-  :on-create (fn [{:keys [preview-str]}]
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :previewable))
+  :on-create (fn [{:keys [preview/pprint]}]
                {:fx/node (ui/text-area
-                          :text preview-str
+                          :text pprint
                           :editable? false
                           :class "value-pprint")})
   :on-update (fn [_ {:keys [fx/node]} {:keys [new-val]}]
@@ -45,7 +45,7 @@
 
 (register-visualizer
  {:id :map
-  :pred (fn [val] (= :map (:flow-storm.runtime.values/kind val)))
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :map))
   :on-create (fn [{:keys [map/keys-previews map/keys-refs map/vals-previews map/vals-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
                (let [rows (mapv (fn [k-prev k-ref v-prev v-ref]
                                   [{:cell-type :key :k-prev k-prev :k-ref k-ref :stack-key (str k-prev "-KEY")}
@@ -67,8 +67,8 @@
                     :items rows))}))})
 
 (register-visualizer
- {:id :uncountable-seq
-  :pred (fn [val] (= :uncountable-seq (:flow-storm.runtime.values/kind val)))
+ {:id :seqable
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :seqable))
   :on-create (fn [{:keys [flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as seq-page}]
                (let [{:keys [list-view-pane add-all]}
                      (ui/list-view :editable? false
@@ -76,7 +76,7 @@
                                                    (-> list-cell
                                                        (ui-utils/set-text  nil)
                                                        (ui-utils/set-graphic (ui/label :text prev))))
-                                   :on-click (fn hereeeeee3 [_ sel-items _]
+                                   :on-click (fn [_ sel-items _]
                                                (let [{:keys [prev ref]} (first sel-items)
                                                      extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                              :flow-storm.debugger.ui.data-windows.data-windows/stack-key prev}]
@@ -96,48 +96,44 @@
   :on-update (fn [_ {:keys [add-page]} seq-page] (add-page seq-page))})
 
 
-(register-visualizer {:id :countable-seq
-                      :pred (fn [val] (= :countable-seq (:flow-storm.runtime.values/kind val)))
-                      :on-create (fn [{:keys []}]
-                                   )})
-(set! *warn-on-reflection* true)
-(register-visualizer {:id :scope
-                      :pred (fn [val] (:number? val))
-                      :on-create (fn [{:keys [val]}]
-                                   (let [capture-window-size 1000
-                                         ^doubles captured-samples (double-array capture-window-size 0)
-                                         curr-pos (atom 0)
-                                         canvas-width 1000
-                                         canvas-height 500
-                                         canvas (Canvas. canvas-width canvas-height)
-                                         gc (.getGraphicsContext2D canvas)
-                                         x-step (long (/ canvas-width capture-window-size))
-                                         mid-y (/ canvas-height 2)
-                                         anim-timer (proxy [AnimationTimer] []
-                                                      (handle [^long now]
-                                                        (.clearRect ^GraphicsContext gc 0 0 canvas-width canvas-height)
-                                                        (loop [i 0
-                                                               x 0]
-                                                          (when (< i (dec capture-window-size))
-                                                            (let [y1 (- mid-y (aget captured-samples i))
-                                                                  y2 (- mid-y (aget captured-samples (inc i)))]
-                                                              (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
-                                                              (recur (inc i) (+ x x-step)))))))
-                                         add-sample (fn add-sample [^double s]
-                                                      (aset-double captured-samples @curr-pos s)
-                                                      (swap! curr-pos (fn [cp]
-                                                                        (if (< cp (dec capture-window-size))
-                                                                          (inc cp)
-                                                                          0))))]
-                                     (add-sample val)
-                                     (.start anim-timer)
-                                     {:fx/node canvas
-                                      :add-sample add-sample
-                                      :stop-timer (fn []
-                                                    (.stop anim-timer)
-                                                    )}))
-                      :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
-                                   (add-sample new-val))
-                      :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
+(register-visualizer
+ {:id :scope
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :number))
+  :on-create (fn [{:keys [number/val]}]
+               (let [capture-window-size 1000
+                     ^doubles captured-samples (double-array capture-window-size 0)
+                     curr-pos (atom 0)
+                     canvas-width 1000
+                     canvas-height 500
+                     canvas (Canvas. canvas-width canvas-height)
+                     gc (.getGraphicsContext2D canvas)
+                     x-step (long (/ canvas-width capture-window-size))
+                     mid-y (/ canvas-height 2)
+                     anim-timer (proxy [AnimationTimer] []
+                                  (handle [^long now]
+                                    (.clearRect ^GraphicsContext gc 0 0 canvas-width canvas-height)
+                                    (loop [i 0
+                                           x 0]
+                                      (when (< i (dec capture-window-size))
+                                        (let [y1 (- mid-y (aget captured-samples i))
+                                              y2 (- mid-y (aget captured-samples (inc i)))]
+                                          (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
+                                          (recur (inc i) (+ x x-step)))))))
+                     add-sample (fn add-sample [^double s]
+                                  (aset-double captured-samples @curr-pos s)
+                                  (swap! curr-pos (fn [cp]
+                                                    (if (< cp (dec capture-window-size))
+                                                      (inc cp)
+                                                      0))))]
+                 (add-sample val)
+                 (.start anim-timer)
+                 {:fx/node canvas
+                  :add-sample add-sample
+                  :stop-timer (fn []
+                                (.stop anim-timer)
+                                )}))
+  :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
+               (add-sample new-val))
+  :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
 
 (set-default-visualizer "clojure.lang.PersistentArrayMap" :map)

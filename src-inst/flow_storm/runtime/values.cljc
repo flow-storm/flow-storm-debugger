@@ -222,69 +222,59 @@
   (swap! values-datafiers-registry dissoc id))
 
 (defn extract-data-aspects [o]
-  (reduce (fn [aspects {:keys [pred extractor]}]
+  (reduce (fn [aspects {:keys [id pred extractor]}]
             (if (pred o)
-              (merge aspects (extractor o))
+              (let [{:keys [::kind] :as ext} (extractor o)]
+                (-> ext
+                    (merge aspects)
+                    (update ::kinds conj id)))
               aspects))
-          {}
+          {::kinds #{}
+           ::type (pr-str (type o))}
           (vals @values-datafiers-registry)))
-
-(register-data-aspect-extractor
-   {:id :typer
-    :pred any?
-    :extractor (fn [o]
-                 {::type (pr-str (type o))})})
 
 (register-data-aspect-extractor
    {:id :number
     :pred number?
-    :extractor (fn [n] {:number? true
-                        :val n})})
+    :extractor (fn [n] {:number/val n})})
+  
+(register-data-aspect-extractor
+ {:id :previewable
+  :pred any?
+  :extractor (fn [o]
+               {:preview/pprint
+                (-> o
+                    (val-pprint {:pprint? true
+                                 :print-length 10
+                                 :print-level 10
+                                 :print-meta? false})
+                    :val-str)})})
   
   (register-data-aspect-extractor
-   {:id :previewer
-    :pred any?
-    :extractor (fn [o]
-                 {:preview-str (-> o
-                                   (val-pprint {:pprint? true
-                                                :print-length 10
-                                                :print-level 5
-                                                :print-meta? false})
-                                   :val-str)})})
-  
-  (register-data-aspect-extractor
-   {:id :maps
+   {:id :map
     :pred map?
     :extractor (fn [m]
-                 {::kind :map
-                  :map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (keys m))
+                 {:map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (keys m))
                   :map/keys-refs     (mapv reference-value! (keys m))
                   :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (vals m))
                   :map/vals-refs     (mapv reference-value! (vals m))})})
 
 (register-data-aspect-extractor
- {:id :countable-seq
-  :pred #(and (seq? %) (counted? %))
-  :extractor (fn [xs]
-               {::kind :countable-seq
-                :seq/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) xs)
-                :seq/vals-refs     (mapv reference-value! xs)})})
-
-(register-data-aspect-extractor
- {:id :uncountable-seq
-  :pred #(and (seq? %) (not (counted? %)))
-  :extractor (fn [xs]
-               (let [page-size 100
+ {:id :seqable
+  :pred seqable?
+  :extractor (fn [s]
+               (let [xs (seq s)
+                     page-size 100
                      last-page? (< (bounded-count page-size xs) page-size)
                      page (take page-size xs)]
-                 (cond-> {::kind :uncountable-seq
+                 (cond-> {:seq/count (when (counted? s) (count s))
                           :seq/page-size page-size
                           :seq/page-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) page)
                           :seq/page-refs (mapv reference-value! page)}
                    (not last-page?) (assoc :seq/next-ref (reference-value! (drop page-size xs))))))})
 
 (comment
-(seq? {})
+(seqable? [])
   (seq? (range))
   (counted? (range))
   (bounded-count 100 (range))
