@@ -66,10 +66,40 @@
                                         :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras))))))
                     :items rows))}))})
 
-(register-visualizer {:id :vec
-                      :pred (fn [val] (= :vec (:flow-storm.runtime.values/kind val)))
+(register-visualizer
+ {:id :uncountable-seq
+  :pred (fn [val] (= :uncountable-seq (:flow-storm.runtime.values/kind val)))
+  :on-create (fn [{:keys [flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as seq-page}]
+               (let [{:keys [list-view-pane add-all]}
+                     (ui/list-view :editable? false
+                                   :cell-factory (fn [list-cell {:keys [prev]}]
+                                                   (-> list-cell
+                                                       (ui-utils/set-text  nil)
+                                                       (ui-utils/set-graphic (ui/label :text prev))))
+                                   :on-click (fn hereeeeee3 [_ sel-items _]
+                                               (let [{:keys [prev ref]} (first sel-items)
+                                                     extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                                                             :flow-storm.debugger.ui.data-windows.data-windows/stack-key prev}]
+                                                 (runtime-api/data-window-push-val-data rt-api dw-id ref extras))))
+
+                     more-btn (ui/button :label "More")
+                     build-and-add-page (fn [{:keys [seq/page-previews seq/page-refs seq/next-ref]}]
+                                          (add-all (mapv (fn [prev ref] {:prev prev :ref ref}) page-previews page-refs))
+                                          (if next-ref
+                                            (ui-utils/set-button-action more-btn (fn [] (runtime-api/data-window-push-val-data rt-api dw-id next-ref {:update? true})))
+                                            (ui-utils/set-disable more-btn true)))]
+                 (build-and-add-page seq-page)
+                 {:fx/node (ui/v-box
+                            :childs [list-view-pane
+                                     more-btn])
+                  :add-page build-and-add-page}))
+  :on-update (fn [_ {:keys [add-page]} seq-page] (add-page seq-page))})
+
+
+(register-visualizer {:id :countable-seq
+                      :pred (fn [val] (= :countable-seq (:flow-storm.runtime.values/kind val)))
                       :on-create (fn [{:keys []}]
-                                   {:fx/node (ui/label :text "A VEC")})})
+                                   )})
 (set! *warn-on-reflection* true)
 (register-visualizer {:id :scope
                       :pred (fn [val] (:number? val))

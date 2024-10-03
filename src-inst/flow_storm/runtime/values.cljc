@@ -262,10 +262,33 @@
                   :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (vals m))
                   :map/vals-refs     (mapv reference-value! (vals m))})})
 
+(register-data-aspect-extractor
+ {:id :countable-seq
+  :pred #(and (seq? %) (counted? %))
+  :extractor (fn [xs]
+               {::kind :countable-seq
+                :seq/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) xs)
+                :seq/vals-refs     (mapv reference-value! xs)})})
+
+(register-data-aspect-extractor
+ {:id :uncountable-seq
+  :pred #(and (seq? %) (not (counted? %)))
+  :extractor (fn [xs]
+               (let [page-size 100
+                     last-page? (< (bounded-count page-size xs) page-size)
+                     page (take page-size xs)]
+                 (cond-> {::kind :uncountable-seq
+                          :seq/page-size page-size
+                          :seq/page-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) page)
+                          :seq/page-refs (mapv reference-value! page)}
+                   (not last-page?) (assoc :seq/next-ref (reference-value! (drop page-size xs))))))})
+
 (comment
-
-  
-
+(seq? {})
+  (seq? (range))
+  (counted? (range))
+  (bounded-count 100 (range))
+  (counted? [1 2 3])
   (extract-data-aspects 120)
   (extract-data-aspects {:a 20 :b 40})
   )

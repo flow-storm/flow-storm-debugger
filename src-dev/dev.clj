@@ -235,6 +235,7 @@
 
   )
 (comment
+  (tap> {:a (range)})
   (tap> {:a {:name {:other :hello
                    :bla "world"}}
          :b {:age 10}})
