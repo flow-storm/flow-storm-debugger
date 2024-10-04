@@ -16,11 +16,12 @@
         visualizers-combo-box (ui/h-box :childs [])
         val-box   (ui/h-box :childs []
                             :paddings [10 0 0 0])
-        val-pane  (ui/border-pane :top (ui/h-box :childs [(ui/label :text "Visualizers:") visualizers-combo-box]
+        type-lbl (ui/label :text "")
+        val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl]
                                                  :spacing 5)
                                   :center val-box)]
 
-    (dbg-state/data-window-create data-window-id breadcrums-box visualizers-combo-box val-box)
+    (dbg-state/data-window-create data-window-id breadcrums-box visualizers-combo-box val-box type-lbl)
 
     (VBox/setVgrow val-pane Priority/ALWAYS)
     (HBox/setHgrow val-pane Priority/ALWAYS)
@@ -68,7 +69,7 @@
     (when-not (dbg-state/data-window dw-id)
       (create-data-window dw-id))
 
-    (let [{:keys [breadcrums-box visualizers-combo-box val-box]} (dbg-state/data-window dw-id)
+    (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl]} (dbg-state/data-window dw-id)
           visualizers (visualizers/appliable-visualizers val-data)
           run-frames-viz-destroys (fn [frames]
                                     (doseq [fr frames]
@@ -118,6 +119,7 @@
 
           default-viz-val-ctx ((:on-create default-viz) val-data)]
 
+      (ui-utils/set-text type-lbl (:flow-storm.runtime.values/type val-data))
       (dbg-state/data-window-push-frame dw-id {:val-data val-data
                                                :visualizer-combo viz-combo
                                                :visualizer default-viz
