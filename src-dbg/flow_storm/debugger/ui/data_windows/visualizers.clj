@@ -3,7 +3,9 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils])
   (:import [javafx.scene.canvas Canvas GraphicsContext]
-           [javafx.animation AnimationTimer]))
+           [javafx.animation AnimationTimer]
+           [javafx.scene.paint Color]
+           [javafx.scene.text Font]))
 
 (defonce *visualizers (atom {}))
 (defonce *types->defaults (atom {}))
@@ -95,7 +97,7 @@
                   :add-page build-and-add-page}))
   :on-update (fn [_ {:keys [add-page]} seq-page] (add-page seq-page))})
 
-
+(set! *warn-on-reflection* true)
 (register-visualizer
  {:id :scope
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :number))
@@ -106,19 +108,39 @@
                      canvas-width 1000
                      canvas-height 500
                      canvas (Canvas. canvas-width canvas-height)
-                     gc (.getGraphicsContext2D canvas)
+                     ^GraphicsContext gc (.getGraphicsContext2D canvas)
                      x-step (long (/ canvas-width capture-window-size))
                      mid-y (/ canvas-height 2)
+                     _ (.setFont gc (Font. "Arial" 20))
+                     _ (.setFill gc Color/YELLOW)
                      anim-timer (proxy [AnimationTimer] []
                                   (handle [^long now]
-                                    (.clearRect ^GraphicsContext gc 0 0 canvas-width canvas-height)
-                                    (loop [i 0
-                                           x 0]
-                                      (when (< i (dec capture-window-size))
-                                        (let [y1 (- mid-y (aget captured-samples i))
-                                              y2 (- mid-y (aget captured-samples (inc i)))]
-                                          (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
-                                          (recur (inc i) (+ x x-step)))))))
+                                    (let [maxs (apply max captured-samples)
+                                          mins (apply min captured-samples)
+                                          sample-range (- maxs mins)
+                                          scale (/ canvas-height (if (zero? sample-range) 1 sample-range))]
+                                      (.clearRect  gc 0 0 canvas-width canvas-height)
+                                      (.setStroke  gc Color/GREEN)
+
+                                      (.strokeLine  gc 0 mid-y canvas-width mid-y)
+                                      (.fillText  gc "0.0" 10 (+ mid-y 22))
+
+                                      (.strokeLine  gc 0 0 canvas-width 0)
+                                      (when-not (zero? maxs) (.fillText  gc (str maxs) 10 22))
+
+                                      (.strokeLine  gc 0 (dec canvas-height) canvas-width (dec canvas-height))
+                                      (when-not (zero? mins) (.fillText  gc (str mins) 10 (- canvas-height 22)))
+
+                                      (.setStroke  gc Color/YELLOW)
+                                      (loop [i 0
+                                             x 0]
+                                        (if (< i (dec capture-window-size))
+                                          (let [s-i      (aget captured-samples i)
+                                                s-i-next (aget captured-samples (inc i))
+                                                y1 (- mid-y (* scale s-i))
+                                                y2 (- mid-y (* scale s-i-next))]
+                                            (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
+                                            (recur (inc i) (+ x x-step))))))))
                      add-sample (fn add-sample [^double s]
                                   (aset-double captured-samples @curr-pos s)
                                   (swap! curr-pos (fn [cp]
@@ -133,5 +155,6 @@
   :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
                (add-sample new-val))
   :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
+
 
 (set-default-visualizer "clojure.lang.PersistentArrayMap" :map)

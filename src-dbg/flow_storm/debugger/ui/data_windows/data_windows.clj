@@ -8,21 +8,29 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.data-windows.visualizers :as visualizers])
   (:import [javafx.scene Scene]
-           [javafx.stage Stage]))
+           [javafx.stage Stage]
+           [javafx.scene.layout Priority VBox HBox]))
 
 (defn- main-pane [{:keys [data-window-id]}]
-  (let [breadcrums-box (ui/h-box :childs [])
+  (let [breadcrums-box (ui/h-box :childs [] :spacing 10)
         visualizers-combo-box (ui/h-box :childs [])
-        val-box   (ui/h-box :childs [])
-        val-pane  (ui/border-pane :top (ui/h-box :childs [(ui/label :text "Visualizers:") visualizers-combo-box])
+        val-box   (ui/h-box :childs []
+                            :paddings [10 0 0 0])
+        val-pane  (ui/border-pane :top (ui/h-box :childs [(ui/label :text "Visualizers:") visualizers-combo-box]
+                                                 :spacing 5)
                                   :center val-box)]
 
     (dbg-state/data-window-create data-window-id breadcrums-box visualizers-combo-box val-box)
 
+    (VBox/setVgrow val-pane Priority/ALWAYS)
+    (HBox/setHgrow val-pane Priority/ALWAYS)
+
     (ui/v-box
      :childs [(ui/label :text (format "Data Window %s" data-window-id))
               breadcrums-box
-              val-pane])))
+              val-pane]
+     :spacing 10
+     :paddings [10 10 10 10])))
 
 (defn- create-data-window [dw-id]
   (try
