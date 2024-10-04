@@ -7,6 +7,7 @@
   All the state is inside one atom `state` which is specified by the `::state` spec."
 
   (:require [flow-storm.state-management :refer [defstate]]
+            [flow-storm.utils :refer [pop-n]]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s])
   (:import [javafx.stage Stage]))
@@ -611,17 +612,29 @@
 (defn data-window-push-frame [dw-id val-frame]
   (swap! state update-in [:data-windows dw-id :stack] conj val-frame))
 
-(defn data-window-update-top-frame [dw-id new-frame-data]
-  (swap! state update-in [:data-windows dw-id :stack]
-         (fn [stack]
-           (conj (pop stack) (merge (peek stack) new-frame-data)))))
+(defn data-window-update-top-frame
 
-(defn data-window-pop-stack-to-depth [dw-id depth]
-  (swap! state update-in [:data-windows dw-id :stack]
-         (fn [stack]
-           (reduce (fn [st _] (pop st))
-                   stack
-                   (range (- (count stack) depth))))))
+  "Swaps the top frame of the dw-id data-window stack by new-frame-data.
+  Returns the replaced (old top) frame."
+
+  [dw-id new-frame-data]
+  (let [prev-top (peek (:stack (data-window dw-id)))]
+    (swap! state update-in [:data-windows dw-id :stack]
+           (fn [stack]
+             (conj (pop stack) (merge (peek stack) new-frame-data))))
+    prev-top))
+
+(defn data-window-pop-stack-to-depth
+
+  "Pop the dw-id data-window stack so it is left with depth number of elements.
+  Returns popped elements."
+
+  [dw-id depth]
+  (let [stack (:stack (data-window dw-id))
+        pop-cnt (- (count stack) depth)
+        popped (pop-n stack pop-cnt)]
+    (swap! state update-in [:data-windows dw-id :stack] pop-n pop-cnt)
+    popped))
 
 
 ;;;;;;;;;;;

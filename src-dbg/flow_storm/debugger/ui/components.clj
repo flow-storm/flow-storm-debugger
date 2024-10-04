@@ -230,11 +230,11 @@
      :clear-items clear-items
      :add-item add-item}))
 
-(defn combo-box [& {:keys [items button-factory cell-factory on-change on-showing classes]}]
+(defn combo-box [& {:keys [items button-factory cell-factory on-change on-showing classes selected]}]
   (let [cb (ComboBox.)
         sel-model (.getSelectionModel cb)]
     (ui-utils/combo-box-set-items cb items)
-    (ui-utils/selection-select-obj sel-model (first items))
+    (ui-utils/selection-select-obj sel-model (or selected (first items)))
 
     (when (seq classes)
       (doseq [c classes]

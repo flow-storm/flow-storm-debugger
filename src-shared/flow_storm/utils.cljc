@@ -375,3 +375,8 @@
 
         :else
         (recur rinput quote-on? tokens (str curr-tok c))))))
+
+(defn pop-n [stack n]
+  (reduce (fn [st _] (pop st))
+          stack
+          (range n)))

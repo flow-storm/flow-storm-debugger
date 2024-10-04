@@ -129,9 +129,7 @@
                  (.start anim-timer)
                  {:fx/node canvas
                   :add-sample add-sample
-                  :stop-timer (fn []
-                                (.stop anim-timer)
-                                )}))
+                  :stop-timer (fn [] (.stop anim-timer))}))
   :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
                (add-sample new-val))
   :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})

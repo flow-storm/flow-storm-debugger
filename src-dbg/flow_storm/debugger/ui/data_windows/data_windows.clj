@@ -62,28 +62,33 @@
 
     (let [{:keys [breadcrums-box visualizers-combo-box val-box]} (dbg-state/data-window dw-id)
           visualizers (visualizers/appliable-visualizers val-data)
+          run-frames-viz-destroys (fn [frames]
+                                    (doseq [fr frames]
+                                      (when-let [on-destroy (-> fr :visualizer :on-destroy)]
+                                        (on-destroy (-> fr :visualizer-val-ctx)))))
           reset-val-box (fn []
                           (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)]
                             (ui-utils/observable-clear (.getChildren val-box))
                             (ui-utils/observable-add-all (.getChildren val-box) [val-node])))
 
-          update-visualizer (fn [{:keys [on-create] :as visualizer}]
-                              (let [visualizer-val-ctx (on-create val-data)]
-                                (dbg-state/data-window-update-top-frame dw-id {:visualizer visualizer
-                                                                               :visualizer-val-ctx visualizer-val-ctx})
-                                (reset-val-box)))
           reset-viz-combo (fn []
                             (let [viz-combo (-> (dbg-state/data-window dw-id) :stack peek :visualizer-combo)]
                               (ui-utils/observable-clear (.getChildren visualizers-combo-box))
                               (ui-utils/observable-add-all (.getChildren visualizers-combo-box) [viz-combo])))
 
+          default-viz (or (visualizers/default-visualizer (:flow-storm.runtime.values/type val-data))
+                          (first visualizers))
+
           viz-combo (ui/combo-box :items visualizers
+                                  :selected default-viz
                                   :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))
                                   :button-factory (fn [_ {:keys [id]}] (ui/label :text (str id)))
-                                  :on-change (fn [old-visualizer new-visualizer]
-                                               (when-let [destroy (:on-destroy old-visualizer)]
-                                                 (destroy (:visualizer-val-ctx old-visualizer)))
-                                               (update-visualizer new-visualizer)))
+                                  :on-change (fn [_ {:keys [on-create] :as new-visualizer}]
+                                               (let [new-visualizer-val-ctx (on-create val-data)
+                                                     old-frame (dbg-state/data-window-update-top-frame dw-id {:visualizer new-visualizer
+                                                                                                              :visualizer-val-ctx new-visualizer-val-ctx})]
+                                                 (run-frames-viz-destroys [old-frame])
+                                                 (reset-val-box))))
 
           reset-breadcrums (fn reset-breadcrums []
                              (let [stack (:stack (dbg-state/data-window dw-id))
@@ -94,21 +99,21 @@
                                                               (let [depth (- (count stack) idx)]
                                                                 (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
                                                                            :on-click (fn []
-                                                                                       (dbg-state/data-window-pop-stack-to-depth dw-id depth)
-                                                                                       (reset-breadcrums)
-                                                                                       (reset-viz-combo)
-                                                                                       (reset-val-box))))))
+                                                                                       (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
+                                                                                         (run-frames-viz-destroys [popped-frames])
+                                                                                         (reset-breadcrums)
+                                                                                         (reset-viz-combo)
+                                                                                         (reset-val-box)))))))
                                                reverse
                                                (into []))]
                                  (ui-utils/observable-add-all bbox-childs btns))))
-          default-viz (or (visualizers/default-visualizer (:flow-storm.runtime.values/type val-data))
-                          (first visualizers))]
+
+          default-viz-val-ctx ((:on-create default-viz) val-data)]
 
       (dbg-state/data-window-push-frame dw-id {:val-data val-data
-                                               :visualizer-combo viz-combo})
-      (ui-utils/combo-box-set-selected viz-combo default-viz)
-
-      (update-visualizer default-viz)
+                                               :visualizer-combo viz-combo
+                                               :visualizer default-viz
+                                               :visualizer-val-ctx default-viz-val-ctx})
 
       (reset-breadcrums)
       (reset-viz-combo)
