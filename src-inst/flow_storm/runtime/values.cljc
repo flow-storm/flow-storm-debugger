@@ -1,7 +1,8 @@
 (ns flow-storm.runtime.values
   (:require [clojure.pprint :as pp]
             [flow-storm.utils :as utils]
-            [flow-storm.types :as types]))
+            [flow-storm.types :as types]
+            [clojure.datafy :refer [datafy nav]]))
 
 (defprotocol PWrapped
   (unwrap [_]))
@@ -222,16 +223,18 @@
   (swap! values-datafiers-registry dissoc id))
 
 (defn extract-data-aspects [o]
-  (reduce (fn [aspects {:keys [id pred extractor]}]
-            (if (pred o)
-              (let [{:keys [::kind] :as ext} (extractor o)]
-                (-> ext
-                    (merge aspects)
-                    (update ::kinds conj id)))
-              aspects))
-          {::kinds #{}
-           ::type (pr-str (type o))}
-          (vals @values-datafiers-registry)))
+  (prn "@@@@ extracting aspects of " (type o))
+  (let [dat-o (datafy o)]
+    (reduce (fn [aspects {:keys [id pred extractor]}]
+              (if (pred dat-o)
+                (let [ext (extractor dat-o)]
+                  (-> ext
+                      (merge aspects)
+                      (update ::kinds conj id)))
+                aspects))
+            {::kinds #{}
+             ::type (pr-str (type o))}
+            (vals @values-datafiers-registry))))
 
 (register-data-aspect-extractor
    {:id :number
@@ -249,15 +252,25 @@
                                  :print-level 10
                                  :print-meta? false})
                     :val-str)})})
-  
-  (register-data-aspect-extractor
-   {:id :map
-    :pred map?
-    :extractor (fn [m]
-                 {:map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (keys m))
-                  :map/keys-refs     (mapv reference-value! (keys m))
-                  :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) (vals m))
-                  :map/vals-refs     (mapv reference-value! (vals m))})})
+
+(defn interesting-nav-reference [coll k]
+  (let [v (get coll k)
+        n (nav coll k v)]    
+    (when (or (not= n v)
+               (not= (meta n) (meta v)))
+      (reference-value! n))))
+
+(register-data-aspect-extractor
+ {:id :map
+  :pred map?
+  :extractor (fn [m]
+               (let [m-keys (keys m)
+                     m-vals (vals m)]
+                 {:map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) m-keys)
+                  :map/keys-refs     (mapv reference-value! m-keys)
+                  :map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
+                  :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) m-vals)
+                  :map/vals-refs     (mapv reference-value! m-vals)}))})
 
 (register-data-aspect-extractor
  {:id :seqable
@@ -273,12 +286,17 @@
                           :seq/page-refs (mapv reference-value! page)}
                    (not last-page?) (assoc :seq/next-ref (reference-value! (drop page-size xs))))))})
 
+(register-data-aspect-extractor
+ {:id :indexed
+  :pred indexed?
+  :extractor (fn [idx-coll]
+               {:idx-coll/count (count idx-coll)
+                :idx-coll/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) idx-coll)
+                :idx-coll/vals-refs (mapv reference-value! idx-coll)
+                :idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
+
 (comment
-(seqable? [])
-  (seq? (range))
-  (counted? (range))
-  (bounded-count 100 (range))
-  (counted? [1 2 3])
+    
   (extract-data-aspects 120)
   (extract-data-aspects {:a 20 :b 40})
   )

@@ -48,24 +48,27 @@
 (register-visualizer
  {:id :map
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :map))
-  :on-create (fn [{:keys [map/keys-previews map/keys-refs map/vals-previews map/vals-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
-               (let [rows (mapv (fn [k-prev k-ref v-prev v-ref]
+  :on-create (fn [{:keys [map/keys-previews map/keys-refs map/vals-previews map/vals-refs map/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
+               (let [rows (mapv (fn [k-prev k-ref v-prev v-ref nav-ref]
                                   [{:cell-type :key :k-prev k-prev :k-ref k-ref :stack-key (str k-prev "-KEY")}
-                                   {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key k-prev}])
+                                   {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key k-prev}
+                                   {:cell-type :nav :nav-ref nav-ref :stack-key (str k-prev "-NAV")}])
                            keys-previews
                            keys-refs
                            vals-previews
-                           vals-refs)]
+                           vals-refs
+                           navs-refs)]
                  {:fx/node
                   (:table-view
                    (ui/table-view
-                    :columns ["Key" "Val"]
-                    :cell-factory (fn [_ {:keys [cell-type k-prev k-ref v-prev v-ref stack-key]}]
+                    :columns ["Key" "Val" "_"]
+                    :cell-factory (fn [_ {:keys [cell-type k-prev k-ref v-prev v-ref nav-ref stack-key]}]
                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
                                       (case cell-type
                                         :key (ui/label :text k-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
-                                        :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras))))))
+                                        :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                        :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
                     :items rows))}))})
 
 (register-visualizer
@@ -96,6 +99,33 @@
                                      more-btn])
                   :add-page build-and-add-page}))
   :on-update (fn [_ {:keys [add-page]} seq-page] (add-page seq-page))})
+
+(register-visualizer
+ {:id :indexed
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :indexed))
+  :on-create (fn [{:keys [idx-coll/vals-previews idx-coll/vals-refs idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
+               (let [rows (mapv (fn [idx v-prev v-ref nav-ref]
+                                  [{:cell-type :key :idx idx}
+                                   {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key (str idx)}
+                                   {:cell-type :nav :nav-ref nav-ref :stack-key (str idx "-NAV")}])
+                                (range)
+                                vals-previews
+                                vals-refs
+                                navs-refs)]
+                 {:fx/node
+                  (ui/v-box
+                   :childs [(ui/label (format "Count: %d" (:idx-coll/count idx-coll)))
+                            (:table-view
+                             (ui/table-view
+                              :columns ["Key" "Val" "_"]
+                              :cell-factory (fn [_ {:keys [cell-type idx v-prev v-ref nav-ref stack-key]}]
+                                              (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                                                            :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
+                                                (case cell-type
+                                                  :key (ui/label :text (str idx))
+                                                  :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                                  :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
+                              :items rows))])}))})
 
 (set! *warn-on-reflection* true)
 (register-visualizer
@@ -134,7 +164,7 @@
                                       (.setStroke  gc Color/YELLOW)
                                       (loop [i 0
                                              x 0]
-                                        (if (< i (dec capture-window-size))
+                                        (when (< i (dec capture-window-size))
                                           (let [s-i      (aget captured-samples i)
                                                 s-i-next (aget captured-samples (inc i))
                                                 y1 (- mid-y (* scale s-i))
@@ -158,3 +188,4 @@
 
 
 (set-default-visualizer "clojure.lang.PersistentArrayMap" :map)
+(set-default-visualizer "clojure.lang.PersistentVector" :indexed)
