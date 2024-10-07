@@ -600,12 +600,8 @@
 
 ;; TODO: spec data-windows
 
-(defn data-window-create [dw-id breadcrums-box visualizers-combo-box val-box type-lbl]
-  (swap! state assoc-in [:data-windows dw-id] {:breadcrums-box breadcrums-box
-                                               :visualizers-combo-box visualizers-combo-box
-                                               :val-box val-box
-                                               :type-lbl type-lbl
-                                               :stack ()}))
+(defn data-window-create [dw-id nodes-map]
+  (swap! state assoc-in [:data-windows dw-id] (assoc nodes-map :stack ())))
 
 (defn data-window [dw-id]
   (get-in @state [:data-windows dw-id]))

@@ -14,14 +14,18 @@
 (defn- main-pane [{:keys [data-window-id]}]
   (let [breadcrums-box (ui/h-box :childs [] :spacing 10)
         visualizers-combo-box (ui/h-box :childs [])
-        val-box   (ui/h-box :childs []
+        val-box   (ui/v-box :childs []
                             :paddings [10 0 0 0])
         type-lbl (ui/label :text "")
         val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl]
                                                  :spacing 5)
                                   :center val-box)]
 
-    (dbg-state/data-window-create data-window-id breadcrums-box visualizers-combo-box val-box type-lbl)
+    (dbg-state/data-window-create data-window-id
+                                  {:breadcrums-box breadcrums-box
+                                   :visualizers-combo-box visualizers-combo-box
+                                   :val-box val-box
+                                   :type-lbl type-lbl})
 
     (VBox/setVgrow val-pane Priority/ALWAYS)
     (HBox/setHgrow val-pane Priority/ALWAYS)
@@ -76,9 +80,18 @@
                                       (when-let [on-destroy (-> fr :visualizer :on-destroy)]
                                         (on-destroy (-> fr :visualizer-val-ctx)))))
           reset-val-box (fn []
-                          (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)]
+                          (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
+                                {:flow-storm.runtime.values/keys [meta-ref meta-preview type]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
+                            (ui-utils/set-text type-lbl type)
                             (ui-utils/observable-clear (.getChildren val-box))
-                            (ui-utils/observable-add-all (.getChildren val-box) [val-node])))
+                            (ui-utils/observable-add-all
+                             (.getChildren val-box)
+                             (cond->> [val-node]
+                               meta-ref (into [(ui/label :text (format "Meta: %s" meta-preview)
+                                                         :on-click (fn [_]
+                                                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                                                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key "META"}]
+                                                                       (runtime-api/data-window-push-val-data rt-api dw-id meta-ref extras))))])))))
 
           reset-viz-combo (fn []
                             (let [viz-combo (-> (dbg-state/data-window dw-id) :stack peek :visualizer-combo)]
@@ -119,7 +132,7 @@
 
           default-viz-val-ctx ((:on-create default-viz) val-data)]
 
-      (ui-utils/set-text type-lbl (:flow-storm.runtime.values/type val-data))
+
       (dbg-state/data-window-push-frame dw-id {:val-data val-data
                                                :visualizer-combo viz-combo
                                                :visualizer default-viz

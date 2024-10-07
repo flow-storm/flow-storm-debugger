@@ -222,9 +222,19 @@
 (defn unregister-data-aspect-extractor [id]
   (swap! values-datafiers-registry dissoc id))
 
+(defn short-preview [v]
+  (:val-str (val-pprint v {:pprint? false :print-length 3 :print-level 3 :print-meta? false})))
+
+(defn interesting-nav-reference [coll k]
+  (let [v (get coll k)
+        n (nav coll k v)]    
+    (when (or (not= n v)
+               (not= (meta n) (meta v)))
+      (reference-value! n))))
+
 (defn extract-data-aspects [o]
-  (prn "@@@@ extracting aspects of " (type o))
-  (let [dat-o (datafy o)]
+  (let [dat-o (datafy o)
+        o-meta (meta o)]
     (reduce (fn [aspects {:keys [id pred extractor]}]
               (if (pred dat-o)
                 (let [ext (extractor dat-o)]
@@ -232,9 +242,15 @@
                       (merge aspects)
                       (update ::kinds conj id)))
                 aspects))
-            {::kinds #{}
-             ::type (pr-str (type o))}
+            (cond-> {::kinds #{}
+                     ::type (pr-str (type o))}
+              o-meta (assoc ::meta-ref (reference-value! o-meta)
+                            ::meta-preview (short-preview o-meta)))
             (vals @values-datafiers-registry))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Data aspect extractors ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (register-data-aspect-extractor
    {:id :number
@@ -253,23 +269,16 @@
                                  :print-meta? false})
                     :val-str)})})
 
-(defn interesting-nav-reference [coll k]
-  (let [v (get coll k)
-        n (nav coll k v)]    
-    (when (or (not= n v)
-               (not= (meta n) (meta v)))
-      (reference-value! n))))
-
 (register-data-aspect-extractor
  {:id :map
   :pred map?
   :extractor (fn [m]
                (let [m-keys (keys m)
                      m-vals (vals m)]
-                 {:map/keys-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) m-keys)
+                 {:map/keys-previews (mapv short-preview m-keys)
                   :map/keys-refs     (mapv reference-value! m-keys)
                   :map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
-                  :map/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) m-vals)
+                  :map/vals-previews (mapv short-preview m-vals)
                   :map/vals-refs     (mapv reference-value! m-vals)}))})
 
 (register-data-aspect-extractor
@@ -282,7 +291,7 @@
                      page (take page-size xs)]
                  (cond-> {:seq/count (when (counted? s) (count s))
                           :seq/page-size page-size
-                          :seq/page-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) page)
+                          :seq/page-previews (mapv short-preview page)
                           :seq/page-refs (mapv reference-value! page)}
                    (not last-page?) (assoc :seq/next-ref (reference-value! (drop page-size xs))))))})
 
@@ -291,7 +300,7 @@
   :pred indexed?
   :extractor (fn [idx-coll]
                {:idx-coll/count (count idx-coll)
-                :idx-coll/vals-previews (mapv #(:val-str (val-pprint % {:pprint? false :print-length 2 :print-level 2 :print-meta? false})) idx-coll)
+                :idx-coll/vals-previews (mapv short-preview idx-coll)
                 :idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 
