@@ -243,7 +243,8 @@
                       (update ::kinds conj id)))
                 aspects))
             (cond-> {::kinds #{}
-                     ::type (pr-str (type o))}
+                     ::type (pr-str (type o))
+                     ::val-ref (reference-value! o)}
               o-meta (assoc ::meta-ref (reference-value! o-meta)
                             ::meta-preview (short-preview o-meta)))
             (vals @values-datafiers-registry))))

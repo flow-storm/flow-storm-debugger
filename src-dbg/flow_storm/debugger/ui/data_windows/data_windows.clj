@@ -6,6 +6,7 @@
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.ui.commons :refer [def-val]]
             [flow-storm.debugger.ui.data-windows.visualizers :as visualizers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
@@ -17,7 +18,10 @@
         val-box   (ui/v-box :childs []
                             :paddings [10 0 0 0])
         type-lbl (ui/label :text "")
-        val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl]
+        def-btn (ui/button :label "def"
+                           :classes ["def-btn" "btn-sm"]
+                           :tooltip "Define a reference to this value so it can be used from the repl.")
+        val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl def-btn]
                                                  :spacing 5)
                                   :center val-box)]
 
@@ -25,7 +29,8 @@
                                   {:breadcrums-box breadcrums-box
                                    :visualizers-combo-box visualizers-combo-box
                                    :val-box val-box
-                                   :type-lbl type-lbl})
+                                   :type-lbl type-lbl
+                                   :def-btn def-btn})
 
     (VBox/setVgrow val-pane Priority/ALWAYS)
     (HBox/setHgrow val-pane Priority/ALWAYS)
@@ -73,7 +78,7 @@
     (when-not (dbg-state/data-window dw-id)
       (create-data-window dw-id))
 
-    (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl]} (dbg-state/data-window dw-id)
+    (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn]} (dbg-state/data-window dw-id)
           visualizers (visualizers/appliable-visualizers val-data)
           run-frames-viz-destroys (fn [frames]
                                     (doseq [fr frames]
@@ -81,7 +86,8 @@
                                         (on-destroy (-> fr :visualizer-val-ctx)))))
           reset-val-box (fn []
                           (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
-                                {:flow-storm.runtime.values/keys [meta-ref meta-preview type]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
+                                {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
+                            (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
                             (ui-utils/set-text type-lbl type)
                             (ui-utils/observable-clear (.getChildren val-box))
                             (ui-utils/observable-add-all
