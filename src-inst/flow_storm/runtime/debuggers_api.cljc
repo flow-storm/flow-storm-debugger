@@ -296,7 +296,7 @@
      timelines
      tp-keeper)))
 
-(defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
+(defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str val-ref] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
   (let [keeper (case search-type
                  :pr-str (fn [thread-id tl-entry]
                            (when (or (expr-trace/expr-trace? tl-entry)
@@ -332,7 +332,23 @@
                                                               (assoc :entry-preview pprint-val
                                                                      :thread-id thread-id))))))
                                                   (catch Exception _ nil))))
-                                       :cljs (do #_:clj-kondo/ignore predicate-code-str identity)))]
+                                       :cljs (do #_:clj-kondo/ignore predicate-code-str identity))
+                 :val-identity (let [search-val (deref-value val-ref)]
+                                 (fn [thread-id tl-entry]
+                                   (when (or (expr-trace/expr-trace? tl-entry)
+                                             (fn-return-trace/fn-return-trace? tl-entry))
+
+                                     (let [result (index-protos/get-expr-val tl-entry)]
+                                       (when (identical? search-val result) 
+                                         
+                                         (let [pprint-val (:val-str (rt-values/val-pprint-ref result {:print-length 3
+                                                                                                      :print-level 3
+                                                                                                      :pprint? false}))]
+                                           (-> tl-entry
+                                               index-protos/as-immutable
+                                               reference-timeline-entry!
+                                               (assoc :entry-preview pprint-val
+                                                      :thread-id thread-id)))))))))]
     (submit-async-interruptible-batched-timelines-keep-task
      (index-api/timelines-for criteria)   
      keeper)))

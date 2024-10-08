@@ -289,6 +289,9 @@
 (defn combo-box-set-selected [^ComboBox cbox item]
   (selection-select-obj (.getSelectionModel cbox) item))
 
+(defn combo-box-get-selected-item [^ComboBox cbox]
+  (.getSelectedItem (.getSelectionModel cbox)))
+
 (defn add-tab-pane-tab [^TabPane tp ^Tab t]
   (observable-add-all (.getTabs tp) [t]))
 

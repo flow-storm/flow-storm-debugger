@@ -638,6 +638,9 @@
 (defn data-window [dw-id]
   (get-in @state [:data-windows dw-id]))
 
+(defn data-windows []
+  (:data-windows @state))
+
 (defn data-window-push-frame [dw-id val-frame]
   (swap! state update-in [:data-windows dw-id :stack] conj val-frame))
 

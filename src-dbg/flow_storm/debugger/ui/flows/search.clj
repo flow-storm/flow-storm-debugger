@@ -25,20 +25,7 @@
                                                               (assoc entry :cell-type :preview)])))))})))
 
 (defn create-search-params-pane [flow-id]
-  (let [criteria (atom {:flow-id flow-id
-                        :query-str ""
-                        :predicate-code-str "(fn [v] v)"
-                        :print-length "3"
-                        :print-level "3"
-                        :search-type :pr-str})
-
-        search-field (ui/text-field :prompt-text "Search"
-                                    :on-change (fn [new-txt] (swap! criteria assoc :query-str new-txt))
-                                    :on-return-key (fn [_] (search @criteria)))
-
-        search-btn (ui/icon-button :icon-name "mdi-magnify"
-                                   :class "tree-search"
-                                   :on-click (fn [] (search @criteria)))
+  (let [criteria (atom {:flow-id flow-id})
 
         thread-combo (ui/combo-box :items (let [flows-threads (rt-api/all-flows-threads rt-api)]
                                             (->> (keep (fn [[fid tid]]
@@ -60,52 +47,78 @@
                                                   (swap! criteria assoc :thread-id thread-id)
                                                   (swap! criteria dissoc :thread-id))))
 
-        pr-len-txt (ui/text-field :initial-text (:print-length @criteria)
-                                  :on-change (fn [new-txt] (swap! criteria assoc :print-length new-txt)))
-        pr-lvl-txt (ui/text-field :initial-text (:print-level @criteria)
-                                  :on-change (fn [new-txt] (swap! criteria assoc :print-level new-txt)))
+        search-txt (ui/text-field :prompt-text "Search")
 
-        ^VBox pr-str-params-box (ui/v-box
-                                 :childs [search-field
-                                          (ui/h-box :childs [(ui/label :text "*print-level*") pr-lvl-txt])
-                                          (ui/h-box :childs [(ui/label :text "*print-length*") pr-len-txt])]
-                                 :spacing 5
-                                 :paddings [10])
+        ;; Pr-str search
+        pr-len-txt (ui/text-field :initial-text "3" (:print-length @criteria))
+        pr-lvl-txt (ui/text-field :initial-text "3" (:print-level @criteria))
 
-        pred-area (ui/text-area :text (:predicate-code-str @criteria)
+        pr-str-params-box (let [search-btn (ui/button :label "Search"
+                                                           :on-click (fn []
+                                                                       (search (assoc @criteria
+                                                                                      :search-type :pr-str
+                                                                                      :print-length (.getText pr-len-txt)
+                                                                                      :print-level (.getText pr-lvl-txt)
+                                                                                      :query-str (.getText search-txt)))))]
+                            (ui/v-box
+                             :childs [search-txt
+                                      (ui/h-box :childs [(ui/label :text "*print-level*") pr-lvl-txt])
+                                      (ui/h-box :childs [(ui/label :text "*print-length*") pr-len-txt])
+                                      search-btn]
+                             :spacing 5
+                             :paddings [10]))
+
+        ;; Custom pred search
+        pred-area (ui/text-area :text "(fn [v] (map? v))"
                                 :editable? true
                                 :on-change (fn [new-txt] (swap! criteria assoc :predicate-code-str new-txt)))
 
-        ^VBox custom-pred-params-box (ui/v-box
-                                      :childs [(ui/label :text "Custom predicate :")
-                                               pred-area]
-                                      :spacing 5
-                                      :paddings [10])
+        custom-pred-params-box (let [search-btn (ui/button :label "Search"
+                                                           :on-click (fn []
+                                                                       (search (assoc @criteria
+                                                                                      :predicate-code-str (.getText pred-area)
+                                                                                      :search-type  :custorm-predicate))))]
+                                 (ui/v-box
+                                  :childs [(ui/label :text "Custom predicate :")
+                                           pred-area
+                                           search-btn]
+                                  :spacing 5
+                                  :paddings [10]))
 
-        change-pred-or-prn-combo (fn [_ new-val]
-                                   (case new-val
-                                     "Search by pr-str"    (do
-                                                             (.setDisable pr-str-params-box false)
-                                                             (.setDisable custom-pred-params-box true)
-                                                             (swap! criteria assoc :search-type :pr-str))
-                                     "Search by predicate" (do
-                                                             (.setDisable pr-str-params-box true)
-                                                             (.setDisable custom-pred-params-box false)
-                                                             (swap! criteria assoc :search-type  :custorm-predicate))))
-        pred-or-prn-combo (ui/combo-box :items (cond-> ["Search by pr-str"]
-                                                 (= :clj (dbg-state/env-kind)) (into ["Search by predicate"]))
-                                        :on-change change-pred-or-prn-combo)
+        ;; Data window search
+        dw-id-combo (ui/combo-box :items (keys (dbg-state/data-windows))
+                                  :cell-factory (fn [_ dw-id] (ui/label :text (str dw-id)))
+                                  :button-factory (fn [_ dw-id] (ui/label :text (str dw-id))))
 
-        gral-row-box (ui/h-box :childs [(ui/label :text "Thread:") thread-combo
-                                        pred-or-prn-combo
-                                        search-btn]
+        dw-search-box (let [search-btn (ui/button :label "Search"
+                                                  :on-click (fn []
+                                                              (let [sel-dw-id (ui-utils/combo-box-get-selected-item dw-id-combo)
+                                                                    dw-val-ref (some-> (dbg-state/data-window sel-dw-id) :stack first :val-data :flow-storm.runtime.values/val-ref)]
+                                                                (when dw-val-ref
+                                                                  (search (assoc @criteria
+                                                                                 :search-type :val-identity
+                                                                                 :val-ref dw-val-ref))))))]
+                        (ui/v-box :childs [(ui/h-box :childs [(ui/label :text "Search value selected in data window id:") dw-id-combo])
+                                           search-btn]
+                                  :spacing 5
+                                  :paddings [10]))
+        search-tabs (ui/tab-pane :closing-policy :unavailable
+                                 :tabs (cond-> [(ui/tab :text "By pr-str"
+                                                        :content pr-str-params-box
+                                                        :tooltip "Search by sub strings inside the pr-str of values")
+                                                (ui/tab :text "Data window val"
+                                                        :content dw-search-box
+                                                        :tooltip "Search for values matching a predicate")]
+                                         (= :clj (dbg-state/env-kind)) (conj (ui/tab :text "By predicate"
+                                                                                     :content custom-pred-params-box
+                                                                                     :tooltip "Search for values matching a predicate"))))
+
+        gral-row-box (ui/h-box :childs [(ui/label :text "Thread:") thread-combo]
                                :spacing 5)]
 
-    (change-pred-or-prn-combo nil "Search by pr-str")
 
     (ui/border-pane :top gral-row-box
-                    :left  pr-str-params-box
-                    :right custom-pred-params-box
+                    :center search-tabs
                     :paddings [10])))
 
 (defn create-results-table-pane [flow-id]
@@ -139,10 +152,8 @@
 (defn create-search-pane [flow-id]
   (ui/v-box
    :childs [(ui/label :text (format "Flow: %d" flow-id))
-            (ui/split :orientation :vertical
-                      :childs [(create-search-params-pane flow-id)
-                               (create-results-table-pane flow-id)]
-                      :sizes [0.3 0.7])]))
+            (ui/v-box :childs [(create-search-params-pane flow-id)
+                               (create-results-table-pane flow-id)])]))
 
 (defn search-window [flow-id]
   (let [window-w 1000
