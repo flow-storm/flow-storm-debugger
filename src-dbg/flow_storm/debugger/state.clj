@@ -174,6 +174,37 @@
 (s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
 (s/def ::bookmarks (s/map-of :bookmark/id string?))
 
+
+(s/def :data-window/breadcrums-box :ui.object/node)
+(s/def :data-window/visualizers-combo-box :ui.object/node)
+(s/def :data-window/val-box :ui.object/node)
+(s/def :data-window/type-lbl :ui.object/node)
+
+(s/def :visualizer/on-create  ifn?)
+(s/def :visualizer/on-update  ifn?)
+(s/def :visualizer/on-destroy ifn?)
+
+(s/def :data-window.frame/val-data map?)
+(s/def :data-window.frame/visualizer-combo :ui.object/node)
+(s/def :data-window.frame/visualizer (s/keys :req-un [:visualizer/on-create]
+                                             :opt-un [:visualizer/on-update
+                                                      :visualizer/on-destroy]))
+(s/def :fx/node :ui.object/node)
+(s/def :data-window.frame/visualizer-val-ctx (s/keys :req [:fx/node]))
+(s/def :data-window/frame (s/keys :req-un [:data-window.frame/val-data
+                                           :data-window.frame/visualizer-combo
+                                           :data-window.frame/visualizer
+                                           :data-window.frame/visualizer-val-ctx]))
+
+(s/def :data-window/stack (s/coll-of :data-window/frame))
+(s/def :data-windows/data-window (s/keys :req-un [:data-window/breadcrums-box
+                                                  :data-window/visualizers-combo-box
+                                                  :data-window/val-box
+                                                  :data-window/type-lbl
+                                                  :data-window/stack]))
+(s/def :data-window/id any?)
+(s/def ::data-windows (s/map-of :data-window/id :data-windows/data-window))
+
 (s/def ::state (s/keys :req-un [:flow/flows
                                 :flow/threads-info
                                 :printer/printers
@@ -188,7 +219,8 @@
                                 ::runtime-config
                                 ::debugger-config
                                 ::bookmarks
-                                ::unwinds]))
+                                ::unwinds
+                                ::data-windows]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
   {:flows {}
