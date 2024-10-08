@@ -638,6 +638,9 @@
 (defn data-window [dw-id]
   (get-in @state [:data-windows dw-id]))
 
+(defn data-window-remove [dw-id]
+  (swap! state update :data-windows dissoc dw-id))
+
 (defn data-windows []
   (:data-windows @state))
 

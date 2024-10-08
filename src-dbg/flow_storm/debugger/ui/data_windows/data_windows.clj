@@ -54,7 +54,9 @@
 
       (.setScene stage scene)
 
-      (.setOnCloseRequest stage (event-handler [_] (dbg-state/unregister-jfx-stage! stage)))
+      (.setOnCloseRequest stage (event-handler [_]
+                                  (dbg-state/unregister-jfx-stage! stage)
+                                  (dbg-state/data-window-remove dw-id)))
       (dbg-state/register-jfx-stage! stage)
 
       (let [{:keys [x y]} (ui-utils/stage-center-box (dbg-state/main-jfx-stage) inspector-w inspector-h)]
@@ -83,7 +85,12 @@
           run-frames-viz-destroys (fn [frames]
                                     (doseq [fr frames]
                                       (when-let [on-destroy (-> fr :visualizer :on-destroy)]
-                                        (on-destroy (-> fr :visualizer-val-ctx)))))
+                                        (try
+                                          (on-destroy (-> fr :visualizer-val-ctx))
+                                          (catch Exception e
+                                            (utils/log-error
+                                             (str "Couldn't destroy visualizer " (:visualizer fr))
+                                             e))))))
           reset-val-box (fn []
                           (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
                                 {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
@@ -107,12 +114,20 @@
           default-viz (or (visualizers/default-visualizer (:flow-storm.runtime.values/type val-data))
                           (first visualizers))
 
+          create-viz (fn [{:keys [on-create]}]
+                       (try
+                         (on-create val-data)
+                         (catch Exception e
+                           {:fx/node (ui/text-area
+                                      :text (pr-str e)
+                                      :editable? false
+                                      :class "value-pprint")})))
           viz-combo (ui/combo-box :items visualizers
                                   :selected default-viz
                                   :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))
                                   :button-factory (fn [_ {:keys [id]}] (ui/label :text (str id)))
-                                  :on-change (fn [_ {:keys [on-create] :as new-visualizer}]
-                                               (let [new-visualizer-val-ctx (on-create val-data)
+                                  :on-change (fn [_ new-visualizer]
+                                               (let [new-visualizer-val-ctx (create-viz new-visualizer)
                                                      old-frame (dbg-state/data-window-update-top-frame dw-id {:visualizer new-visualizer
                                                                                                               :visualizer-val-ctx new-visualizer-val-ctx})]
                                                  (run-frames-viz-destroys [old-frame])
@@ -136,7 +151,7 @@
                                                (into []))]
                                  (ui-utils/observable-add-all bbox-childs btns))))
 
-          default-viz-val-ctx ((:on-create default-viz) val-data)]
+          default-viz-val-ctx (create-viz default-viz)]
 
 
       (dbg-state/data-window-push-frame dw-id {:val-data val-data
