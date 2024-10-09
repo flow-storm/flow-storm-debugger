@@ -2,7 +2,8 @@
   (:require [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state]
-            [flow-storm.debugger.ui.utils :as ui-utils])
+            [flow-storm.debugger.ui.utils :as ui-utils]
+            [clojure.string :as str])
   (:import [javafx.scene.canvas Canvas GraphicsContext]
            [javafx.animation AnimationTimer]
            [javafx.scene.paint Color]
@@ -76,10 +77,15 @@
                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
                                       (case cell-type
-                                        :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
-                                        :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
-                                        :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
-                    :items rows))}))})
+                                                       :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
+                                                       :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                                       :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
+                    :columns-width-percs [0.2 0.7 0.1]
+                    :resize-policy :constrained
+                    :items rows
+                    :search-predicate (fn [{:keys [k-prev v-prev]} search-str]
+                                        (or (str/includes? k-prev search-str)
+                                            (str/includes? v-prev search-str)))))}))})
 
 (register-visualizer
  {:id :seqable
@@ -128,6 +134,8 @@
                             (:table-view
                              (ui/table-view
                               :columns ["Idx" "Val" "Nav"]
+                              :columns-width-percs [0.2 0.7 0.1]
+                              :resize-policy :constrained
                               :cell-factory (fn [_ {:keys [cell-type idx v-prev v-ref nav-ref stack-key]}]
                                               (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                             :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
@@ -135,6 +143,7 @@
                                                   :key (ui/label :text (str idx))
                                                   :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
                                                   :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
+                              :search-predicate (fn [{:keys [v-prev]} search-str] (str/includes? v-prev search-str))
                               :items rows))])}))})
 
 (register-visualizer
@@ -205,3 +214,4 @@
 (set-default-visualizer "clojure.lang.PersistentHashMap" :map)
 (set-default-visualizer "clojure.lang.PersistentVector" :indexed)
 (set-default-visualizer "clojure.lang.LazySeq" :seqable)
+(set-default-visualizer "clojure.lang.MapEntry" :indexed)

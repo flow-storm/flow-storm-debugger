@@ -538,7 +538,7 @@
                         (when (seq columns-width-percs)
                           (.bind (.prefWidthProperty col)
                                  (let [^ReadOnlyDoubleProperty wp (.widthProperty tv)]
-                                   (.multiply wp ^long (get columns-width-percs col-idx)))))
+                                   (.multiply wp ^double (get columns-width-percs col-idx)))))
                         col))
 
         columns (map-indexed make-column columns)

@@ -125,7 +125,7 @@
   (let [{:keys [table-view-pane table-view] :as tv-data}
         (ui/table-view
          :columns ["Thread Id" "Index" "Preview"]
-         :columns-width-percs [0.1 0.1 0.1 0.7]
+         :columns-width-percs [0.1 0.1 0.7]
          :cell-factory (fn [_ item]
                          (let [^Label lbl (ui/label :text (case (:cell-type item)
                                                             :thread-id (str (:thread-id item))
