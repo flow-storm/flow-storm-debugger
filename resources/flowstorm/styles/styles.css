@@ -339,3 +339,11 @@
 .contrast-background {
     -fx-background-color: -fx-theme-base2;
 }
+
+/****************/
+/* Data Windows */
+/****************/
+
+.data-window .breadcrums .button {
+    -fx-background-color: -fx-theme-breadcrums;
+}

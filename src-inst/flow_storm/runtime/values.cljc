@@ -254,9 +254,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (register-data-aspect-extractor
-   {:id :number
-    :pred number?
-    :extractor (fn [n] {:number/val n})})
+ {:id :number
+  :pred number?
+  :extractor (fn [n] {:number/val n})})
   
 (register-data-aspect-extractor
  {:id :previewable
@@ -271,39 +271,39 @@
                     :val-str)})})
 
 (register-data-aspect-extractor
- {:id :map
+ {:id :shallow-map
   :pred map?
   :extractor (fn [m]
                (let [m-keys (keys m)
                      m-vals (vals m)]
-                 {:map/keys-previews (mapv short-preview m-keys)
-                  :map/keys-refs     (mapv reference-value! m-keys)
-                  :map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
-                  :map/vals-previews (mapv short-preview m-vals)
-                  :map/vals-refs     (mapv reference-value! m-vals)}))})
+                 {:shallow-map/keys-previews (mapv short-preview m-keys)
+                  :shallow-map/keys-refs     (mapv reference-value! m-keys)
+                  :shallow-map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
+                  :shallow-map/vals-previews (mapv short-preview m-vals)
+                  :shallow-map/vals-refs     (mapv reference-value! m-vals)}))})
 
 (register-data-aspect-extractor
- {:id :seqable
+ {:id :paged-shallow-seqable
   :pred seqable?
   :extractor (fn [s]
                (let [xs (seq s)
                      page-size 100
                      last-page? (< (bounded-count page-size xs) page-size)
                      page (take page-size xs)]
-                 (cond-> {:seq/count (when (counted? s) (count s))
-                          :seq/page-size page-size
-                          :seq/page-previews (mapv short-preview page)
-                          :seq/page-refs (mapv reference-value! page)}
-                   (not last-page?) (assoc :seq/next-ref (reference-value! (drop page-size xs))))))})
+                 (cond-> {:paged-seq/count (when (counted? s) (count s))
+                          :paged-seq/page-size page-size
+                          :paged-seq/page-previews (mapv short-preview page)
+                          :paged-seq/page-refs (mapv reference-value! page)}
+                   (not last-page?) (assoc :paged-seq/next-ref (reference-value! (drop page-size xs))))))})
 
 (register-data-aspect-extractor
- {:id :indexed
+ {:id :shallow-indexed
   :pred indexed?
   :extractor (fn [idx-coll]
-               {:idx-coll/count (count idx-coll)
-                :idx-coll/vals-previews (mapv short-preview idx-coll)
-                :idx-coll/vals-refs (mapv reference-value! idx-coll)
-                :idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
+               {:shallow-idx-coll/count (count idx-coll)
+                :shallow-idx-coll/vals-previews (mapv short-preview idx-coll)
+                :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
+                :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 
 (comment
     

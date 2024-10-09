@@ -630,13 +630,14 @@
 ;; Data Windows ;;
 ;;;;;;;;;;;;;;;;;;
 
-;; TODO: spec data-windows
-
 (defn data-window-create [dw-id nodes-map]
   (swap! state assoc-in [:data-windows dw-id] (assoc nodes-map :stack ())))
 
 (defn data-window [dw-id]
   (get-in @state [:data-windows dw-id]))
+
+(defn data-window-current-val [dw-id]
+  (-> @state :data-windows dw-id :stack first :val-data))
 
 (defn data-window-remove [dw-id]
   (swap! state update :data-windows dissoc dw-id))

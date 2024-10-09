@@ -13,15 +13,19 @@
            [javafx.scene.layout Priority VBox HBox]))
 
 (defn- main-pane [{:keys [data-window-id]}]
-  (let [breadcrums-box (ui/h-box :childs [] :spacing 10)
+  (let [breadcrums-box (ui/h-box :childs []
+                                 :spacing 10
+                                 :class "breadcrums")
         visualizers-combo-box (ui/h-box :childs [])
         val-box   (ui/v-box :childs []
+                            :spacing 10
                             :paddings [10 0 0 0])
         type-lbl (ui/label :text "")
         def-btn (ui/button :label "def"
                            :classes ["def-btn" "btn-sm"]
                            :tooltip "Define a reference to this value so it can be used from the repl.")
         val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl def-btn]
+                                                 :align :center-left
                                                  :spacing 5)
                                   :center val-box)]
 
@@ -36,9 +40,10 @@
     (HBox/setHgrow val-pane Priority/ALWAYS)
 
     (ui/v-box
-     :childs [(ui/label :text (format "Data Window %s" data-window-id))
+     :childs [(ui/label :text (format "Data Window id: %s" data-window-id))
               breadcrums-box
               val-pane]
+     :class "data-window"
      :spacing 10
      :paddings [10 10 10 10])))
 
@@ -96,11 +101,16 @@
                                 {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
                             (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
                             (ui-utils/set-text type-lbl type)
+
+                            (VBox/setVgrow val-node Priority/ALWAYS)
+                            (HBox/setHgrow val-node Priority/ALWAYS)
+
                             (ui-utils/observable-clear (.getChildren val-box))
                             (ui-utils/observable-add-all
                              (.getChildren val-box)
                              (cond->> [val-node]
                                meta-ref (into [(ui/label :text (format "Meta: %s" meta-preview)
+                                                         :class "link-lbl"
                                                          :on-click (fn [_]
                                                                      (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                                                    :flow-storm.debugger.ui.data-windows.data-windows/stack-key "META"}]

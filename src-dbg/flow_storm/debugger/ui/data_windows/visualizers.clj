@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.data-windows.visualizers
   (:require [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
+            [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.utils :as ui-utils])
   (:import [javafx.scene.canvas Canvas GraphicsContext]
            [javafx.animation AnimationTimer]
@@ -34,6 +35,13 @@
 (defn default-visualizer [val-type-symb]
   (visualizer (get @*types->defaults val-type-symb)))
 
+(defn data-window-current-val [dw-id]
+  (dbg-state/data-window-current-val dw-id))
+
+;;;;;;;;;;;;;;;;;
+;; Visualizers ;;
+;;;;;;;;;;;;;;;;;
+
 (register-visualizer
  {:id :preview
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :previewable))
@@ -47,8 +55,10 @@
 
 (register-visualizer
  {:id :map
-  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :map))
-  :on-create (fn [{:keys [map/keys-previews map/keys-refs map/vals-previews map/vals-refs map/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :shallow-map))
+  :on-create (fn [{:keys [shallow-map/keys-previews shallow-map/keys-refs
+                          shallow-map/vals-previews shallow-map/vals-refs
+                          shallow-map/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
                (let [rows (mapv (fn [k-prev k-ref v-prev v-ref nav-ref]
                                   [{:cell-type :key :k-prev k-prev :k-ref k-ref :stack-key (str k-prev "-KEY")}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key k-prev}
@@ -61,26 +71,26 @@
                  {:fx/node
                   (:table-view
                    (ui/table-view
-                    :columns ["Key" "Val" "_"]
+                    :columns ["Key" "Val" "Nav"]
                     :cell-factory (fn [_ {:keys [cell-type k-prev k-ref v-prev v-ref nav-ref stack-key]}]
                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
                                       (case cell-type
-                                        :key (ui/label :text k-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
-                                        :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                        :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
+                                        :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
                                         :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
                     :items rows))}))})
 
 (register-visualizer
  {:id :seqable
-  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :seqable))
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :paged-shallow-seqable))
   :on-create (fn [{:keys [flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as seq-page}]
                (let [{:keys [list-view-pane add-all]}
                      (ui/list-view :editable? false
                                    :cell-factory (fn [list-cell {:keys [prev]}]
                                                    (-> list-cell
                                                        (ui-utils/set-text  nil)
-                                                       (ui-utils/set-graphic (ui/label :text prev))))
+                                                       (ui-utils/set-graphic (ui/label :class "link-lbl" :text prev))))
                                    :on-click (fn [_ sel-items _]
                                                (let [{:keys [prev ref]} (first sel-items)
                                                      extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
@@ -88,7 +98,7 @@
                                                  (runtime-api/data-window-push-val-data rt-api dw-id ref extras))))
 
                      more-btn (ui/button :label "More")
-                     build-and-add-page (fn [{:keys [seq/page-previews seq/page-refs seq/next-ref]}]
+                     build-and-add-page (fn [{:keys [paged-seq/page-previews paged-seq/page-refs paged-seq/next-ref]}]
                                           (add-all (mapv (fn [prev ref] {:prev prev :ref ref}) page-previews page-refs))
                                           (if next-ref
                                             (ui-utils/set-button-action more-btn (fn [] (runtime-api/data-window-push-val-data rt-api dw-id next-ref {:update? true})))
@@ -102,8 +112,8 @@
 
 (register-visualizer
  {:id :indexed
-  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :indexed))
-  :on-create (fn [{:keys [idx-coll/vals-previews idx-coll/vals-refs idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :shallow-indexed))
+  :on-create (fn [{:keys [shallow-idx-coll/vals-previews shallow-idx-coll/vals-refs shallow-idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
                (let [rows (mapv (fn [idx v-prev v-ref nav-ref]
                                   [{:cell-type :key :idx idx}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key (str idx)}
@@ -114,25 +124,25 @@
                                 navs-refs)]
                  {:fx/node
                   (ui/v-box
-                   :childs [(ui/label (format "Count: %d" (:idx-coll/count idx-coll)))
+                   :childs [(ui/label (format "Count: %d" (:shallow-idx-coll/count idx-coll)))
                             (:table-view
                              (ui/table-view
-                              :columns ["Key" "Val" "_"]
+                              :columns ["Idx" "Val" "Nav"]
                               :cell-factory (fn [_ {:keys [cell-type idx v-prev v-ref nav-ref stack-key]}]
                                               (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                             :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
                                                 (case cell-type
                                                   :key (ui/label :text (str idx))
-                                                  :val (ui/label :text v-prev :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                                  :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
                                                   :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
                               :items rows))])}))})
 
-(set! *warn-on-reflection* true)
 (register-visualizer
  {:id :scope
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :number))
   :on-create (fn [{:keys [number/val]}]
-               (let [capture-window-size 1000
+               (let [top-bottom-margins 25
+                     capture-window-size 1000
                      ^doubles captured-samples (double-array capture-window-size 0)
                      curr-pos (atom 0)
                      canvas-width 1000
@@ -142,26 +152,27 @@
                      x-step (long (/ canvas-width capture-window-size))
                      mid-y (/ canvas-height 2)
                      _ (.setFont gc (Font. "Arial" 20))
-                     _ (.setFill gc Color/YELLOW)
+                     _ (.setFill gc Color/MAGENTA)
                      anim-timer (proxy [AnimationTimer] []
                                   (handle [^long now]
                                     (let [maxs (apply max captured-samples)
                                           mins (apply min captured-samples)
                                           sample-range (- maxs mins)
-                                          scale (/ canvas-height (if (zero? sample-range) 1 sample-range))]
+                                          scale (/ (- canvas-height (* 2 top-bottom-margins))
+                                                   (if (zero? sample-range) 1 sample-range))]
                                       (.clearRect  gc 0 0 canvas-width canvas-height)
-                                      (.setStroke  gc Color/GREEN)
+                                      (.setStroke  gc Color/MAGENTA)
 
                                       (.strokeLine  gc 0 mid-y canvas-width mid-y)
                                       (.fillText  gc "0.0" 10 (+ mid-y 22))
 
-                                      (.strokeLine  gc 0 0 canvas-width 0)
+                                      (.strokeLine  gc 0 top-bottom-margins canvas-width top-bottom-margins)
                                       (when-not (zero? maxs) (.fillText  gc (str maxs) 10 22))
 
-                                      (.strokeLine  gc 0 (dec canvas-height) canvas-width (dec canvas-height))
-                                      (when-not (zero? mins) (.fillText  gc (str mins) 10 (- canvas-height 22)))
+                                      (.strokeLine  gc 0 (- canvas-height top-bottom-margins) canvas-width (- canvas-height top-bottom-margins))
+                                      (when-not (zero? mins) (.fillText  gc (str mins) 10 (- canvas-height 5)))
 
-                                      (.setStroke  gc Color/YELLOW)
+                                      (.setStroke  gc Color/ORANGE)
                                       (loop [i 0
                                              x 0]
                                         (when (< i (dec capture-window-size))
@@ -186,6 +197,11 @@
                (add-sample new-val))
   :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
 
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Default visualizers ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (set-default-visualizer "clojure.lang.PersistentArrayMap" :map)
+(set-default-visualizer "clojure.lang.PersistentHashMap" :map)
 (set-default-visualizer "clojure.lang.PersistentVector" :indexed)
+(set-default-visualizer "clojure.lang.LazySeq" :seqable)
