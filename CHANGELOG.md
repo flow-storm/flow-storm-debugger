@@ -3,8 +3,13 @@
 ## master (unreleased)
 	
 ### New Features 
+
+    - DataWindow system
     
 ### Changes
+
+    - Improved flow search for DataWindows support
+    - Update javafx to "21.0.4-ea+1"
 
 ### Bugs fixed
 

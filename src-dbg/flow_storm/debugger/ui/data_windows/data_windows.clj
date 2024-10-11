@@ -47,6 +47,16 @@
      :spacing 10
      :paddings [10 10 10 10])))
 
+(defn- destroy-visualizers-for-frames [frames]
+  (doseq [fr frames]
+    (when-let [on-destroy (-> fr :visualizer :on-destroy)]
+      (try
+        (on-destroy (-> fr :visualizer-val-ctx))
+        (catch Exception e
+          (utils/log-error
+           (str "Couldn't destroy visualizer " (:visualizer fr))
+           e))))))
+
 (defn- create-data-window [dw-id]
   (try
     (let [inspector-w 1000
@@ -61,6 +71,7 @@
 
       (.setOnCloseRequest stage (event-handler [_]
                                   (dbg-state/unregister-jfx-stage! stage)
+                                  (destroy-visualizers-for-frames (:stack (dbg-state/data-window dw-id)))
                                   (dbg-state/data-window-remove dw-id)))
       (dbg-state/register-jfx-stage! stage)
 
@@ -87,15 +98,6 @@
 
     (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn]} (dbg-state/data-window dw-id)
           visualizers (visualizers/appliable-visualizers val-data)
-          run-frames-viz-destroys (fn [frames]
-                                    (doseq [fr frames]
-                                      (when-let [on-destroy (-> fr :visualizer :on-destroy)]
-                                        (try
-                                          (on-destroy (-> fr :visualizer-val-ctx))
-                                          (catch Exception e
-                                            (utils/log-error
-                                             (str "Couldn't destroy visualizer " (:visualizer fr))
-                                             e))))))
           reset-val-box (fn []
                           (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
                                 {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
@@ -140,7 +142,7 @@
                                                (let [new-visualizer-val-ctx (create-viz new-visualizer)
                                                      old-frame (dbg-state/data-window-update-top-frame dw-id {:visualizer new-visualizer
                                                                                                               :visualizer-val-ctx new-visualizer-val-ctx})]
-                                                 (run-frames-viz-destroys [old-frame])
+                                                 (destroy-visualizers-for-frames [old-frame])
                                                  (reset-val-box))))
 
           reset-breadcrums (fn reset-breadcrums []
@@ -153,7 +155,7 @@
                                                                 (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
                                                                            :on-click (fn []
                                                                                        (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
-                                                                                         (run-frames-viz-destroys [popped-frames])
+                                                                                         (destroy-visualizers-for-frames popped-frames)
                                                                                          (reset-breadcrums)
                                                                                          (reset-viz-combo)
                                                                                          (reset-val-box)))))))
