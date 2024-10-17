@@ -286,16 +286,7 @@
 	   :trace-fn-return-fn  trace-fn-return
 	   :trace-fn-unwind-fn  trace-fn-unwind
 	   :trace-expr-fn       trace-expr-exec
-	   :trace-bind-fn       trace-bind
-       
-       ;; this are just for backward compatibility
-       ;; TODO: remove this when it feels safe
-       :trace-fn-call-fn-key    trace-fn-call
-	   :trace-fn-return-fn-key  trace-fn-return
-	   :trace-fn-unwind-fn-key  trace-fn-unwind
-	   :trace-expr-fn-key       trace-expr-exec
-	   :trace-bind-fn-key       trace-bind
-       })))
+	   :trace-bind-fn       trace-bind})))
 
 #?(:clj
    (defn unhook-clojure-storm []  
@@ -304,17 +295,7 @@
 	   :trace-fn-return-fn  nil
 	   :trace-fn-unwind-fn  nil
 	   :trace-expr-fn       nil
-	   :trace-bind-fn       nil
-       
-       ;; this are just for backward compatibility
-       ;; TODO: remove this when it feels safe
-       :trace-fn-call-fn-key    nil
-	   :trace-fn-return-fn-key  nil
-	   :trace-fn-unwind-fn-key  nil
-	   :trace-expr-fn-key       nil
-	   :trace-bind-fn-key       nil
-       
-	   })))
+	   :trace-bind-fn       nil})))
 
 #?(:cljs        
    (defn hook-clojurescript-storm []
