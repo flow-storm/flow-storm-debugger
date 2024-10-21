@@ -2,7 +2,8 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]
-            [clojure.datafy :refer [datafy nav]]))
+            [clojure.datafy :refer [datafy nav]]
+            #?(:clj [clojure.string :as str])))
 
 (defprotocol PWrapped
   (unwrap [_]))
@@ -256,7 +257,18 @@
 (register-data-aspect-extractor
  {:id :number
   :pred number?
-  :extractor (fn [n] {:number/val n})})
+  :extractor (fn [n]               
+               {:number/val n})})
+
+(register-data-aspect-extractor
+ {:id :int
+  :pred int?
+  :extractor (fn [n]               
+               {:int/decimal n
+                :int/binary (utils/format-int n 2)
+                :int/octal  (utils/format-int n 8)
+                :int/hex    (utils/format-int n 16)})})
+
   
 (register-data-aspect-extractor
  {:id :previewable
@@ -304,6 +316,35 @@
                 :shallow-idx-coll/vals-previews (mapv short-preview idx-coll)
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
+
+
+#?(:clj
+   (register-data-aspect-extractor
+    {:id :byte-array
+     :pred bytes?
+     :extractor (fn [bs]
+                  (let [max-cnt 1000
+                        
+                        format-and-pad (fn [b radix]
+                                         (let [s (-> ^byte b
+                                                     Byte/toUnsignedInt
+                                                     (utils/format-int radix))
+                                               s-padded (cond 
+                                                          (= radix 2)  (format "%8s" s)
+                                                          (= radix 16) (format "%2s" s))]
+                                           
+                                           (str/replace s-padded " " "0")))]
+                    (if (<= (count bs) max-cnt)
+                      {:bytes/hex    (mapv #(format-and-pad % 16) bs)
+                       :bytes/binary (mapv #(format-and-pad % 2) bs)
+                       :bytes/full? true}
+
+                      (let [head (take (/ max-cnt 2) bs)
+                            tail (drop (- (count bs) (/ max-cnt 2)) bs)]
+                        {:bytes/head-hex    (mapv #(format-and-pad % 16) head)
+                         :bytes/head-binary (mapv #(format-and-pad % 2)  head)
+                         :bytes/tail-hex    (mapv #(format-and-pad % 16) tail)
+                         :bytes/tail-binary (mapv #(format-and-pad % 2)  tail)}))))}))
 
 (comment
     

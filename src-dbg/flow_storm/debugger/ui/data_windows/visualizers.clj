@@ -206,6 +206,60 @@
                (add-sample new-val))
   :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
 
+(register-visualizer
+ {:id :int
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :int))
+  :on-create (fn [#:int {:keys [decimal binary hex octal]}]
+               {:fx/node (ui/v-box
+                          :childs
+                          [(ui/label :text (format "Decimal: %s" decimal))
+                           (ui/label :text (format "Hex: %s" hex))
+                           (ui/label :text (format "Binary: %s" binary))
+                           (ui/label :text (format "Octal: %s" octal))])})})
+
+(defn- make-bytes-table-pane [data]
+  (let [pad-cells-cnt (- 16 (mod (count data) 16))
+        right-padded-data (into data (repeat pad-cells-cnt ""))]
+    (:table-view-pane
+     (ui/table-view
+      :columns ["0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15"]
+      :resize-policy :constrained
+      :cell-factory (fn [_ idx]
+                      (ui/label :text (get right-padded-data idx)))
+      :items (partitionv 16 (range (count right-padded-data)))))))
+
+(register-visualizer
+ {:id :hex-byte-array
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :byte-array))
+  :on-create (fn [#:bytes {:keys [full? hex head-hex tail-hex]}]
+               {:fx/node (if full?
+                           (make-bytes-table-pane hex)
+
+                           ;; head and tail
+                           (ui/v-box
+                            :spacing 10
+                            :childs
+                            [(ui/label :text "Head")
+                             (make-bytes-table-pane head-hex)
+                             (ui/label :text "Tail")
+                             (make-bytes-table-pane tail-hex)]))})})
+
+(register-visualizer
+ {:id :bin-byte-array
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :byte-array))
+  :on-create (fn [#:bytes {:keys [full? binary head-binary tail-binary]}]
+               {:fx/node (if full?
+                           (make-bytes-table-pane binary)
+
+                           ;; head and tail
+                           (ui/v-box
+                            :spacing 10
+                            :childs
+                            [(ui/label :text "Head")
+                             (make-bytes-table-pane head-binary)
+                             (ui/label :text "Tail")
+                             (make-bytes-table-pane tail-binary)]))})})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -215,3 +269,10 @@
 (set-default-visualizer "clojure.lang.PersistentVector" :indexed)
 (set-default-visualizer "clojure.lang.LazySeq" :seqable)
 (set-default-visualizer "clojure.lang.MapEntry" :indexed)
+
+(set-default-visualizer "java.lang.Long" :int)
+(set-default-visualizer "java.lang.Integer" :int)
+(set-default-visualizer "java.lang.Short" :int)
+(set-default-visualizer "java.lang.Byte" :int)
+
+(set-default-visualizer "byte/1" :hex-byte-array)
