@@ -166,7 +166,7 @@
                                   (handle [^long now]
                                     (let [maxs (apply max captured-samples)
                                           mins (apply min captured-samples)
-                                          sample-range (- maxs mins)
+                                          sample-range (* 2 (max (Math/abs maxs) (Math/abs mins)))
                                           scale (/ (- canvas-height (* 2 top-bottom-margins))
                                                    (if (zero? sample-range) 1 sample-range))]
                                       (.clearRect  gc 0 0 canvas-width canvas-height)
