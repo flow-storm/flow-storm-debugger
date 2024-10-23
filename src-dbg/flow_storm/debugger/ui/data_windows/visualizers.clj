@@ -10,7 +10,7 @@
            [javafx.scene.text Font]))
 
 (defonce *visualizers (atom {}))
-(defonce *types->defaults (atom {}))
+(defonce *defaults-visualizers (atom ()))
 
 (defn register-visualizer [{:keys [id] :as viz}]
   (swap! *visualizers assoc id viz))
@@ -30,11 +30,15 @@
         viz-ctx (on-create val)]
     viz-ctx))
 
-(defn set-default-visualizer [val-type-symb viz-id]
-  (swap! *types->defaults assoc val-type-symb viz-id))
+(defn add-default-visualizer [pred viz-id]
+  (swap! *defaults-visualizers conj {:pred pred :viz-id viz-id}))
 
-(defn default-visualizer [val-type-symb]
-  (visualizer (get @*types->defaults val-type-symb)))
+(defn default-visualizer [val-data]
+  (let [viz-id (->> @*defaults-visualizers
+                    (some (fn [{:keys [pred viz-id]}]
+                            (when (pred val-data)
+                              viz-id))))]
+    (visualizer viz-id)))
 
 (defn data-window-current-val [dw-id]
   (dbg-state/data-window-current-val dw-id))
@@ -264,15 +268,9 @@
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(set-default-visualizer "clojure.lang.PersistentArrayMap" :map)
-(set-default-visualizer "clojure.lang.PersistentHashMap" :map)
-(set-default-visualizer "clojure.lang.PersistentVector" :indexed)
-(set-default-visualizer "clojure.lang.LazySeq" :seqable)
-(set-default-visualizer "clojure.lang.MapEntry" :indexed)
-
-(set-default-visualizer "java.lang.Long" :int)
-(set-default-visualizer "java.lang.Integer" :int)
-(set-default-visualizer "java.lang.Short" :int)
-(set-default-visualizer "java.lang.Byte" :int)
-
-(set-default-visualizer "byte/1" :hex-byte-array)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable)) :seqable)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))       :indexed)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-map))           :map)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
+(add-default-visualizer (fn [val-data] (= "java.lang.String" (:flow-storm.runtime.values/type val-data)))              :preview)

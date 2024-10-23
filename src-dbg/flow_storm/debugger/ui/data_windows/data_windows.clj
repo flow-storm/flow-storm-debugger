@@ -123,7 +123,7 @@
                               (ui-utils/observable-clear (.getChildren visualizers-combo-box))
                               (ui-utils/observable-add-all (.getChildren visualizers-combo-box) [viz-combo])))
 
-          default-viz (or (visualizers/default-visualizer (:flow-storm.runtime.values/type val-data))
+          default-viz (or (visualizers/default-visualizer val-data)
                           (first visualizers))
 
           create-viz (fn [{:keys [on-create]}]
