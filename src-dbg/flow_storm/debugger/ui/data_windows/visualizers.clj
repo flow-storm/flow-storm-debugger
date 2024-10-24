@@ -230,7 +230,8 @@
       :resize-policy :constrained
       :cell-factory (fn [_ idx]
                       (ui/label :text (get right-padded-data idx)))
-      :items (partitionv 16 (range (count right-padded-data)))))))
+      :items (->> (partition 16 (range (count right-padded-data)))
+                  (mapv #(into [] %)))))))
 
 (register-visualizer
  {:id :hex-byte-array

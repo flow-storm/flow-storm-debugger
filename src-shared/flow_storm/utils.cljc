@@ -385,4 +385,9 @@
    (defn format-int [n radix]
      (if (int? n)
        (Long/toString (long n) radix)
+       (throw (ex-info "Only integer (as by int?) numbers supported" {}))))
+   :cljs
+   (defn format-int [n radix]
+     (if (int? n)
+       (.toString n radix)
        (throw (ex-info "Only integer (as by int?) numbers supported" {})))))
