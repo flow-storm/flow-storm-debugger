@@ -145,10 +145,6 @@
        (rt-events/make-data-window-update-event dw-id vdata)
        (rt-events/make-data-window-push-val-data-event dw-id vdata)))))
 
-(defn data-window-update-data [dw-id data]
-  (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id data)))
-
-
 #?(:clj (def def-value rt-values/def-value))
 
 (def tap-value rt-values/tap-value)
