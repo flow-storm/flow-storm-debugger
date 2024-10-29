@@ -99,8 +99,8 @@
          (flows-screen/update-exceptions-combo)))
       (log (format "Functions unwinds limit of %d exceeded, not adding more exceptions to the Exceptions menu." ui-unwinds-limit)))))
 
-(defn data-window-push-val-data-event [{:keys [dw-id val-data]}]
-  (data-windows/push-val dw-id val-data))
+(defn data-window-push-val-data-event [{:keys [dw-id val-data root?]}]
+  (data-windows/push-val dw-id val-data root?))
 
 (defn data-window-update-event [{:keys [dw-id data]}]
   (data-windows/update-val dw-id data))

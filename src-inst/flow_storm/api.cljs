@@ -43,7 +43,7 @@
    (let [vdata (assoc (rt-values/extract-data-aspects val)
                       :flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                       :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key)]
-     (rt-events/publish-event! (rt-events/make-data-window-push-val-data-event dw-id vdata)))))
+     (rt-events/publish-event! (rt-events/make-data-window-push-val-data-event dw-id vdata true)))))
 
 (defn data-window-val-update [dw-id new-val]
   (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id {:new-val new-val})))

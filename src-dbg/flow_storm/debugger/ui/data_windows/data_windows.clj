@@ -12,7 +12,7 @@
            [javafx.stage Stage]
            [javafx.scene.layout Priority VBox HBox]))
 
-(defn- main-pane [{:keys [data-window-id]}]
+(defn data-window-pane [{:keys [data-window-id]}]
   (let [breadcrums-box (ui/h-box :childs []
                                  :spacing 10
                                  :class "breadcrums")
@@ -63,7 +63,7 @@
           inspector-h 600
           stage (doto (Stage.)
                   (.setTitle "FlowStorm data window"))
-          scene (Scene. (main-pane {:data-window-id dw-id})
+          scene (Scene. (data-window-pane {:data-window-id dw-id})
                         inspector-w
                         inspector-h)]
 
@@ -89,91 +89,96 @@
     (create-data-window dw-id)
     (runtime-api/data-window-push-val-data rt-api dw-id vref {::stack-key "/" ::dw-id dw-id})))
 
-(defn push-val [dw-id val-data]
-  (ui-utils/run-now
+(defn push-val
+  ([dw-id val-data] (push-val dw-id val-data false))
+  ([dw-id val-data root?]
+   (ui-utils/run-now
 
-    ;; this is to allow a data-window to be created by a push from the runtime
-    (when-not (dbg-state/data-window dw-id)
-      (create-data-window dw-id))
+     ;; this is to allow a data-window to be created by a push from the runtime
+     (when-not (dbg-state/data-window dw-id)
+       (create-data-window dw-id))
 
-    (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn]} (dbg-state/data-window dw-id)
-          visualizers (visualizers/appliable-visualizers val-data)
-          reset-val-box (fn []
-                          (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
-                                {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
-                            (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
-                            (ui-utils/set-text type-lbl type)
+     (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn]} (dbg-state/data-window dw-id)
+           visualizers (visualizers/appliable-visualizers val-data)
+           reset-val-box (fn []
+                           (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
+                                 {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
+                             (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
+                             (ui-utils/set-text type-lbl type)
 
-                            (VBox/setVgrow val-node Priority/ALWAYS)
-                            (HBox/setHgrow val-node Priority/ALWAYS)
+                             (VBox/setVgrow val-node Priority/ALWAYS)
+                             (HBox/setHgrow val-node Priority/ALWAYS)
 
-                            (ui-utils/observable-clear (.getChildren val-box))
-                            (ui-utils/observable-add-all
-                             (.getChildren val-box)
-                             (cond->> [val-node]
-                               meta-ref (into [(ui/label :text (format "Meta: %s" meta-preview)
-                                                         :class "link-lbl"
-                                                         :on-click (fn [_]
-                                                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key "META"}]
-                                                                       (runtime-api/data-window-push-val-data rt-api dw-id meta-ref extras))))])))))
+                             (ui-utils/observable-clear (.getChildren val-box))
+                             (ui-utils/observable-add-all
+                              (.getChildren val-box)
+                              (cond->> [val-node]
+                                meta-ref (into [(ui/label :text (format "Meta: %s" meta-preview)
+                                                          :class "link-lbl"
+                                                          :on-click (fn [_]
+                                                                      (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                                                                                    :flow-storm.debugger.ui.data-windows.data-windows/stack-key "META"}]
+                                                                        (runtime-api/data-window-push-val-data rt-api dw-id meta-ref extras))))])))))
 
-          reset-viz-combo (fn []
-                            (let [viz-combo (-> (dbg-state/data-window dw-id) :stack peek :visualizer-combo)]
-                              (ui-utils/observable-clear (.getChildren visualizers-combo-box))
-                              (ui-utils/observable-add-all (.getChildren visualizers-combo-box) [viz-combo])))
+           reset-viz-combo (fn []
+                             (let [viz-combo (-> (dbg-state/data-window dw-id) :stack peek :visualizer-combo)]
+                               (ui-utils/observable-clear (.getChildren visualizers-combo-box))
+                               (ui-utils/observable-add-all (.getChildren visualizers-combo-box) [viz-combo])))
 
-          default-viz (or (visualizers/default-visualizer val-data)
-                          (first visualizers))
+           default-viz (or (visualizers/default-visualizer val-data)
+                           (first visualizers))
 
-          create-viz (fn [{:keys [on-create]}]
-                       (try
-                         (on-create val-data)
-                         (catch Exception e
-                           {:fx/node (ui/text-area
-                                      :text (pr-str e)
-                                      :editable? false
-                                      :class "value-pprint")})))
-          viz-combo (ui/combo-box :items visualizers
-                                  :selected default-viz
-                                  :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))
-                                  :button-factory (fn [_ {:keys [id]}] (ui/label :text (str id)))
-                                  :on-change (fn [_ new-visualizer]
-                                               (let [new-visualizer-val-ctx (create-viz new-visualizer)
-                                                     old-frame (dbg-state/data-window-update-top-frame dw-id {:visualizer new-visualizer
-                                                                                                              :visualizer-val-ctx new-visualizer-val-ctx})]
-                                                 (destroy-visualizers-for-frames [old-frame])
-                                                 (reset-val-box))))
+           create-viz (fn [{:keys [on-create]}]
+                        (try
+                          (on-create val-data)
+                          (catch Exception e
+                            {:fx/node (ui/text-area
+                                       :text (pr-str e)
+                                       :editable? false
+                                       :class "value-pprint")})))
+           viz-combo (ui/combo-box :items visualizers
+                                   :selected default-viz
+                                   :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))
+                                   :button-factory (fn [_ {:keys [id]}] (ui/label :text (str id)))
+                                   :on-change (fn [_ new-visualizer]
+                                                (let [new-visualizer-val-ctx (create-viz new-visualizer)
+                                                      old-frame (dbg-state/data-window-update-top-frame dw-id {:visualizer new-visualizer
+                                                                                                               :visualizer-val-ctx new-visualizer-val-ctx})]
+                                                  (destroy-visualizers-for-frames [old-frame])
+                                                  (reset-val-box))))
 
-          reset-breadcrums (fn reset-breadcrums []
-                             (let [stack (:stack (dbg-state/data-window dw-id))
-                                   bbox-childs (.getChildren breadcrums-box)]
-                               (ui-utils/observable-clear bbox-childs)
-                               (let [btns (->> stack
-                                               (map-indexed (fn [idx frame]
-                                                              (let [depth (- (count stack) idx)]
-                                                                (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
-                                                                           :on-click (fn []
-                                                                                       (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
-                                                                                         (destroy-visualizers-for-frames popped-frames)
-                                                                                         (reset-breadcrums)
-                                                                                         (reset-viz-combo)
-                                                                                         (reset-val-box)))))))
-                                               reverse
-                                               (into []))]
-                                 (ui-utils/observable-add-all bbox-childs btns))))
+           reset-breadcrums (fn reset-breadcrums []
+                              (let [stack (:stack (dbg-state/data-window dw-id))
+                                    bbox-childs (.getChildren breadcrums-box)]
+                                (ui-utils/observable-clear bbox-childs)
+                                (let [btns (->> stack
+                                                (map-indexed (fn [idx frame]
+                                                               (let [depth (- (count stack) idx)]
+                                                                 (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
+                                                                            :on-click (fn []
+                                                                                        (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
+                                                                                          (destroy-visualizers-for-frames popped-frames)
+                                                                                          (reset-breadcrums)
+                                                                                          (reset-viz-combo)
+                                                                                          (reset-val-box)))))))
+                                                reverse
+                                                (into []))]
+                                  (ui-utils/observable-add-all bbox-childs btns))))
 
-          default-viz-val-ctx (create-viz default-viz)]
+           default-viz-val-ctx (create-viz default-viz)]
 
+       (when root?
+         (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id 0)]
+           (destroy-visualizers-for-frames popped-frames)))
 
-      (dbg-state/data-window-push-frame dw-id {:val-data val-data
-                                               :visualizer-combo viz-combo
-                                               :visualizer default-viz
-                                               :visualizer-val-ctx default-viz-val-ctx})
+       (dbg-state/data-window-push-frame dw-id {:val-data val-data
+                                                :visualizer-combo viz-combo
+                                                :visualizer default-viz
+                                                :visualizer-val-ctx default-viz-val-ctx})
 
-      (reset-breadcrums)
-      (reset-viz-combo)
-      (reset-val-box))))
+       (reset-breadcrums)
+       (reset-viz-combo)
+       (reset-val-box)))))
 
 (defn update-val [dw-id update-data]
   (let [{:keys [stack]} (dbg-state/data-window dw-id)

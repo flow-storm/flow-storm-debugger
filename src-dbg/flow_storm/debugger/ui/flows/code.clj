@@ -533,19 +533,24 @@
 
       (highlight-interesting-form-tokens flow-id thread-id next-form-id next-frame next-tentry)
 
-      ;; update reusult panel
-      (flow-cmp/update-pprint-pane flow-id
-                                   thread-id
-                                   "expr_result"
-                                   (let [[val-ref e-text class] (case (:type next-tentry)
-                                                                  :fn-call   [nil                      "Call"    :normal]
-                                                                  :expr      [(:result next-tentry)    ""        :normal]
-                                                                  :fn-return [(:result next-tentry)    "Return"  :normal]
-                                                                  :fn-unwind [(:throwable next-tentry) "Throws" :fail])]
+      ;; update expression reusult panels
+      (let [[val-ref e-text class] (case (:type next-tentry)
+                                     :fn-call   [nil                      "Call"    :normal]
+                                     :expr      [(:result next-tentry)    ""        :normal]
+                                     :fn-return [(:result next-tentry)    "Return"  :normal]
+                                     :fn-unwind [(:throwable next-tentry) "Throws" :fail])
+            dw-id (format "expr-result-flow-%s-thread-%s" flow-id thread-id)]
+        (flow-cmp/update-pprint-pane flow-id thread-id "expr_result"
                                      {:val-ref   val-ref
                                       :extra-text e-text
-                                      :class      class})
-                                   {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)})
+                                      :class      class}
+                                     {:find-and-jump-same-val (partial find-and-jump-same-val flow-id thread-id)})
+        (runtime-api/data-window-push-val-data rt-api
+                                               dw-id
+                                               val-ref
+                                               {:root? true
+                                                :flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
+                                                :flow-storm.debugger.ui.data-windows.data-windows/stack-key "expr-result"}))
 
       ;; update locals panel
       (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx {}))
@@ -834,8 +839,10 @@
 (defn- create-result-pane [flow-id thread-id]
   (let [pprint-tab (ui/tab :graphic (ui/icon :name "mdi-code-braces")
                            :content (flow-cmp/create-pprint-pane flow-id thread-id "expr_result"))
+        dw-tab (ui/tab :graphic (ui/icon :name "mdi-flash-red-eye")
+                       :content (data-windows/data-window-pane {:data-window-id (format "expr-result-flow-%s-thread-%s" flow-id thread-id)}))
         tools-tab-pane (ui/tab-pane :closing-policy :unavailable
-                                    :tabs [pprint-tab])]
+                                    :tabs [dw-tab pprint-tab])]
     tools-tab-pane))
 
 (defn create-code-pane [flow-id thread-id]

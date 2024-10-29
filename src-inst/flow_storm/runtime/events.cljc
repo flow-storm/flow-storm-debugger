@@ -87,8 +87,8 @@
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 
-(defn make-data-window-push-val-data-event [dw-id vdata]
-  [:data-window-push-val-data {:dw-id dw-id :val-data vdata}])
+(defn make-data-window-push-val-data-event [dw-id vdata root?]
+  [:data-window-push-val-data {:dw-id dw-id :val-data vdata :root? root?}])
 
 (defn make-data-window-update-event [dw-id data]
   [:data-window-update {:dw-id dw-id :data data}])
