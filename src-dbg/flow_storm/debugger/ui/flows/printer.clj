@@ -43,7 +43,7 @@
   (let [{:keys [table-view-pane] :as table-data}
         (ui/table-view :columns ["Function" "Expr" "*print-level*" "*print-length*" "Format" "Transform Fn" "Enable" "_"]
                        :resize-policy :constrained
-                       :cell-factory (fn [_ {:keys [form/id coord cell-type fn-ns fn-name transform-expr-str source-expr print-level print-length format-str]}]
+                       :cell-factory (fn [_ {:keys [form/id coord cell-type fn-ns fn-name transform-expr-str source-expr print-level print-length format-str enable?]}]
                                        (case cell-type
                                          :function     (ui/label :text (format "%s/%s" fn-ns fn-name))
                                          :source-expr  (ui/label :text (pr-str source-expr))
@@ -61,7 +61,7 @@
                                                                          :align :center-left)
                                          :enable?      (ui/check-box :on-change (fn [selected?]
                                                                                   (dbg-state/update-printer flow-id id coord :enable? selected?))
-                                                                     :selected? true)
+                                                                     :selected? enable?)
 
                                          :action       (ui/icon-button :icon-name "mdi-delete-forever"
                                                                        :on-click (fn []
