@@ -154,13 +154,14 @@
                                 (let [btns (->> stack
                                                 (map-indexed (fn [idx frame]
                                                                (let [depth (- (count stack) idx)]
-                                                                 (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
-                                                                            :on-click (fn []
-                                                                                        (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
-                                                                                          (destroy-visualizers-for-frames popped-frames)
-                                                                                          (reset-breadcrums)
-                                                                                          (reset-viz-combo)
-                                                                                          (reset-val-box)))))))
+                                                                 (doto (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
+                                                                                  :on-click (fn []
+                                                                                              (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
+                                                                                                (destroy-visualizers-for-frames popped-frames)
+                                                                                                (reset-breadcrums)
+                                                                                                (reset-viz-combo)
+                                                                                                (reset-val-box))))
+                                                                   (.setMaxWidth 120)))))
                                                 reverse
                                                 (into []))]
                                   (ui-utils/observable-add-all bbox-childs btns))))

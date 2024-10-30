@@ -4,6 +4,7 @@
             [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
+            [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
@@ -33,10 +34,12 @@
   (let [{:keys [list-view-pane] :as lv-data}
         (ui/list-view :editable? false
                       :cell-factory (fn [list-cell val]
-                                      (let [val-list-text (:val-str (runtime-api/val-pprint rt-api val {:print-length 50
-                                                                                                        :print-level 5
-                                                                                                        :print-meta? false
-                                                                                                        :pprint? false}))]
+                                      (let [val-list-text (-> (runtime-api/val-pprint rt-api val {:print-length 50
+                                                                                                  :print-level 5
+                                                                                                  :print-meta? false
+                                                                                                  :pprint? false})
+                                                              :val-str
+                                                              utils/remove-newlines)]
                                         (-> list-cell
                                             (ui-utils/set-text nil)
                                             (ui-utils/set-graphic (ui/label :text val-list-text)))))

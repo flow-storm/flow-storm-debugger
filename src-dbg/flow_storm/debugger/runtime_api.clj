@@ -101,7 +101,6 @@
   (toggle-recording [_])
   (toggle-multi-timeline-recording [_])
   (switch-record-to-flow [_ flow-id])
-  (all-fn-call-stats [_])
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts])
   (set-thread-trace-limit [_ limit]))
 
@@ -277,9 +276,6 @@
   (switch-record-to-flow [_ flow-id]
     (api-call :local "switch-record-to-flow" [flow-id]))
 
-  (all-fn-call-stats [_]
-    (api-call :local "all-fn-call-stats" []))
-
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
     (api-call :local "find-fn-call-task" [fq-fn-call-symb from-idx opts]))
 
@@ -442,9 +438,6 @@
 
   (switch-record-to-flow [_ flow-id]
     (api-call :remote "switch-record-to-flow" [flow-id]))
-
-  (all-fn-call-stats [_]
-    (api-call :remote "all-fn-call-stats" []))
 
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts]
     (api-call :remote "find-fn-call-task" [fq-fn-call-symb from-idx opts]))

@@ -160,17 +160,17 @@
                                         :get-completions
                                         (fn []
                                           (into []
-                                                (keep (fn [[fq-fn-name cnt]]
-                                                        (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
-                                                          {:text (format "%s (%d)" fq-fn-name cnt)
+                                                (keep (fn [{:keys [fn-ns fn-name cnt]}]
+                                                        (when-not (re-find #"fn--[\d]+$" fn-name)
+                                                          {:text (format "%s/%s (%d)" fn-ns fn-name cnt)
                                                            :on-select (fn []
                                                                         (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                           [(symbol fq-fn-name) 0 {}]
+                                                                                           [(symbol fn-ns fn-name) 0 {:flow-id flow-id}]
                                                                                            {:on-finished (fn [{:keys [result]}]
                                                                                                            (when result
                                                                                                              (goto-location (assoc result
                                                                                                                                    :flow-id flow-id))))}))})))
-                                                (runtime-api/all-fn-call-stats rt-api))))]
+                                                (runtime-api/fn-call-stats rt-api flow-id nil))))]
                               :align :center-left)
 
         exceptions-menu-data (ui/menu-button

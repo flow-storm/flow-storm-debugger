@@ -206,20 +206,10 @@
     (reference-frame-data! frame-data)))
 
 (defn fn-call-stats [flow-id thread-id]
-  (let [stats (index-api/fn-call-stats flow-id thread-id)]
-    (->> stats
-         (mapv (fn [fstats]
-                 (update fstats :dispatch-val reference-value!))))))
-
-(defn all-fn-call-stats []
-  (reduce (fn [r [flow-id thread-id]]
-            (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
-              (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
-                        (update rr (str (symbol fn-ns fn-name)) #(+ (or % 0) cnt)))
-                      r
-                      thread-stats)))
-          {}
-          (index-api/all-threads)))
+  (let [stats (->> (index-api/fn-call-stats flow-id thread-id)
+                   (mapv (fn [fstats]
+                           (update fstats :dispatch-val reference-value!))))]
+    stats))
 
 (defn collect-fn-frames-task [flow-id thread-id fn-ns fn-name form-id render-args render-ret?]  
   (let [frame-keeper (index-api/make-frame-keeper flow-id thread-id fn-ns fn-name form-id)
@@ -241,11 +231,12 @@
                (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret print-opts))))
              fr)))))))
 
-(defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward?]}]
-  (let [criteria {:fn-ns (namespace fq-fn-call-symb)
-                  :fn-name (name fq-fn-call-symb)
-                  :from-idx from-idx
-                  :backward? backward?}]
+(defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward? flow-id]}]
+  (let [criteria (cond-> {:fn-ns (namespace fq-fn-call-symb)
+                          :fn-name (name fq-fn-call-symb)
+                          :from-idx from-idx
+                          :backward? backward?}
+                   flow-id (assoc :flow-id flow-id))]
     (submit-find-interruptible-task (index-api/build-find-fn-call-entry-predicate criteria)
                                     (index-api/timelines-for criteria)
                                     criteria                                    
@@ -597,7 +588,6 @@
              :toggle-recording toggle-recording
              :toggle-multi-timeline-recording toggle-multi-timeline-recording
              :switch-record-to-flow switch-record-to-flow
-             :all-fn-call-stats all-fn-call-stats
              :set-thread-trace-limit set-thread-trace-limit
              :ping ping
              #?@(:clj

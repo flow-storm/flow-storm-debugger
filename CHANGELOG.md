@@ -10,6 +10,8 @@
 
     - Improved flow search for DataWindows support
     - Update javafx to "21.0.4-ea+1"
+    - Fix Quick Jump on multiple flows
+    - Fix UI displaying of multi line strings in varios places
 
 ### Bugs fixed
 

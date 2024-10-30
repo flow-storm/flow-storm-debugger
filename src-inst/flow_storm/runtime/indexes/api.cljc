@@ -353,6 +353,10 @@
   (when flow-thread-registry
     (index-protos/all-threads flow-thread-registry)))
 
+(defn all-threads-ids [flow-id]
+  (->> (index-protos/flow-threads-info flow-thread-registry flow-id)
+       (mapv :thread/id)))
+
 (defn all-forms [_ _]
   (index-protos/all-forms forms-registry))
 
@@ -450,11 +454,17 @@
 
 (defn fn-call-stats
 
-  "Given a flow-id and thread-id returns all functions stats as a vector of
+  "Given a flow-id and optionally thread-id (could be nil) returns all functions stats as a vector of
   maps containing {:keys [fn-ns fn-name form-id form form-def-kind dispatch-val cnt]}"
   
   [flow-id thread-id]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+  (let [thread-ids (if thread-id
+                     [thread-id]
+                     (all-threads-ids flow-id))
+        timelines-stats (mapcat (fn [tid]
+                                  (let [{:keys [timeline-index]} (get-thread-indexes flow-id tid)]
+                                    (index-protos/all-stats timeline-index))) 
+                                thread-ids)]
     (into []
           (keep (fn [[fn-call cnt]]
                   (when-let [form (get-form (:form-id fn-call))]
@@ -466,7 +476,7 @@
                              :dispatch-val (:multimethod/dispatch-val form)
                              :cnt cnt}
                       (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form))))))
-          (index-protos/all-stats timeline-index))))
+          timelines-stats)))
 
 
 (defn make-frame-keeper [flow-id thread-id fn-ns fn-name form-id]

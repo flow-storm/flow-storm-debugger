@@ -165,7 +165,7 @@
 
 (defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
   (let [val-type (value-type val)
-        print-fn #?(:clj (if pprint? pp/pprint print) 
+        print-fn #?(:clj (if pprint? pp/pprint prn) 
                     :cljs (if (and pprint? (not print-meta?)) pp/pprint print)) ;; ClojureScript pprint doesn't support *print-meta*
         val-str (try
                   

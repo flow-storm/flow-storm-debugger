@@ -272,6 +272,7 @@
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable)) :seqable)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))       :indexed)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-map))           :map)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
+;; Don't make this the default until we can make its render fast
+;; (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
 (add-default-visualizer (fn [val-data] (= "java.lang.String" (:flow-storm.runtime.values/type val-data)))              :preview)

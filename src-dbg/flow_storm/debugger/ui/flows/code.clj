@@ -627,12 +627,13 @@
                      :get-completions
                      (fn []
                        (into []
-                             (keep (fn [[fq-fn-name]]
-                                     (when-not (re-find #"/fn--[\d]+$" fq-fn-name)
-                                       {:text (str fq-fn-name)
+                             (keep (fn [{:keys [fn-ns fn-name]}]
+
+                                     (when-not (re-find #"fn--[\d]+$" fn-name)
+                                       {:text (format "%s/%s" fn-ns fn-name)
                                         :on-select (fn []
-                                                     (reset! *selected-fn (symbol fq-fn-name)))})))
-                             (runtime-api/all-fn-call-stats rt-api))))
+                                                     (reset! *selected-fn (symbol fn-ns fn-name)))})))
+                             (runtime-api/fn-call-stats rt-api flow-id thread-id))))
         show-custom-field (fn [field]
                             (doto custom-expression-txt (.setVisible false) (.setPrefWidth 0))
                             (doto fn-selector (.setVisible false) (.setPrefWidth 0))

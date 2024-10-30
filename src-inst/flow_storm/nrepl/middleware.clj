@@ -129,8 +129,18 @@
    :post-proc (fn [_]
                 {:status :done})})
 
+(defn- all-fn-call-stats []
+  (reduce (fn [r [flow-id thread-id]]
+            (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
+              (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
+                        (update rr (str (symbol fn-ns fn-name)) #(+ (or % 0) cnt)))
+                      r
+                      thread-stats)))
+          {}
+          (index-api/all-threads)))
+
 (defn recorded-functions [_]
-  {:code `(debuggers-api/all-fn-call-stats)
+  {:code `(all-fn-call-stats)
    :post-proc (fn [stats]
                 {:status :done
                  :functions (mapv (fn [[fq-fn-name cnt]]

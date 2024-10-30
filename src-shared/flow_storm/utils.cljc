@@ -310,6 +310,12 @@
          (.replaceAll "\\r" "\n"))))
 
 #?(:clj
+   (defn remove-newlines [s]
+     (-> s
+         normalize-newlines
+         (.replaceAll "\\n" " "))))
+
+#?(:clj
    (defmacro env-prop [prop-name]
      (System/getProperty prop-name)))
 
