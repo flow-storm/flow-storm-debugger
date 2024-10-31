@@ -724,6 +724,7 @@ pre.rouge {
 <li><a href="#_visualizers">6.8.2. Visualizers</a></li>
 </ul>
 </li>
+<li><a href="#_default_visualizers">6.9. Default visualizers</a></li>
 </ul>
 </li>
 <li><a href="#_thread_breakpoints">7. Thread breakpoints</a></li>
@@ -2883,6 +2884,25 @@ as you will see next.</p>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_default_visualizers"><a class="anchor" href="#_default_visualizers"></a><a class="link" href="#_default_visualizers">6.9. Default visualizers</a></h3>
+<div class="paragraph">
+<p>You can make any visualizer the default by calling <code>add-default-visualizer</code> which takes a predicate on the val-data (the same received by :on-create) and
+a visualizer key, like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">viz/add-default-visualizer</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">val-data</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">contains?</span><span class="w"> </span><span class="p">(</span><span class="no">:flow-storm.runtime.values/kinds</span><span class="w"> </span><span class="n">val-data</span><span class="p">)</span><span class="w"> </span><span class="no">:chess-board</span><span class="p">))</span><span class="w"> </span><span class="no">:chess-board</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For all FlowStorm provided visualizers take a look at <code>flow-storm.debugger.ui.data-windows.visualizers</code> namespace.</p>
+</div>
+<div class="paragraph">
+<p>Default visualizers predicates are added in a stack, and tried from the top. This means that you can always overwrite a default by adding a
+new one.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4090,7 +4110,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-10-31 10:16:27 -0300
+Last updated 2024-10-31 10:39:31 -0300
 </div>
 </div>
 </body>

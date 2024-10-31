@@ -1335,6 +1335,21 @@ Now we can register a visualizer that will show only on values which contains a 
                                gp)}))})
 ----
 
+== Default visualizers
+
+You can make any visualizer the default by calling `add-default-visualizer` which takes a predicate on the val-data (the same received by :on-create) and
+a visualizer key, like this :
+
+[,clojure]
+----
+(viz/add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :chess-board)) :chess-board)
+----
+
+For all FlowStorm provided visualizers take a look at `flow-storm.debugger.ui.data-windows.visualizers` namespace.
+
+Default visualizers predicates are added in a stack, and tried from the top. This means that you can always overwrite a default by adding a
+new one.
+
 = Thread breakpoints
 
 image::user_guide_images/thread_breaks.png[]
