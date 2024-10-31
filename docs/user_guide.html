@@ -709,7 +709,23 @@ pre.rouge {
 </li>
 <li><a href="#_browser_tool">4. Browser tool</a></li>
 <li><a href="#_taps_tool">5. Taps tool</a></li>
-<li><a href="#_value_inspector">6. Value inspector</a></li>
+<li><a href="#_data_windows">6. Data Windows</a>
+<ul class="sectlevel2">
+<li><a href="#_data_navigation">6.1. Data navigation</a></li>
+<li><a href="#_metadata_navigation">6.2. Metadata navigation</a></li>
+<li><a href="#_multiple_visualizers">6.3. Multiple visualizers</a></li>
+<li><a href="#_sequences">6.4. Sequences</a></li>
+<li><a href="#_defining_values">6.5. Defining values</a></li>
+<li><a href="#_realtime_visualizations">6.6. Realtime visualizations</a></li>
+<li><a href="#_clojure_datafynav">6.7. Clojure datafy/nav</a></li>
+<li><a href="#_custom_visualizers">6.8. Custom visualizers</a>
+<ul class="sectlevel3">
+<li><a href="#_data_aspect_extraction">6.8.1. Data aspect extraction</a></li>
+<li><a href="#_visualizers">6.8.2. Visualizers</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a href="#_thread_breakpoints">7. Thread breakpoints</a></li>
 <li><a href="#_programmable_debugging">8. Programmable debugging</a>
 <ul class="sectlevel2">
@@ -2000,33 +2016,59 @@ section, specially the <code>find-expr-entry</code> function.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>On each flow you can use the search tool to search over all your flow recorded values. Find the search tool under <code>More tools &#8594; Search</code>.</p>
+<p>You can use the search tool to search over all your flow recorded expressions and then make the stepper jump to them.
+You can find the search tool under <code>More tools &#8594; Search</code>.</p>
 </div>
+<div class="paragraph">
+<p>There are multiple ways of searching:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>By pr-str</p>
+</li>
+<li>
+<p>By data window current value</p>
+</li>
+<li>
+<p>By predicate</p>
+</li>
+</ul>
+</div>
+<div class="sect4">
+<h5 id="_searching_by_pr_str"><a class="anchor" href="#_searching_by_pr_str"></a><a class="link" href="#_searching_by_pr_str">Searching by pr-str</a></h5>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/search.png" alt="search">
+<img src="user_guide_images/search_pr_str.png" alt="search pr str">
 </div>
 </div>
 <div class="paragraph">
-<p>The first row let us constrain our search to a specific thread and also let us select one of two
-types of searches.</p>
+<p>This type of search will walk over the selected threads expressions, converting their values to strings with <code>pr-str</code> up to the selected level and depth
+and then checking if the resulting string contains your provided query string.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_searching_by_datawindow_value"><a class="anchor" href="#_searching_by_datawindow_value"></a><a class="link" href="#_searching_by_datawindow_value">Searching by DataWindow value</a></h5>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/search_data_window.png" alt="search data window">
+</div>
 </div>
 <div class="paragraph">
-<p><code>Search by pr-str</code> let us provide a query string, a print-level and a print length and it will walk the specified
-timelines doing a <code>pr-str</code> over each recorded value and collect every entry where our query string is found inside the printed value.
-With bigger print-level/print-length you search deeper into values but it is also slower.</p>
+<p>Searching by data window value allows you to select any of the current data windows and will search for the current selected data window value
+over the selected threads expressions values using identity.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_searching_by_predicate"><a class="anchor" href="#_searching_by_predicate"></a><a class="link" href="#_searching_by_predicate">Searching by predicate</a></h5>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/search_pred.png" alt="search pred">
+</div>
 </div>
 <div class="paragraph">
-<p><code>Search by predicate</code> let us provide a predicate that will be applied over each recorded values to collect them.
-You can put whatever Clojure code you like here like <code>(fn [v] (map? v))</code> to search over all recorded maps.</p>
+<p>Searching by predicate allows you to provide a Clojure predicate which will be used over all selected threds expressions values.</p>
 </div>
-<div class="paragraph">
-<p>After configuring your search, click on the magnifier glass on the first row (next to the search type selection) to
-run the search. You should start seeing results as the match and you can always cancel the search by the normal
-means.</p>
-</div>
-<div class="paragraph">
-<p>Double clicking on any of the search results will take you to the code stepper at that point in time.</p>
 </div>
 </div>
 <div class="sect3">
@@ -2108,7 +2150,7 @@ together with the exceptions types. If you hover the mouse over any of them, a t
 <p>define the value with a name, so you can use it at the repl</p>
 </li>
 <li>
-<p>inspect the value with the <a href="#_value_inspector">value inspector</a></p>
+<p>inspect the value with a <a href="#_data_windows">data window</a></p>
 </li>
 <li>
 <p>tap the value as with <code>tap&gt;</code></p>
@@ -2143,7 +2185,7 @@ there will be gaps.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/value_panels.png" alt="value panels">
+<img src="user_guide_images/value_panels2.png" alt="value panels2">
 </div>
 </div>
 <div class="paragraph">
@@ -2151,6 +2193,16 @@ there will be gaps.</p>
 </div>
 <div class="paragraph">
 <p>You can configure the print-level and print-meta for the pretty printing by using the controls at the top.</p>
+</div>
+<div class="paragraph">
+<p>The value panel showing the current expression in the code stepper is a little bit special since it also
+contains a <a href="#_data_windows">data window</a> tab which allows you to quickly navigate the value or give it custom
+visualizations.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/value_panels1.png" alt="value panels1">
+</div>
 </div>
 <div class="sect4">
 <h5 id="_define_value_for_repl"><a class="anchor" href="#_define_value_for_repl"></a><a class="link" href="#_define_value_for_repl">Define value for repl</a></h5>
@@ -2456,7 +2508,7 @@ and provides ways of <a href="#_controlling_instrumentation">managing what gets 
 it will show on the taps list.</p>
 </div>
 <div class="paragraph">
-<p>Double click on any value to show it in the value inspector.</p>
+<p>Double click on any value to show it on a data window.</p>
 </div>
 <div class="paragraph">
 <p>If the tapped value has also been recorded as an expression in Flows, you can right click on it
@@ -2492,51 +2544,344 @@ Use the <code>clear</code> button to clear the list.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_value_inspector"><a class="anchor" href="#_value_inspector"></a><a class="link" href="#_value_inspector">6. Value inspector</a></h2>
+<h2 id="_data_windows"><a class="anchor" href="#_data_windows"></a><a class="link" href="#_data_windows">6. Data Windows</a></h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Use the value inspector to explore any data.</p>
-</div>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/value_inspector.png" alt="value inspector">
+<img src="user_guide_images/data_window.png" alt="data window">
 </div>
 </div>
 <div class="paragraph">
-<p>Use it to lazily and recursively navigate your data. It will render collections with links you can use
-to dig deeper into the data.</p>
-</div>
-<div class="paragraph">
-<p>The top bar provides a way of navigating back.</p>
+<p>Data Windows are a user extensible tool to visualize and explore your data. Their role is to support :</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Use the <code>def</code> button to define the current value for the repl.</p>
+<p>a way to navigate nested structures in a lazy way</p>
 </li>
 <li>
-<p>Use the <code>tap</code> button to tap the current value.</p>
+<p>visualize and navigate metadata</p>
 </li>
 <li>
-<p>When inspecting any value from an execution flow, two more buttons will appear. They allow you to search
-forward and backwards in the execution the current selected value.</p>
+<p>multiple visualizations for each value</p>
+</li>
+<li>
+<p>lazy/infinite sequences navigation</p>
+</li>
+<li>
+<p>a way to define the current sub-values so you can use them at the repl</p>
+</li>
+<li>
+<p>a mechanism for realtime data visualization</p>
+</li>
+<li>
+<p>clojure.datafy navigation out of the box</p>
+</li>
+<li>
+<p>tools for the user to add custom visualizations on the fly</p>
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">Datafy</div>
 <div class="paragraph">
-<p>Value inspector uses <code>clojure.datafy/datafy</code> under the hood, so you can explore your objects also.</p>
+<p>The next sections will explore each of them.</p>
 </div>
-</td>
-</tr>
-</table>
+<div class="sect2">
+<h3 id="_data_navigation"><a class="anchor" href="#_data_navigation"></a><a class="link" href="#_data_navigation">6.1. Data navigation</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_dig.png" alt="data window dig">
+</div>
+</div>
+<div class="paragraph">
+<p>You can navigate into any key or value by clicking on it.</p>
+</div>
+<div class="paragraph">
+<p>Use the breadcrums at the top to navigate back.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_metadata_navigation"><a class="anchor" href="#_metadata_navigation"></a><a class="link" href="#_metadata_navigation">6.2. Metadata navigation</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_meta.png" alt="data window meta">
+</div>
+</div>
+<div class="paragraph">
+<p>If any value contains metadata, it will be shown at the top. Clicking on it will make the data window
+navigate into it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_multiple_visualizers"><a class="anchor" href="#_multiple_visualizers"></a><a class="link" href="#_multiple_visualizers">6.3. Multiple visualizers</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_multiple_viz.png" alt="data window multiple viz">
+</div>
+</div>
+<div class="paragraph">
+<p>You can change how to display your current value by using the visualizers selector dropdown at the top.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sequences"><a class="anchor" href="#_sequences"></a><a class="link" href="#_sequences">6.4. Sequences</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_seqable.png" alt="data window seqable">
+</div>
+</div>
+<div class="paragraph">
+<p>The seqable visualizer allows you to navigate all kind of sequences (even infinite ones) by bringing more pages on demand.</p>
+</div>
+<div class="paragraph">
+<p>Click on <code>More</code> to bring the next page in.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_defining_values"><a class="anchor" href="#_defining_values"></a><a class="link" href="#_defining_values">6.5. Defining values</a></h3>
+<div class="paragraph">
+<p>You can always define a var for the current value being shown on any data window by clicking the <code>def</code> button.
+Clicking on it will raise a popup asking for a symbol name. If you don&#8217;t provide a fully qualified symbol
+it will define the var under <code>user</code> or <code>cljs.user</code> if you are in ClojureScript.</p>
+</div>
+<div class="paragraph">
+<p>A quick way to use it is to provide a short name, let&#8217;s say <code>foo</code>, and then access it from your
+code like <code>user/foo</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_realtime_visualizations"><a class="anchor" href="#_realtime_visualizations"></a><a class="link" href="#_realtime_visualizations">6.6. Realtime visualizations</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_realtime.png" alt="data window realtime">
+</div>
+</div>
+<div class="paragraph">
+<p>DataWindows not only support displaying and navigating values, but also updating them in real time from
+your application.</p>
+</div>
+<div class="paragraph">
+<p>From your program&#8217;s code you can always create a data window with :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">flow-storm.api/data-window-push-val</span><span class="w"> </span><span class="no">:changing-long-dw-id</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="s">"a-long"</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>by providing a data window id, a value, and optionally the initial breadcrum label.</p>
+</div>
+<div class="paragraph">
+<p>But you can also update it (given that the selected visualizer supports updating like :scope for numbers) with :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">flow-storm.api/data-window-val-update</span><span class="w"> </span><span class="no">:changing-long-dw-id</span><span class="w"> </span><span class="mf">0.5</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This <code>data-window-val-update</code> is pretty useful when called from loops or refs watches, specially paired
+with a custom visualizer.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clojure_datafynav"><a class="anchor" href="#_clojure_datafynav"></a><a class="link" href="#_clojure_datafynav">6.7. Clojure datafy/nav</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_datafy_nav.png" alt="data window datafy nav">
+</div>
+</div>
+<div class="paragraph">
+<p>Data Windows support datafy nav out of the box. The data window will always be showing the result of
+<code>clojure.datafy/datafy</code> of a value. For maps or vectors where keys provide navigation it will automatically
+add a blue arrow next to the value.</p>
+</div>
+<div class="paragraph">
+<p>Clicking on the value will just dig the data, while clicking on the blue arrow will navigate as with
+<code>clojure.datafy/nav</code> applied to that collection on that key.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_visualizers"><a class="anchor" href="#_custom_visualizers"></a><a class="link" href="#_custom_visualizers">6.8. Custom visualizers</a></h3>
+<div class="paragraph">
+<p>An important aspect of Data Windows is to be able to provide custom visualizers on the fly.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s say we have model a chess board as a set of maps which represent our pieces.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">chess-board</span><span class="w">
+  </span><span class="o">#</span><span class="p">{{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:king</span><span class="w">  </span><span class="no">:player</span><span class="w"> </span><span class="no">:white</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="w"> </span><span class="mi">5</span><span class="p">]}</span><span class="w">
+    </span><span class="p">{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:rook</span><span class="w">  </span><span class="no">:player</span><span class="w"> </span><span class="no">:white</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">5</span><span class="w"> </span><span class="mi">1</span><span class="p">]}</span><span class="w">
+    </span><span class="p">{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:pawn</span><span class="w">  </span><span class="no">:player</span><span class="w"> </span><span class="no">:white</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">5</span><span class="w"> </span><span class="mi">3</span><span class="p">]}</span><span class="w">
+    </span><span class="p">{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:king</span><span class="w">  </span><span class="no">:player</span><span class="w"> </span><span class="no">:black</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">7</span><span class="w"> </span><span class="mi">2</span><span class="p">]}</span><span class="w">
+    </span><span class="p">{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:pawn</span><span class="w">  </span><span class="no">:player</span><span class="w"> </span><span class="no">:black</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">6</span><span class="w"> </span><span class="mi">6</span><span class="p">]}</span><span class="w">
+    </span><span class="p">{</span><span class="no">:kind</span><span class="w"> </span><span class="no">:queen</span><span class="w"> </span><span class="no">:player</span><span class="w"> </span><span class="no">:black</span><span class="w"> </span><span class="no">:pos</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="w"> </span><span class="mi">1</span><span class="p">]}})</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">flow-storm.api/data-window-push-val</span><span class="w"> </span><span class="no">:chess-board-dw</span><span class="w"> </span><span class="n">chess-board</span><span class="w"> </span><span class="s">"chess-board"</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If we open a data window with <code>data-window-push-val</code> we are going to see something like this :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_custom1.png" alt="data window custom1">
+</div>
+</div>
+<div class="paragraph">
+<p>but we can do better, we can create a custom visualizer so we can see it like this :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/data_window_custom2.png" alt="data window custom2">
+</div>
+</div>
+<div class="paragraph">
+<p>Data visualization in FlowStorm is composed of two things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a data aspect extractor, which runs on the runtime process, and will build data for the visualization part</p>
+</li>
+<li>
+<p>a visualizer, which runs on the debugger process, and will render extracted data for a value using javafx</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a basic Clojure session everything will be running under the same process, but this is not the case for ClojureScript
+or remote Clojure.</p>
+</div>
+<div class="paragraph">
+<p>First let&#8217;s require some namespaces :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fsa</span><span class="p">])</span><span class="w">
+</span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.debugger.ui.data-windows.visualizers</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">viz</span><span class="p">])</span><span class="w">
+</span><span class="p">(</span><span class="nf">require</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">flow-storm.runtime.values</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-values</span><span class="p">])</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can register a custom visualizer by calling <code>register-visualizer</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">viz/register-visualizer</span><span class="w">
+     </span><span class="p">{</span><span class="no">:id</span><span class="w"> </span><span class="no">:my-viz</span><span class="w">
+      </span><span class="no">:pred</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="p">]</span><span class="w"> </span><span class="p">)</span><span class="w">
+      </span><span class="no">:on-create</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="no">:fx/node</span><span class="w"> </span><span class="no">:any-java-fx-node-that-renders-the-value</span><span class="w">
+                            </span><span class="no">:more-ctx-data</span><span class="w"> </span><span class="no">:anything</span><span class="p">})</span><span class="w">
+      </span><span class="c1">;; OPTIONALLY</span><span class="w">
+      </span><span class="no">:on-update</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="w"> </span><span class="n">created-ctx-map</span><span class="w"> </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">new-val</span><span class="p">]}]</span><span class="w"> </span><span class="p">)</span><span class="w">
+      </span><span class="no">:on-destroy</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">created-ctx-map</span><span class="p">]</span><span class="w"> </span><span class="p">)</span><span class="w">
+      </span><span class="p">})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The important part there are <code>:id</code>, <code>:pred</code>, and <code>:on-create</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>:id</code> will be the one displayed on the visualizers dropdown, and re-registering a visualizer
+with the same id will replace the previous one.</p>
+</div>
+<div class="paragraph">
+<p><code>:pred</code> is a predicate on the data extracted from values, it should return true if this visualizer
+can handle the value.</p>
+</div>
+<div class="paragraph">
+<p>And <code>:on-create</code> will be a function that receives this value and renders a java fx node.</p>
+</div>
+<div class="paragraph">
+<p>Optionally you can provide <code>:on-update</code> and <code>:on-destroy</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>:on-update</code> will receive values from the runtime via <code>fsa/data-window-val-update</code>. It will also get a handle to
+the original value (the one that created the DataWindow) and whatever map was returned by <code>:on-create</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>:on-destroy</code> will be called everytime a visualizer gets removed, because you swapped your current visualizer
+or because you went back with breadcrums. It can be useful in case you need to clear resources created by
+<code>:on-create</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>:pred</code> and <code>:on-create</code> will not recieve the original value but the extracted aspects of it after
+all registered extractors run.</p>
+</div>
+<div class="paragraph">
+<p>You can check the data available to your visualizer for a value in a data window by calling :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">viz/data-window-current-val</span><span class="w"> </span><span class="no">:chess-board-dw</span><span class="p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the data already extracted from your value is not enough for your visualizer you can register
+another extractor.</p>
+</div>
+<div class="sect3">
+<h4 id="_data_aspect_extraction"><a class="anchor" href="#_data_aspect_extraction"></a><a class="link" href="#_data_aspect_extraction">6.8.1. Data aspect extraction</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">fs-values/register-data-aspect-extractor</span><span class="w">
+   </span><span class="p">{</span><span class="no">:id</span><span class="w"> </span><span class="no">:chess-board</span><span class="w">
+    </span><span class="no">:pred</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nf">set?</span><span class="w"> </span><span class="nb">val</span><span class="p">)</span><span class="w">
+                         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nb">val</span><span class="p">)]</span><span class="w">
+                           </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">))))</span><span class="w">
+    </span><span class="no">:extractor</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">board</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="no">:chess/board</span><span class="w"> </span><span class="n">board</span><span class="p">})})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case we are going to register and extractor that will only run for vals which are sets and
+contains at least one element which is a map with <code>:kind</code>, <code>:player</code> and <code>:pos</code>.
+The extracted data will be the entire board.</p>
+</div>
+<div class="paragraph">
+<p>All ids of extractors that applied for a value will be appended under <code>::fs-values/kinds</code> of the value
+as you will see next.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_visualizers"><a class="anchor" href="#_visualizers"></a><a class="link" href="#_visualizers">6.8.2. Visualizers</a></h4>
+<div class="paragraph">
+<p>Now we can register a visualizer that will show only on values which contains a :chess-board kind.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nb">import</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">javafx.scene.layout</span><span class="w"> </span><span class="n">GridPane</span><span class="p">])</span><span class="w">
+</span><span class="p">(</span><span class="nb">import</span><span class="w"> </span><span class="o">'</span><span class="p">[</span><span class="n">javafx.scene.control</span><span class="w"> </span><span class="n">Label</span><span class="p">])</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">viz/register-visualizer</span><span class="w">
+   </span><span class="p">{</span><span class="no">:id</span><span class="w"> </span><span class="no">:chess-board</span><span class="w">
+    </span><span class="c1">;; only be available if the chess-board data extractor run on this value</span><span class="w">
+    </span><span class="no">:pred</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">contains?</span><span class="w"> </span><span class="p">(</span><span class="no">::fs-values/kinds</span><span class="w"> </span><span class="nb">val</span><span class="p">)</span><span class="w"> </span><span class="no">:chess-board</span><span class="p">))</span><span class="w">
+
+    </span><span class="c1">;; use the chess/board info to render a board with java fx</span><span class="w">
+    </span><span class="no">:on-create</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">chess/board</span><span class="p">]}]</span><span class="w">
+                 </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">kind-&gt;sprite</span><span class="w"> </span><span class="p">{</span><span class="no">:king</span><span class="w"> </span><span class="s">"♚"</span><span class="w"> </span><span class="no">:queen</span><span class="w"> </span><span class="s">"♛"</span><span class="w"> </span><span class="no">:rook</span><span class="w"> </span><span class="s">"♜"</span><span class="w"> </span><span class="no">:bishop</span><span class="w"> </span><span class="s">"♝"</span><span class="w"> </span><span class="no">:knight</span><span class="w"> </span><span class="s">"♞"</span><span class="w"> </span><span class="no">:pawn</span><span class="w"> </span><span class="s">"♟"</span><span class="p">}</span><span class="w">
+                       </span><span class="n">pos-&gt;piece</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">board</span><span class="w">
+                                       </span><span class="p">(</span><span class="nf">mapv</span><span class="w"> </span><span class="o">#</span><span class="p">(</span><span class="nb">vector</span><span class="w"> </span><span class="p">(</span><span class="no">:pos</span><span class="w"> </span><span class="n">%</span><span class="p">)</span><span class="w"> </span><span class="n">%</span><span class="p">))</span><span class="w">
+                                       </span><span class="p">(</span><span class="nb">into</span><span class="w"> </span><span class="p">{}))]</span><span class="w">
+                   </span><span class="p">{</span><span class="no">:fx/node</span><span class="w"> </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">gp</span><span class="w"> </span><span class="p">(</span><span class="nf">GridPane.</span><span class="p">)]</span><span class="w">
+                               </span><span class="p">(</span><span class="nb">doall</span><span class="w">
+                                </span><span class="p">(</span><span class="k">for</span><span class="w"> </span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">8</span><span class="p">)]</span><span class="w">
+                                  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">cell-color</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">zero?</span><span class="w"> </span><span class="p">(</span><span class="nf">mod</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">col</span><span class="w"> </span><span class="p">(</span><span class="nf">mod</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="s">"#f0d9b5"</span><span class="w"> </span><span class="s">"#b58863"</span><span class="p">)</span><span class="w">
+                                        </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nf">pos-&gt;piece</span><span class="w"> </span><span class="p">[</span><span class="n">row</span><span class="w"> </span><span class="n">col</span><span class="p">])</span><span class="w">
+                                        </span><span class="n">cell-str</span><span class="w"> </span><span class="p">(</span><span class="nf">kind-&gt;sprite</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="s">""</span><span class="p">)</span><span class="w">
+                                        </span><span class="n">player-color</span><span class="w"> </span><span class="p">(</span><span class="nb">when</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="p">(</span><span class="nb">name</span><span class="w"> </span><span class="n">player</span><span class="p">))]</span><span class="w">
+                                    </span><span class="p">(</span><span class="nf">.add</span><span class="w"> </span><span class="n">gp</span><span class="w"> </span><span class="p">(</span><span class="nb">doto</span><span class="w"> </span><span class="p">(</span><span class="nf">Label.</span><span class="w"> </span><span class="n">cell-str</span><span class="p">)</span><span class="w">
+                                               </span><span class="p">(</span><span class="nf">.setStyle</span><span class="w"> </span><span class="p">(</span><span class="nf">format</span><span class="w"> </span><span class="s">"-fx-background-color:%s; -fx-font-size:40; -fx-text-fill:%s; -fx-alignment: center;"</span><span class="w">
+                                                                  </span><span class="n">cell-color</span><span class="w"> </span><span class="n">player-color</span><span class="p">))</span><span class="w">
+                                               </span><span class="p">(</span><span class="nf">.setPrefWidth</span><span class="w"> </span><span class="mi">50</span><span class="p">))</span><span class="w">
+                                          </span><span class="p">(</span><span class="nb">int</span><span class="w"> </span><span class="n">col</span><span class="p">)</span><span class="w">
+                                          </span><span class="p">(</span><span class="nb">int</span><span class="w"> </span><span class="n">row</span><span class="p">)))))</span><span class="w">
+                               </span><span class="n">gp</span><span class="p">)}))})</span></code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -3745,7 +4090,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-09-05 10:45:55 -0300
+Last updated 2024-10-31 10:16:27 -0300
 </div>
 </div>
 </body>

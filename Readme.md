@@ -19,6 +19,13 @@ You use it by swapping the official Clojure compiler by ClojureStorm at dev time
 	
 # Artifacts
 
+FlowStorm alpha releases :
+
+- The complete debugger (includes `flow-storm-inst`)
+  - `[com.github.flow-storm/flow-storm-dbg "4.0.0-alpha6"]`
+- A slimmer version with no GUI, to use it for Clojure or ClojureScript remote debugging
+  - `[com.github.flow-storm/flow-storm-inst "4.0.0-alpha6"]`
+
 FlowStorm latest stable releases :
 
 - The complete debugger (includes `flow-storm-inst`)

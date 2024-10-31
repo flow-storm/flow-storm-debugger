@@ -786,25 +786,34 @@ Custom power stepping is only supported in Clojure now.
 
 image::user_guide_images/search_access.png[]
 
-On each flow you can use the search tool to search over all your flow recorded values. Find the search tool under `More tools -> Search`.
+You can use the search tool to search over all your flow recorded expressions and then make the stepper jump to them.
+You can find the search tool under `More tools -> Search`.
 
-image::user_guide_images/search.png[]
+There are multiple ways of searching:
 
-The first row let us constrain our search to a specific thread and also let us select one of two
-types of searches.
+- By pr-str
+- By data window current value
+- By predicate
 
-`Search by pr-str` let us provide a query string, a print-level and a print length and it will walk the specified
-timelines doing a `pr-str` over each recorded value and collect every entry where our query string is found inside the printed value.
-With bigger print-level/print-length you search deeper into values but it is also slower.
+==== Searching by pr-str
 
-`Search by predicate` let us provide a predicate that will be applied over each recorded values to collect them.
-You can put whatever Clojure code you like here like `(fn [v] (map? v))` to search over all recorded maps.
+image::user_guide_images/search_pr_str.png[]
 
-After configuring your search, click on the magnifier glass on the first row (next to the search type selection) to
-run the search. You should start seeing results as the match and you can always cancel the search by the normal
-means.
+This type of search will walk over the selected threads expressions, converting their values to strings with `pr-str` up to the selected level and depth
+and then checking if the resulting string contains your provided query string.
 
-Double clicking on any of the search results will take you to the code stepper at that point in time.
+==== Searching by DataWindow value
+
+image::user_guide_images/search_data_window.png[]
+
+Searching by data window value allows you to select any of the current data windows and will search for the current selected data window value
+over the selected threads expressions values using identity.
+
+==== Searching by predicate
+
+image::user_guide_images/search_pred.png[]
+
+Searching by predicate allows you to provide a Clojure predicate which will be used over all selected threds expressions values.
 
 === Loops
 
@@ -854,7 +863,7 @@ Right clicking on them will show a menu where you can :
 
 	  - define all frame vars 
 	  - define the value with a name, so you can use it at the repl
-	  - inspect the value with the <<#_value_inspector,value inspector>>
+	  - inspect the value with a <<#_data_windows,data window>>
 	  - tap the value as with `tap>`
 
 `Define all frame vars` will define all the bindings for the entire frame in the current form namespace.
@@ -874,11 +883,17 @@ Double clicking on any of the stack entries will make the debugger jump to that 
 
 Value panels show in many places in _FlowStorm_.
 
-image::user_guide_images/value_panels.png[]
+image::user_guide_images/value_panels2.png[]
 
 The value panel in the code tool always display a pretty print of the current expression value.
 
 You can configure the print-level and print-meta for the pretty printing by using the controls at the top.
+
+The value panel showing the current expression in the code stepper is a little bit special since it also
+contains a <<#_data_windows,data window>> tab which allows you to quickly navigate the value or give it custom
+visualizations.
+
+image::user_guide_images/value_panels1.png[]
 
 ==== Define value for repl
 
@@ -1061,7 +1076,7 @@ image::user_guide_images/taps.png[]
 Everytime _FlowStorm_ starts, it will add a tap, so whenever you `tap>` something
 it will show on the taps list.
 
-Double click on any value to show it in the value inspector.
+Double click on any value to show it on a data window.
 
 If the tapped value has also been recorded as an expression in Flows, you can right click on it
 and run `Search value on Flows` to move the debugger to that point in time.
@@ -1082,27 +1097,243 @@ Use the `clear` button to clear the list.
 
 There is also `#tap-stack-trace`. It will tap the current stack trace.
 
-= Value inspector
+= Data Windows
 
-Use the value inspector to explore any data.
+image::user_guide_images/data_window.png[]
 
-image::user_guide_images/value_inspector.png[]
+Data Windows are a user extensible tool to visualize and explore your data. Their role is to support :
 
-Use it to lazily and recursively navigate your data. It will render collections with links you can use
-to dig deeper into the data.
+- a way to navigate nested structures in a lazy way
+- visualize and navigate metadata
+- multiple visualizations for each value
+- lazy/infinite sequences navigation
+- a way to define the current sub-values so you can use them at the repl
+- a mechanism for realtime data visualization
+- clojure.datafy navigation out of the box
+- tools for the user to add custom visualizations on the fly
 
-The top bar provides a way of navigating back.
+The next sections will explore each of them.
 
-- Use the `def` button to define the current value for the repl.
-- Use the `tap` button to tap the current value.
-- When inspecting any value from an execution flow, two more buttons will appear. They allow you to search
-forward and backwards in the execution the current selected value.
+== Data navigation
 
-[NOTE]
-.Datafy
-====
-Value inspector uses `clojure.datafy/datafy` under the hood, so you can explore your objects also.
-====
+image::user_guide_images/data_window_dig.png[]
+
+You can navigate into any key or value by clicking on it.
+
+Use the breadcrums at the top to navigate back.
+
+== Metadata navigation
+
+image::user_guide_images/data_window_meta.png[]
+
+If any value contains metadata, it will be shown at the top. Clicking on it will make the data window
+navigate into it.
+
+== Multiple visualizers
+
+image::user_guide_images/data_window_multiple_viz.png[]
+
+You can change how to display your current value by using the visualizers selector dropdown at the top.
+
+== Sequences
+
+image::user_guide_images/data_window_seqable.png[]
+
+The seqable visualizer allows you to navigate all kind of sequences (even infinite ones) by bringing more pages on demand.
+
+Click on `More` to bring the next page in.
+
+== Defining values
+
+You can always define a var for the current value being shown on any data window by clicking the `def` button.
+Clicking on it will raise a popup asking for a symbol name. If you don't provide a fully qualified symbol
+it will define the var under `user` or `cljs.user` if you are in ClojureScript.
+
+A quick way to use it is to provide a short name, let's say `foo`, and then access it from your
+code like `user/foo`.
+
+== Realtime visualizations
+
+image::user_guide_images/data_window_realtime.png[]
+
+DataWindows not only support displaying and navigating values, but also updating them in real time from
+your application.
+
+From your program's code you can always create a data window with :
+
+[,clojure]
+----
+(flow-storm.api/data-window-push-val :changing-long-dw-id 0 "a-long")
+----
+
+by providing a data window id, a value, and optionally the initial breadcrum label.
+
+But you can also update it (given that the selected visualizer supports updating like :scope for numbers) with :
+
+[,clojure]
+----
+(flow-storm.api/data-window-val-update :changing-long-dw-id 0.5)
+----
+
+This `data-window-val-update` is pretty useful when called from loops or refs watches, specially paired
+with a custom visualizer.
+
+== Clojure datafy/nav
+
+image::user_guide_images/data_window_datafy_nav.png[]
+
+Data Windows support datafy nav out of the box. The data window will always be showing the result of
+`clojure.datafy/datafy` of a value. For maps or vectors where keys provide navigation it will automatically
+add a blue arrow next to the value.
+
+Clicking on the value will just dig the data, while clicking on the blue arrow will navigate as with
+`clojure.datafy/nav` applied to that collection on that key.
+
+== Custom visualizers
+
+An important aspect of Data Windows is to be able to provide custom visualizers on the fly.
+
+Let's say we have model a chess board as a set of maps which represent our pieces.
+
+[,clojure]
+----
+(def chess-board
+  #{{:kind :king  :player :white :pos [0 5]}
+    {:kind :rook  :player :white :pos [5 1]}
+    {:kind :pawn  :player :white :pos [5 3]}
+    {:kind :king  :player :black :pos [7 2]}
+    {:kind :pawn  :player :black :pos [6 6]}
+    {:kind :queen :player :black :pos [3 1]}})
+
+(flow-storm.api/data-window-push-val :chess-board-dw chess-board "chess-board")
+----
+
+If we open a data window with `data-window-push-val` we are going to see something like this :
+
+image::user_guide_images/data_window_custom1.png[]
+
+but we can do better, we can create a custom visualizer so we can see it like this :
+
+image::user_guide_images/data_window_custom2.png[]
+
+Data visualization in FlowStorm is composed of two things:
+
+- a data aspect extractor, which runs on the runtime process, and will build data for the visualization part
+- a visualizer, which runs on the debugger process, and will render extracted data for a value using javafx
+
+For a basic Clojure session everything will be running under the same process, but this is not the case for ClojureScript
+or remote Clojure.
+
+First let's require some namespaces :
+
+[,clojure]
+----
+(require '[flow-storm.api :as fsa])
+(require '[flow-storm.debugger.ui.data-windows.visualizers :as viz])
+(require '[flow-storm.runtime.values :as fs-values])
+----
+
+We can register a custom visualizer by calling `register-visualizer`.
+
+[,clojure]
+----
+(viz/register-visualizer
+     {:id :my-viz
+      :pred (fn [val] )
+      :on-create (fn [val] {:fx/node :any-java-fx-node-that-renders-the-value
+                            :more-ctx-data :anything})
+      ;; OPTIONALLY
+      :on-update (fn [val created-ctx-map {:keys [new-val]}] )
+      :on-destroy (fn [created-ctx-map] )
+      })
+----
+
+The important part there are `:id`, `:pred`, and `:on-create`.
+
+The `:id` will be the one displayed on the visualizers dropdown, and re-registering a visualizer
+with the same id will replace the previous one.
+
+`:pred` is a predicate on the data extracted from values, it should return true if this visualizer
+can handle the value.
+
+And `:on-create` will be a function that receives this value and renders a java fx node.
+
+Optionally you can provide `:on-update` and `:on-destroy`.
+
+`:on-update` will receive values from the runtime via `fsa/data-window-val-update`. It will also get a handle to
+the original value (the one that created the DataWindow) and whatever map was returned by `:on-create`.
+
+`:on-destroy` will be called everytime a visualizer gets removed, because you swapped your current visualizer
+or because you went back with breadcrums. It can be useful in case you need to clear resources created by
+`:on-create`.
+
+`:pred` and `:on-create` will not recieve the original value but the extracted aspects of it after
+all registered extractors run.
+
+You can check the data available to your visualizer for a value in a data window by calling :
+
+[,clojure]
+----
+(viz/data-window-current-val :chess-board-dw)
+----
+
+If the data already extracted from your value is not enough for your visualizer you can register
+another extractor.
+
+=== Data aspect extraction
+
+[,clojure]
+----
+(fs-values/register-data-aspect-extractor
+   {:id :chess-board
+    :pred (fn [val] (and (set? val)
+                         (let [{:keys [kind player pos]} (first val)]
+                           (and kind player pos))))
+    :extractor (fn [board] {:chess/board board})})
+----
+
+In this case we are going to register and extractor that will only run for vals which are sets and
+contains at least one element which is a map with `:kind`, `:player` and `:pos`.
+The extracted data will be the entire board.
+
+All ids of extractors that applied for a value will be appended under `::fs-values/kinds` of the value
+as you will see next.
+
+=== Visualizers
+
+Now we can register a visualizer that will show only on values which contains a :chess-board kind.
+
+[,clojure]
+----
+(import '[javafx.scene.layout GridPane])
+(import '[javafx.scene.control Label])
+
+(viz/register-visualizer
+   {:id :chess-board
+    ;; only be available if the chess-board data extractor run on this value
+    :pred (fn [val] (contains? (::fs-values/kinds val) :chess-board))
+
+    ;; use the chess/board info to render a board with java fx
+    :on-create (fn [{:keys [chess/board]}]
+                 (let [kind->sprite {:king "♚" :queen "♛" :rook "♜" :bishop "♝" :knight "♞" :pawn "♟"}
+                       pos->piece (->> board
+                                       (mapv #(vector (:pos %) %))
+                                       (into {}))]
+                   {:fx/node (let [gp (GridPane.)]
+                               (doall
+                                (for [row (range 8) col (range 8)]
+                                  (let [cell-color (if (zero? (mod (+ col (mod row 2)) 2)) "#f0d9b5" "#b58863")
+                                        {:keys [kind player]} (pos->piece [row col])
+                                        cell-str (kind->sprite kind "")
+                                        player-color (when player (name player))]
+                                    (.add gp (doto (Label. cell-str)
+                                               (.setStyle (format "-fx-background-color:%s; -fx-font-size:40; -fx-text-fill:%s; -fx-alignment: center;"
+                                                                  cell-color player-color))
+                                               (.setPrefWidth 50))
+                                          (int col)
+                                          (int row)))))
+                               gp)}))})
+----
 
 = Thread breakpoints
 
