@@ -93,6 +93,15 @@
 (defn make-data-window-update-event [dw-id data]
   [:data-window-update {:dw-id dw-id :data data}])
 
+(defn make-out-write-event [s]
+  [:out-write {:msg s}])
+
+(defn make-err-write-event [s]
+  [:err-write {:msg s}])
+
+(defn make-last-evals-update-event [last-evals-refs]
+  [:last-evals-update {:last-evals-refs last-evals-refs}])
+
 (defn publish-event! [[ev-key :as ev]]
   (if-let [dispatch @*dispatch]
 

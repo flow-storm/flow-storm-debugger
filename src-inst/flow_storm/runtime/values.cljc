@@ -223,9 +223,6 @@
 (defn unregister-data-aspect-extractor [id]
   (swap! values-datafiers-registry dissoc id))
 
-(defn short-preview [v]
-  (:val-str (val-pprint v {:pprint? false :print-length 3 :print-level 3 :print-meta? false})))
-
 (defn interesting-nav-reference [coll k]
   (let [v (get coll k)
         n (nav coll k v)]    
@@ -246,8 +243,7 @@
             (cond-> {::kinds #{}
                      ::type (pr-str (type o))
                      ::val-ref (reference-value! o)}
-              o-meta (assoc ::meta-ref (reference-value! o-meta)
-                            ::meta-preview (short-preview o-meta)))
+              o-meta (assoc ::meta-ref (reference-value! o-meta)))
             (vals @values-datafiers-registry))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -288,10 +284,8 @@
   :extractor (fn [m]
                (let [m-keys (keys m)
                      m-vals (vals m)]
-                 {:shallow-map/keys-previews (mapv short-preview m-keys)
-                  :shallow-map/keys-refs     (mapv reference-value! m-keys)
+                 {:shallow-map/keys-refs     (mapv reference-value! m-keys)
                   :shallow-map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
-                  :shallow-map/vals-previews (mapv short-preview m-vals)
                   :shallow-map/vals-refs     (mapv reference-value! m-vals)}))})
 
 (register-data-aspect-extractor
@@ -304,7 +298,6 @@
                      page (take page-size xs)]
                  (cond-> {:paged-seq/count (when (counted? s) (count s))
                           :paged-seq/page-size page-size
-                          :paged-seq/page-previews (mapv short-preview page)
                           :paged-seq/page-refs (mapv reference-value! page)}
                    (not last-page?) (assoc :paged-seq/next-ref (reference-value! (drop page-size xs))))))})
 
@@ -313,7 +306,6 @@
   :pred indexed?
   :extractor (fn [idx-coll]
                {:shallow-idx-coll/count (count idx-coll)
-                :shallow-idx-coll/vals-previews (mapv short-preview idx-coll)
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 

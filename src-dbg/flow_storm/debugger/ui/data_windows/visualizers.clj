@@ -61,18 +61,19 @@
 (register-visualizer
  {:id :map
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :shallow-map))
-  :on-create (fn [{:keys [shallow-map/keys-previews shallow-map/keys-refs
-                          shallow-map/vals-previews shallow-map/vals-refs
+  :on-create (fn [{:keys [shallow-map/keys-refs shallow-map/vals-refs
                           shallow-map/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
-               (let [rows (mapv (fn [k-prev k-ref v-prev v-ref nav-ref]
+               (let [keys-previews (mapv (comp :val-preview meta) keys-refs)
+                     vals-previews (mapv (comp :val-preview meta) vals-refs)
+                     rows (mapv (fn [k-prev k-ref v-prev v-ref nav-ref]
                                   [{:cell-type :key :k-prev k-prev :k-ref k-ref :stack-key (str k-prev "-KEY")}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key k-prev}
                                    {:cell-type :nav :nav-ref nav-ref :stack-key (str k-prev "-NAV")}])
-                           keys-previews
-                           keys-refs
-                           vals-previews
-                           vals-refs
-                           navs-refs)]
+                                keys-previews
+                                keys-refs
+                                vals-previews
+                                vals-refs
+                                navs-refs)]
                  {:fx/node
                   (:table-view
                    (ui/table-view
@@ -81,9 +82,9 @@
                                     (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                                                   :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
                                       (case cell-type
-                                                       :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
-                                                       :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
-                                                       :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
+                                        :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
+                                        :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
+                                        :nav (when nav-ref (ui/button :label ">" :on-click (fn [] (runtime-api/data-window-push-val-data rt-api dw-id nav-ref extras)))))))
                     :columns-width-percs [0.2 0.7 0.1]
                     :resize-policy :constrained
                     :items rows
@@ -108,11 +109,12 @@
                                                  (runtime-api/data-window-push-val-data rt-api dw-id ref extras))))
 
                      more-btn (ui/button :label "More")
-                     build-and-add-page (fn [{:keys [paged-seq/page-previews paged-seq/page-refs paged-seq/next-ref]}]
-                                          (add-all (mapv (fn [prev ref] {:prev prev :ref ref}) page-previews page-refs))
-                                          (if next-ref
-                                            (ui-utils/set-button-action more-btn (fn [] (runtime-api/data-window-push-val-data rt-api dw-id next-ref {:update? true})))
-                                            (ui-utils/set-disable more-btn true)))]
+                     build-and-add-page (fn [{:keys [paged-seq/page-refs paged-seq/next-ref]}]
+                                          (let [page-previews (mapv (comp :val-preview meta) page-refs)]
+                                            (add-all (mapv (fn [prev ref] {:prev prev :ref ref}) page-previews page-refs))
+                                            (if next-ref
+                                              (ui-utils/set-button-action more-btn (fn [] (runtime-api/data-window-push-val-data rt-api dw-id next-ref {:update? true})))
+                                              (ui-utils/set-disable more-btn true))))]
                  (build-and-add-page seq-page)
                  {:fx/node (ui/v-box
                             :childs [list-view-pane
@@ -123,8 +125,9 @@
 (register-visualizer
  {:id :indexed
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :shallow-indexed))
-  :on-create (fn [{:keys [shallow-idx-coll/vals-previews shallow-idx-coll/vals-refs shallow-idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
-               (let [rows (mapv (fn [idx v-prev v-ref nav-ref]
+  :on-create (fn [{:keys [shallow-idx-coll/vals-refs shallow-idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
+               (let [vals-previews (mapv (comp :val-preview meta) vals-refs)
+                     rows (mapv (fn [idx v-prev v-ref nav-ref]
                                   [{:cell-type :key :idx idx}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key (str idx)}
                                    {:cell-type :nav :nav-ref nav-ref :stack-key (str idx "-NAV")}])
@@ -276,3 +279,4 @@
 ;; (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
 (add-default-visualizer (fn [val-data] (= "java.lang.String" (:flow-storm.runtime.values/type val-data)))              :preview)
+(add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data))) :preview)

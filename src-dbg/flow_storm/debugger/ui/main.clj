@@ -24,11 +24,9 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
-            [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
-            [flow-storm.debugger.ui.flows.printer :as printer]
             [flow-storm.debugger.ui.browser.screen :as browser-screen]
             [flow-storm.debugger.ui.tasks :as tasks]
-            [flow-storm.debugger.ui.taps.screen :as taps-screen]
+            [flow-storm.debugger.ui.outputs.screen :as outputs-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -62,29 +60,10 @@
   :stop  (fn [] (stop-ui)))
 
 (defn clear-ui []
-  (taps-screen/clear-all-taps)
+  (outputs-screen/clear-outputs-ui)
 
   (doseq [fid (dbg-state/all-flows-ids)]
-    (dbg-state/remove-flow fid)
-    (ui-utils/run-later
-      (flows-screen/remove-flow fid)
-      (multi-thread-timeline/clear-timeline fid)
-      (printer/clear-prints fid)))
-
-  (ui-utils/run-later
-    (browser-screen/clear-instrumentation-list)))
-
-(defn clear-all []
-  ;; CAREFULL the order here matters
-  (taps-screen/clear-all-taps)
-
-  (doseq [fid (dbg-state/all-flows-ids)]
-    (flows-screen/fully-remove-flow fid)
-    (multi-thread-timeline/clear-timeline fid)
-    (printer/clear-prints fid))
-
-  (runtime-api/clear-recordings rt-api)
-  (runtime-api/clear-api-cache rt-api))
+    (flows-screen/clear-debugger-flow fid)))
 
 (defn bottom-box []
   (let [progress-box (ui/h-box :childs [])
@@ -154,21 +133,22 @@
                             :class "vertical-tab"
                             :content (browser-screen/main-pane)
                             :id "tool-browser")
-        taps-tab (ui/tab :text "Taps"
-                         :class "vertical-tab"
-                         :content (taps-screen/main-pane)
-                         :on-selection-changed (event-handler [_])
-                         :id "tool-taps")
+        outputs-tab (ui/tab :text "Outputs"
+                            :class "vertical-tab"
+                            :content (outputs-screen/main-pane)
+                            :on-selection-changed (event-handler [_])
+                            :id "tool-outputs")
         docs-tab (ui/tab :text "Docs"
                          :class "vertical-tab"
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
-        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab taps-tab docs-tab]
+        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab outputs-tab docs-tab]
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
                             :on-tab-change (fn [_ to-tab]
+                                             (dbg-state/set-selected-tool (keyword (.getId to-tab)))
                                              (cond
                                                (= to-tab browser-tab) (browser-screen/get-all-namespaces))))
         _ (store-obj "main-tools-tab" tabs-p)]
@@ -238,8 +218,20 @@
                                     :accel {:mods [:ctrl]
                                             :key-code KeyCode/D}}])
         actions-menu (ui/menu :label "_Actions"
-                              :items [{:text "Clear recordings"
-                                       :on-click (fn [] (clear-all))
+                              :items [{:text "Clear all"
+                                       :on-click (fn []
+                                                   ;; this will cause the runtime to fire back flow discarded events
+                                                   ;; that will get rid of the flows UI side of things
+                                                   (runtime-api/clear-runtime-state rt-api)
+                                                   (runtime-api/clear-api-cache rt-api)
+                                                   (outputs-screen/clear-outputs-ui))}
+                                      {:text "Clear current tool"
+                                       :on-click (fn []
+                                                   (case (dbg-state/selected-tool)
+                                                     :tool-flows   (flows-screen/discard-all-flows)
+                                                     :tool-browser nil
+                                                     :tool-outputs (outputs-screen/clear-outputs)
+                                                     :tool-docs    nil))
                                        :accel {:mods [:ctrl]
                                                :key-code KeyCode/L}}
                                       {:text "Unblock all threads"
@@ -267,12 +259,7 @@
                                         :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                         :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
                                         :disable true)
-        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
-                                  :tooltip "Clean all debugger and runtime values references (Ctrl-l)"
-                                  :on-click (fn [] (clear-all)))
-
-        tools [clear-btn
-               task-cancel-btn]]
+        tools [task-cancel-btn]]
 
     (store-obj "task-cancel-btn" task-cancel-btn)
     (ui/toolbar :childs tools)))
@@ -336,8 +323,10 @@
   ;; we don't reuse old flows values on this flow
   (runtime-api/clear-api-cache rt-api)
 
+  ;; make sure with discard any previous flow for the same id
+  (flows-screen/clear-debugger-flow flow-id)
+
   (dbg-state/create-flow flow-id timestamp)
-  (flows-screen/remove-flow flow-id)
   (flows-screen/create-empty-flow flow-id)
   (ui-general/select-main-tools-tab "tool-flows")
   (flows-screen/update-threads-list flow-id))
@@ -347,7 +336,7 @@
   to configure the part of UI that depends on runtime state."
   []
   (ui-utils/run-later
-   (when-let [{:keys [storm? recording? total-order-recording?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+   (when-let [{:keys [storm? recording? total-order-recording? flow-storm-nrepl-middleware?] :as runtime-config} (runtime-api/runtime-config rt-api)]
      (log (str "Runtime config retrieved :" runtime-config))
      (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                               (map first)
@@ -360,6 +349,9 @@
          (let [storm-prefixes (runtime-api/get-storm-instrumentation rt-api)]
            (browser-screen/enable-storm-controls)
            (browser-screen/update-storm-instrumentation storm-prefixes)))
+
+       (when-not flow-storm-nrepl-middleware?
+         (outputs-screen/set-middleware-not-available))
 
        (doseq [fid all-flows-ids]
          (create-flow {:flow-id fid}))))))
@@ -427,7 +419,7 @@
 
                                   (key-combo-match? kev "f" [:shift]) (ui-general/select-main-tools-tab "tool-flows")
                                   (key-combo-match? kev "b" [:shift]) (ui-general/select-main-tools-tab "tool-browser")
-                                  (key-combo-match? kev "t" [:shift]) (ui-general/select-main-tools-tab "tool-taps")
+                                  (key-combo-match? kev "o" [:shift]) (ui-general/select-main-tools-tab "tool-outputs")
                                   (key-combo-match? kev "d" [:shift]) (ui-general/select-main-tools-tab "tool-docs")
                                   (= key-name "0")                    (open-flow-threads-menu 0)
                                   (= key-name "1")                    (open-flow-threads-menu 1)

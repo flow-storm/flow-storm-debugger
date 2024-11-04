@@ -2,6 +2,7 @@
   (:require [flow-storm.runtime.debuggers-api :as debuggers-api]
             [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.types :refer [make-value-ref]]
+            [flow-storm.runtime.outputs :as rt-outputs]
             [nrepl.misc :refer [response-for] :as misc]
             [nrepl.middleware :as middleware :refer [set-descriptor!]]
             [cider.nrepl.middleware.util.error-handling :refer [base-error-response]]
@@ -125,7 +126,7 @@
                 {:status :done})})
 
 (defn clear-recordings [_]
-  {:code `(debuggers-api/clear-recordings)
+  {:code `(debuggers-api/clear-flows)
    :post-proc (fn [_]
                 {:status :done})})
 
@@ -199,10 +200,25 @@
       (let [rsp (response-for msg (post-proc (eval code)))]
         (t/send transport rsp)))))
 
+(defn- wrap-transport
+  [transport op msg-id {:keys [on-eval on-out on-err]}]
+  (reify Transport
+    (recv [_this]
+      (t/recv transport))
+    (recv [_this timeout]
+      (t/recv transport timeout))
+    (send [this resp]
+      (cond
+        (:out resp)                                                       (on-out (:out resp))
+        (:err resp)                                                       (on-err (:err resp))
+        (and (= op "eval") (= msg-id (:id resp)) (contains? resp :value)) (on-eval (:value resp)))
+      (.send transport resp)
+      this)))
+
 (defn wrap-flow-storm
   "Middleware that provides flow-storm functionality "
   [next-handler]
-  (fn [{:keys [op] :as msg}]
+  (fn [{:keys [op id] :as msg}]
     (let [piggieback? (or cljs-utils/cider-piggieback? cljs-utils/nrepl-piggieback?)]
       (case op
         "flow-storm-trace-count"        (process-msg next-handler msg trace-count        piggieback?)
@@ -216,7 +232,22 @@
         "flow-storm-clear-recordings"   (process-msg next-handler msg clear-recordings   piggieback?)
         "flow-storm-bindings"           (process-msg next-handler msg bindings           piggieback?)
         "flow-storm-recorded-functions" (process-msg next-handler msg recorded-functions piggieback?)
-        (next-handler msg)))))
+
+        ;; if the message is not for us let it flow but with a transport
+        ;; we control, so we can handle writes to out, err and eval results
+        (let [msg (if piggieback?
+                    ;; don't do anything for ClojureScript yet
+                    msg
+
+                    ;; update transport to capture *out*, *err* and eval resluts
+                    (update msg :transport (fn [transport]
+                                            (wrap-transport transport
+                                                            op
+                                                            id
+                                                            {:on-eval rt-outputs/handle-eval-result
+                                                             :on-out  rt-outputs/handle-out-write
+                                                             :on-err  rt-outputs/handle-err-write}))))]
+          (next-handler msg))))))
 
 (defn expects-shadow-cljs-middleware
 

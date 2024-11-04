@@ -110,6 +110,7 @@
 
 (s/def :ui/selected-font-size-style-idx int?)
 (s/def :ui/selected-theme #{:light :dark})
+(s/def :ui/selected-tool #{:tool-flows :tool-browser :tool-outputs :tool-docs})
 (s/def :ui/extra-styles (s/nilable string?))
 (s/def ::ws-ready? boolean?)
 (s/def ::repl-ready? boolean?)
@@ -137,14 +138,16 @@
 (s/def ::local-mode? boolean?)
 
 (s/def :config/env-kind #{:clj :cljs})
-(s/def :config/storm?   boolean?)
-(s/def :status/recording? boolean?)
+(s/def :config/storm?      boolean?)
+(s/def :config/flow-storm-nrepl-middleware? boolean?)
+(s/def :status/recording?  boolean?)
 (s/def :status/total-order-recording? boolean?)
 (s/def :status/breakpoints (s/coll-of (s/tuple :flow-storm/fn-ns :flow-storm/fn-name)))
 
 (s/def ::runtime-config (s/nilable
                          (s/keys :req-un [:config/env-kind
                                           :config/storm?
+                                          :config/flow-storm-nrepl-middleware?
                                           :status/recording?
                                           :status/total-order-recording?
                                           :status/breakpoints])))
@@ -210,6 +213,7 @@
                                 :printer/printers
                                 :ui/selected-font-size-style-idx
                                 :ui/selected-theme
+                                :ui/selected-tool
                                 :ui/extra-styles
                                 :ui/jfx-nodes-index
                                 :ui/jfx-stages
@@ -232,6 +236,7 @@
                      :dark  :dark
                      :auto  ((requiring-resolve 'flow-storm.debugger.ui.utils/get-current-os-theme))
                      :light)
+   :selected-tool :tool-flows
    :local-mode? (boolean local?)
    :extra-styles styles
    :jfx-nodes-index {}
@@ -295,6 +300,12 @@
 
 (defn toggle-debug-mode []
   (swap! state update-in [:debugger-config :debug-mode?] not))
+
+(defn set-selected-tool [tool]
+  (swap! state assoc :selected-tool tool))
+
+(defn selected-tool []
+  (get @state :selected-tool))
 
 (defn set-runtime-config [config]
   (swap! state assoc :runtime-config config))
@@ -679,3 +690,6 @@
 
 (defn clojure-storm-env? []
   (get-in @state [:runtime-config :storm?]))
+
+(defn flow-storm-nrepl-middleware-available? []
+  (get-in @state [:runtime-config :flow-storm-nrepl-middleware?]))

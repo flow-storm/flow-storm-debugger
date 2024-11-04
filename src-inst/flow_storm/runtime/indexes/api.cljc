@@ -512,7 +512,9 @@
                               (filter (fn [[fid _]] (= fid flow-id))))]
     
     (when flow-thread-registry
-      (index-protos/discard-threads flow-thread-registry discard-keys))))
+      ;; this will also discard any total-order-timeline if there is one
+      (index-protos/discard-threads flow-thread-registry discard-keys)
+      (events/publish-event! (events/make-flow-discarded-event flow-id)))))
 
 #?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main" :thread/blocked? false}])
    :clj (defn flow-threads-info [flow-id]          
@@ -650,7 +652,7 @@
 
   This funciton returns immediately and you should provide the following callbacks :
 
-  - on-progress, a fn of one arg containing a 0-100 integer of the progress
+  - on-progress [optional], a fn of one arg containing a 0-100 integer of the progress
   - on-match, a fn of one arg called with a map containing the matched entry info
   - on-end, a fn of zero args that will be called for signaling that the search reached the end with no matches  
 
@@ -694,7 +696,8 @@
                                               
                                               ;; else report progress and continue searching
                                               (do
-                                                (on-progress (int (* 100 (/ @batches-processed total-batches))))
+                                                (when on-progress
+                                                  (on-progress (int (* 100 (/ @batches-processed total-batches)))))
                                                 (if (or (and (not backward?) (= to-idx (count timeline)))
                                                         (and backward?       (= to-idx 0)))
 
@@ -755,7 +758,7 @@
                             (build-find-fn-call-entry-predicate criteria)
                             (timelines-for criteria)
                             criteria
-                            {:on-match (fn [m] (deliver result-prom m))
+                            {:on-match (fn [m] (deliver result-prom m))                             
                              :on-end   (fn []  (deliver result-prom nil))})]
        (start)       
        @result-prom)))
@@ -1015,3 +1018,4 @@
   "Returns true if `x` is a `fn-return-trace?` or `fn-unwind-trace?`"
   [x]
   (fn-return-trace/fn-end-trace? x))
+

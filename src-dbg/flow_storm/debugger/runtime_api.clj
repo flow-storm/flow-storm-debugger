@@ -87,8 +87,9 @@
 
   (eval-form [_ form-str opts])
 
-  (clear-recordings [_])
+  (clear-runtime-state [_])
   (clear-api-cache [_])
+  (clear-outputs [_])
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
   (unblock-thread [_ thread-id])
@@ -240,11 +241,14 @@
                 ;; so when re-evaluating a var (probably a function) store and restore its meta
                 (when v (reset-meta! v vmeta))))))))))
 
-  (clear-recordings [_]
-    (api-call :local "clear-recordings" []))
+  (clear-runtime-state [_]
+    (api-call :local "clear-runtime-state" []))
 
   (clear-api-cache [_]
     (reset! api-cache {}))
+
+  (clear-outputs [_]
+    (api-call :local "clear-outputs" []))
 
   (flow-threads-info [_ flow-id]
     (api-call :local "flow-threads-info" [flow-id]))
@@ -401,11 +405,14 @@
         (safe-eval-code-str (format "(alter-meta! #'%s/%s merge %s)" ns var-name (pr-str var-meta))))
       expr-res))
 
-  (clear-recordings [_]
-    (api-call :remote "clear-recordings" []))
+  (clear-runtime-state [_]
+    (api-call :remote "clear-runtime-state" []))
 
   (clear-api-cache [_]
     (reset! api-cache {}))
+
+  (clear-outputs [_]
+    (api-call :remote "clear-outputs" []))
 
   (flow-threads-info [_ flow-id]
     (api-call :remote "flow-threads-info" [flow-id]))

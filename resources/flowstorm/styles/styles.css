@@ -347,3 +347,12 @@
 .data-window .breadcrums .button {
     -fx-background-color: -fx-theme-breadcrums;
 }
+
+
+/***********/
+/* Outputs */
+/***********/
+
+.outputs-dw {
+    -fx-background-color: -fx-theme-base2;
+}

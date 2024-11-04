@@ -20,31 +20,29 @@
 (declare create-or-focus-thread-tab)
 (declare update-exceptions-combo)
 
-(defn remove-flow [flow-id]
+(defn clear-debugger-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
         [flow-tab] (obj-lookup flow-id "flow_tab")]
 
     (when (and flows-tabs-pane flow-tab)
       (ui-utils/rm-tab-pane-tab flows-tabs-pane flow-tab))
 
+    ;; remove all bookmarks, mt-timeline and prints ui associated to this flow
+    (bookmarks/remove-bookmarks flow-id)
+    (multi-thread-timeline/clear-timeline-ui flow-id)
+    (printer/clear-prints-ui flow-id)
+
+    (dbg-state/remove-unwinds flow-id)
+    (update-exceptions-combo)
+
+    (dbg-state/remove-flow flow-id)
+
     ;; clean ui state objects
     (clean-objs flow-id)))
 
-(defn fully-remove-flow [flow-id]
-  ;; remove it from our state
-  (dbg-state/remove-flow flow-id)
-
-  ;; let runtime know we are not interested in this flow anymore
-  (runtime-api/discard-flow rt-api flow-id)
-
-  ;; remove it from the ui
-  (remove-flow flow-id)
-
-  ;; remove all bookmarks associated to this flow
-  (bookmarks/remove-bookmarks flow-id)
-
-  (dbg-state/remove-unwinds flow-id)
-  (ui-utils/run-later (update-exceptions-combo)))
+(defn discard-all-flows []
+  (doseq [fid (dbg-state/all-flows-ids)]
+    (runtime-api/discard-flow rt-api fid)))
 
 (defn- setup-thread-keybindngs [flow-id thread-id pane]
   (.setOnKeyPressed
@@ -261,7 +259,7 @@
     (.setOnCloseRequest ^Tab flow-tab
                         (event-handler
                             [ev]
-                          (fully-remove-flow flow-id)
+                          (runtime-api/discard-flow rt-api flow-id)
                           ;; since we are destroying this tab, we don't need
                           ;; this event to propagate anymore
                           (ui-utils/consume ev)))
@@ -333,17 +331,18 @@
   (let [unwinds (dbg-state/get-fn-unwinds)
         [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
         [ex-box] (obj-lookup "exceptions-box")]
-    (ui-utils/clear-classes ex-box)
-    (when (zero? (count unwinds))
-      (ui-utils/add-class ex-box "hidden-pane"))
+    (when ex-box
+      (ui-utils/clear-classes ex-box)
+      (when (zero? (count unwinds))
+        (ui-utils/add-class ex-box "hidden-pane"))
 
-    (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
-                       {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
-                        :tooltip ex-message
-                        :flow-id flow-id
-                        :thread-id thread-id
-                        :idx idx})
-                     unwinds))))
+      (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
+                         {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
+                          :tooltip ex-message
+                          :flow-id flow-id
+                          :thread-id thread-id
+                          :idx idx})
+                       unwinds)))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later
@@ -373,6 +372,9 @@
                                   :on-change (fn [_ new-flow-id]
                                                (runtime-api/switch-record-to-flow rt-api new-flow-id))
                                   :classes ["hl-combo" "flows-combo"])
+        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
+                                  :tooltip "Clean all flows (Ctrl-l)"
+                                  :on-click (fn [] (discard-all-flows)))
         record-btn (ui/icon-button :icon-name "mdi-record"
                                    :tooltip "Start/Stop recording"
                                    :on-click (fn [] (runtime-api/toggle-recording rt-api))
@@ -381,7 +383,8 @@
                                    :icon-name ["mdi-chart-timeline" "mdi-record"]
                                    :tooltip "Start/Stop recording of the multi-thread timeline"
                                    :on-click (fn [] (runtime-api/toggle-multi-timeline-recording rt-api)))
-        record-controls (ui/h-box :childs [record-btn
+        record-controls (ui/h-box :childs [clear-btn
+                                           record-btn
                                            multi-timeline-record-btn
                                            flows-combo]
                                   :paddings [4 4 4 4]

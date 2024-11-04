@@ -1,6 +1,7 @@
 (ns flow-storm.debugger.ui.commons
   (:require [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.components :as ui]
+            [flow-storm.debugger.ui.utils :refer [set-clipboard]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [clojure.string :as str]))
 
@@ -15,3 +16,8 @@
                    :center-on-stage stage)]
      (when-not (str/blank? val-name)
        (runtime-api/def-value rt-api (symbol val-name) val)))))
+
+(defn copy-val [val-ref]
+  (let [val-pprint (->> (runtime-api/val-pprint rt-api val-ref {:print-length 10000 :print-level 500 :pprint? true})
+                        :val-str)]
+    (set-clipboard val-pprint)))

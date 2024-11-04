@@ -6,7 +6,7 @@
             [flow-storm.utils :as utils :refer [log-error]]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.commons :refer [def-val]]
+            [flow-storm.debugger.ui.commons :refer [copy-val def-val]]
             [flow-storm.debugger.ui.data-windows.visualizers :as visualizers])
   (:import [javafx.scene Scene]
            [javafx.stage Stage]
@@ -24,7 +24,10 @@
         def-btn (ui/button :label "def"
                            :classes ["def-btn" "btn-sm"]
                            :tooltip "Define a reference to this value so it can be used from the repl.")
-        val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl def-btn]
+        copy-btn (ui/icon-button :icon-name "mdi-content-copy"
+                                 :tooltip "Copy the pprint of the current value"
+                                 :classes ["btn-sm"])
+        val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl def-btn copy-btn]
                                                  :align :center-left
                                                  :spacing 5)
                                   :center val-box)]
@@ -34,7 +37,8 @@
                                    :visualizers-combo-box visualizers-combo-box
                                    :val-box val-box
                                    :type-lbl type-lbl
-                                   :def-btn def-btn})
+                                   :def-btn def-btn
+                                   :copy-btn copy-btn})
 
     (VBox/setVgrow val-pane Priority/ALWAYS)
     (HBox/setHgrow val-pane Priority/ALWAYS)
@@ -98,12 +102,14 @@
      (when-not (dbg-state/data-window dw-id)
        (create-data-window dw-id))
 
-     (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn]} (dbg-state/data-window dw-id)
+     (let [{:keys [breadcrums-box visualizers-combo-box val-box type-lbl def-btn copy-btn]} (dbg-state/data-window dw-id)
            visualizers (visualizers/appliable-visualizers val-data)
            reset-val-box (fn []
                            (let [val-node (-> (dbg-state/data-window dw-id) :stack peek :visualizer-val-ctx :fx/node)
-                                 {:flow-storm.runtime.values/keys [meta-ref meta-preview type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)]
+                                 {:flow-storm.runtime.values/keys [meta-ref type val-ref]} (-> (dbg-state/data-window dw-id) :stack peek :val-data)
+                                 meta-preview (-> meta-ref meta :val-preview)]
                              (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
+                             (ui-utils/set-button-action copy-btn (fn [] (copy-val val-ref)))
                              (ui-utils/set-text type-lbl type)
 
                              (VBox/setVgrow val-node Priority/ALWAYS)

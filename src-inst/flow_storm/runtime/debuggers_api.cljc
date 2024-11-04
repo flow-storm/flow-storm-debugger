@@ -6,7 +6,7 @@
                 :cljs [[flow-storm.utils :as utils :refer [log] :refer-macros [env-prop]]])
             [flow-storm.runtime.events :as rt-events]            
             [flow-storm.runtime.values :as rt-values :refer [reference-value! deref-value]]
-            [flow-storm.runtime.taps :as rt-taps]
+            [flow-storm.runtime.outputs :as rt-outputs]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
             [flow-storm.jobs :as jobs]
@@ -129,6 +129,7 @@
         env-kind #?(:clj :clj :cljs :cljs)]
     (cond-> {:env-kind env-kind
              :storm? storm?
+             :flow-storm-nrepl-middleware? (utils/flow-storm-nrepl-middleware?)
              :recording? (tracer/recording?)
              :total-order-recording? (tracer/multi-timeline-recording?)
              :breakpoints (tracer/all-breakpoints)})))
@@ -344,16 +345,19 @@
 
 (def all-flows-threads index-api/all-threads)
 
-(defn clear-recordings []
+(defn clear-flows []
   (let [flows-ids (->> (all-flows-threads)
                        (map first)
                        (into #{}))]
     (doseq [fid flows-ids]
-      (discard-flow fid)
-      (rt-events/publish-event! (rt-events/make-flow-discarded-event fid)))
-    
-    (rt-values/clear-vals-ref-registry)))
+      (discard-flow fid))))
 
+(defn clear-runtime-state []
+  (clear-flows)
+  (rt-values/clear-vals-ref-registry)
+  (rt-outputs/clear-outputs))
+
+(def clear-outputs rt-outputs/clear-outputs)
 (def flow-threads-info index-api/flow-threads-info)
 
 (defn goto-location [flow-id {:keys [thread/id thread/idx]}]
@@ -581,7 +585,8 @@
              :tap-value tap-value
              :interrupt-all-tasks interrupt-all-tasks
              :start-task start-task
-             :clear-recordings clear-recordings
+             :clear-runtime-state clear-runtime-state
+             :clear-outputs clear-outputs
              :flow-threads-info flow-threads-info
              :all-flows-threads all-flows-threads
              :stack-for-frame stack-for-frame
@@ -659,7 +664,7 @@
      (rt-values/clear-vals-ref-registry)
      (println "Value references cleared")
 
-     (rt-taps/setup-tap!)
+     (rt-outputs/setup-tap!)
      (jobs/run-jobs)
      (println "Runtime setup ready")))
 
@@ -682,7 +687,7 @@
 
        (rt-values/clear-vals-ref-registry)
 
-       (rt-taps/setup-tap!)
+       (rt-outputs/setup-tap!)
 
        (jobs/run-jobs))))
 
@@ -723,4 +728,5 @@
 
                                (println "Debugger connection ready. Events dispatch function set and pending events pushed."))))
        (catch :default e (utils/log-error "Couldn't connect to the debugger" e))))
-   )
+   
+)

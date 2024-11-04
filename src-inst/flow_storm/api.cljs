@@ -1,6 +1,6 @@
 (ns flow-storm.api
   (:require [flow-storm.remote-websocket-client :as remote-websocket-client]
-            [flow-storm.runtime.taps :as rt-taps]
+            [flow-storm.runtime.outputs :as rt-outputs]
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.indexes.api :as indexes-api]
@@ -14,7 +14,7 @@
   "Stop the flow-storm runtime part gracefully"
 
   []
-  (rt-taps/remove-tap!)
+  (rt-outputs/remove-tap!)
   (rt-events/clear-dispatch-fn!)
   (rt-events/clear-pending-events!)
   (rt-values/clear-vals-ref-registry)

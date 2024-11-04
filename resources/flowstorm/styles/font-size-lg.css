@@ -4,6 +4,6 @@
 .btn-xs {-fx-font-size: 13;}
 
 .threads-tab-pane > .tab-header-area {-fx-padding: 5 0 0 158;}
-.flows-tab-pane > .tab-header-area {-fx-padding: 10 0 0 320;}
+.flows-tab-pane > .tab-header-area {-fx-padding: 10 0 0 370;}
 
 .flows-combo {-fx-pref-width: 184; -fx-font-size: 18;}

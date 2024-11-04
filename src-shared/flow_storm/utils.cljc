@@ -154,6 +154,10 @@
             (catch Exception _ false))
      :cljs (boolean (try (js* "cljs.storm.tracer.trace_fn_call") (catch js/Error _ false)))))
 
+(defn flow-storm-nrepl-middleware? []
+  #?(:clj (boolean (find-ns 'flow-storm.nrepl.middleware))     
+     :cljs false))
+
 (defn ensure-vanilla []
   (when (storm-env?)
     (throw (ex-info "Can't execute in a Storm environment. Use under Vanilla only." {}))))

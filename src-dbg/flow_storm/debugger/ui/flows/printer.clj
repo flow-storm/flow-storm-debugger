@@ -13,7 +13,7 @@
            [javafx.stage Stage]))
 
 
-(defn clear-prints [flow-id]
+(defn clear-prints-ui [flow-id]
   (when-let [[{:keys [clear]}] (obj-lookup flow-id "printer-print-outs-list")]
     (clear)))
 

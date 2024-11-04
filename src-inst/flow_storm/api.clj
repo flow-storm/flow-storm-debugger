@@ -4,7 +4,7 @@
   Provides functionality to start the debugger and instrument forms."
 
   (:require [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.taps :as rt-taps]
+            [flow-storm.runtime.outputs :as rt-outputs]
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.ns-reload-utils :as reload-utils]
             [hansel.api :as hansel]
@@ -43,7 +43,7 @@
      (rt-events/clear-dispatch-fn!)
      (rt-events/clear-pending-events!)
 
-     (rt-taps/remove-tap!)
+     (rt-outputs/remove-tap!)
 
      (dbg-api/interrupt-all-tasks)
 

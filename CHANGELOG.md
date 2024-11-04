@@ -5,6 +5,7 @@
 ### New Features 
 
     - DataWindow system
+    - Outputs tool (Clojure only)
     
 ### Changes
 

@@ -3,7 +3,7 @@
   "Processing events the debugger receives from the runtime"
 
   (:require [flow-storm.debugger.ui.browser.screen :as browser-screen]
-            [flow-storm.debugger.ui.taps.screen :as taps-screen]
+            [flow-storm.debugger.ui.outputs.screen :as outputs-screen]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
@@ -40,7 +40,19 @@
 
 (defn- tap-event [{:keys [value]}]
   (ui-utils/run-later
-   (taps-screen/add-tap-value value)))
+    (outputs-screen/add-tap-value value)))
+
+(defn out-write-event [{:keys [msg]}]
+  (ui-utils/run-later
+    (outputs-screen/add-out-write msg)))
+
+(defn err-write-event [{:keys [msg]}]
+  (ui-utils/run-later
+    (outputs-screen/add-err-write msg)))
+
+(defn last-evals-update-event [{:keys [last-evals-refs]}]
+  (ui-utils/run-later
+    (outputs-screen/update-last-evals last-evals-refs)))
 
 (defn- flow-created-event [flow-info]
   (ui-utils/run-now
@@ -48,7 +60,7 @@
 
 (defn- flow-discarded-event [flow-info]
   (ui-utils/run-now
-    (flows-screen/remove-flow (:flow-id flow-info))))
+    (flows-screen/clear-debugger-flow (:flow-id flow-info))))
 
 (defn- threads-updated-event [{:keys [flow-id]}]
   (ui-utils/run-now
@@ -117,7 +129,11 @@
     :flow-discarded (flow-discarded-event ev-args-map)
     :threads-updated (threads-updated-event ev-args-map)
     :timeline-updated (timeline-updated-event ev-args-map)
+
     :tap (tap-event ev-args-map)
+    :out-write (out-write-event ev-args-map)
+    :err-write (err-write-event ev-args-map)
+    :last-evals-update (last-evals-update-event ev-args-map)
 
     :task-submitted (task-submitted-event ev-args-map)
     :task-finished (task-finished-event ev-args-map)

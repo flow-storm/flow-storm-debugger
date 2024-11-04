@@ -25,7 +25,7 @@
                               "#ed55e8"
                               "#d3d929"})
 
-(defn clear-timeline [flow-id]
+(defn clear-timeline-ui [flow-id]
   (when-let [[{:keys [clear]}] (obj-lookup flow-id "total-order-table-data")]
     (clear)))
 
