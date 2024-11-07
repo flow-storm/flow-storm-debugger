@@ -708,7 +708,15 @@ pre.rouge {
 </ul>
 </li>
 <li><a href="#_browser_tool">4. Browser tool</a></li>
-<li><a href="#_taps_tool">5. Taps tool</a></li>
+<li><a href="#_outputs_tool">5. Outputs tool</a>
+<ul class="sectlevel2">
+<li><a href="#_middleware_setup">5.1. Middleware setup</a></li>
+<li><a href="#_output_data_window">5.2. Output data window</a></li>
+<li><a href="#_last_evals">5.3. Last evals</a></li>
+<li><a href="#_taps">5.4. Taps</a></li>
+<li><a href="#_out_and_err_streams">5.5. Out and Err streams</a></li>
+</ul>
+</li>
 <li><a href="#_data_windows">6. Data Windows</a>
 <ul class="sectlevel2">
 <li><a href="#_data_navigation">6.1. Data navigation</a></li>
@@ -1670,13 +1678,10 @@ that is basically only allowing the server to run if we are running from babashk
 </div>
 </div>
 <div class="paragraph">
-<p>From left to right :</p>
+<p>Currently :</p>
 </div>
 <div class="ulist">
 <ul>
-<li>
-<p>Clear the state. Discard all recordings, taps, etc so far.</p>
-</li>
 <li>
 <p>Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.</p>
 </li>
@@ -1704,10 +1709,13 @@ record this second run (or flow) under <code>flow-1</code>. Now we can access bo
 </div>
 </div>
 <div class="paragraph">
-<p>When you first open FlowStorm UI you will see three things, from left to right :</p>
+<p>When you first open FlowStorm UI you will see four things, from left to right :</p>
 </div>
 <div class="ulist">
 <ul>
+<li>
+<p>Clear your recordings if any.</p>
+</li>
 <li>
 <p>Start/Stop recording. You can keep your heap from growing by stopping recording when you don&#8217;t need it.</p>
 </li>
@@ -2494,22 +2502,101 @@ and provides ways of <a href="#_controlling_instrumentation">managing what gets 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_taps_tool"><a class="anchor" href="#_taps_tool"></a><a class="link" href="#_taps_tool">5. Taps tool</a></h2>
+<h2 id="_outputs_tool"><a class="anchor" href="#_outputs_tool"></a><a class="link" href="#_outputs_tool">5. Outputs tool</a></h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>Use the taps tool to visualize your <code>tap&gt;</code>.</p>
-</div>
 <div class="imageblock">
 <div class="content">
-<img src="user_guide_images/taps.png" alt="taps">
+<img src="user_guide_images/outputs.png" alt="outputs">
 </div>
 </div>
+<div class="paragraph">
+<p>The outputs tool can be used instead of your normal IDE/Editor panel to visualize your evaluations
+results, your taps outputs and your <code><strong>out</strong></code> and <code><strong>err</strong></code> streams writes (like printlns).</p>
+</div>
+<div class="paragraph">
+<p>The advantages being :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Custom visualizations</p>
+</li>
+<li>
+<p>Quick nested values navigations</p>
+</li>
+<li>
+<p>Quick taps values navigation</p>
+</li>
+<li>
+<p>Datafy nav navigation</p>
+</li>
+<li>
+<p>Access to all previously tapped values</p>
+</li>
+<li>
+<p>Access to the last 10 evaluated values (instead of just <code>*1</code> and <code>*2</code>)</p>
+</li>
+<li>
+<p>Ability to search tapped values in Flows</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The taps visualization system works out of the box while the evals result and printing capture currently
+depends on you using nrepl and starting with the flow-storm middleware. Checkout the outputs setup
+section for instructions.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureScript support</div>
+<div class="paragraph">
+<p>Only the taps viewer is currently supported on ClojureScript. The last evaluations
+and the out and err streams capture aren&#8217;t supported yet.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_middleware_setup"><a class="anchor" href="#_middleware_setup"></a><a class="link" href="#_middleware_setup">5.1. Middleware setup</a></h3>
+<div class="paragraph">
+<p>For using all the features in the Outputs tool you need to be using nrepl and start your repl with
+<code>flow-storm.nrepl.middleware/wrap-flow-storm</code> middleware.</p>
+</div>
+<div class="paragraph">
+<p>If you use Cider for example you can add it to <code>cider-jack-in-nrepl-middlewares</code> via customizing the global
+value or by using <code>.dir-locals.el</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_output_data_window"><a class="anchor" href="#_output_data_window"></a><a class="link" href="#_output_data_window">5.2. Output data window</a></h3>
+<div class="paragraph">
+<p>The top panel is a <a href="#_data_windows">data window</a> for displaying evaluations and taps.
+As soon as you evaluate or tap something it will be displayed here.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_last_evals"><a class="anchor" href="#_last_evals"></a><a class="link" href="#_last_evals">5.3. Last evals</a></h3>
+<div class="paragraph">
+<p>The last evals pane gives you access to the last 10 evaluation results, same as <code>*1</code> and <code>*2</code>.</p>
+</div>
+<div class="paragraph">
+<p>Click on any value to display it on the top data window.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_taps"><a class="anchor" href="#_taps"></a><a class="link" href="#_taps">5.4. Taps</a></h3>
 <div class="paragraph">
 <p>Everytime <em>FlowStorm</em> starts, it will add a tap, so whenever you <code>tap&gt;</code> something
 it will show on the taps list.</p>
 </div>
 <div class="paragraph">
-<p>Double click on any value to show it on a data window.</p>
+<p>Click on any value to display it on the top data window.</p>
 </div>
 <div class="paragraph">
 <p>If the tapped value has also been recorded as an expression in Flows, you can right click on it
@@ -2541,6 +2628,14 @@ Use the <code>clear</code> button to clear the list.</p>
 </div>
 <div class="paragraph">
 <p>There is also <code>#tap-stack-trace</code>. It will tap the current stack trace.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_out_and_err_streams"><a class="anchor" href="#_out_and_err_streams"></a><a class="link" href="#_out_and_err_streams">5.5. Out and Err streams</a></h3>
+<div class="paragraph">
+<p>Everything written on <code><strong>out</strong></code> or <code><strong>err</strong></code> will be captured and displayed on the bottom panel.
+You can select lines and copy them to your clipboard using the context menu.</p>
+</div>
 </div>
 </div>
 </div>
@@ -4110,7 +4205,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-10-31 10:39:31 -0300
+Last updated 2024-11-07 15:01:22 -0300
 </div>
 </div>
 </body>

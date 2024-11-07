@@ -614,10 +614,8 @@ The toolbar as well as the menu provides quick access to some general commands.
 
 image::user_guide_images/toolbar.png[]
 
-From left to right :
+Currently :
 
-
-- Clear the state. Discard all recordings, taps, etc so far.
 - Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
 
 = Flows tool
@@ -632,8 +630,9 @@ record this second run (or flow) under `flow-1`. Now we can access both recordin
 
 image::user_guide_images/recording_controls.png[]
 
-When you first open FlowStorm UI you will see three things, from left to right :
+When you first open FlowStorm UI you will see four things, from left to right :
 
+- Clear your recordings if any.
 - Start/Stop recording. You can keep your heap from growing by stopping recording when you don't need it.
 - Start/Stop recording the multi-thread timeline. Check out the <<#_multi_thread_timeline, multi-thread timeline>> tool.
 - The `Rec on` combo-box to select under what flow new recordings are going to be stored.
@@ -1067,16 +1066,59 @@ and provides ways of <<#_controlling_instrumentation,managing what gets instrume
 
 image::user_guide_images/browser.png[]
 
-= Taps tool
+= Outputs tool
 
-Use the taps tool to visualize your `tap>`.
+image::user_guide_images/outputs.png[]
 
-image::user_guide_images/taps.png[]
+The outputs tool can be used instead of your normal IDE/Editor panel to visualize your evaluations
+results, your taps outputs and your `*out*` and `*err*` streams writes (like printlns).
+
+The advantages being :
+
+- Custom visualizations
+- Quick nested values navigations
+- Quick taps values navigation
+- Datafy nav navigation
+- Access to all previously tapped values
+- Access to the last 10 evaluated values (instead of just `*1` and `*2`)
+- Ability to search tapped values in Flows
+
+The taps visualization system works out of the box while the evals result and printing capture currently
+depends on you using nrepl and starting with the flow-storm middleware. Checkout the outputs setup
+section for instructions.
+
+[NOTE]
+.ClojureScript support
+====
+Only the taps viewer is currently supported on ClojureScript. The last evaluations
+and the out and err streams capture aren't supported yet.
+====
+
+== Middleware setup
+
+For using all the features in the Outputs tool you need to be using nrepl and start your repl with
+`flow-storm.nrepl.middleware/wrap-flow-storm` middleware.
+
+If you use Cider for example you can add it to `cider-jack-in-nrepl-middlewares` via customizing the global
+value or by using `.dir-locals.el`.
+
+== Output data window
+
+The top panel is a <<#_data_windows,data window>> for displaying evaluations and taps.
+As soon as you evaluate or tap something it will be displayed here.
+
+== Last evals
+
+The last evals pane gives you access to the last 10 evaluation results, same as `*1` and `*2`.
+
+Click on any value to display it on the top data window.
+
+== Taps
 
 Everytime _FlowStorm_ starts, it will add a tap, so whenever you `tap>` something
 it will show on the taps list.
 
-Double click on any value to show it on a data window.
+Click on any value to display it on the top data window.
 
 If the tapped value has also been recorded as an expression in Flows, you can right click on it
 and run `Search value on Flows` to move the debugger to that point in time.
@@ -1092,10 +1134,16 @@ So if you want to use this functionality as a "mark" so you can quickly jump to 
 the recordings from the Taps tool, you can do it like `(tap> (str :my-mark))`
 ====
 
+
 A `#tap` tag will also be available, which will tap and return so you can use it like `(+ 1 2 #tap (* 3 4))`
 Use the `clear` button to clear the list.
 
 There is also `#tap-stack-trace`. It will tap the current stack trace.
+
+== Out and Err streams
+
+Everything written on `*out*` or `*err*` will be captured and displayed on the bottom panel.
+You can select lines and copy them to your clipboard using the context menu.
 
 = Data Windows
 

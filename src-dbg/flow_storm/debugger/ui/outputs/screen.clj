@@ -57,7 +57,7 @@
 (defn set-middleware-not-available []
   ;; This is kind of hacky but an easy way of letting the user know it
   ;; needs the middleware for this functionality
-  (let [txt "This functionality needs flow-storm nrepl middleware available."
+  (let [txt "This functionality is only available for Clojure and needs flow-storm nrepl middleware available."
         [out-lv-data]       (obj-lookup "out-and-err-list-view-data")
         [last-vals-lv-data] (obj-lookup "last-vals-list-view-data")]
     ((:add-all out-lv-data) [{:stream :out :msg txt}])

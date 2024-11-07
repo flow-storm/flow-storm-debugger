@@ -138,7 +138,9 @@
     (updateItem [item empty?]
       (proxy-super updateItem item empty?)
       (if empty?
-        (.setGraphic ^ListCell this nil)
+        (do
+          (.setText ^ListCell this nil)
+          (.setGraphic ^ListCell this nil))
         (update-item-fn ^ListCell this item)))))
 
 (defn add-class [^Node node class]
