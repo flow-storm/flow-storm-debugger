@@ -9,7 +9,7 @@
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
   (:import [javafx.scene.layout Priority VBox HBox]
-           [javafx.scene.control ListView ListCell]))
+           [javafx.scene.control ListView TextArea]))
 
 (defn- update-outputs-data-window [val-ref stack-key]
   (runtime-api/data-window-push-val-data rt-api
@@ -27,16 +27,12 @@
     (add-all last-evals-refs)))
 
 (defn add-out-write [msg]
-  (let [[{:keys [add-all ^ListView list-view]}] (obj-lookup "out-and-err-list-view-data")
-        lv-size (count (.getItems list-view))]
-    (add-all [{:stream :out :msg msg}])
-    (.scrollTo list-view lv-size)))
+  (let [[^TextArea out-and-err-txt] (obj-lookup "out-and-err-text-area")]
+    (.appendText out-and-err-txt msg)))
 
 (defn add-err-write [msg]
-  (let [[{:keys [add-all ^ListView list-view]}] (obj-lookup "out-and-err-list-view-data")
-        lv-size (count (.getItems list-view))]
-    (add-all [{:stream :err :msg msg}])
-    (.scrollTo list-view lv-size)))
+  (let [[^TextArea out-and-err-txt] (obj-lookup "out-and-err-text-area")]
+    (.appendText out-and-err-txt msg)))
 
 (defn add-tap-value [val-ref]
   (let [[{:keys [add-all ^ListView list-view]}] (obj-lookup "taps-list-view-data")
@@ -49,8 +45,8 @@
   (ui-utils/run-later
     (let [[{:keys [clear]}] (obj-lookup "taps-list-view-data")]
       (clear))
-    (let [[{:keys [clear]}] (obj-lookup "out-and-err-list-view-data")]
-      (clear))
+    (let [[out-and-error-txt] (obj-lookup "out-and-err-text-area")]
+      (.setText out-and-error-txt ""))
     (let [[{:keys [clear]}] (obj-lookup "last-vals-list-view-data")]
       (clear))))
 
@@ -58,9 +54,9 @@
   ;; This is kind of hacky but an easy way of letting the user know it
   ;; needs the middleware for this functionality
   (let [txt "This functionality is only available for Clojure and needs flow-storm nrepl middleware available."
-        [out-lv-data]       (obj-lookup "out-and-err-list-view-data")
+        [out-and-error-txt] (obj-lookup "out-and-err-text-area")
         [last-vals-lv-data] (obj-lookup "last-vals-list-view-data")]
-    ((:add-all out-lv-data) [{:stream :out :msg txt}])
+    (.setText out-and-error-txt txt)
     ((:add-all last-vals-lv-data) [(with-meta [] {:val-preview txt})])))
 
 (defn find-and-jump-tap-val [vref]
@@ -91,29 +87,7 @@
                                       (update-outputs-data-window val-ref "eval"))))
                       :selection-mode :single)
 
-        out-and-err-lv-data
-        (ui/list-view :editable? false
-                      :cell-factory (fn [^ListCell list-cell {:keys [stream msg]}]
-                                      (case stream
-                                        :out (.setStyle list-cell "-fx-opacity: 0.8;")
-                                        :err (.setStyle list-cell "-fx-text-fill:red;"))
-
-                                      (-> list-cell
-                                          (ui-utils/set-text msg)
-                                          (ui-utils/set-graphic nil)))
-                      :on-click (fn [mev sel-items {:keys [list-view]}]
-                                  (cond
-                                    (ui-utils/mouse-secondary? mev)
-                                    (let [ctx-menu (ui/context-menu :items
-                                                                    [{:text "Copy messages"
-                                                                      :on-click (fn []
-                                                                                  (let [messages (->> sel-items
-                                                                                                      (mapv :msg))]
-                                                                                    (ui-utils/set-clipboard (apply str messages))))}])]
-                                      (ui-utils/show-context-menu :menu ctx-menu
-                                                                  :parent list-view
-                                                                  :mouse-ev mev))))
-                      :selection-mode :multiple)
+        out-and-err-txt (ui/text-area :text "" :editable? false)
 
         taps-lv-data
         (ui/list-view :editable? false
@@ -141,7 +115,7 @@
                       :selection-mode :single)
 
         out-and-err-lv-pane (ui/v-box :childs [(ui/label :text "*out* and *err*")
-                                               (:list-view out-and-err-lv-data)])
+                                               out-and-err-txt])
         last-evals-lv (:list-view last-evals-lv-data)
         taps-lv (:list-view taps-lv-data)
 
@@ -170,7 +144,7 @@
         main-p (ui/border-pane :top controls
                                :center split-pane)]
 
-    (VBox/setVgrow out-and-err-lv-pane Priority/ALWAYS)
+    (VBox/setVgrow out-and-err-txt Priority/ALWAYS)
     (VBox/setVgrow taps-lv        Priority/ALWAYS)
     (HBox/setHgrow taps-lv        Priority/ALWAYS)
     (VBox/setVgrow last-evals-lv  Priority/ALWAYS)
@@ -183,7 +157,7 @@
     (VBox/setVgrow main-p Priority/ALWAYS)
 
     (store-obj "taps-list-view-data" taps-lv-data)
-    (store-obj "out-and-err-list-view-data" out-and-err-lv-data)
+    (store-obj "out-and-err-text-area" out-and-err-txt)
     (store-obj "last-vals-list-view-data" last-evals-lv-data)
 
     main-p))

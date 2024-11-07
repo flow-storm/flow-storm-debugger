@@ -1143,7 +1143,7 @@ There is also `#tap-stack-trace`. It will tap the current stack trace.
 == Out and Err streams
 
 Everything written on `*out*` or `*err*` will be captured and displayed on the bottom panel.
-You can select lines and copy them to your clipboard using the context menu.
+You can copy anything from this area with normal tools.
 
 = Data Windows
 
