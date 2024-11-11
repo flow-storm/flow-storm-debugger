@@ -2,6 +2,14 @@
 
 ## master (unreleased)
 	
+### New Features
+    
+### Changes
+ 
+### Bugs fixed
+
+## 4.0.0 (11-11-2024)
+	
 ### New Features 
 
     - DataWindow system

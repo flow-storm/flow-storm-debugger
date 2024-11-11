@@ -213,7 +213,7 @@
                                                 (dbg-state/reset-theming))
                                     :accel {:mods [:ctrl]
                                             :key-code KeyCode/MINUS}}
-                                   {:text "Toggle debug mode"
+                                   {:text "Toggle log mode (for debugging FlowStorm)"
                                     :on-click (fn [] (toggle-debug-mode))
                                     :accel {:mods [:ctrl]
                                             :key-code KeyCode/D}}])
