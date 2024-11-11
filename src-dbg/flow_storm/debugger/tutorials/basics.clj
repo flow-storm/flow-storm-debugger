@@ -57,7 +57,7 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>Now we are done with instrumentation setup for this tutorial, so <b>let's go back to the Flows vertical tab </b>, which is called the Flows tool and is what we are going to be using for the rest of the tutorial.</p>
 
-<p>The next <b>important control</b> to learn about is <b>the recording button</b>, which is the first one on the Flows tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
+<p>The next <b>important control</b> to learn about is <b>the recording button</b>, which is the second one on the Flows tool bar. Clicking it will toggle between recording/paused. Let's leave it on pause for now (you should leave it with the circle icon), we don't want anything to be recorded yet.</p>
 
 <p>On the next slide we are going to start evaluating some code.</p>
 "
@@ -109,11 +109,9 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>Also notice that as you move through execution, two panels on the right change.</p>
 
-<p>The top one shows a <b>pretty print of the current expression value</b> while the bottom one shows all <b>locals in scope</b>.</p>
+<p>The top one shows a <b>the current expression value</b> while the bottom one shows all <b>locals in scope</b>.</p>
 
-<p>The pretty print panel is useful for exploring simple values like in this example but it won't be enough to explore heavy nested ones.</p>
-
-<p>For that there is a value explorer, which we are going to cover in a couple of slides.</p>
+<p>There are two tabs for the top one, so two tools for displaying the current expression value. The first one is what FlowStorm calls a data window, which allows you to explore nested value and visualize them in different ways. The second just shows a pretty print of the value.</p>
 
 <p>There is also a quick way to jump to the first execution of a function and it is by using the <b>Quick jump box</b> on the toolbar. It will auto complete with all the recorded functions and selecting one will take you there. It doesn't make much sense for this example since we have only one recorded function, but will be handy in more complex situations. Give it a try!</p>
 
@@ -167,7 +165,7 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 
    "
-<p>Now we are going to learn about <b>FlowStorm value exploring capabilities</b>, but first let's <b>clear all recordings</b> and try a more interesting example.</p>
+<p>Now we are going to learn about <b>FlowStorm value exploring and visualization capabilities</b>, but first let's <b>clear all recordings</b> and try a more interesting example.</p>
 
 <p>For clearing our recordings you can go to the debugger window and hit `Ctlr-L` or you can also click on the trash can on the toolbar.</p>
 
@@ -181,23 +179,29 @@ It will guide you over the basics and help you get started with FlowStorm.
 (count (all-ns))
 </code>
 
-<p>Now double click on the tree node to jump to the code stepping tool (or find it on the bottom tabs), and then click on the highlighted expression of `(all-ns)` to see this expression value.</p>
+<p>Now click on the highlighted expression of `(all-ns)` to see this expression value.</p>
 
 <p>This Clojure function returns a list of all namespaces currently loaded, and as you can see on the top right panel, it is a sequence of namespaces objects.</p>
 
-<p>Go on and click on the `ins` button at the top of the panel to <b>open the value inspector</b>.</p>
+<p>This panel on the top right is called a data window. There are different places in FlowStorm that allows you to open a data window to explore your values.</p>
 
-<p>This will open the Value Inspector in another window with a bunch of stuff. Once in the inspector you can keep clicking on the highlighted values to dig into nested values.</p>
+<p>From the top, we have the data window id, which we are going to skip for now (take look at the User's guide for a deeper look into data windows).</p>
 
-<p>You can also navigate back by using the top bar breadcrumbs.</p>
+<p>The next row shows the breadcrumbs, which will allow you to navigate back as you go deeper into nested values.<p/>
 
-<p>Now let's introduce a very powerful feature, the `def` button. You can take whatever value you are seeing in any FlowStorm panel back to your repl by giving it a name. You do this by clicking the `def` button, and it will ask you for a name. Let's say you named it `mydata`, now you can go to your repl and find it bound to the `user/mydata` var. <b>You can define a value for the repl in any value panel</b> you see in FlowStorm, not just the value inspector.</p>
+<p>The following row contains the visualizer selector, the type of the value you are looking at, the def and finally the copy button.<p/>
 
-<p>There is also the `tap` value, to tap what you are seeing with tap> which is pretty convenient if you want to send the value to a different value explorer like morse, portal, reveal, etc.</p>
+<p>Expanding the visualizers drowpdown will let you select all the currently defined visualizers for your current value.</p>
+
+<p>Try clicking on some of the elements to navigate into your nested values. You can also navigate back by using the top bar breadcrumbs.</p>
+
+<p>Now let's introduce a very powerful feature, the `def` button. You can take whatever value you are seeing in any FlowStorm panel back to your repl by giving it a name. You do this by clicking the `def` button, and it will ask you for a name. Let's say you named it `mydata`, now you can go to your repl and find it bound to the `user/mydata` var. <b>You can define a value for the repl in any value panel</b> you see in FlowStorm, not just in data windows.</p>
+
+<p>There is also the `copy` value, which will let you put a pretty print of the current value on your clipboard.</p>
 "
 
    "
-<p>For the last of the basics features, let me introduce you to <b>exceptions</b> debugging.</p>
+<p>For the last basic featur, let's see <b>exceptions</b> debugging.</p>
 
 <p>First let's get rid of the recordings (Ctrl-L) and then eval these buggy function and call it :</p>
 
