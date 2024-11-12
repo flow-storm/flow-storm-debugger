@@ -8,6 +8,16 @@
  
 ### Bugs fixed
 
+## 4.0.1 (12-11-2024)
+	
+### New Features
+    
+### Changes
+ 
+### Bugs fixed
+
+    - Fix middleware for Cider Storm
+
 ## 4.0.0 (11-11-2024)
 	
 ### New Features 
