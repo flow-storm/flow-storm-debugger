@@ -27,14 +27,14 @@
                 {:status :done
                  :trace-cnt cnt})})
 
-(defn find-fn-call* [fq-fn-call-symb from-idx backward]
+(defn find-fn-call* [flow-id fq-fn-call-symb from-idx backward]
   (let [criteria {:from-idx from-idx
                   :backward? backward
                   :fn-ns (namespace fq-fn-call-symb)
                   :fn-name (name fq-fn-call-symb)}
         result (promise)
         {:keys [start]} (index-api/timelines-async-interruptible-find-entry (index-api/build-find-fn-call-entry-predicate criteria)
-                                                                            (index-api/timelines-for {})
+                                                                            (index-api/timelines-for {:flow-id flow-id})
                                                                             criteria
                                                                             {:on-match (fn [m] (deliver result m))
                                                                              :on-end   (fn []  (deliver result nil))})]
@@ -42,8 +42,9 @@
     (when-let [entry @result]
       (debuggers-api/reference-timeline-entry! entry))))
 
-(defn find-fn-call [{:keys [fq-fn-symb from-idx backward]}]
-  {:code `(find-fn-call* (symbol ~fq-fn-symb)
+(defn find-fn-call [{:keys [flow-id fq-fn-symb from-idx backward]}]
+  {:code `(find-fn-call* ~flow-id
+                         (symbol ~fq-fn-symb)
                          ~from-idx
                          ~(Boolean/parseBoolean backward))
    :post-proc (fn [fn-call]
@@ -275,7 +276,8 @@
 
                "flow-storm-find-fn-call"
                {:doc "Find the first FnCall for a symbol"
-                :requires {"fq-fn-symb" "The Fully qualified function symbol"
+                :requires {"flow-id" "The id of the flow"
+                           "fq-fn-symb" "The Fully qualified function symbol"
                            "from-idx" "The starting timeline idx to search from"
                            "backward" "When true, searches for a fn-call by walking the timeline backwards"}
                 :optional {}
@@ -366,8 +368,9 @@
           :flow-id flow-id
           :thread-id thread-id})
 
-      #_(h {:op "flow-storm-find-fn-call"
-            :fq-fn-symb "dev-tester/factorial"})
+      (h {:flow-id flow-id
+          :op "flow-storm-find-fn-call"
+          :fq-fn-symb "dev-tester/factorial"})
 
       #_(h {:op "flow-storm-find-flow-fn-call"
           :flow-id flow-id})
@@ -399,7 +402,7 @@
 
       #_(h {:op "flow-storm-recorded-functions"})
 
-      (h {:op "flow-storm-clear-recordings"})
+      #_(h {:op "flow-storm-clear-recordings"})
 
       (deref p 1000 :no-response)))
   )
