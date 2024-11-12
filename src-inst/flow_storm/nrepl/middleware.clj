@@ -130,7 +130,7 @@
    :post-proc (fn [_]
                 {:status :done})})
 
-(defn- all-fn-call-stats []
+(defn all-fn-call-stats []
   (reduce (fn [r [flow-id thread-id]]
             (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
               (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
