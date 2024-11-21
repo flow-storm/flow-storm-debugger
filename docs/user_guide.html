@@ -860,10 +860,6 @@ pre.rouge {
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p><em>ClojureStorm</em> is a fork of the official Clojure compiler that adds automatic instrumentation so you don&#8217;t need to think about it (you can still disable it when you don&#8217;t need it).
-You use it by swapping the official Clojure compiler by <em>ClojureStorm</em> at dev time, using dev aliases or lein profiles.</p>
-</div>
 <div class="sect3">
 <h4 id="_clojurestorm"><a class="anchor" href="#_clojurestorm"></a><a class="link" href="#_clojurestorm">1.1.1. ClojureStorm</a></h4>
 <div class="paragraph">
@@ -877,8 +873,10 @@ and forth by starting your repl with a different alias or lein profile.</p>
 <div class="paragraph">
 <p>The easiest way to run and learn <em>FlowStorm</em> with <em>ClojureStorm</em> is by running the repl tutorial.</p>
 </div>
+<div class="sect4">
+<h5 id="_try_it_with_no_setup"><a class="anchor" href="#_try_it_with_no_setup"></a><a class="link" href="#_try_it_with_no_setup">Try it with no setup</a></h5>
 <div class="paragraph">
-<p>You can start a repl with FlowStorm like this :</p>
+<p>You can start a repl with FlowStorm with a single command like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -889,48 +887,19 @@ clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="
 clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
 </div>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using maven RELEASE as version</div>
-<div class="paragraph">
-<p>Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
-but it will be cached unless you run with -Sforce.
-It is much safer to just write the latest versions. Check out  the <a href="https://github.com/flow-storm/flow-storm-debugger/">github page</a> for the latest stable releases.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">On disabling/enabling instrumentation</div>
-<div class="paragraph">
-<p>It is possible to <a href="#_controlling_instrumentation">disable/enable instrumentation</a> without restarting the repl, which is necessary for
-things like measuring performance.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>Pasting that command on your terminal will bring up a repl with <em>FlowStorm</em> and the compiler swapped by <em>ClojureStorm</em>. When the repl comes up
 evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
 </div>
 <div class="paragraph">
-<p>After the tutorial you would want to add and configure it for your projects, or <a href="#_a_global_configuration">create a global config</a> so here are the basics :</p>
+<p>After the tutorial you would want to add and configure it for your projects, or <a href="#_a_global_configuration">create a global config</a> which the
+following sections describe.</p>
 </div>
+</div>
+<div class="sect4">
+<h5 id="_setup_with_deps_edn"><a class="anchor" href="#_setup_with_deps_edn"></a><a class="link" href="#_setup_with_deps_edn">Setup with deps.edn</a></h5>
 <div class="paragraph">
-<p>If your project is using deps.edn, your deps.edn file should look like this :</p>
+<p>If your project is using deps.edn, you should modify it to look like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -938,8 +907,8 @@ evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <co
  </span><span class="no">:deps</span><span class="w"> </span><span class="p">{}</span><span class="w">
  </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="c1">;; for disabling the official compiler</span><span class="w">
                  </span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
-                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
-                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
+                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-1"</span><span class="p">}</span><span class="w">
+                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.0.1"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                             </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"</span><span class="p">]}}}</span></code></pre>
 </div>
@@ -963,13 +932,23 @@ evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <co
 although you can still do it if you need it. There are also other options you can check with <code>:help</code>.</p>
 </div>
 <div class="paragraph">
+<p>Once you have setup your deps.edn, start your repl with the <code>:dev</code> alias and run the debugger by evaluating
+the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</code> and hit return).</p>
+</div>
+<div class="paragraph">
+<p>If it is your first time using FlowStorm, when the UI comes up click on <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_setup_with_leiningen"><a class="anchor" href="#_setup_with_leiningen"></a><a class="link" href="#_setup_with_leiningen">Setup with leiningen</a></h5>
+<div class="paragraph">
 <p>If your project uses lein, your project.clj file should look something like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="nf">defproject</span><span class="w"> </span><span class="n">my.project</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">
-  </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">]</span><span class="w">
-                                  </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
+  </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-1"</span><span class="p">]</span><span class="w">
+                                  </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.0.1"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
                    </span><span class="c1">;; for disabling the official compiler</span><span class="w">
                    </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
                    </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
@@ -978,7 +957,30 @@ although you can still do it if you need it. There are also other options you ca
 </div>
 </div>
 <div class="paragraph">
-<p>with <code>YOUR_INSTRUMENTATION_STRING</code> as described above.</p>
+<p>where <code>YOUR_INSTRUMENTATION_STRING</code> should be a comma separated list of namespaces prefixes like :</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>my-project.,lib1.,lib2.core</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core</p>
+</div>
+<div class="paragraph">
+<p>All this can be changed after without restarting your repl from <a href="#_modifying_instrumentation_with_the_browser">FlowStorm browser</a>.</p>
+</div>
+<div class="paragraph">
+<p>This is probably what most people want since you don&#8217;t want to instrument things like nrepl, cider or any of your tooling stuff
+although you can still do it if you need it. There are also other options you can check with <code>:help</code>.</p>
+</div>
+<div class="paragraph">
+<p>Once you have setup your deps.edn, start your repl with the <code>:dev</code> alias and run the debugger by evaluating
+the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</code> and hit return).</p>
+</div>
+<div class="paragraph">
+<p>If it is your first time using FlowStorm, when the UI comes up click on <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_a_global_configuration"><a class="anchor" href="#_a_global_configuration"></a><a class="link" href="#_a_global_configuration">A global configuration</a></h5>
@@ -997,8 +999,8 @@ or <code>lein profile</code> so you don&#8217;t have to modify each of your proj
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="n">...</span><span class="w">
            </span><span class="no">:1.12-storm</span><span class="w">
            </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
-            </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-alpha9_1"</span><span class="p">}</span><span class="w">
-                         </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.13.1"</span><span class="p">}}</span><span class="w">
+            </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-1"</span><span class="p">}</span><span class="w">
+                         </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.0.1"</span><span class="p">}}</span><span class="w">
             </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentAutoPrefixes=true"</span><span class="w">
@@ -1023,8 +1025,8 @@ and use the instructions there to finetune them.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:flowstorm</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-alpha9_1"</span><span class="p">]</span><span class="w">
-                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"3.13.1"</span><span class="p">]]</span><span class="w">
+ </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-1"</span><span class="p">]</span><span class="w">
+                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.0.1"</span><span class="p">]]</span><span class="w">
   </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
   </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
              </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
@@ -4205,7 +4207,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-11-07 19:06:22 -0300
+Last updated 2024-11-21 16:32:33 -0300
 </div>
 </div>
 </body>

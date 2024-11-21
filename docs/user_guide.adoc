@@ -36,9 +36,6 @@ There are two ways of using _FlowStorm_ for Clojure :
 	- With <<#_clojurestorm,ClojureStorm>> (recommended) : Swap your Clojure compiler at dev time by ClojureStorm and get everything instrumented automatically
 	- <<#_vanilla_flowstorm,Vanilla FlowStorm>> : Just add FlowStorm to your dev classpath and instrument by tagging and re-evaluating forms
     
-_ClojureStorm_ is a fork of the official Clojure compiler that adds automatic instrumentation so you don't need to think about it (you can still disable it when you don't need it).
-You use it by swapping the official Clojure compiler by _ClojureStorm_ at dev time, using dev aliases or lein profiles.
-
 === ClojureStorm
 
 This is the newest and simplest way of using _FlowStorm_. It requires you to swap your official Clojure compiler by _ClojureStorm_ only at dev time.
@@ -49,7 +46,9 @@ and forth by starting your repl with a different alias or lein profile.
 
 The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial.
 
-You can start a repl with FlowStorm like this :
+==== Try it with no setup
+
+You can start a repl with FlowStorm with a single command like this :
 
 [%nowrap,bash]
 ----
@@ -60,35 +59,24 @@ clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/
 clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}' -A:dev
 ----
 
-[IMPORTANT]
-.On using maven RELEASE as version
-====
-Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
-but it will be cached unless you run with -Sforce.
-It is much safer to just write the latest versions. Check out  the https://github.com/flow-storm/flow-storm-debugger/[github page] for the latest stable releases.
-====
-
-[NOTE]
-.On disabling/enabling instrumentation
-====
-It is possible to <<#_controlling_instrumentation,disable/enable instrumentation>> without restarting the repl, which is necessary for
-things like measuring performance.
-====
-
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up
 evaluate the `:dbg` keyword to bring up the UI and then click on  `Help->Tutorial` on the menu for a tour of the basics.
 
-After the tutorial you would want to add and configure it for your projects, or <<#_a_global_configuration, create a global config>> so here are the basics :
+After the tutorial you would want to add and configure it for your projects, or <<#_a_global_configuration, create a global config>> which the
+following sections describe.
 
-If your project is using deps.edn, your deps.edn file should look like this :
+==== Setup with deps.edn
+
+If your project is using deps.edn, you should modify it to look like this :
+
 [%nowrap,clojure]
 ----
 {:paths ["src"]
  :deps {}
  :aliases {:dev {;; for disabling the official compiler
                  :classpath-overrides {org.clojure/clojure nil} 
-                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"}
-                              com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}
+                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-1"}
+                              com.github.flow-storm/flow-storm-dbg {:mvn/version "4.0.1"}}
                  :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
                             "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}}
 ----
@@ -104,13 +92,20 @@ All this can be changed after without restarting your repl from <<#_modifying_in
 This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuff
 although you can still do it if you need it. There are also other options you can check with `:help`.
 
+Once you have setup your deps.edn, start your repl with the `:dev` alias and run the debugger by evaluating
+the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
+
+If it is your first time using FlowStorm, when the UI comes up click on `Help->Tutorial` on the menu for a tour of the basics.
+
+==== Setup with leiningen
+
 If your project uses lein, your project.clj file should look something like this :
 
 [%nowrap,clojure]
 ----
 (defproject my.project "1.0.0"
-  :profiles {:dev {:dependencies [[com.github.flow-storm/clojure "RELEASE"]
-                                  [com.github.flow-storm/flow-storm-dbg "RELEASE"] ]
+  :profiles {:dev {:dependencies [[com.github.flow-storm/clojure "1.12.0-1"]
+                                  [com.github.flow-storm/flow-storm-dbg "4.0.1"] ]
                    ;; for disabling the official compiler
                    :exclusions [org.clojure/clojure] 
                    :jvm-opts ["-Dclojure.storm.instrumentEnable=true"                   
@@ -118,7 +113,21 @@ If your project uses lein, your project.clj file should look something like this
   :main foo.core)
 ----
 
-with `YOUR_INSTRUMENTATION_STRING` as described above.
+where `YOUR_INSTRUMENTATION_STRING` should be a comma separated list of namespaces prefixes like :
+
+	  my-project.,lib1.,lib2.core
+
+which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
+
+All this can be changed after without restarting your repl from <<#_modifying_instrumentation_with_the_browser, FlowStorm browser>>.
+
+This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuff
+although you can still do it if you need it. There are also other options you can check with `:help`.
+
+Once you have setup your deps.edn, start your repl with the `:dev` alias and run the debugger by evaluating
+the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
+
+If it is your first time using FlowStorm, when the UI comes up click on `Help->Tutorial` on the menu for a tour of the basics.
 
 ==== A global configuration
 
@@ -134,8 +143,8 @@ For example you can modify your ~/.clojure/deps.edn like this :
 {:aliases {...
            :1.12-storm
            {:classpath-overrides {org.clojure/clojure nil}
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-alpha9_1"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "3.13.1"}}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-1"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.0.1"}}
             :jvm-opts ["-Dflowstorm.startRecording=false"
                        "-Dclojure.storm.instrumentEnable=true"
                        "-Dclojure.storm.instrumentAutoPrefixes=true"
@@ -157,8 +166,8 @@ If you are using leiningen instead, you can modify your ~/.lein/profiles.clj lik
 [%nowrap,clojure]
 ----
 {:flowstorm
- {:dependencies [[com.github.flow-storm/clojure "1.12.0-alpha9_1"]
-                 [com.github.flow-storm/flow-storm-dbg "3.13.1"]]
+ {:dependencies [[com.github.flow-storm/clojure "1.12.0-1"]
+                 [com.github.flow-storm/flow-storm-dbg "4.0.1"]]
   :exclusions [org.clojure/clojure]
   :jvm-opts ["-Dflowstorm.startRecording=false"
              "-Dclojure.storm.instrumentEnable=true"
