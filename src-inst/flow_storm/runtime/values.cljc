@@ -2,6 +2,7 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]
+            [flow-storm.eql :as eql]
             [clojure.datafy :refer [datafy nav]]
             #?(:clj [clojure.string :as str])))
 
@@ -230,12 +231,28 @@
                (not= (meta n) (meta v)))
       (reference-value! n))))
 
-(defn extract-data-aspects [o]
+(defn extract-data-aspects [o extra]
   (let [dat-o (datafy o)
         o-meta (meta o)]
     (reduce (fn [aspects {:keys [id pred extractor]}]
-              (if (pred dat-o)
-                (let [ext (extractor dat-o)]
+              (if (try
+                    (pred dat-o extra)
+                    ;; To make breaking change smooth, remove after some time
+                    #?(:clj (catch clojure.lang.ArityException _
+                              (utils/log (utils/format "WARNING! Your aspect extractor predicate with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
+                              (pred dat-o))
+                       :cljs (catch js/Error _
+                               (utils/log (utils/format "WARNING! Your aspect extractor predicate with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
+                               (pred dat-o)) ))
+                (let [ext (try
+                            (extractor dat-o extra)
+                            ;; To make breaking change smooth, remove after some time
+                            #?(:clj (catch clojure.lang.ArityException _
+                                      (utils/log (utils/format "WARNING! Your aspect extractor with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
+                                      (extractor dat-o))
+                               :cljs (catch js/Error _
+                                       (utils/log (utils/format "WARNING! Your aspect extractor with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
+                                       (extractor dat-o)) ))]
                   (-> ext
                       (merge aspects)
                       (update ::kinds conj id)))
@@ -253,13 +270,13 @@
 (register-data-aspect-extractor
  {:id :number
   :pred number?
-  :extractor (fn [n]               
+  :extractor (fn [n _]               
                {:number/val n})})
 
 (register-data-aspect-extractor
  {:id :int
   :pred int?
-  :extractor (fn [n]               
+  :extractor (fn [n _]               
                {:int/decimal n
                 :int/binary (utils/format-int n 2)
                 :int/octal  (utils/format-int n 8)
@@ -269,7 +286,7 @@
 (register-data-aspect-extractor
  {:id :previewable
   :pred any?
-  :extractor (fn [o]
+  :extractor (fn [o _]
                {:preview/pprint
                 (-> o
                     (val-pprint {:pprint? true
@@ -281,7 +298,7 @@
 (register-data-aspect-extractor
  {:id :shallow-map
   :pred map?
-  :extractor (fn [m]
+  :extractor (fn [m _]
                (let [m-keys (keys m)
                      m-vals (vals m)]
                  {:shallow-map/keys-refs     (mapv reference-value! m-keys)
@@ -291,7 +308,7 @@
 (register-data-aspect-extractor
  {:id :paged-shallow-seqable
   :pred seqable?
-  :extractor (fn [s]
+  :extractor (fn [s _]
                (let [xs (seq s)
                      page-size 100
                      last-page? (< (bounded-count page-size xs) page-size)
@@ -304,19 +321,30 @@
 (register-data-aspect-extractor
  {:id :shallow-indexed
   :pred indexed?
-  :extractor (fn [idx-coll]
+  :extractor (fn [idx-coll _]
                {:shallow-idx-coll/count (count idx-coll)
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
+
+(register-data-aspect-extractor
+ {:id :eql-query-pprint
+  :pred coll?
+  :extractor (fn [coll {:keys [query]}]
+               (let [query (or query '[*])
+                     q-pprint (-> (eql/eql-query coll query)
+                                  (val-pprint {:pprint? true
+                                               :print-meta? false})
+                                  :val-str)]
+                 {:eql/pprint q-pprint
+                  :eql/query query}))})
 
 
 #?(:clj
    (register-data-aspect-extractor
     {:id :byte-array
      :pred bytes?
-     :extractor (fn [bs]
-                  (let [max-cnt 1000
-                        
+     :extractor (fn [bs _]
+                  (let [max-cnt 1000                        
                         format-and-pad (fn [b radix]
                                          (let [s (-> ^byte b
                                                      Byte/toUnsignedInt
@@ -340,6 +368,6 @@
 
 (comment
     
-  (extract-data-aspects 120)
-  (extract-data-aspects {:a 20 :b 40})
+  (extract-data-aspects 120 nil)
+  (extract-data-aspects {:a 20 :b 40} nil)
   )

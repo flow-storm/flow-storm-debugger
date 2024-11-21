@@ -1,6 +1,5 @@
 (ns flow-storm.nrepl.middleware
   (:require [flow-storm.runtime.debuggers-api :as debuggers-api]
-            [flow-storm.runtime.indexes.api :as index-api]
             [flow-storm.types :refer [make-value-ref value-ref?]]
             [flow-storm.runtime.outputs :as rt-outputs]
             [nrepl.misc :refer [response-for] :as misc]

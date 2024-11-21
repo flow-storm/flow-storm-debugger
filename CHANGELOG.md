@@ -5,11 +5,13 @@
 ### New Features
 
     - Add configurable auto jump to exceptions
+    - New eql-query-pprint visualizer
     
 ### Changes
 
     - Thread tab auto-update every 1sec (no more red arrow needed)
     - Remove middleware dependency on cider-nrepl-middleware
+    - Aspect extractors signature deprecation. Now it recieves the object and a map with extras
     
 ### Bugs fixed
 

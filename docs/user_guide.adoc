@@ -1253,6 +1253,32 @@ add a blue arrow next to the value.
 Clicking on the value will just dig the data, while clicking on the blue arrow will navigate as with
 `clojure.datafy/nav` applied to that collection on that key.
 
+== EQL pprint visualizer
+
+image::user_guide_images/eql_visualizer_0.png[]
+image::user_guide_images/eql_visualizer_1.png[]
+
+The `eql-query-pprint` visualizer allows you to explore your data "entities" by looking at subsets of it
+using queries similar to datomic pull queries like in the screenshots above.
+
+By entities it means maps which contains only keywords as their keys. Every other collection
+is just traversed.
+
+This are all valid queries :
+
+- `[*]`
+- `[:name]`
+- `[:name :age :vehicles]`
+- `[:name :age {:vehicles [:type]}]`
+- `[:name :age {:vehicles [?]}]`
+- `[:name {:vehicles [*]}]`
+- `[:name :age {:vehicles [:type {:seats [?]}]}]`
+- `[:name :age {:vehicles [:type {:seats [:kind]}]}]`
+- `[:name {:houses [:rooms]}]`
+
+The `*` symbol means include all keys, while the `?` symbol means just list the keys, which helps
+exploring big nested maps with many keys.
+
 == Custom visualizers
 
 An important aspect of Data Windows is to be able to provide custom visualizers on the fly.
@@ -1350,10 +1376,11 @@ another extractor.
 ----
 (fs-values/register-data-aspect-extractor
    {:id :chess-board
-    :pred (fn [val] (and (set? val)
-                         (let [{:keys [kind player pos]} (first val)]
-                           (and kind player pos))))
-    :extractor (fn [board] {:chess/board board})})
+    :pred (fn [val _]
+            (and (set? val)
+                 (let [{:keys [kind player pos]} (first val)]
+                   (and kind player pos))))
+    :extractor (fn [board _] {:chess/board board})})
 ----
 
 In this case we are going to register and extractor that will only run for vals which are sets and

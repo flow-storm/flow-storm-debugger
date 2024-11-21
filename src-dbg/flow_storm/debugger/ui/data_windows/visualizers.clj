@@ -7,7 +7,8 @@
   (:import [javafx.scene.canvas Canvas GraphicsContext]
            [javafx.animation AnimationTimer]
            [javafx.scene.paint Color]
-           [javafx.scene.text Font]))
+           [javafx.scene.text Font]
+           [javafx.scene.layout Priority HBox VBox]))
 
 (defonce *visualizers (atom {}))
 (defonce *defaults-visualizers (atom ()))
@@ -267,6 +268,38 @@
                              (make-bytes-table-pane head-binary)
                              (ui/label :text "Tail")
                              (make-bytes-table-pane tail-binary)]))})})
+
+(register-visualizer
+ {:id :eql-query-pprint
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :eql-query-pprint))
+  :on-create (fn [{:keys [eql/pprint eql/query flow-storm.runtime.values/val-ref flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
+               (let [val-txt (ui/text-area
+                              :text pprint
+                              :editable? false
+                              :class "value-pprint")
+                     query-txt (ui/text-field
+                                :initial-text (pr-str query)
+                                :on-return-key (fn [txt]
+                                                 (let [new-query (read-string txt)]
+                                                   (runtime-api/data-window-push-val-data rt-api
+                                                                                          dw-id
+                                                                                          val-ref
+                                                                                          {:update? true
+                                                                                           :query new-query}))))
+                     header-box (ui/h-box :spacing 10
+                                          :childs [(ui/label :text "Eql query:") query-txt])
+                     main-pane (ui/border-pane
+                                :top header-box
+                                :center val-txt)]
+
+                 (HBox/setHgrow query-txt Priority/ALWAYS)
+                 (HBox/setHgrow header-box Priority/ALWAYS)
+                 (VBox/setVgrow main-pane Priority/ALWAYS)
+
+                 {:fx/node main-pane
+                  :redraw (fn [val-pprint] (ui-utils/set-text-input-text val-txt val-pprint))}))
+  :on-update (fn [_ {:keys [redraw]} {:keys [eql/pprint]}]
+               (redraw pprint))})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Default visualizers ;;

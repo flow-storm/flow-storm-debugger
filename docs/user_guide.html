@@ -726,13 +726,14 @@ pre.rouge {
 <li><a href="#_defining_values">6.5. Defining values</a></li>
 <li><a href="#_realtime_visualizations">6.6. Realtime visualizations</a></li>
 <li><a href="#_clojure_datafynav">6.7. Clojure datafy/nav</a></li>
-<li><a href="#_custom_visualizers">6.8. Custom visualizers</a>
+<li><a href="#_eql_pprint_visualizer">6.8. EQL pprint visualizer</a></li>
+<li><a href="#_custom_visualizers">6.9. Custom visualizers</a>
 <ul class="sectlevel3">
-<li><a href="#_data_aspect_extraction">6.8.1. Data aspect extraction</a></li>
-<li><a href="#_visualizers">6.8.2. Visualizers</a></li>
+<li><a href="#_data_aspect_extraction">6.9.1. Data aspect extraction</a></li>
+<li><a href="#_visualizers">6.9.2. Visualizers</a></li>
 </ul>
 </li>
-<li><a href="#_default_visualizers">6.9. Default visualizers</a></li>
+<li><a href="#_default_visualizers">6.10. Default visualizers</a></li>
 </ul>
 </li>
 <li><a href="#_thread_breakpoints">7. Thread breakpoints</a></li>
@@ -2810,7 +2811,66 @@ add a blue arrow next to the value.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_custom_visualizers"><a class="anchor" href="#_custom_visualizers"></a><a class="link" href="#_custom_visualizers">6.8. Custom visualizers</a></h3>
+<h3 id="_eql_pprint_visualizer"><a class="anchor" href="#_eql_pprint_visualizer"></a><a class="link" href="#_eql_pprint_visualizer">6.8. EQL pprint visualizer</a></h3>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/eql_visualizer_0.png" alt="eql visualizer 0">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/eql_visualizer_1.png" alt="eql visualizer 1">
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>eql-query-pprint</code> visualizer allows you to explore your data "entities" by looking at subsets of it
+using queries similar to datomic pull queries like in the screenshots above.</p>
+</div>
+<div class="paragraph">
+<p>By entities it means maps which contains only keywords as their keys. Every other collection
+is just traversed.</p>
+</div>
+<div class="paragraph">
+<p>This are all valid queries :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>[*]</code></p>
+</li>
+<li>
+<p><code>[:name]</code></p>
+</li>
+<li>
+<p><code>[:name :age :vehicles]</code></p>
+</li>
+<li>
+<p><code>[:name :age {:vehicles [:type]}]</code></p>
+</li>
+<li>
+<p><code>[:name :age {:vehicles [?]}]</code></p>
+</li>
+<li>
+<p><code>[:name {:vehicles [*]}]</code></p>
+</li>
+<li>
+<p><code>[:name :age {:vehicles [:type {:seats [?]}]}]</code></p>
+</li>
+<li>
+<p><code>[:name :age {:vehicles [:type {:seats [:kind]}]}]</code></p>
+</li>
+<li>
+<p><code>[:name {:houses [:rooms]}]</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>*</code> symbol means include all keys, while the <code>?</code> symbol means just list the keys, which helps
+exploring big nested maps with many keys.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_visualizers"><a class="anchor" href="#_custom_visualizers"></a><a class="link" href="#_custom_visualizers">6.9. Custom visualizers</a></h3>
 <div class="paragraph">
 <p>An important aspect of Data Windows is to be able to provide custom visualizers on the fly.</p>
 </div>
@@ -2932,15 +2992,16 @@ all registered extractors run.</p>
 another extractor.</p>
 </div>
 <div class="sect3">
-<h4 id="_data_aspect_extraction"><a class="anchor" href="#_data_aspect_extraction"></a><a class="link" href="#_data_aspect_extraction">6.8.1. Data aspect extraction</a></h4>
+<h4 id="_data_aspect_extraction"><a class="anchor" href="#_data_aspect_extraction"></a><a class="link" href="#_data_aspect_extraction">6.9.1. Data aspect extraction</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">fs-values/register-data-aspect-extractor</span><span class="w">
    </span><span class="p">{</span><span class="no">:id</span><span class="w"> </span><span class="no">:chess-board</span><span class="w">
-    </span><span class="no">:pred</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="p">]</span><span class="w"> </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nf">set?</span><span class="w"> </span><span class="nb">val</span><span class="p">)</span><span class="w">
-                         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nb">val</span><span class="p">)]</span><span class="w">
-                           </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">))))</span><span class="w">
-    </span><span class="no">:extractor</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">board</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="no">:chess/board</span><span class="w"> </span><span class="n">board</span><span class="p">})})</span></code></pre>
+    </span><span class="no">:pred</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="nb">val</span><span class="w"> </span><span class="n">_</span><span class="p">]</span><span class="w">
+            </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="p">(</span><span class="nf">set?</span><span class="w"> </span><span class="nb">val</span><span class="p">)</span><span class="w">
+                 </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">]}</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nb">val</span><span class="p">)]</span><span class="w">
+                   </span><span class="p">(</span><span class="nb">and</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="n">player</span><span class="w"> </span><span class="n">pos</span><span class="p">))))</span><span class="w">
+    </span><span class="no">:extractor</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">board</span><span class="w"> </span><span class="n">_</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="no">:chess/board</span><span class="w"> </span><span class="n">board</span><span class="p">})})</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2954,7 +3015,7 @@ as you will see next.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_visualizers"><a class="anchor" href="#_visualizers"></a><a class="link" href="#_visualizers">6.8.2. Visualizers</a></h4>
+<h4 id="_visualizers"><a class="anchor" href="#_visualizers"></a><a class="link" href="#_visualizers">6.9.2. Visualizers</a></h4>
 <div class="paragraph">
 <p>Now we can register a visualizer that will show only on values which contains a :chess-board kind.</p>
 </div>
@@ -2993,7 +3054,7 @@ as you will see next.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_default_visualizers"><a class="anchor" href="#_default_visualizers"></a><a class="link" href="#_default_visualizers">6.9. Default visualizers</a></h3>
+<h3 id="_default_visualizers"><a class="anchor" href="#_default_visualizers"></a><a class="link" href="#_default_visualizers">6.10. Default visualizers</a></h3>
 <div class="paragraph">
 <p>You can make any visualizer the default by calling <code>add-default-visualizer</code> which takes a predicate on the val-data (the same received by :on-create) and
 a visualizer key, like this :</p>
@@ -4218,7 +4279,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-12-03 11:55:58 -0300
+Last updated 2024-12-05 09:59:51 -0300
 </div>
 </div>
 </body>
