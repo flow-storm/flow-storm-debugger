@@ -30,7 +30,14 @@
         val-pane  (ui/border-pane :top (ui/h-box :childs [visualizers-combo-box type-lbl def-btn copy-btn]
                                                  :align :center-left
                                                  :spacing 5)
-                                  :center val-box)]
+                                  :center val-box)
+        dw-box (ui/v-box
+                 :childs [(ui/label :text (format "Data Window id: %s" data-window-id))
+                          breadcrums-box
+                          val-pane]
+                 :class "data-window"
+                 :spacing 10
+                 :paddings [10 10 10 10])]
 
     (dbg-state/data-window-create data-window-id
                                   {:breadcrums-box breadcrums-box
@@ -42,14 +49,12 @@
 
     (VBox/setVgrow val-pane Priority/ALWAYS)
     (HBox/setHgrow val-pane Priority/ALWAYS)
+    (VBox/setVgrow val-box Priority/ALWAYS)
+    (HBox/setHgrow val-box Priority/ALWAYS)
+    (VBox/setVgrow dw-box Priority/ALWAYS)
+    (HBox/setHgrow dw-box Priority/ALWAYS)
 
-    (ui/v-box
-     :childs [(ui/label :text (format "Data Window id: %s" data-window-id))
-              breadcrums-box
-              val-pane]
-     :class "data-window"
-     :spacing 10
-     :paddings [10 10 10 10])))
+    dw-box))
 
 (defn- destroy-visualizers-for-frames [frames]
   (doseq [fr frames]

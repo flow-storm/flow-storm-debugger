@@ -351,8 +351,9 @@
 
 (defn data-window-push-val
   ([dw-id val] (data-window-push-val dw-id val nil))
-  ([dw-id val stack-key]
-   (let [vdata (assoc (rt-values/extract-data-aspects val)
+  ([dw-id val stack-key] (data-window-push-val dw-id val stack-key nil))
+  ([dw-id val stack-key extra]
+   (let [vdata (assoc (rt-values/extract-data-aspects val extra)
                       :flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
                       :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key)]
      (rt-events/publish-event! (rt-events/make-data-window-push-val-data-event dw-id vdata true)))))

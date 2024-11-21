@@ -133,7 +133,7 @@
 
 (defn data-window-push-val-data [dw-id vref {:keys [update? root?] :as extra}]
   (let [v (rt-values/deref-value vref)
-        vdata (-> (rt-values/extract-data-aspects v)
+        vdata (-> (rt-values/extract-data-aspects v extra)
                   (merge extra))]
     (rt-events/publish-event!
      (if update?
