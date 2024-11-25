@@ -5,6 +5,14 @@
 ### New Features
     
 ### Changes
+     
+### Bugs fixed
+
+## 4.0.2 (25-11-2024)
+	
+### New Features
+    
+### Changes
 
     - Change flow exceptions combo to only show exception root instead of all unwinds
  
