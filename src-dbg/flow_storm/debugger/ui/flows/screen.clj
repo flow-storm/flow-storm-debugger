@@ -32,8 +32,7 @@
     (multi-thread-timeline/clear-timeline-ui flow-id)
     (printer/clear-prints-ui flow-id)
 
-    (dbg-state/remove-unwinds flow-id)
-    (update-exceptions-combo)
+    (update-exceptions-combo flow-id)
 
     (dbg-state/remove-flow flow-id)
 
@@ -327,13 +326,13 @@
 
         (ui-utils/selection-select-obj sel-model thread-tab)))))
 
-(defn update-exceptions-combo []
-  (let [unwinds (dbg-state/get-fn-unwinds)
+(defn update-exceptions-combo [flow-id]
+  (let [exceptions (dbg-state/flow-exceptions flow-id)
         [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
         [ex-box] (obj-lookup "exceptions-box")]
     (when ex-box
       (ui-utils/clear-classes ex-box)
-      (when (zero? (count unwinds))
+      (when (zero? (count exceptions))
         (ui-utils/add-class ex-box "hidden-pane"))
 
       (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
@@ -342,7 +341,7 @@
                           :flow-id flow-id
                           :thread-id thread-id
                           :idx idx})
-                       unwinds)))))
+                       exceptions)))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later

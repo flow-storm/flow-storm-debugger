@@ -2123,7 +2123,7 @@ use the <a href="#_printer">printer tool</a>.</p>
 <div class="sect3">
 <h4 id="_exceptions_debugging"><a class="anchor" href="#_exceptions_debugging"></a><a class="link" href="#_exceptions_debugging">3.1.5. Exceptions debugging</a></h4>
 <div class="paragraph">
-<p><code>FlowStorm</code> will report all functions that didn&#8217;t return because an exception unwind the stack, even
+<p><code>FlowStorm</code> will capture all functions that didn&#8217;t return because an exception unwind the stack, even
 when that exception was captured further and it didn&#8217;t bubble up.</p>
 </div>
 <div class="imageblock">
@@ -2132,7 +2132,7 @@ when that exception was captured further and it didn&#8217;t bubble up.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>When an unwind situation is recorded a combobox will show up in the toolbar, containing all the functions names
+<p>When an unwind situation is recorded a combobox will show up in the toolbar, containing the functions names
 together with the exceptions types. If you hover the mouse over any of them, a tooltip will display the exception message.</p>
 </div>
 <div class="paragraph">
@@ -4207,7 +4207,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-11-21 16:32:33 -0300
+Last updated 2024-11-25 10:28:23 -0300
 </div>
 </div>
 </body>

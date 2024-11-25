@@ -63,13 +63,13 @@
 (s/def :thread/navigation-history (s/keys :req-un [:navigation-history/head-pos
                                                    :navigation-history/history]))
 
-(s/def :thread.unwind/ex-type string?)
-(s/def :thread.unwind/ex-message string?)
-(s/def :thread/unwind (s/keys :req-un [:flow-storm/fn-name
-                                       :flow-storm/fn-ns
-                                       :thread.unwind/ex-type
-                                       :thread.unwind/ex-message]))
-(s/def ::unwinds (s/coll-of :thread/unwind))
+(s/def :thread.exception/ex-type string?)
+(s/def :thread.exception/ex-message string?)
+(s/def :thread/exception (s/keys :req-un [:flow-storm/fn-name
+                                          :flow-storm/fn-ns
+                                          :thread.exception/ex-type
+                                          :thread.exception/ex-message]))
+(s/def :flow/exceptions (s/coll-of :thread/exception))
 
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry
@@ -82,7 +82,8 @@
 
 (s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
-                                :flow/threads]
+                                :flow/threads
+                                :flow/exceptions]
                           :req-un [::timestamp]))
 
 (s/def :flow/flows (s/map-of :flow/id :flow/flow))
@@ -223,7 +224,6 @@
                                 ::runtime-config
                                 ::debugger-config
                                 ::bookmarks
-                                ::unwinds
                                 ::data-windows]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
@@ -256,7 +256,6 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false}
    :bookmarks {}
-   :unwinds []
    :visualizers {}
    :data-windows {}})
 
@@ -316,6 +315,7 @@
 
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
+                                          :flow/exceptions []
                                           :timestamp timestamp}))
 
 (defn remove-flow [flow-id]
@@ -587,19 +587,16 @@
 ;; Function unwind (throws) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn add-fn-unwind [unwind-data]
-  (swap! state update :unwinds conj unwind-data))
+(defn add-fn-unwind [{:keys [flow-id ex-hash] :as unwind-data}]
+  (swap! state update-in [:flows flow-id :flow/exceptions]
+         (fn [exceptions]
+           ;; just capture the exceptions at first fn unwind
+           (if-not (some #(= (:ex-hash %) ex-hash) exceptions)
+             (conj exceptions unwind-data)
+             exceptions))))
 
-(defn get-fn-unwinds []
-  (get @state :unwinds))
-
-(defn remove-unwinds [flow-id]
-  (swap! state update :unwinds
-         (fn [unwinds]
-           (->> unwinds
-                (remove (fn [u]
-                          (= flow-id (:flow-id u))))
-                (into [])))))
+(defn flow-exceptions [flow-id]
+  (get-in @state [:flows flow-id :flow/exceptions]))
 
 ;;;;;;;;;;;;;;;;
 ;; JFX Stages ;;

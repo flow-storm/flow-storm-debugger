@@ -5,6 +5,8 @@
 ### New Features
     
 ### Changes
+
+    - Change flow exceptions combo to only show exception root instead of all unwinds
  
 ### Bugs fixed
 

@@ -305,7 +305,8 @@
                                                          :fn-ns fn-ns
                                                          :fn-name fn-name
                                                          :ex-type (pr-str (type throwable))
-                                                         :ex-message (ex-message throwable)})]
+                                                         :ex-message (ex-message throwable)
+                                                         :ex-hash (hash throwable)})]
 
             (when (and tl-idx total-order-recording?)
               (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))

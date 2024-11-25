@@ -227,11 +227,11 @@ Cannot invoke \"Object.getClass()\" because \"x\" is null
 
 <p>which is pretty confusing.</p>
 
-<p>A <b>red dropdown should appear at the top</b>, showing all the recorded functions that throwed instead of returning.</p>
+<p>A <b>red dropdown should appear at the top</b>, showing all recorded exceptions.</p>
 
 <p>Hovering over the exception will display the exception message.</p>
 
-<p>You can quickly jump right before an Exception by selecting the first function that throwed and then doing a step back.</p>
+<p>You can quickly jump right before an Exception by clicking on it and then doing a step back.</p>
 
 <p>You can now keep stepping backwards and try to figure out where the bug is coming from.</p>
 
