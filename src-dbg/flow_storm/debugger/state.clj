@@ -65,11 +65,13 @@
 
 (s/def :thread.exception/ex-type string?)
 (s/def :thread.exception/ex-message string?)
+(s/def :thread.exception/ex-hash int?)
 (s/def :thread/exception (s/keys :req-un [:flow-storm/fn-name
                                           :flow-storm/fn-ns
                                           :thread.exception/ex-type
-                                          :thread.exception/ex-message]))
-(s/def :flow/exceptions (s/coll-of :thread/exception))
+                                          :thread.exception/ex-message
+                                          :thread.exception/ex-hash]))
+(s/def :flow/exceptions (s/map-of :thread.exception/ex-hash :thread/exception))
 
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry
@@ -315,7 +317,7 @@
 
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
-                                          :flow/exceptions []
+                                          :flow/exceptions {}
                                           :timestamp timestamp}))
 
 (defn remove-flow [flow-id]
@@ -587,16 +589,18 @@
 ;; Function unwind (throws) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn add-fn-unwind [{:keys [flow-id ex-hash] :as unwind-data}]
-  (swap! state update-in [:flows flow-id :flow/exceptions]
-         (fn [exceptions]
-           ;; just capture the exceptions at first fn unwind
-           (if-not (some #(= (:ex-hash %) ex-hash) exceptions)
-             (conj exceptions unwind-data)
-             exceptions))))
+(defn maybe-add-exception
+
+  "Add exception ex-data only if it doesn't already exist.
+  Returns true if added, false otherwise."
+
+  [{:keys [flow-id ex-hash] :as ex-data}]
+  (boolean
+   (when-not (get-in @state [:flows flow-id :flow/exceptions ex-hash])
+     (swap! state assoc-in [:flows flow-id :flow/exceptions ex-hash] ex-data))))
 
 (defn flow-exceptions [flow-id]
-  (get-in @state [:flows flow-id :flow/exceptions]))
+  (vals (get-in @state [:flows flow-id :flow/exceptions])))
 
 ;;;;;;;;;;;;;;;;
 ;; JFX Stages ;;

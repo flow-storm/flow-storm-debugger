@@ -102,9 +102,9 @@
   (flows-screen/set-multi-timeline-recording-btn recording?))
 
 (defn- function-unwinded-event [{:keys [flow-id] :as unwind-data}]
-  (dbg-state/add-fn-unwind unwind-data)
-  (ui-utils/run-later
-    (flows-screen/update-exceptions-combo flow-id)))
+  (when (dbg-state/maybe-add-exception unwind-data)
+    (ui-utils/run-later
+      (flows-screen/update-exceptions-combo flow-id))))
 
 (defn data-window-push-val-data-event [{:keys [dw-id val-data root?]}]
   (data-windows/push-val dw-id val-data root?))
