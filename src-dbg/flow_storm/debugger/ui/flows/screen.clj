@@ -83,25 +83,10 @@
 
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) "flows-code-stepper")))
 
-(defn make-outdated-thread [flow-id thread-id]
-  (when-let [[^Tab tab] (obj-lookup flow-id thread-id "tab")]
-    (let [th-info (dbg-state/get-thread-info thread-id)
-          thread-label (ui/thread-label (:thread/id th-info)  (:thread/name th-info))
-          refresh-tab-content (ui/h-box
-                               :childs [(ui/label :text thread-label)
-                                        (ui/icon-button :icon-name "mdi-reload"
-                                                        :tooltip "There are new recordings for this thread, click this button to update the UI."
-                                                        :on-click (fn []
-                                                                    (flow-tree/update-call-stack-tree-pane flow-id thread-id)
-                                                                    (flow-fns/update-functions-pane flow-id thread-id)
-                                                                    (flow-code/update-thread-trace-count-lbl flow-id thread-id)
-                                                                    (doto tab
-                                                                      (.setText thread-label)
-                                                                      (.setGraphic nil)))
-                                                        :classes ["thread-refresh" "btn-sm"])])]
-      (doto tab
-        (.setText nil)
-        (.setGraphic refresh-tab-content)))))
+(defn update-outdated-thread-ui [flow-id thread-id]
+  (flow-tree/update-call-stack-tree-pane flow-id thread-id)
+  (flow-fns/update-functions-pane flow-id thread-id)
+  (flow-code/update-thread-trace-count-lbl flow-id thread-id))
 
 (defn update-threads-list [flow-id]
   (let [[{:keys [set-items menu-button] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]

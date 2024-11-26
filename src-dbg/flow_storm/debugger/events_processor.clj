@@ -66,8 +66,9 @@
     (flows-screen/update-threads-list flow-id)))
 
 (defn- timeline-updated-event [{:keys [flow-id thread-id]}]
-  (ui-utils/run-now
-    (flows-screen/make-outdated-thread flow-id thread-id)))
+  (when (dbg-state/check-and-update-thread-update-timestamp flow-id thread-id)
+    (ui-utils/run-later
+      (flows-screen/update-outdated-thread-ui flow-id thread-id))))
 
 (defn- task-submitted-event [_]
   (ui-main/set-task-cancel-btn-enable true))

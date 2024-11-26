@@ -5,7 +5,9 @@
 ### New Features
     
 ### Changes
-     
+
+    - Thread tab auto-update every 1sec (no more red arrow needed)
+    
 ### Bugs fixed
 
 ## 4.0.2 (25-11-2024)

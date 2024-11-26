@@ -84,8 +84,6 @@ It will guide you over the basics and help you get started with FlowStorm.
 
 <p>This is the thread recordings exploration tab, which contains tools for exploring this thread execution.</p>
 
-<p>Whenever you see a red refresh button next to a thread tab, it means that the UI status is outdated for the thread, click it to refresh it.</p>
-
 <p>On the next slide we will start exploring the execution.</p>
 
 <p class=\"hl\">Tip: On your daily work you can keep recording paused and turn it on right before executing something you are interested in.</p>
