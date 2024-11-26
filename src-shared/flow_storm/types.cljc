@@ -31,7 +31,10 @@
 
 #?(:clj (defmethod print-method ValueRef [vref ^java.io.Writer w]
           (.write w ^String (str "#flow-storm.types/value-ref " (:vid vref))))
-   
+   :org.babashka/nbb (extend-protocol IPrintWithWriter
+                       ValueRef
+                       (-pr-writer [vref writer _]
+                         (-write writer (str "#flow-storm.types/value-ref " (:vid vref)))))
    :cljs (extend-protocol IPrintWithWriter
            ValueRef
            (-pr-writer [vref writer _]
