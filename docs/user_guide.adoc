@@ -124,8 +124,11 @@ All this can be changed after without restarting your repl from <<#_modifying_in
 This is probably what most people want since you don't want to instrument things like nrepl, cider or any of your tooling stuff
 although you can still do it if you need it. There are also other options you can check with `:help`.
 
-Once you have setup your deps.edn, start your repl with the `:dev` alias and run the debugger by evaluating
+Once you have setup your project.clj, start your repl with the `dev` profile and run the debugger by evaluating
 the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
+
+By default lein adds the dev profile but if you name it something else, like `flowstorm`, make sure you activate the profile
+with `lein with-profile +flowstorm repl`. 
 
 If it is your first time using FlowStorm, when the UI comes up click on `Help->Tutorial` on the menu for a tour of the basics.
 
@@ -178,6 +181,7 @@ If you are using leiningen instead, you can modify your ~/.lein/profiles.clj lik
              ]}}
 ----
 
+Then you can you can activate the profile with `lein with-profile +flowstorm repl`.
 
 [NOTE]
 .lein dependencies

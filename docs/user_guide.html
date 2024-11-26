@@ -975,8 +975,12 @@ the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</co
 although you can still do it if you need it. There are also other options you can check with <code>:help</code>.</p>
 </div>
 <div class="paragraph">
-<p>Once you have setup your deps.edn, start your repl with the <code>:dev</code> alias and run the debugger by evaluating
+<p>Once you have setup your project.clj, start your repl with the <code>dev</code> profile and run the debugger by evaluating
 the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</code> and hit return).</p>
+</div>
+<div class="paragraph">
+<p>By default lein adds the dev profile but if you name it something else, like <code>flowstorm</code>, make sure you activate the profile
+with <code>lein with-profile +flowstorm repl</code>.</p>
 </div>
 <div class="paragraph">
 <p>If it is your first time using FlowStorm, when the UI comes up click on <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
@@ -1036,6 +1040,9 @@ and use the instructions there to finetune them.</p>
              </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span><span class="w">
              </span><span class="p">]}}</span></code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Then you can you can activate the profile with <code>lein with-profile +flowstorm repl</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -4207,7 +4214,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-11-25 10:34:24 -0300
+Last updated 2024-11-26 11:02:13 -0300
 </div>
 </div>
 </body>
