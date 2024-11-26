@@ -5,7 +5,6 @@
   After loading this ns you can :
 
   - `start-local` to start the UI and runtime
-  - `start-remote` to run only the UI and connect it to a remote process. Looks at the body for config.
   - `stop` for gracefully stopping the system
   - `refresh` to make tools.namespace unmap and reload all the modified files"
 
@@ -30,22 +29,11 @@
 
 (set! *warn-on-reflection* true)
 
-(comment
-  (add-tap (bound-fn* println))
-  )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities for interactive development ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#_(Thread/setDefaultUncaughtExceptionHandler
-   (reify
-     Thread$UncaughtExceptionHandler
-     (uncaughtException [_ _ throwable]
-       (tap> throwable)
-       (log-error "Unhandled exception" throwable))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Utilities for reloading everything ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn spec-instrument-state []
+(defn- spec-instrument-state []
   (add-watch
    dbg-state/state
    :spec-validator
@@ -54,48 +42,44 @@
        (s/explain ::dbg-state/state s))))
   nil)
 
-(comment
-  (remove-watch state :spec-validator)
-  )
+(defn- spec-uninstrument-state []
+  (remove-watch dbg-state/state :spec-validator))
 
 (defn start-local []
-  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))
-                         :title "MyFlowStorm"})
+  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))})
   (spec-instrument-state))
 
-
-(defn start-remote []
-
-  (main/start-debugger {:port 9000
+(defn start-shadow-remote [port build-id]
+  (main/start-debugger {:port port
                         :repl-type :shadow
-                        :build-id :browser-repl})
+                        :build-id build-id})
   (spec-instrument-state))
 
 (defn stop []
   (fs-api/stop {:skip-index-stop? (utils/storm-env?)}))
 
-(defn after-refresh []
-  )
-
 (defn refresh []
   (let [running? dbg-state/state]
+    (log "Reloading system ...")
     (when running?
-      (log "System is running, stopping first ...")
+      (log "System is running, stopping it first ...")
       (fs-api/stop))
     (reload/reload)
     (alter-var-root #'utils/out-print-writer (constantly *out*))
-    (log "Refresh done")))
+    (log "Reload done")))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Playing at the repl ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn run-tester-1 []
+  (dev-tester/run))
 
+(defn run-tester-2 []
+  (dev-tester/run-parallel))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Vanilla FlowStorm ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
 
-  ;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Vanilla FlowStorm ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;
 
   (fs-api/instrument-namespaces-clj
    #{"dev-tester"}
@@ -105,29 +89,6 @@
 
   #rtrace (dev-tester/boo [2 "hello" 6])
 
-  ;;;;;;;;;;
-  ;; Docs ;;
-  ;;;;;;;;;;
-
-  (def r (sampler/sample
-             {:result-name "dev-tester-flow-docs-0.1.0"
-              :inst-ns-prefixes #{"dev-tester"}
-              :verbose? true
-              :print-unsampled? true}
-           (dev-tester/boo [1 "hello" 6])))
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Example expressions to generate trace data ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-  (dev-tester/boo [1 "hello" 4])
-
-  (flow-storm.api/continue)
-
-  (defn my-sum [a b] (+ a b))
-
-  (doall (pmap (fn my-sum [i] (+ i i)) (range 4)))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,6 +96,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment
+
+  (run-tester-1)
+  (run-tester-2)
+  ((requiring-resolve 'dev-tester-12/run))
+
+  (def tl (index-api/get-timeline 24)) ;; set the thread-id
+
+  (->> tl
+       (take 10)
+       (map index-api/as-immutable))
+
+  (count tl)
+  (take 10 tl)
+  (time
+   (reduce (fn [r e]
+             (inc r))
+           0
+           tl))
+  (get tl 0)
+  (nth tl 0)
+  (empty? tl)
+
+  (def total-timeline (index-api/total-order-timeline 0))
+  (->> total-timeline
+       (take 10)
+       (map index-api/as-immutable))
+
+  (index-api/find-fn-call-entry {:backward? true
+                                 :fn-name "factorial"})
 
   ;; Synthesizing all the spec information for parameters that flow into a function
   (defn fn-signatures [flow-id thread-id fn-ns fn-name]
@@ -145,13 +135,12 @@
                                        #{}))]
       signature-types))
 
-  (fn-signatures 0 29 "dev-tester" "factorial")
-  (fn-signatures 0 29 "dev-tester" "other-function")
+  (fn-signatures 0 24 "dev-tester" "factorial")
+  (fn-signatures 0 24 "dev-tester" "other-function")
 
-  ;; Visualization lenses over traces: say I have a loop-recur process in which I am computing
-  ;; new versions of an accumulated data structure, but I want to see only some derived data
-  ;; instead of the entire data-structure (like, a visualization based on every frame of the loop).
-  (defn frame-similar-values [flow-id thread-id idx]
+  ;; Find all the sub expressions at the same code coordinate and fn frame
+  ;; than the one which evaluated at idx
+  (defn frame-same-coord-values [flow-id thread-id idx]
     (let [{:keys [fn-call-idx coord]} (index-api/timeline-entry flow-id thread-id idx :at)
           {:keys [expr-executions]} (index-api/frame-data flow-id thread-id fn-call-idx {:include-exprs? true})]
 
@@ -162,17 +151,14 @@
                        coll-vals))
                    []))))
 
-  (frame-similar-values 0 29 (dec 161)) ;; sum
+  (frame-same-coord-values 0 24 49) ;; sum on dev/run-tester-1
 
   ;; Create a small debugger for the repl
   ;; -------------------------------------------------------------------------------------------
 
-  (require '[flow-storm.form-pprinter :as form-pprinter])
-  (require '[flow-storm.runtime.indexes.api :as index-api])
-  (require '[flow-storm.utils :as utils])
   (def idx (atom 0))
   (def flow-id 0)
-  (def thread-id 29)
+  (def thread-id 24)
 
   (defn show-current []
     (let [{:keys [type fn-ns fn-name coord fn-call-idx result] :as idx-entry} (index-api/timeline-entry flow-id thread-id @idx :at)
@@ -197,45 +183,13 @@
   (step-next)
   (step-prev))
 
-(comment
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; DataWindows testing ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (dev-tester/run)
-  (dev-tester/run-parallel)
-
-  (require 'dev-tester-12)
-  (dev-tester-12/run)
-
-  (def tl (index-api/get-timeline 30))
-
-  (->> tl
-      (take 10)
-      (map index-api/as-immutable))
-
-  (count tl)
-  (take 10 tl)
-  (time
-   (reduce (fn [r e]
-             (inc r))
-           0
-           tl))
-  (get tl 0)
-  (nth tl 0)
-  (empty? tl)
-
-  (def total-timeline (index-api/total-order-timeline 0))
-  (->> total-timeline
-       (take 10)
-       (map index-api/as-immutable))
-
-  (index-api/find-fn-call-entry {:backward? true
-                                 :fn-name "factorial"})
-
-  (index-api/find-expr-entry {:backward? true
-                              :equality-val 42})
-
-  )
 (comment
   (tap> {:a (range)})
+
   (tap> {:a {:name {:other :hello
                    :bla "world"}}
          :b {:age 10}})
@@ -257,4 +211,20 @@
 
   (.start th)
   (.interrupt th)
+  )
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Other utilities ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+(comment
+
+  (add-tap (bound-fn* println))
+
+  (Thread/setDefaultUncaughtExceptionHandler
+   (reify
+     Thread$UncaughtExceptionHandler
+     (uncaughtException [_ _ throwable]
+       (tap> throwable)
+       (log-error "Unhandled exception" throwable))))
   )

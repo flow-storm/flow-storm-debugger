@@ -48,11 +48,8 @@
 
            :dev {:extra-paths ["src-dev" "classes"]
 
-                 :extra-deps {;; org.clojure/clojurescript {:local/root "/home/jmonetta/my-projects/clojurescript"}
-                              ;; org.clojure/core.async {:mvn/version "1.6.681"}
-                              ;; dorothy/dorothy {:mvn/version "0.0.7"}
+                 :extra-deps {
                               org.openjfx/javafx-swing {:mvn/version "21.0.4-ea+1"} ;; for scenic view to run
-
                               }
                  :jvm-opts ["-Dvisualvm.display.name=FlowStorm"
                             ;; for the profilers
