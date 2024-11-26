@@ -1,5 +1,8 @@
 (ns flow-storm.utils
-  #?(:cljs (:require [goog.string :as gstr]
+  #?(:org.babashka/nbb (:require [clojure.string :as str]
+                                 [goog.string :as gstr]
+                                 [goog.string.format])
+     :cljs (:require [goog.string :as gstr]
                      [clojure.string :as str]
                      [goog.string.format]
                      [goog :as g])
@@ -84,7 +87,7 @@
                                                  (update :strings-and-numbers assoc o next-uuid))))))]
                (get-in uuids' [:strings-and-numbers o]))
 
-             (= "object" (g/typeOf o))
+             (instance? js/Object o)
              (or (and (js/Object.prototype.hasOwnProperty.call o flow-storm-uuid-prop)
                       (aget o flow-storm-uuid-prop))
                  (let [next-uid (-> (swap! uuids update :max-uuid inc)
@@ -150,10 +153,11 @@
             (Class/forName "clojure.storm.Tracer")
             true
             (catch Exception _ false))
+     :org.babashka/nbb false
      :cljs (boolean (try (js* "cljs.storm.tracer.trace_fn_call") (catch js/Error _ false)))))
 
 (defn flow-storm-nrepl-middleware? []
-  #?(:clj (boolean (find-ns 'flow-storm.nrepl.middleware))     
+  #?(:clj (boolean (find-ns 'flow-storm.nrepl.middleware))
      :cljs false))
 
 (defn ensure-vanilla []
@@ -193,11 +197,12 @@
            false))
 
 (defn pending? [x]
-  #?(:clj  (instance? clojure.lang.IPending x)
+  #?(:org.babashka/nbb false ;;TODO
+     :clj  (instance? clojure.lang.IPending x)
      :cljs (instance? cljs.core.IPending x)))
 
 #?(:clj
-   (defn source-fn [x]    
+   (defn source-fn [x]
      (try
        (when-let [v (resolve x)]
          (when-let [filepath (:file (meta v))]
@@ -215,44 +220,43 @@
                    (if (= :unknown *read-eval*)
                      (throw (IllegalStateException. "Unable to read source while *read-eval* is :unknown."))
                      (read read-opts (PushbackReader. pbr)))
-                   (str text))
-                 )))))
+                   (str text)))))))
+
        (catch Exception _ nil))))
 
 #?(:clj
- (defmacro deftype+
-   "Same as deftype, but: read mutable fields through ILookup: (:field instance)"
-   [name fields & body]
-   `(do
-      (deftype ~name ~fields
-        
-        clojure.lang.ILookup
-        (valAt [_# key# notFound#]
-          (case key#
-            ~@(mapcat #(vector (keyword %) %) fields)
-            notFound#))
-        (valAt [this# key#]
-          (.valAt this# key# nil)))
-      
-      (defn ~(symbol (str '-> name)) ~fields
-        (new ~name ~@fields)
-        ~@body)))
- )
+   (defmacro deftype+
+     "Same as deftype, but: read mutable fields through ILookup: (:field instance)"
+     [name fields & body]
+     `(do
+        (deftype ~name ~fields
+
+          clojure.lang.ILookup
+          (valAt [_# key# notFound#]
+            (case key#
+              ~@(mapcat #(vector (keyword %) %) fields)
+              notFound#))
+          (valAt [this# key#]
+            (.valAt this# key# nil)))
+
+        (defn ~(symbol (str '-> name)) ~fields
+          (new ~name ~@fields)
+          ~@body))))
 
 #?(:clj
    (defmacro lazy-binding
      "Like clojure.core/binding but instead of a vec of vars it accepts a vec
   of symbols, and will resolve the vars with requiring-resolve"
-     [bindings & body]     
-     (let [vars-binds (mapcat (fn [[var-symb var-val]]
-                                [`(clojure.core/requiring-resolve '~var-symb) var-val])
+     [bindings & body]
+     (let [vars-binds (mapcat (fn [[var-symb var-val]])
+                              [`(clojure.core/requiring-resolve '~var-symb) var-val]
                               (partition 2 bindings))]
        `(let []
           (push-thread-bindings (hash-map ~@vars-binds))
-         (try
-           ~@body
-           (finally
-             (pop-thread-bindings)))))))
+          (try
+            ~@body
+            (finally
+              (pop-thread-bindings)))))))
 
 #?(:clj
    (defn mk-tmp-dir!
@@ -339,6 +343,23 @@
   (float
    (/ (- n from)
       (- to from))))
+
+(comment
+  (into [] (take-last 2 (take-last 4 (range 13))))
+  (take-last 23 [1])
+  (apply goog.string.format "foo{}")
+
+  (def foo #js {})
+  (js/typeof foo)
+  (js/eval "foo")
+  (instance? js/Object foo)
+  (type foo)
+
+  (require '[flow-storm.api :as fs-api])
+
+  (conj [1 2 3] 5)
+
+  (foo))
 
 (defn grep-coll
 
