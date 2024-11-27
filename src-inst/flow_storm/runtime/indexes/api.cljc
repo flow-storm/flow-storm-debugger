@@ -298,7 +298,6 @@
                 fn-idx (index-protos/fn-call-idx unwind-trace)
                 {:keys [fn-ns fn-name]} (-> (get timeline-index fn-idx)
                                             index-protos/as-immutable)
-                throwable throwable
                 ev (events/make-function-unwinded-event {:flow-id flow-id
                                                          :thread-id thread-id
                                                          :idx tl-idx

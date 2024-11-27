@@ -114,6 +114,7 @@
         li (generate-lorem-ipsum)
         w (make-a-case :type-a)
         ww (true? (instance? String "hello"))]
+    (+ 1 2 3)
     (->> xs
          (map (fn [x] (+ 1 (do-it x))))
          (reduce + )
