@@ -66,7 +66,6 @@
 (s/def :thread.exception/ex-type string?)
 (s/def :thread.exception/ex-message string?)
 (s/def :thread.exception/ex-hash int?)
-(s/def :thread/last-updated-timestamp int?)
 
 (s/def :thread/exception (s/keys :req-un [:flow-storm/fn-name
                                           :flow-storm/fn-ns
@@ -77,8 +76,7 @@
 
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry
-                                  :thread/navigation-history
-                                  :thread/last-updated-timestamp]
+                                  :thread/navigation-history]
                             :opt [:thread/curr-frame
                                   :thread.ui/callstack-tree-hidden-fns
                                   :thread.ui/selected-functions-list-fn]))
@@ -345,28 +343,13 @@
           :thread/callstack-tree-hidden-fns #{}
           :thread/navigation-history {:head-pos 0
                                       :history [{:fn-call-idx -1 ;; dummy entry
-                                                 :idx         -1}]}
-          :thread/last-updated-timestamp (utils/get-timestamp)}))
+                                                 :idx         -1}]}}))
 
 (defn get-thread [flow-id thread-id]
   (get-in @state [:flows flow-id :flow/threads thread-id]))
 
 (defn remove-thread [flow-id thread-id]
   (swap! state update-in [:flows flow-id :flow/threads] dissoc thread-id))
-
-(defn check-and-update-thread-update-timestamp [flow-id thread-id]
-  (let [thread-ts-path [:flows flow-id :flow/threads thread-id :thread/last-updated-timestamp]
-        last-update-millis (get-in @state thread-ts-path)]
-    (if-not last-update-millis
-
-      false ;; this could be because the thread tab is not even created, so we don't do anything
-
-      (let [now-millis (utils/get-timestamp)
-            elapsed-millis (- now-millis last-update-millis)
-            update-millis 1000 ;; auto update every 1sec
-            needs-update? (> elapsed-millis update-millis)]
-        (swap! state assoc-in [:flows flow-id :flow/threads thread-id :thread/last-updated-timestamp] (utils/get-timestamp))
-        needs-update?))))
 
 (defn current-timeline-entry [flow-id thread-id]
   (:thread/curr-timeline-entry (get-thread flow-id thread-id)))
