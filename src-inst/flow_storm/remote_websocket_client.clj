@@ -57,7 +57,7 @@
                                      (onClose [code reason remote?]
                                        (log (format "Connection with %s closed. code=%s reson=%s remote?=%s"
                                                     uri-str code reason remote?))
-                                       ((requiring-resolve 'flow-storm.api/stop)))
+                                       ((requiring-resolve 'flow-storm.runtime.debuggers-api/stop-runtime)))
 
                                      (onError [^Exception e]
                                        (log-error (format "WebSocket error connection %s" uri-str) e)))]

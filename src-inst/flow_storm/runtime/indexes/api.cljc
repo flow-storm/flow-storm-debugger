@@ -128,8 +128,14 @@
 (defn rm-fn-call-limit [fn-ns fn-name]
   (swap! fn-call-limits update fn-ns dissoc fn-name))
 
+(defn clear-fn-call-limits []
+  (reset! fn-call-limits nil))
+
 (defn get-fn-call-limits []
   @fn-call-limits)
+
+(defn indexes-started? []
+  (not (nil? flow-thread-registry)))
 
 (defn check-fn-limit!
   

@@ -46,7 +46,7 @@
   (remove-watch dbg-state/state :spec-validator))
 
 (defn start-local []
-  (fs-api/local-connect {:skip-index-start? (not (nil? index-api/flow-thread-registry))})
+  (fs-api/local-connect {})
   (spec-instrument-state))
 
 (defn start-shadow-remote [port build-id]
@@ -56,10 +56,10 @@
   (spec-instrument-state))
 
 (defn stop []
-  (fs-api/stop {:skip-index-stop? (utils/storm-env?)}))
+  (fs-api/stop))
 
 (defn refresh []
-  (let [running? dbg-state/state]
+  (let [running? (boolean dbg-state/state)]
     (log "Reloading system ...")
     (when running?
       (log "System is running, stopping it first ...")

@@ -6,5 +6,5 @@
 ;; setup storm callback functions
 (tracer/hook-clojurescript-storm)
 
-(dbg-api/setup-runtime)
+(dbg-api/start-runtime)
 (dbg-api/remote-connect {})

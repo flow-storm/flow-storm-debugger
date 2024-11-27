@@ -18,13 +18,6 @@
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace]
             [flow-storm.runtime.types.expr-trace :as expr-trace]))
 
-;; TODO: build script
-;; Maybe we can figure out this ns names by scanning (all-ns) so
-;; we don't need to list them here
-;; Also maybe just finding main is enough, we can add to it a fn
-;; that returns the rest of the functions we need
-(def debugger-main-ns 'flow-storm.debugger.main)
-
 ;; Utilities for long interruptible tasks
 
 (def interruptible-tasks
@@ -618,82 +611,98 @@
   (let [f (get api-fn fun-key)]
     (apply f args)))
 
-#?(:clj
-   (defn setup-runtime
-
-     "Setup runtime based on jvm properties. Returns a config map."
-
-     []
-     (let [theme-prop (System/getProperty "flowstorm.theme")
-           title-prop (System/getProperty "flowstorm.title")
-           styles-prop (System/getProperty "flowstorm.styles")
-           fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
-           config (cond-> {}
-                    theme-prop            (assoc :theme (keyword theme-prop))
-                    styles-prop           (assoc :styles styles-prop)
-                    title-prop            (assoc :title  title-prop))]
-
-       (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "true") true false))
-
-       (doseq [[fn-ns fn-name l] fn-call-limits]
-         (index-api/add-fn-call-limit fn-ns fn-name l))
-
-       config))
-
-   :cljs ;; ------------------------------------------------------------------------------------------------------------
-   (defn setup-runtime
-
-     "This is meant to be called by preloads to initialize the runtime side of things"
-
-     []
-     (println "Setting up runtime")
-
-     (index-api/start)
-
-     (println "Index started")
-
-     (let [recording? (if (= (env-prop "flowstorm.startRecording") "true") true false)]
-       (tracer/set-recording recording?)
-       (println "Recording set to " recording?))
-
-     (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
-       (doseq [[fn-ns fn-name l] fn-call-limits]
-         (index-api/add-fn-call-limit fn-ns fn-name l)
-         (println "Added function limit " fn-ns fn-name l)))
-
-     (rt-values/clear-vals-ref-registry)
-     (println "Value references cleared")
-
-     (rt-outputs/setup-tap!)
-     (jobs/run-jobs)
-     (println "Runtime setup ready")))
+(defn runtime-started? []
+  (index-api/indexes-started?))
 
 #?(:clj
-   (defn start-runtime [events-dispatch-fn skip-debugger-start? {:keys [skip-index-start?] :as config}]
-     (let [config (merge config (setup-runtime))]
+   (defn start-runtime
+     "Start the runtime. Will not do anything if the runtime has been already started."
 
-       ;; NOTE: The order here is important until we replace this code with
-       ;; better component state management
+     []
+     
+     ;; NOTE: The order here is important until we replace this code with
+     ;; better component state management
 
-       (when-not skip-index-start?
-         (index-api/start))
+     (if (runtime-started?)
+       
+       (log "Runtime already started, skipping ...")
+       
+       (let [_ (log "Starting up runtime")
+             fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))]
 
-       ;; start the debugger UI
-       (when-not skip-debugger-start?
-         (let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
-           (start-debugger config)))
+         (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "true") true false))
 
-       (rt-events/set-dispatch-fn events-dispatch-fn)
+         (doseq [[fn-ns fn-name l] fn-call-limits]
+           (index-api/add-fn-call-limit fn-ns fn-name l))
+         
+         (index-api/start)
 
-       (rt-values/clear-vals-ref-registry)
+         (rt-values/clear-vals-ref-registry)
 
-       (rt-outputs/setup-tap!)
+         (rt-outputs/setup-tap!)
 
-       (jobs/run-jobs))))
+         (jobs/run-jobs)
+         
+         (log "Runtime started"))))
+
+   :cljs
+   (defn start-runtime
+
+     "This is meant to be called by preloads to initialize the runtime side of things.
+  Will not do anything if the runtime has been already started."
+
+     []
+     (if (runtime-started?)
+       
+       (log "Runtime already started, skipping ...")
+
+       (do
+         (println "Starting up runtime")
+
+         (index-api/start)
+
+         (let [recording? (if (= (env-prop "flowstorm.startRecording") "true") true false)]
+           (tracer/set-recording recording?)
+           (println "Recording set to " recording?))
+
+         (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
+           (doseq [[fn-ns fn-name l] fn-call-limits]
+             (index-api/add-fn-call-limit fn-ns fn-name l)))
+
+         (rt-values/clear-vals-ref-registry)
+         
+         (rt-outputs/setup-tap!)
+         (jobs/run-jobs)
+         
+         (println "Runtime started")))))
+
+(defn stop-runtime []
+
+  (interrupt-all-tasks)
+  
+  (jobs/stop-jobs)
+
+  (rt-outputs/remove-tap!)
+  
+  (rt-outputs/clear-outputs)
+
+  (rt-values/clear-vals-ref-registry)
+
+  (rt-events/clear-pending-events!)
+  
+  (index-api/clear-fn-call-limits)
+
+  (remote-websocket-client/stop-remote-websocket-client)
+
+  (tracer/clear-breakpoints!)
+
+  (index-api/stop))
 
 #?(:clj
    (defn remote-connect [config]
 
+     (start-runtime)
+     
      ;; connect to the remote websocket
      (remote-websocket-client/start-remote-websocket-client
       (assoc config
@@ -705,7 +714,7 @@
                                                         remote-websocket-client/send))]
                                (log "Connected to remote websocket")
 
-                               (start-runtime enqueue-event! true config)
+                               (rt-events/set-dispatch-fn enqueue-event!)
 
                                (log "Remote Clojure runtime initialized"))))))
 

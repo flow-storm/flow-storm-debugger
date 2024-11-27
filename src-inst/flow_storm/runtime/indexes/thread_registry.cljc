@@ -93,7 +93,7 @@
     (reset! callbacks cbs)
     thread-reg)
 
-  (stop-thread-registry [_])
+  (stop-thread-registry [_] nil)
 
   (record-total-order-entry [_ flow-id th-timeline entry]
     (-> (get @total-order-timelines flow-id)

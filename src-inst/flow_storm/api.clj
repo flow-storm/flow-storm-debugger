@@ -4,7 +4,6 @@
   Provides functionality to start the debugger and instrument forms."
 
   (:require [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.outputs :as rt-outputs]
             [flow-storm.utils :refer [log] :as utils]
             [flow-storm.ns-reload-utils :as reload-utils]
             [hansel.api :as hansel]
@@ -12,51 +11,56 @@
             [flow-storm.runtime.debuggers-api :as dbg-api]
             [flow-storm.runtime.events :as rt-events]
             [flow-storm.runtime.values :as rt-values]
-            [flow-storm.jobs :as jobs]
-            [flow-storm.remote-websocket-client :as remote-websocket-client]
-            [flow-storm.runtime.indexes.api :as index-api]
             [clojure.string :as str]
             [clojure.stacktrace :as stacktrace]))
+
+;; TODO: build script
+;; Maybe we can figure out this ns names by scanning (all-ns) so
+;; we don't need to list them here
+;; Also maybe just finding main is enough, we can add to it a fn
+;; that returns the rest of the functions we need
+(def debugger-main-ns 'flow-storm.debugger.main)
+
+(defn start-debugger-ui
+
+  "Start the debugger UI when available on the classpath.
+  Returns true when available, false otherwise."
+
+  [config]
+
+  (if-let [start-debugger (requiring-resolve (symbol (name debugger-main-ns) "start-debugger"))]
+    (do
+      (start-debugger config)
+      true)
+    (do
+      (log "It looks like the debugger UI isn't present on the classpath.")
+      false)))
+
+(defn stop-debugger-ui
+
+  "Stop the debugger UI if it has been started."
+
+  []
+  (if-let [stop-debugger (requiring-resolve (symbol (name debugger-main-ns) "stop-debugger"))]
+    (stop-debugger)
+    (log "It looks like the debugger UI isn't present on the classpath.")))
+
 
 (defn stop
 
   "Stop the flow-storm runtime part gracefully.
   If working in local mode will also stop the UI."
 
-  ([] (stop {}))
-  ([{:keys [skip-index-stop?]}]
-   (let [stop-debugger (try
-                         (resolve (symbol (name dbg-api/debugger-main-ns) "stop-debugger"))
-                         (catch Exception _ nil))]
+  []
 
-     ;; NOTE: The order here is important until we replace this code with
-     ;; better component state management
+  (rt-events/clear-dispatch-fn!)
 
-     (when-not skip-index-stop?
-       (index-api/stop))
+  ;; if we are running in local mode and running a debugger stop it
+  (stop-debugger-ui)
 
-     ;; if we are running in local mode and running a debugger stop it
-     (when stop-debugger
-       (stop-debugger))
+  (dbg-api/stop-runtime)
 
-
-     (rt-events/clear-dispatch-fn!)
-     (rt-events/clear-pending-events!)
-
-     (rt-outputs/remove-tap!)
-
-     (dbg-api/interrupt-all-tasks)
-
-     (rt-values/clear-vals-ref-registry)
-
-     (jobs/stop-jobs)
-
-     ;; stop remote websocket client if needed
-     (remote-websocket-client/stop-remote-websocket-client)
-
-     (tracer/clear-breakpoints!)
-
-     (log "System stopped"))))
+  (log "System fully stopped"))
 
 (defn local-connect
 
@@ -79,11 +83,13 @@
   ([config]
 
    (let [enqueue-event! (requiring-resolve 'flow-storm.debugger.events-queue/enqueue-event!)
-         config (assoc config
-                       :local? true)]
+         config (assoc config :local? true)]
 
-     (dbg-api/start-runtime enqueue-event! false config))))
+     (dbg-api/start-runtime)
 
+     (start-debugger-ui config)
+
+     (rt-events/set-dispatch-fn enqueue-event!))))
 
 
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)

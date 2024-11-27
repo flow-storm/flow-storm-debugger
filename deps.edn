@@ -49,7 +49,8 @@
            :dev {:extra-paths ["src-dev" "classes"]
 
                  :extra-deps {
-                              org.openjfx/javafx-swing {:mvn/version "21.0.4-ea+1"} ;; for scenic view to run
+                              org.openjfx/javafx-swing    {:mvn/version "21.0.4-ea+1"} ;; for scenic view to run
+                              io.github.tonsky/clj-reload {:mvn/version "0.7.1"}
                               }
                  :jvm-opts ["-Dvisualvm.display.name=FlowStorm"
                             ;; for the profilers

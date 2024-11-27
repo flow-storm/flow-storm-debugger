@@ -1,16 +1,22 @@
 (ns flow-storm.storm-api
   (:require [flow-storm.api :as fs-api]
             [flow-storm.tracer :as tracer]
-            [flow-storm.runtime.debuggers-api :as dbg-api]
-            [flow-storm.runtime.indexes.api :as indexes-api]))
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
 
-(defn start-recorder []
-  (dbg-api/setup-runtime)
-  (indexes-api/start))
+(defn start-recorder
 
-(defn start-debugger []
-  (let [config {:skip-index-start? true}]
-    (fs-api/local-connect config)))
+  "Called by ClojureStorm for initializing the runtime"
+
+  []
+  (dbg-api/start-runtime))
+
+(defn start-debugger
+
+  "Called by :dbg keyword evaluation to start the UI"
+
+  []
+
+  (fs-api/local-connect {}))
 
 (def jump-to-last-expression dbg-api/jump-to-last-expression-in-this-thread)
 
