@@ -106,7 +106,10 @@
 (defn- function-unwinded-event [{:keys [flow-id] :as unwind-data}]
   (when (dbg-state/maybe-add-exception unwind-data)
     (ui-utils/run-later
-      (flows-screen/update-exceptions-combo flow-id))))
+      (flows-screen/update-exceptions-combo flow-id)
+      ;; the first time we encounter an exception, navigate to that location
+      (when (= 1 (count (dbg-state/flow-exceptions flow-id)))
+        (flows-screen/goto-location unwind-data)))))
 
 (defn data-window-push-val-data-event [{:keys [dw-id val-data root?]}]
   (data-windows/push-val dw-id val-data root?))
