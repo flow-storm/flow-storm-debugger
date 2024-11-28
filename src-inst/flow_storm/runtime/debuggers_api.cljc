@@ -34,6 +34,7 @@
     (start)))
 
 (defn submit-interruptible-task [{:keys [task-id start interrupt]}]
+  ;; Let's only allow one interruptible task at a time for now
   (interrupt-all-tasks)  
   (swap! interruptible-tasks assoc task-id {:start (fn []
                                                      #?(:clj (future (start))

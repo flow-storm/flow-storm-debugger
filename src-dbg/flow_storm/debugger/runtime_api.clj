@@ -131,7 +131,8 @@
 
      (when debug-mode? (log (format "%s API-CALL %s %s" call-type fname (pr-str args))))
 
-     ;; make the calls in a different thread so we don't block the UI thread
+     ;; make the calls in a future so we can have a timeout and don't block the UI thread
+     ;; forever
      (let [call-resp-fut (future
                            (if cache
 
