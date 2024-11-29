@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [flow-storm.debugger.state :as dbg-state]
             [clojure.set :as set])
-  (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem ScrollPane Tab
+  (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem CheckMenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton CustomMenuItem
             ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane]
@@ -25,16 +25,25 @@
            [javafx.scene.web WebView WebEngine]))
 
 
+(defn menu-item [{:keys [text on-click accel check-item? disable?]}]
+  (let [mi (if check-item?
+             (CheckMenuItem. text)
+             (MenuItem. text))]
+    (.setOnAction mi (event-handler [_]
+                       (if check-item?
+                         (on-click (.isSelected mi))
+                         (on-click))))
+    (when disable?
+      (.setDisable mi true))
+    (when accel
+      (.setAccelerator mi (KeyCodeCombination.
+                           (:key-code accel)
+                           (into-array KeyCombination$Modifier (mapv ui-utils/mod-k->key-comb (:mods accel))))))
+    mi))
+
 (defn context-menu [& {:keys [items]}]
   (let [cm (ContextMenu.)
-        cm-items (->> items
-                      (map (fn [{:keys [text on-click disable?]}]
-                             (let [mi (MenuItem. text)]
-                               (when on-click
-                                 (.setOnAction mi (event-handler [_] (on-click))))
-                               (when disable?
-                                 (.setDisable mi true))
-                               mi))))]
+        cm-items (mapv menu-item items)]
     (-> cm
         .getItems
         (.addAll ^objects (into-array Object cm-items)))
@@ -42,15 +51,7 @@
 
 (defn menu [& {:keys [label items]}]
   (let [menu (Menu. label)
-        menu-items (->> items
-                        (mapv (fn [{:keys [text on-click accel]}]
-                                (let [mi (MenuItem. text)]
-                                  (.setOnAction mi (event-handler [_] (on-click)))
-                                  (when accel
-                                    (.setAccelerator mi (KeyCodeCombination.
-                                                         (:key-code accel)
-                                                         (into-array KeyCombination$Modifier (mapv ui-utils/mod-k->key-comb (:mods accel))))))
-                                  mi))))]
+        menu-items (mapv menu-item items)]
 
     (.setMnemonicParsing menu true)
 
