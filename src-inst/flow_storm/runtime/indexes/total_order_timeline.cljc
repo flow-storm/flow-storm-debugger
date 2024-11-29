@@ -43,6 +43,12 @@
 (deftype TotalOrderTimeline [mt-timeline]
 
   index-protos/TimelineP
+
+  (flow-id [this idx]
+    (locking this
+      (let [tote (ml-get mt-timeline idx)
+            th-tl (index-protos/tote-thread-timeline tote)]
+        (index-protos/flow-id th-tl 0))))
   
   (thread-id [this idx]
     (locking this

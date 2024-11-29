@@ -213,7 +213,7 @@
     (index-protos/flow-exists? flow-thread-registry flow-id)))
 
 (defn create-thread-indexes! [flow-id thread-id thread-name form-id]
-  (let [thread-indexes {:timeline-index (timeline-index/make-index thread-id)
+  (let [thread-indexes {:timeline-index (timeline-index/make-index flow-id thread-id)
                         :fn-call-limits (atom @fn-call-limits)
                         :thread-limited (atom nil)}]    
 
@@ -688,6 +688,7 @@
                                                              (if backward?
                                                                (dec (count timeline))
                                                                0))
+                                                flow-id (index-protos/flow-id timeline curr-idx)
                                                 thread-id (index-protos/thread-id timeline curr-idx)
                                                 to-idx (if backward?
                                                          (max (- curr-idx batch-size) 0)
@@ -698,7 +699,8 @@
                                               ;; if we found the entry report the match and finish
                                               (on-match (-> entry
                                                             index-protos/as-immutable
-                                                            (assoc :thread-id thread-id)))
+                                                            (assoc :flow-id flow-id
+                                                                   :thread-id thread-id)))
                                               
                                               ;; else report progress and continue searching
                                               (do

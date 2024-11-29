@@ -10,6 +10,8 @@
     
 ### Bugs fixed
 
+    - Fix taps "search value on flows"
+
 ## 4.0.2 (25-11-2024)
 	
 ### New Features
