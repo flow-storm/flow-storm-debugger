@@ -865,6 +865,9 @@ together with the exceptions types. If you hover the mouse over any of them, a t
 
 Clicking on any of them will position the stepper at that point in time so you can explore what happened before.
 
+You can configure FlowStorm to automatically jump to exceptions with the `Config` menu by checking `Auto jump to exception`
+which is disabled by default.
+
 === Locals
 
 The locals panel will always show the locals bounded for the current point in time.

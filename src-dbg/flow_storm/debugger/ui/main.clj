@@ -243,7 +243,10 @@
                                        :on-click (fn [] (goto-file-line))}])
         config-menu (ui/menu :label "_Config"
                              :items [{:text "Set threads limit"
-                                      :on-click (fn [] (ask-and-set-threads-limit))}])
+                                      :on-click (fn [] (ask-and-set-threads-limit))}
+                                     {:text "Auto jump to exceptions"
+                                      :check-item? true
+                                      :on-click (fn [enable?] (dbg-state/set-auto-jump-on-exception enable?))}])
         help-menu (ui/menu :label "_Help"
                            :items [{:text "Tutorial"
                                     :on-click (fn []

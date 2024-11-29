@@ -171,12 +171,14 @@
 (s/def :config/debugger-ws-port int?)
 (s/def :config/runtime-host string?)
 (s/def :config/debug-mode? boolean?)
+(s/def :config/auto-jump-on-exception? boolean?)
 
 (s/def ::debugger-config (s/keys :req-un [:config/repl
                                           :config/debugger-host
                                           :config/debugger-ws-port
                                           :config/runtime-host
-                                          :config/debug-mode?]))
+                                          :config/debug-mode?
+                                          :config/auto-jump-on-exception?]))
 
 (s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
 (s/def ::bookmarks (s/map-of :bookmark/id string?))
@@ -257,7 +259,8 @@
                      :debugger-host (or debugger-host "localhost")
                      :debugger-ws-port (or ws-port 7722)
                      :runtime-host (or runtime-host "localhost")
-                     :debug-mode? false}
+                     :debug-mode? false
+                     :auto-jump-on-exception? false}
    :bookmarks {}
    :visualizers {}
    :data-windows {}})
@@ -299,6 +302,9 @@
 
 (defn debugger-config []
   (get @state :debugger-config))
+
+(defn set-auto-jump-on-exception [enable?]
+  (swap! state assoc-in [:debugger-config :auto-jump-on-exception?] enable?))
 
 (defn toggle-debug-mode []
   (swap! state update-in [:debugger-config :debug-mode?] not))

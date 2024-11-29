@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Add configurable auto jump to exceptions
     
 ### Changes
 
