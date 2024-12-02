@@ -9,6 +9,7 @@
 ### Changes
 
     - Thread tab auto-update every 1sec (no more red arrow needed)
+    - Remove middleware dependency on cider-nrepl-middleware
     
 ### Bugs fixed
 

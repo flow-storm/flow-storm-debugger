@@ -5,12 +5,10 @@
             [flow-storm.runtime.outputs :as rt-outputs]
             [nrepl.misc :refer [response-for] :as misc]
             [nrepl.middleware :as middleware :refer [set-descriptor!]]
-            [cider.nrepl.middleware.util.error-handling :refer [base-error-response]]
             [nrepl.transport :as t]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [flow-storm.form-pprinter :as form-pprinter]
-            [cider.nrepl.middleware.util.cljs :as cljs-utils]
             [nrepl.middleware.caught :as caught :refer [wrap-caught]]
             [nrepl.middleware.print :refer [wrap-print]]
             [nrepl.middleware.interruptible-eval :refer [*msg*]])
@@ -174,15 +172,6 @@
                   rsp (response-for msg processed-val)]
               (.send transport rsp))
 
-            ;; If the eval errored, propagate the exception as error in the
-            ;; inspector middleware, so that the client CIDER code properly
-            ;; renders it instead of silently ignoring it.
-            (and (contains? (:status response) :eval-error)
-                 (contains? response ::caught/throwable))
-            (let [e (::caught/throwable response)
-                  resp (base-error-response msg e :inspect-eval-error :done)]
-              (.send transport resp))
-
             :else (.send transport response))
       this)))
 
@@ -218,11 +207,40 @@
       (.send transport resp)
       this)))
 
+(def cider-piggieback?
+  (try (require 'cider.piggieback) true
+       (catch Throwable _ false)))
+
+(def nrepl-piggieback?
+  (try (require 'piggieback.core) true
+       (catch Throwable _ false)))
+
+(defn try-piggieback
+  "If piggieback is loaded, returns `#'cider.piggieback/wrap-cljs-repl`, or
+  false otherwise."
+  []
+  (cond
+    cider-piggieback? (resolve 'cider.piggieback/wrap-cljs-repl)
+    nrepl-piggieback? (resolve 'piggieback.core/wrap-cljs-repl)
+    :else false))
+
+(defn- maybe-piggieback
+  [descriptor descriptor-key]
+  (if-let [piggieback (try-piggieback)]
+    (update-in descriptor [descriptor-key] #(set (conj % piggieback)))
+    descriptor))
+
+(defn expects-piggieback
+  "If piggieback is loaded, returns the descriptor with piggieback's
+  `wrap-cljs-repl` handler assoc'd into its `:expects` set."
+  [descriptor]
+  (maybe-piggieback descriptor :expects))
+
 (defn wrap-flow-storm
   "Middleware that provides flow-storm functionality "
   [next-handler]
   (fn [{:keys [op id] :as msg}]
-    (let [piggieback? (or cljs-utils/cider-piggieback? cljs-utils/nrepl-piggieback?)]
+    (let [piggieback? (or cider-piggieback? nrepl-piggieback?)]
       (case op
         "flow-storm-trace-count"        (process-msg next-handler msg trace-count        piggieback?)
         "flow-storm-find-fn-call"       (process-msg next-handler msg find-fn-call       piggieback?)
@@ -266,7 +284,7 @@
     descriptor))
 
 (def descriptor
-  (cljs-utils/expects-piggieback
+  (expects-piggieback
    (expects-shadow-cljs-middleware
     {:requires #{"clone" #'wrap-caught #'wrap-print}
      :expects #{"eval"}
