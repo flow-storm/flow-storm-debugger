@@ -12,7 +12,9 @@
             [flow-storm.form-pprinter :as form-pprinter]
             [cider.nrepl.middleware.util.cljs :as cljs-utils]
             [nrepl.middleware.caught :as caught :refer [wrap-caught]]
-            [nrepl.middleware.print :refer [wrap-print]])
+            [nrepl.middleware.print :refer [wrap-print]]
+            [nrepl.middleware.interruptible-eval :refer [*msg*]])
+
   (:import [nrepl.transport Transport]))
 
 (defn value-ref->int [m k]
@@ -242,13 +244,14 @@
 
                     ;; update transport to capture *out*, *err* and eval resluts
                     (update msg :transport (fn [transport]
-                                            (wrap-transport transport
-                                                            op
-                                                            id
-                                                            {:on-eval rt-outputs/handle-eval-result
-                                                             :on-out  rt-outputs/handle-out-write
-                                                             :on-err  rt-outputs/handle-err-write}))))]
-          (next-handler msg))))))
+                                             (wrap-transport transport
+                                                             op
+                                                             id
+                                                             {:on-eval rt-outputs/handle-eval-result
+                                                              :on-out  rt-outputs/handle-out-write
+                                                              :on-err  rt-outputs/handle-err-write}))))]
+          (binding [*msg* msg]
+            (next-handler msg)))))))
 
 (defn expects-shadow-cljs-middleware
 
