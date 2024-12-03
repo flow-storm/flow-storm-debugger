@@ -1516,7 +1516,7 @@ The easiest way to take a look at a thread timeline is with some code like this 
 ;   :fn-name "run-server",
 ;   :ret-idx 797,
 ;   :fn-call-idx 0,
-;   :parent-indx nil,
+;   :parent-idx nil,
 ;   :fn-args [],
 ;   :form-id -798068730,
 ;   :idx 0}
@@ -1632,7 +1632,7 @@ user> (->> mt-timeline
   :fn-name "run",
   :fn-args [],
   :ret-idx 797,
-  :parent-indx nil,  
+  :parent-idx nil,  
   :form-id -798068730,
   :idx 0}
   ...

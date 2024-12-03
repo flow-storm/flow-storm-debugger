@@ -1,7 +1,7 @@
 (ns flow-storm.nrepl.middleware
   (:require [flow-storm.runtime.debuggers-api :as debuggers-api]
             [flow-storm.runtime.indexes.api :as index-api]
-            [flow-storm.types :refer [make-value-ref]]
+            [flow-storm.types :refer [make-value-ref value-ref?]]
             [flow-storm.runtime.outputs :as rt-outputs]
             [nrepl.misc :refer [response-for] :as misc]
             [nrepl.middleware :as middleware :refer [set-descriptor!]]
@@ -16,37 +16,33 @@
   (:import [nrepl.transport Transport]))
 
 (defn value-ref->int [m k]
-  (if (contains? m k)
-    (update m k :vid)
+  (if-let [vr (get m k)]
+    (cond
+
+      (value-ref? vr)
+      (update m k :vid)
+
+      ;; this is because whatever reads values from the js runtime
+      ;; (the piggieback path) doesn't use the data readers in data_readers.clj
+      ;; so it will read flow-storm.types/value as default tagged-litterals
+      (and (tagged-literal? vr) (= 'flow-storm.types/value-ref (:tag vr)))
+      (update m k :form)
+
+      :else m)
     m))
 
 (defn trace-count [{:keys [flow-id thread-id]}]
-  {:code `(debuggers-api/timeline-count ~(if (number? flow-id) flow-id nil)
+  {:code `(debuggers-api/timeline-count ~(or flow-id 0)
                                         ~thread-id)
    :post-proc (fn [cnt]
                 {:status :done
                  :trace-cnt cnt})})
 
-(defn find-fn-call* [flow-id fq-fn-call-symb from-idx backward]
-  (let [criteria {:from-idx from-idx
-                  :backward? backward
-                  :fn-ns (namespace fq-fn-call-symb)
-                  :fn-name (name fq-fn-call-symb)}
-        result (promise)
-        {:keys [start]} (index-api/timelines-async-interruptible-find-entry (index-api/build-find-fn-call-entry-predicate criteria)
-                                                                            (index-api/timelines-for {:flow-id flow-id})
-                                                                            criteria
-                                                                            {:on-match (fn [m] (deliver result m))
-                                                                             :on-end   (fn []  (deliver result nil))})]
-    (start)
-    (when-let [entry @result]
-      (debuggers-api/reference-timeline-entry! entry))))
-
 (defn find-fn-call [{:keys [flow-id fq-fn-symb from-idx backward]}]
-  {:code `(find-fn-call* ~flow-id
-                         (symbol ~fq-fn-symb)
-                         ~from-idx
-                         ~(Boolean/parseBoolean backward))
+  {:code `(debuggers-api/find-fn-call-sync ~flow-id
+                                           (symbol ~fq-fn-symb)
+                                           ~from-idx
+                                           ~(Boolean/parseBoolean backward))
    :post-proc (fn [fn-call]
                 {:status :done
                  :fn-call (value-ref->int fn-call :fn-args)})})
@@ -131,18 +127,8 @@
    :post-proc (fn [_]
                 {:status :done})})
 
-(defn all-fn-call-stats []
-  (reduce (fn [r [flow-id thread-id]]
-            (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
-              (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
-                        (update rr (str (symbol fn-ns fn-name)) #(+ (or % 0) cnt)))
-                      r
-                      thread-stats)))
-          {}
-          (index-api/all-threads)))
-
 (defn recorded-functions [_]
-  {:code `(all-fn-call-stats)
+  {:code `(debuggers-api/all-fn-call-stats)
    :post-proc (fn [stats]
                 {:status :done
                  :functions (mapv (fn [[fq-fn-name cnt]]
@@ -302,13 +288,13 @@
                            "from-idx" "The starting timeline idx to search from"
                            "backward" "When true, searches for a fn-call by walking the timeline backwards"}
                 :optional {}
-                :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"}}
+                :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-idx ret-idx flow-id thread-id]}"}}
 
                "flow-storm-find-flow-fn-call"
                {:doc "Find the first FnCall for a flow"
                 :requires {"flow-id" "The id of the flow"}
                 :optional {}
-                :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"}}
+                :returns {"fn-call" "A map like {:keys [fn-name fn-ns form-id fn-args fn-call-idx idx parent-idx ret-idx]}"}}
 
                "flow-storm-get-form"
                {:doc "Return a registered form"
@@ -324,7 +310,7 @@
                            "drift" "The drift, one of next-out next-over prev-over next prev at"}
                 :optional {}
                 :returns {"entry" (str "One of : "
-                                       "FnCall   {:keys [type fn-name fn-ns form-id fn-args fn-call-idx idx parent-indx ret-idx]}"
+                                       "FnCall   {:keys [type fn-name fn-ns form-id fn-args fn-call-idx idx parent-idx ret-idx]}"
                                        "Expr     {:keys [type coord result fn-call-idx idx]}"
                                        "FnReturn {:keys [type coord result fn-call-idx idx]}")}}
 

@@ -15,6 +15,7 @@
 
     - Fix taps "search value on flows"
     - Fix middleware not working with nrepl > 1.3.0-beta2
+    - Fix middleware for ClojureScript
 
 ## 4.0.2 (25-11-2024)
 	

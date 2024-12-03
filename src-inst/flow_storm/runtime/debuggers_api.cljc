@@ -740,3 +740,39 @@
        (catch :default e (utils/log-error "Couldn't connect to the debugger" e))))
    
 )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities for the middleware ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; These are used only by the middleware
+
+(defn all-fn-call-stats []
+  (reduce (fn [r [flow-id thread-id]]
+            (let [thread-stats (index-api/fn-call-stats flow-id thread-id)]
+              (reduce (fn [rr {:keys [fn-ns fn-name cnt]}]
+                        (update rr (str (symbol fn-ns fn-name)) #(+ (or % 0) cnt)))
+                      r
+                      thread-stats)))
+          {}
+          (index-api/all-threads)))
+
+(defn find-fn-call-sync [flow-id fq-fn-call-symb from-idx backward]
+  (let [timelines (index-api/timelines-for {:flow-id flow-id})
+        fn-target-ns (namespace fq-fn-call-symb)
+        fn-target-name (name fq-fn-call-symb)
+        next-fn (if backward dec inc)]
+    (some (fn [tl]
+            (loop [i from-idx]
+              (when (<= 0 i (dec (count tl)))
+                (let [entry (get tl i)]
+                  (if (and (index-api/fn-call-trace? entry)
+                           (= fn-target-ns (index-api/get-fn-ns entry))
+                           (= fn-target-name (index-api/get-fn-name entry)))
+                    (-> entry
+                        index-api/as-immutable
+                        (assoc :flow-id (index-protos/flow-id tl i)
+                               :thread-id (index-protos/thread-id tl i))
+                        reference-timeline-entry!)                    
+                    (recur (next-fn i)))))))
+          timelines)))

@@ -63,7 +63,7 @@
      :fn-args fnArgs
      :fn-call-idx (index-protos/entry-idx this)
      :idx (index-protos/entry-idx this)
-     :parent-indx (index-protos/get-parent-idx this)
+     :parent-idx (index-protos/get-parent-idx this)
      :ret-idx (index-protos/get-ret-idx this)})
 
   #?@(:cljs
