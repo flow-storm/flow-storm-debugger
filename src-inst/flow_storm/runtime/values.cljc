@@ -2,11 +2,18 @@
   (:require [clojure.pprint :as pp]
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]
-            [clojure.datafy :refer [datafy nav]]
+            ;; [clojure.datafy :refer [datafy nav]]
             #?(:clj [clojure.string :as str])))
 
 (defprotocol PWrapped
   (unwrap [_]))
+
+(comment
+  (deftype Greg [obj]
+    nil
+    (foo [_] "bar"))
+
+  (foo))
 
 (deftype HashableObjWrap [obj]
   #?@(:clj
@@ -17,6 +24,8 @@
                (if (instance? HashableObjWrap that)
                  (identical? obj (unwrap that))
                  false))]
+      :org.babashka/nbb
+      []
 
       :cljs
       [IEquiv
@@ -28,7 +37,7 @@
        IHash
        (-hash [_]
               (utils/object-id obj))])
-  
+
   PWrapped
   (unwrap [_]
     obj))
@@ -45,7 +54,7 @@
   (get-value-ref [_ v]))
 
 ;; Fast way of going from
-;;    value-ref -> value 
+;;    value-ref -> value
 ;;    value     -> value-ref
 ;;
 ;; every object gets wrapped into a HashableObjWrap that will have
@@ -67,7 +76,7 @@
               (assoc :max-vid next-vid)
               (update :vref->wv assoc vref wv)
               (update :wv->vref assoc wv vref))))))
-  
+
   (get-value [_ vref]
     (unwrap (get vref->wv vref)))
 
@@ -91,20 +100,20 @@
 
 (defn reference-value! [v]
   (try
-    
+
     (swap! values-ref-registry add-val-ref v)
     (-> (get-value-ref @values-ref-registry v)
         (types/add-val-preview v))
-    
+
     ;; if for whatever reason we can't reference the value
-    ;; let's be explicit so at least the user knows that 
+    ;; let's be explicit so at least the user knows that
     ;; something went wrong and the value can't be trusted.
     ;; I have seen a issues of hashing failing for a lazy sequence
     #?(:clj (catch Exception e
-              (utils/log-error "Error referencing value" e)    
+              (utils/log-error "Error referencing value" e)
               (reference-value! :flow-storm/error-referencing-value))
        :cljs (catch js/Error e
-               (utils/log-error "Error referencing value" e)    
+               (utils/log-error "Error referencing value" e)
                (reference-value! :flow-storm/error-referencing-value)))))
 
 (defn clear-vals-ref-registry []
@@ -163,12 +172,12 @@
     (pr-str (:ref/type v))
     (pr-str (type v))))
 
-(defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]  
+(defn val-pprint [val {:keys [print-length print-level print-meta? pprint? nth-elems]}]
   (let [val-type (value-type val)
-        print-fn #?(:clj (if pprint? pp/pprint prn) 
+        print-fn #?(:clj (if pprint? pp/pprint prn)
                     :cljs (if (and pprint? (not print-meta?)) pp/pprint print)) ;; ClojureScript pprint doesn't support *print-meta*
         val-str (try
-                  
+
                   (if (and (utils/blocking-derefable? val)
                            (utils/pending? val))
 
@@ -199,7 +208,7 @@
     {:val-str val-str
      :val-type val-type}))
 
-(defn val-pprint-ref [vref opts]  
+(defn val-pprint-ref [vref opts]
   (let [val (deref-value vref)]
     (val-pprint val opts)))
 
@@ -208,7 +217,7 @@
     (tap> v)))
 
 #?(:clj
-   (defn def-value [var-ns var-name x]     
+   (defn def-value [var-ns var-name x]
      (intern (symbol var-ns)
              (symbol var-name)
              (deref-value x))))
@@ -225,13 +234,13 @@
 
 (defn interesting-nav-reference [coll k]
   (let [v (get coll k)
-        n (nav coll k v)]    
+        n "unimplmemented" #_(nav coll k v)]
     (when (or (not= n v)
-               (not= (meta n) (meta v)))
+              (not= (meta n) (meta v)))
       (reference-value! n))))
 
 (defn extract-data-aspects [o]
-  (let [dat-o (datafy o)
+  (let [dat-o "unimplemented" ;;(datafy o)
         o-meta (meta o)]
     (reduce (fn [aspects {:keys [id pred extractor]}]
               (if (pred dat-o)
@@ -253,19 +262,18 @@
 (register-data-aspect-extractor
  {:id :number
   :pred number?
-  :extractor (fn [n]               
+  :extractor (fn [n]
                {:number/val n})})
 
 (register-data-aspect-extractor
  {:id :int
   :pred int?
-  :extractor (fn [n]               
+  :extractor (fn [n]
                {:int/decimal n
                 :int/binary (utils/format-int n 2)
                 :int/octal  (utils/format-int n 8)
                 :int/hex    (utils/format-int n 16)})})
 
-  
 (register-data-aspect-extractor
  {:id :previewable
   :pred any?
@@ -309,22 +317,21 @@
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 
-
 #?(:clj
    (register-data-aspect-extractor
     {:id :byte-array
      :pred bytes?
      :extractor (fn [bs]
                   (let [max-cnt 1000
-                        
+
                         format-and-pad (fn [b radix]
                                          (let [s (-> ^byte b
                                                      Byte/toUnsignedInt
                                                      (utils/format-int radix))
-                                               s-padded (cond 
+                                               s-padded (cond
                                                           (= radix 2)  (format "%8s" s)
                                                           (= radix 16) (format "%2s" s))]
-                                           
+
                                            (str/replace s-padded " " "0")))]
                     (if (<= (count bs) max-cnt)
                       {:bytes/hex    (mapv #(format-and-pad % 16) bs)
@@ -339,7 +346,6 @@
                          :bytes/tail-binary (mapv #(format-and-pad % 2)  tail)}))))}))
 
 (comment
-    
+
   (extract-data-aspects 120)
-  (extract-data-aspects {:a 20 :b 40})
-  )
+  (extract-data-aspects {:a 20 :b 40}))

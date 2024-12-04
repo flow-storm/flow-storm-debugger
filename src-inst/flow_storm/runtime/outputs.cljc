@@ -1,9 +1,8 @@
 (ns flow-storm.runtime.outputs
   (:require [flow-storm.runtime.events :as rt-events]
-            [flow-storm.runtime.values :as rt-values]
-            [amalloy.ring-buffer :refer [ring-buffer]]))
+            [flow-storm.runtime.values :as rt-values]))
 
-(defonce *last-evals-results (atom (ring-buffer 10)))
+(defonce *last-evals-results [])
 
 (defonce *tap-fn (atom nil))
 
@@ -26,11 +25,11 @@
     (rt-events/publish-event! (rt-events/make-last-evals-update-event last-evals-refs))))
 
 (defn clear-outputs []
-  (reset! *last-evals-results (ring-buffer 10))
+  (reset! *last-evals-results [])
   (fire-update-last-evals-event))
 
 (defn handle-eval-result [v]
-  (swap! *last-evals-results conj v)
+  (swap! *last-evals-results #((take-last 10 (conj % v))))
   (fire-update-last-evals-event))
 
 (defn handle-out-write [s]

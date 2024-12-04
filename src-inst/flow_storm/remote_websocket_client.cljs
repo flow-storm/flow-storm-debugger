@@ -21,7 +21,8 @@
        (= :open (websocket-state remote-websocket-client))))
 
 (defn web-socket-client-object [uri-str]
-  (let [WebSocket (if (and (= *target* "nodejs")
+  (let [WebSocket (if (and #?(:org.babashka/nbb true
+                              :cljs (= *target* "nodejs"))
                            (exists? js/require))
 
                     (let [obj (try
@@ -33,7 +34,6 @@
                     js/globalThis.WebSocket)
         ws-client (WebSocket. uri-str)]
     ws-client))
-
 
 (defn send [ser-packet]
   (.send remote-websocket-client ser-packet))

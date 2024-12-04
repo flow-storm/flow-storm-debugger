@@ -9,8 +9,12 @@
 (defn clear-pending-events! []
   (reset! pending-events []))
 
+#?(:org.babashka/nbb (defmacro locking
+                       [x & forms]
+                       `(do ~@forms)))
+
 (defn set-dispatch-fn [dispatch-fn]
-  (reset! *dispatch dispatch-fn)  
+  (reset! *dispatch dispatch-fn)
   (locking pending-events
     (doseq [pe @pending-events]
       (dispatch-fn pe))))
@@ -61,7 +65,7 @@
    (make-task-finished-event task-id nil))
   ([task-id result]
    [:task-finished (cond-> {:task-id task-id}
-                       result (assoc :result result))]))
+                     result (assoc :result result))]))
 
 (defn make-heap-info-update-event [heap-info]
   [:heap-info-update heap-info])
@@ -107,6 +111,6 @@
 
     (dispatch ev)
 
-    (when-not (#{:heap-info-update} ev-key )
+    (when-not (#{:heap-info-update} ev-key)
       (locking pending-events
         (swap! pending-events conj ev)))))
