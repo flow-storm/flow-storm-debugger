@@ -7,3 +7,5 @@ target
 out/
 node_modules
 public/js/
+/.calva/
+/.lsp/
