@@ -112,8 +112,8 @@
                  (= 1 (count (dbg-state/flow-exceptions flow-id))))
         (flows-screen/goto-location unwind-data)))))
 
-(defn data-window-push-val-data-event [{:keys [dw-id val-data root?]}]
-  (data-windows/push-val dw-id val-data root?))
+(defn data-window-push-val-data-event [{:keys [dw-id val-data root? visualizer]}]
+  (data-windows/push-val dw-id val-data {:root? root?, :visualizer visualizer}))
 
 (defn data-window-update-event [{:keys [dw-id data]}]
   (data-windows/update-val dw-id data))

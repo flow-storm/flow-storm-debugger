@@ -99,8 +99,8 @@
     (runtime-api/data-window-push-val-data rt-api dw-id vref {::stack-key "/" ::dw-id dw-id})))
 
 (defn push-val
-  ([dw-id val-data] (push-val dw-id val-data false))
-  ([dw-id val-data root?]
+  ([dw-id val-data] (push-val dw-id val-data {}))
+  ([dw-id val-data {:keys [root? visualizer]}]
    (ui-utils/run-now
 
      ;; this is to allow a data-window to be created by a push from the runtime
@@ -136,7 +136,8 @@
                                (ui-utils/observable-clear (.getChildren visualizers-combo-box))
                                (ui-utils/observable-add-all (.getChildren visualizers-combo-box) [viz-combo])))
 
-           default-viz (or (visualizers/default-visualizer val-data)
+           default-viz (or (and visualizer (visualizers/visualizer visualizer))
+                           (visualizers/default-visualizer val-data)
                            (first visualizers))
 
            create-viz (fn [{:keys [on-create]}]
