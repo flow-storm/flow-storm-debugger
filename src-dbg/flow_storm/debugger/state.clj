@@ -325,6 +325,7 @@
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
                                           :flow/exceptions {}
+                                          :flow/marks []
                                           :timestamp timestamp}))
 
 (defn remove-flow [flow-id]
@@ -608,6 +609,17 @@
 
 (defn flow-exceptions [flow-id]
   (vals (get-in @state [:flows flow-id :flow/exceptions])))
+
+;;;;;;;;;;;
+;; Marks ;;
+;;;;;;;;;;;
+
+(defn add-mark
+  [{:keys [flow-id thread-id idx] :as mark-location}]
+  (swap! state update-in [:flows flow-id :flow/marks] conj mark-location))
+
+(defn flow-marks [flow-id]
+  (get-in @state [:flows flow-id :flow/marks]))
 
 ;;;;;;;;;;;;;;;;
 ;; JFX Stages ;;

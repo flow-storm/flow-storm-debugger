@@ -361,3 +361,11 @@
 
 (defn data-window-val-update [dw-id new-val]
   (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id {:new-val new-val})))
+
+(in-ns 'clojure.core)
+
+(defmacro debugger []
+  `(keyword "flow-storm" "mark"))
+
+(defmacro breakpoint []
+  `(keyword "flow-storm" "mark"))

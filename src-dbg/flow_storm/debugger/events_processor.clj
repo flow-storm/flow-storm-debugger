@@ -112,6 +112,18 @@
                  (= 1 (count (dbg-state/flow-exceptions flow-id))))
         (flows-screen/goto-location unwind-data)))))
 
+(defn expression-mark-event [{:keys [flow-id thread-id idx] :as mark-location}]
+  (ui-utils/run-later
+   (dbg-state/add-mark mark-location)
+   (flows-screen/update-marks-combo flow-id)
+   ;; jump to the first mark, unless, we've already jumped to an exception
+   (when (and
+           (= 1 (count (dbg-state/flow-marks flow-id)))
+           (not (and
+                  (:auto-jump-on-exception? (dbg-state/debugger-config))
+                  (seq (dbg-state/flow-exceptions flow-id)))))
+     (flows-screen/goto-location mark-location))))
+
 (defn data-window-push-val-data-event [{:keys [dw-id val-data root? visualizer]}]
   (data-windows/push-val dw-id val-data {:root? root?, :visualizer visualizer}))
 
@@ -147,6 +159,8 @@
     :recording-updated (recording-updated-event ev-args-map)
     :multi-timeline-recording-updated (multi-timeline-recording-updated-event ev-args-map)
     :function-unwinded-event (function-unwinded-event ev-args-map)
+
+    :expression-mark-event (expression-mark-event ev-args-map)
 
     :data-window-push-val-data (data-window-push-val-data-event ev-args-map)
     :data-window-update (data-window-update-event ev-args-map)

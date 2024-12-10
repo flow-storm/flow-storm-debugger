@@ -327,11 +327,16 @@
 
 (defn add-expr-exec-trace [flow-id thread-id coord expr-val total-order-recording?]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    
-    (when (and timeline-index (not @thread-limited))      
+
+    (when (and timeline-index (not @thread-limited))
       (let [tl-idx (index-protos/add-expr-exec timeline-index coord expr-val)]
         (when (and tl-idx total-order-recording?)
-          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))))))
+          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))
+        (when (= expr-val :flow-storm/mark)
+          (let [ev (events/make-expression-mark-event {:flow-id flow-id
+                                                       :thread-id thread-id
+                                                       :idx tl-idx})]
+            (events/publish-event! ev)))))))
 
 (defn add-bind-trace [flow-id thread-id coord symb-name symb-val]
   (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
