@@ -10,7 +10,7 @@
   (reset! pending-events []))
 
 (defn set-dispatch-fn [dispatch-fn]
-  (reset! *dispatch dispatch-fn)  
+  (reset! *dispatch dispatch-fn)
   (locking pending-events
     (doseq [pe @pending-events]
       (dispatch-fn pe))))
@@ -83,6 +83,9 @@
 
 (defn make-function-unwinded-event [ev-data]
   [:function-unwinded-event ev-data])
+
+(defn make-expression-mark-event [ev-data]
+  [:expression-mark-event ev-data])
 
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])

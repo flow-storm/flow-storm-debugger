@@ -151,7 +151,7 @@
                                                                                            {:on-finished (fn [{:keys [result]}]
                                                                                                            (when result
                                                                                                              (goto-location (assoc result
-                                                                                                                                   :flow-id flow-id))))}))})))
+                                                                                                                              :flow-id flow-id))))}))})))
                                                 (runtime-api/fn-call-stats rt-api flow-id nil))))]
                               :align :center-left)
 
@@ -163,6 +163,15 @@
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
+        marks-menu-data (ui/menu-button
+                         :title "Marks"
+                         :on-action (fn [loc] (goto-location loc))
+                         :items []
+                         :class "important-combo")
+        marks-box (ui/h-box :childs [(:menu-button marks-menu-data)]
+                            :class "hidden-pane"
+                            :align :center-left)
+
         tools-menu  (ui/menu-button :title "More tools"
                                     :items [{:key :search
                                              :text "Search"}
@@ -178,13 +187,17 @@
                                                    :printers              (printer/open-printers-window flow-id)))
                                     :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [quick-jump-textfield
-                                          exceptions-box]
+                                          exceptions-box
+                                          marks-box]
                                  :spacing 4)
         right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
                                   :spacing 4)]
 
-    (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-menu-data" exceptions-menu-data)
+    (store-obj flow-id "exceptions-box" exceptions-box)
+    (store-obj flow-id "exceptions-menu-data" exceptions-menu-data)
+
+    (store-obj flow-id "marks-box" marks-box)
+    (store-obj flow-id "marks-menu-data" marks-menu-data)
 
     (ui/border-pane :left  left-tools-box
                     :right right-tools-box
@@ -313,8 +326,8 @@
 
 (defn update-exceptions-combo [flow-id]
   (let [exceptions (dbg-state/flow-exceptions flow-id)
-        [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
-        [ex-box] (obj-lookup "exceptions-box")]
+        [{:keys [set-items]}] (obj-lookup flow-id "exceptions-menu-data")
+        [ex-box] (obj-lookup flow-id "exceptions-box")]
     (when ex-box
       (ui-utils/clear-classes ex-box)
       (when (zero? (count exceptions))
@@ -327,6 +340,22 @@
                           :thread-id thread-id
                           :idx idx})
                        exceptions)))))
+
+(defn update-marks-combo [flow-id]
+  (let [marks (dbg-state/flow-marks flow-id)
+        [{:keys [set-items]}] (obj-lookup flow-id "marks-menu-data")
+        [marks-box] (obj-lookup flow-id "marks-box")]
+    (when marks-box
+      (ui-utils/clear-classes marks-box)
+      (when (zero? (count marks))
+        (ui-utils/add-class marks-box "hidden-pane"))
+
+      (set-items (mapv (fn [{:keys [flow-id thread-id idx]}]
+                         {:text (format "Step %d - Thread %d" idx thread-id)
+                          :flow-id flow-id
+                          :thread-id thread-id
+                          :idx idx})
+                       marks)))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later
