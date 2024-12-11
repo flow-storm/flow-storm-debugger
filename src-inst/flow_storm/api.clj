@@ -364,8 +364,13 @@
 
 (in-ns 'clojure.core)
 
-(defmacro debugger []
-  `(keyword "flow-storm" "bookmark"))
+(defmacro bookmark
+  ([text]
+   `(vary-meta (symbol "flow-storm" "bookmark")
+               assoc
+               :flow-storm.bookmark/text ~text))
+  ([] `(bookmark nil)))
 
-(defmacro bookmark []
-  `(keyword "flow-storm" "bookmark"))
+(defmacro debugger
+  [& args]
+  `(bookmark ~@args))
