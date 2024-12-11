@@ -86,7 +86,8 @@
 (s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
                                 :flow/threads
-                                :flow/exceptions]
+                                :flow/exceptions
+                                :flow/marks]
                           :req-un [::timestamp]))
 
 (s/def :flow/flows (s/map-of :flow/id :flow/flow))
@@ -181,8 +182,19 @@
                                           :config/auto-jump-on-exception?]))
 
 (s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
-(s/def ::bookmarks (s/map-of :bookmark/id string?))
-
+(s/def :bookmark/flow-id :flow/id)
+(s/def :bookmark/thread-id :thread/id)
+(s/def :bookmark/idx int?)
+(s/def :bookmark/text string?)
+(s/def :bookmark/source #{:bookmark.source/ui
+                          :bookmark.source/api})
+(s/def ::bookmark (s/keys :req-un [:bookmark/flow-id
+                                   :bookmark/thread-id
+                                   :bookmark/idx
+                                   :bookmark/text
+                                   :bookmark/source]))
+(s/def ::flow-bookmarks (s/map-of :bookmark/id ::bookmark))
+(s/def ::bookmarks (s/map-of :flow/id ::flow-bookmarks))
 
 (s/def :data-window/breadcrums-box :ui.object/node)
 (s/def :data-window/visualizers-combo-box :ui.object/node)
@@ -325,7 +337,6 @@
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
                                           :flow/exceptions {}
-                                          :flow/marks []
                                           :timestamp timestamp}))
 
 (defn remove-flow [flow-id]
@@ -510,31 +521,22 @@
 ;; Bookmarks ;;
 ;;;;;;;;;;;;;;;
 
-(defn add-bookmark [flow-id thread-id idx text]
-  (swap! state assoc-in [:bookmarks [flow-id thread-id idx]] text))
+(defn add-bookmark [{:keys [flow-id thread-id idx text source] :as bookmark}]
+  (swap! state assoc-in [:bookmarks flow-id [flow-id thread-id idx]] bookmark))
 
 (defn remove-bookmark [flow-id thread-id idx]
-  (swap! state update-in [:bookmarks] dissoc [flow-id thread-id idx]))
+  (swap! state update-in [:bookmarks flow-id] dissoc [flow-id thread-id idx]))
 
 (defn remove-bookmarks [flow-id]
-  (swap! state update-in [:bookmarks]
-         (fn [bookmarks]
-           (reduce-kv (fn [bks [fid :as bkey] btext]
-                        (if (= fid flow-id)
-                          bks
-                          (assoc bks bkey btext)))
-                      {}
-                      bookmarks))))
+  (swap! state update-in [:bookmarks] dissoc flow-id))
+
+(defn flow-bookmarks [flow-id]
+  (vals (get-in @state [:bookmarks flow-id])))
 
 (defn all-bookmarks []
-  (reduce-kv (fn [bks [flow-id thread-id idx] text]
-               (conj bks
-                     {:flow-id flow-id
-                      :thread-id thread-id
-                      :idx idx
-                      :text text}))
-             []
-             (get-in @state [:bookmarks])))
+  (->> (get-in @state [:bookmarks])
+       (mapcat val)
+       (map val)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Navigation undo system ;;
@@ -609,17 +611,6 @@
 
 (defn flow-exceptions [flow-id]
   (vals (get-in @state [:flows flow-id :flow/exceptions])))
-
-;;;;;;;;;;;
-;; Marks ;;
-;;;;;;;;;;;
-
-(defn add-mark
-  [{:keys [flow-id thread-id idx] :as mark-location}]
-  (swap! state update-in [:flows flow-id :flow/marks] conj mark-location))
-
-(defn flow-marks [flow-id]
-  (get-in @state [:flows flow-id :flow/marks]))
 
 ;;;;;;;;;;;;;;;;
 ;; JFX Stages ;;

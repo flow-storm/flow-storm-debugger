@@ -6,6 +6,7 @@
             [flow-storm.debugger.ui.outputs.screen :as outputs-screen]
             [flow-storm.debugger.ui.main :as ui-main]
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
+            [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
@@ -112,17 +113,25 @@
                  (= 1 (count (dbg-state/flow-exceptions flow-id))))
         (flows-screen/goto-location unwind-data)))))
 
-(defn expression-mark-event [{:keys [flow-id thread-id idx] :as mark-location}]
+(defn expression-bookmark-event [{:keys [flow-id thread-id idx] :as bookmark-location}]
   (ui-utils/run-later
-   (dbg-state/add-mark mark-location)
-   (flows-screen/update-marks-combo flow-id)
+   (dbg-state/add-bookmark {:flow-id flow-id
+                            :thread-id thread-id
+                            :idx idx
+                            :source :bookmark.source/api
+                            :text "TODO"})
+   (bookmarks/update-marks-combo flow-id)
+   (bookmarks/update-bookmarks)
    ;; jump to the first mark, unless, we've already jumped to an exception
    (when (and
-           (= 1 (count (dbg-state/flow-marks flow-id)))
+           (= 1 (->> (dbg-state/flow-bookmarks flow-id)
+                     (filter (fn [{:keys [source]}]
+                               (= source :bookmark.source/api)))
+                     count))
            (not (and
                   (:auto-jump-on-exception? (dbg-state/debugger-config))
                   (seq (dbg-state/flow-exceptions flow-id)))))
-     (flows-screen/goto-location mark-location))))
+     (flows-screen/goto-location bookmark-location))))
 
 (defn data-window-push-val-data-event [{:keys [dw-id val-data root? visualizer]}]
   (data-windows/push-val dw-id val-data {:root? root?, :visualizer visualizer}))
@@ -160,7 +169,7 @@
     :multi-timeline-recording-updated (multi-timeline-recording-updated-event ev-args-map)
     :function-unwinded-event (function-unwinded-event ev-args-map)
 
-    :expression-mark-event (expression-mark-event ev-args-map)
+    :expression-bookmark-event (expression-bookmark-event ev-args-map)
 
     :data-window-push-val-data (data-window-push-val-data-event ev-args-map)
     :data-window-update (data-window-update-event ev-args-map)

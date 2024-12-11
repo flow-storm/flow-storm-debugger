@@ -365,7 +365,7 @@
 (in-ns 'clojure.core)
 
 (defmacro debugger []
-  `(keyword "flow-storm" "mark"))
+  `(keyword "flow-storm" "bookmark"))
 
-(defmacro breakpoint []
-  `(keyword "flow-storm" "mark"))
+(defmacro bookmark []
+  `(keyword "flow-storm" "bookmark"))

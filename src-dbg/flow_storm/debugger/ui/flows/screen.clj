@@ -163,14 +163,13 @@
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
-        marks-menu-data (ui/menu-button
-                         :title "Marks"
-                         :on-action (fn [loc] (goto-location loc))
-                         :items []
-                         :class "important-combo")
-        marks-box (ui/h-box :childs [(:menu-button marks-menu-data)]
-                            :class "hidden-pane"
-                            :align :center-left)
+        bookmarks-menu-data (ui/menu-button
+                             :title "Bookmarks"
+                             :on-action (fn [loc] (goto-location loc))
+                             :items [])
+        bookmarks-box (ui/h-box :childs [(:menu-button bookmarks-menu-data)]
+                                :class "hidden-pane"
+                                :align :center-left)
 
         tools-menu  (ui/menu-button :title "More tools"
                                     :items [{:key :search
@@ -188,7 +187,7 @@
                                     :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [quick-jump-textfield
                                           exceptions-box
-                                          marks-box]
+                                          bookmarks-box]
                                  :spacing 4)
         right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
                                   :spacing 4)]
@@ -196,8 +195,8 @@
     (store-obj flow-id "exceptions-box" exceptions-box)
     (store-obj flow-id "exceptions-menu-data" exceptions-menu-data)
 
-    (store-obj flow-id "marks-box" marks-box)
-    (store-obj flow-id "marks-menu-data" marks-menu-data)
+    (store-obj flow-id "bookmarks-box" bookmarks-box)
+    (store-obj flow-id "bookmarks-menu-data" bookmarks-menu-data)
 
     (ui/border-pane :left  left-tools-box
                     :right right-tools-box
@@ -340,22 +339,6 @@
                           :thread-id thread-id
                           :idx idx})
                        exceptions)))))
-
-(defn update-marks-combo [flow-id]
-  (let [marks (dbg-state/flow-marks flow-id)
-        [{:keys [set-items]}] (obj-lookup flow-id "marks-menu-data")
-        [marks-box] (obj-lookup flow-id "marks-box")]
-    (when marks-box
-      (ui-utils/clear-classes marks-box)
-      (when (zero? (count marks))
-        (ui-utils/add-class marks-box "hidden-pane"))
-
-      (set-items (mapv (fn [{:keys [flow-id thread-id idx]}]
-                         {:text (format "Step %d - Thread %d" idx thread-id)
-                          :flow-id flow-id
-                          :thread-id thread-id
-                          :idx idx})
-                       marks)))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later
