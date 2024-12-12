@@ -120,7 +120,6 @@
                             :idx idx
                             :source :bookmark.source/api
                             :text text})
-   (bookmarks/update-marks-combo flow-id)
    (bookmarks/update-bookmarks)
    ;; jump to the first mark, unless, we've already jumped to an exception
    (when (and

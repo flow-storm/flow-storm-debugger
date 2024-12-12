@@ -193,8 +193,7 @@
                                    :bookmark/idx
                                    :bookmark/text
                                    :bookmark/source]))
-(s/def ::flow-bookmarks (s/map-of :bookmark/id ::bookmark))
-(s/def ::bookmarks (s/map-of :flow/id ::flow-bookmarks))
+(s/def ::bookmarks (s/map-of :bookmark/id ::bookmark))
 
 (s/def :data-window/breadcrums-box :ui.object/node)
 (s/def :data-window/visualizers-combo-box :ui.object/node)
@@ -521,22 +520,30 @@
 ;; Bookmarks ;;
 ;;;;;;;;;;;;;;;
 
-(defn add-bookmark [{:keys [flow-id thread-id idx text source] :as bookmark}]
-  (swap! state assoc-in [:bookmarks flow-id [flow-id thread-id idx]] bookmark))
+(defn add-bookmark [{:keys [flow-id thread-id idx] :as bookmark}]
+  (swap! state assoc-in [:bookmarks [flow-id thread-id idx]] bookmark))
 
 (defn remove-bookmark [flow-id thread-id idx]
-  (swap! state update-in [:bookmarks flow-id] dissoc [flow-id thread-id idx]))
+  (swap! state update :bookmarks dissoc [flow-id thread-id idx]))
 
 (defn remove-bookmarks [flow-id]
-  (swap! state update-in [:bookmarks] dissoc flow-id))
+  (swap! state update :bookmarks
+         (fn [bookmarks]
+           (reduce-kv (fn [bks [fid :as bkey] btext]
+                        (if (= fid flow-id)
+                          bks
+                          (assoc bks bkey btext)))
+                      {}
+                      bookmarks))))
 
 (defn flow-bookmarks [flow-id]
-  (vals (get-in @state [:bookmarks flow-id])))
+  (->> (:bookmarks @state)
+       vals
+       (filter (fn [bookmark]
+                 (= flow-id (:flow-id bookmark))))))
 
 (defn all-bookmarks []
-  (->> (get-in @state [:bookmarks])
-       (mapcat val)
-       (map val)))
+  (vals (:bookmarks @state)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Navigation undo system ;;

@@ -21,28 +21,9 @@
                         (assoc b :cell-type :text,  :text (str (:flow-id b)))
                         (assoc b :cell-type :text,  :text (str (:thread-id b)))
                         (assoc b :cell-type :text,  :text (str (:idx b)))
-                        (assoc b :cell-type :text)
+                        (assoc b :cell-type :text,  :text (str (:text b)))
                         (assoc b :cell-type :actions)])
                      bookmarks)))))
-
-(defn update-bookmarks-combo [flow-id]
-  (let [bookmarks (->> (dbg-state/flow-bookmarks flow-id)
-                   (sort-by :idx))
-        [{:keys [set-items]}] (obj-lookup flow-id "bookmarks-menu-data")
-        [bookmarks-box] (obj-lookup flow-id "bookmarks-box")]
-    (when bookmarks-box
-      (ui-utils/clear-classes bookmarks-box)
-      (when (zero? (count bookmarks))
-        (ui-utils/add-class bookmarks-box "hidden-pane"))
-
-      (set-items (mapv (fn [{:keys [flow-id thread-id idx source]}]
-                         {:text (format "Step %d - Thread %d - (%s)" idx thread-id (case source
-                                                                                     :bookmark.source/api "api"
-                                                                                     :bookmark.source/ui "ui"))
-                          :flow-id flow-id
-                          :thread-id thread-id
-                          :idx idx})
-                       bookmarks)))))
 
 (defn bookmark-add [flow-id thread-id idx]
   (let [text (ui/ask-text-dialog :header "Add bookmark"
@@ -55,7 +36,6 @@
                              :idx idx
                              :text text
                              :source :bookmark.source/ui})
-    (update-bookmarks-combo flow-id)
     (update-bookmarks)))
 
 (defn remove-bookmarks [flow-id]
@@ -71,8 +51,8 @@
                                                               (dbg-state/remove-bookmark flow-id thread-id idx)
                                                               (update-bookmarks)))))
         {:keys [table-view-pane] :as tv-data} (ui/table-view
-                                               :columns             ["Source" "Flow Id" "Thread Id" "Idx" "Bookmarks" ""]
-                                               :columns-width-percs [0.1 0.1      0.1        0.1   0.6         0.1]
+                                               :columns             ["Source" "Flow Id" "Thread Id" "Idx" "Note" ""]
+                                               :columns-width-percs [0.1 0.1      0.1        0.1   0.5         0.1]
                                                :cell-factory cell-factory
                                                :resize-policy :constrained
                                                :on-click (fn [mev sel-items _]

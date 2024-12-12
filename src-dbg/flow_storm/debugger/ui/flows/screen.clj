@@ -163,14 +163,6 @@
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
                                  :class "hidden-pane"
                                  :align :center-left)
-        bookmarks-menu-data (ui/menu-button
-                             :title "Bookmarks"
-                             :on-action (fn [loc] (goto-location loc))
-                             :items [])
-        bookmarks-box (ui/h-box :childs [(:menu-button bookmarks-menu-data)]
-                                :class "hidden-pane"
-                                :align :center-left)
-
         tools-menu  (ui/menu-button :title "More tools"
                                     :items [{:key :search
                                              :text "Search"}
@@ -186,17 +178,13 @@
                                                    :printers              (printer/open-printers-window flow-id)))
                                     :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [quick-jump-textfield
-                                          exceptions-box
-                                          bookmarks-box]
+                                          exceptions-box]
                                  :spacing 4)
         right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
                                   :spacing 4)]
 
     (store-obj flow-id "exceptions-box" exceptions-box)
     (store-obj flow-id "exceptions-menu-data" exceptions-menu-data)
-
-    (store-obj flow-id "bookmarks-box" bookmarks-box)
-    (store-obj flow-id "bookmarks-menu-data" bookmarks-menu-data)
 
     (ui/border-pane :left  left-tools-box
                     :right right-tools-box
