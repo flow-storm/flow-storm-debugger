@@ -336,7 +336,7 @@
           (let [ev (events/make-expression-bookmark-event {:flow-id flow-id
                                                            :thread-id thread-id
                                                            :idx tl-idx
-                                                           :text (:flow-storm.bookmark/text (meta expr-val))})]
+                                                           :note (:flow-storm.bookmark/note (meta expr-val))})]
             (events/publish-event! ev)))))))
 
 (defn add-bind-trace [flow-id thread-id coord symb-name symb-val]

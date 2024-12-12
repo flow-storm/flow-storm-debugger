@@ -21,7 +21,7 @@
                         (assoc b :cell-type :text,  :text (str (:flow-id b)))
                         (assoc b :cell-type :text,  :text (str (:thread-id b)))
                         (assoc b :cell-type :text,  :text (str (:idx b)))
-                        (assoc b :cell-type :text,  :text (str (:text b)))
+                        (assoc b :cell-type :text,  :text (str (:note b)))
                         (assoc b :cell-type :actions)])
                      bookmarks)))))
 
@@ -34,7 +34,7 @@
     (dbg-state/add-bookmark {:flow-id flow-id
                              :thread-id thread-id
                              :idx idx
-                             :text text
+                             :note text
                              :source :bookmark.source/ui})
     (update-bookmarks)))
 
@@ -64,8 +64,8 @@
                                                                           :thread-id thread-id
                                                                           :idx       idx}))))
                                                :selection-mode :multiple
-                                               :search-predicate (fn [[_ _ _ bookmark-text] search-str]
-                                                                   (str/includes? bookmark-text search-str)))]
+                                               :search-predicate (fn [[_ _ _ _ note-column] search-str]
+                                                                   (str/includes? (:text note-column) search-str)))]
     (store-obj "bookmarks_table_data" tv-data)
     table-view-pane))
 

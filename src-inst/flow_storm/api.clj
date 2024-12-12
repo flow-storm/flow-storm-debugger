@@ -365,10 +365,10 @@
 (in-ns 'clojure.core)
 
 (defmacro bookmark
-  ([text]
+  ([note]
    `(vary-meta (symbol "flow-storm" "bookmark")
                assoc
-               :flow-storm.bookmark/text ~text))
+               :flow-storm.bookmark/note ~note))
   ([] `(bookmark nil)))
 
 (defmacro debugger

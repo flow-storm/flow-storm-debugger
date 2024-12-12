@@ -185,13 +185,13 @@
 (s/def :bookmark/flow-id :flow/id)
 (s/def :bookmark/thread-id :thread/id)
 (s/def :bookmark/idx int?)
-(s/def :bookmark/text (s/nilable string?))
+(s/def :bookmark/note (s/nilable string?))
 (s/def :bookmark/source #{:bookmark.source/ui
                           :bookmark.source/api})
 (s/def ::bookmark (s/keys :req-un [:bookmark/flow-id
                                    :bookmark/thread-id
                                    :bookmark/idx
-                                   :bookmark/text
+                                   :bookmark/note
                                    :bookmark/source]))
 (s/def ::bookmarks (s/map-of :bookmark/id ::bookmark))
 
