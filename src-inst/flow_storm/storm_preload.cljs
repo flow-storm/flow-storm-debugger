@@ -3,8 +3,14 @@
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as dbg-api]))
 
-;; setup storm callback functions
-(tracer/hook-clojurescript-storm)
+(def dbg-port (js/parseInt
+               (if js/window
+                 (let [page-params (-> js/window .-location .-search)
+                       url-params (js/URLSearchParams. page-params)]
+                   (or (.get url-params "flowstorm_ws_port") "7722"))
+                 ;; for node js
+                 "7722")))
 
 (dbg-api/start-runtime)
-(dbg-api/remote-connect {})
+(tracer/hook-clojurescript-storm)
+(dbg-api/remote-connect {:debugger-host "localhost" :debugger-ws-port dbg-port})

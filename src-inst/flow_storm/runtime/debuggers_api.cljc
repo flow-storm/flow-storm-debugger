@@ -658,7 +658,7 @@
        (log "Runtime already started, skipping ...")
 
        (do
-         (println "Starting up runtime")
+         (log "Starting up runtime")
 
          (index-api/start)
 
@@ -675,7 +675,11 @@
          (rt-outputs/setup-tap!)
          (jobs/run-jobs)
          
-         (println "Runtime started")))))
+         (log "Runtime started")))))
+
+(defn setup-runtime []
+  (log "WARNING : setup-runtime was deprecated. If you are defining your own preloads please call (start-runtime) instead.")
+  (start-runtime))
 
 (defn stop-runtime []
 

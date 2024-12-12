@@ -1570,8 +1570,8 @@ You do this by writing different preloads for each of your builds, and then usin
             </span><span class="p">[</span><span class="n">flow-storm.tracer</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">tracer</span><span class="p">]</span><span class="w">
             </span><span class="p">[</span><span class="n">flow-storm.runtime.debuggers-api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">dbg-api</span><span class="p">]))</span><span class="w">
 
+</span><span class="p">(</span><span class="nf">dbg-api/start-runtime</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">tracer/hook-clojurescript-storm</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">dbg-api/setup-runtime</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7722</span><span class="p">})</span></code></pre>
 </div>
 </div>
@@ -1585,8 +1585,8 @@ You do this by writing different preloads for each of your builds, and then usin
             </span><span class="p">[</span><span class="n">flow-storm.tracer</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">tracer</span><span class="p">]</span><span class="w">
             </span><span class="p">[</span><span class="n">flow-storm.runtime.debuggers-api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">dbg-api</span><span class="p">]))</span><span class="w">
 
+</span><span class="p">(</span><span class="nf">dbg-api/start-runtime</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">tracer/hook-clojurescript-storm</span><span class="p">)</span><span class="w">
-</span><span class="p">(</span><span class="nf">dbg-api/setup-runtime</span><span class="p">)</span><span class="w">
 </span><span class="p">(</span><span class="nf">dbg-api/remote-connect</span><span class="w"> </span><span class="p">{</span><span class="no">:debugger-host</span><span class="w"> </span><span class="s">"localhost"</span><span class="w"> </span><span class="no">:debugger-ws-port</span><span class="w"> </span><span class="mi">7733</span><span class="p">})</span></code></pre>
 </div>
 </div>
@@ -4316,7 +4316,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-12-12 10:22:24 -0300
+Last updated 2024-12-12 17:35:25 -0300
 </div>
 </div>
 </body>

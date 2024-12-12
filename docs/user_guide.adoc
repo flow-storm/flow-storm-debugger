@@ -537,8 +537,8 @@ You do this by writing different preloads for each of your builds, and then usin
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as dbg-api]))
 
+(dbg-api/start-runtime)
 (tracer/hook-clojurescript-storm)
-(dbg-api/setup-runtime)
 (dbg-api/remote-connect {:debugger-host "localhost" :debugger-ws-port 7722})
 ----
 
@@ -551,8 +551,8 @@ You do this by writing different preloads for each of your builds, and then usin
             [flow-storm.tracer :as tracer]
             [flow-storm.runtime.debuggers-api :as dbg-api]))
 
+(dbg-api/start-runtime)
 (tracer/hook-clojurescript-storm)
-(dbg-api/setup-runtime)
 (dbg-api/remote-connect {:debugger-host "localhost" :debugger-ws-port 7733})
 ----
 

@@ -8,6 +8,7 @@
     - New eql-query-pprint visualizer
     - Add support for setting the visualizer via flow-storm.api/data-window-push-val
     - Add debugger/bookmark to set bookmarks from code and also quickly jump to the first one
+    - Enable multiple ClojureScript runtimes <> multiple debuggers via "flowstorm_ws_port"
     
 ### Changes
 

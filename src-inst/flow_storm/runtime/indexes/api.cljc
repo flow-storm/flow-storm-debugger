@@ -156,7 +156,8 @@
     
     (index-protos/register-form forms-registry (:form/id form-data) form-data)
 
-    (utils/log "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger.")))
+    (utils/log (str "Warning, trying to register a form before FlowStorm startup. If you have #trace tags on your code you will have to evaluate them again after starting the debugger."
+                    (pr-str form-data)))))
 
 (defn create-flow [{:keys [flow-id ns form timestamp]}]
   (discard-flow flow-id)  
@@ -253,12 +254,7 @@
 (defn add-flow-init-trace [trace]
   (create-flow trace))
 
-(defn add-form-init-trace [trace]
-  ;; On ClojureScript we want to start the system sometimes before
-  ;; the debugger gets connected, so we can capture what happens right after
-  ;; a page reload. The first thing that happens when tracing is form registration,
-  ;; so we hook that start path here.
-  #?(:cljs (when-not flow-thread-registry (start)))
+(defn add-form-init-trace [trace]  
   (register-form trace))
 
 (defn add-fn-call-trace [flow-id thread-id thread-name fn-ns fn-name form-id args total-order-recording?]
