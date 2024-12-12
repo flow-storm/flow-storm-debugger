@@ -704,7 +704,12 @@ pre.rouge {
 </li>
 <li><a href="#_multi_thread_timeline">3.4. Multi-thread timeline</a></li>
 <li><a href="#_printer">3.5. Printer</a></li>
-<li><a href="#_bookmarks">3.6. Bookmarks</a></li>
+<li><a href="#_bookmarks">3.6. Bookmarks</a>
+<ul class="sectlevel3">
+<li><a href="#_code_bookmarks">3.6.1. Code bookmarks</a></li>
+<li><a href="#_ui_bookmarks">3.6.2. UI bookmarks</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_browser_tool">4. Browser tool</a></li>
@@ -2475,17 +2480,7 @@ sorted by thread and not in the order they happened.</p>
 <div class="sect2">
 <h3 id="_bookmarks"><a class="anchor" href="#_bookmarks"></a><a class="link" href="#_bookmarks">3.6. Bookmarks</a></h3>
 <div class="paragraph">
-<p>Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
-you to mark execution positions so you can come back to them later.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/bookmarks_add_btn.png" alt="bookmarks add btn">
-</div>
-</div>
-<div class="paragraph">
-<p>You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
-It will ask you the bookmark description.</p>
+<p>Bookmarks are another quick way of jumping around in code and they can be added from your code or the FlowStorm UI.</p>
 </div>
 <div class="paragraph">
 <p>You can find you bookmarks on the top menu <code>View &#8594; Bookmarks</code>.</p>
@@ -2497,6 +2492,48 @@ It will ask you the bookmark description.</p>
 </div>
 <div class="paragraph">
 <p>Double clicking on any bookmark will make the debugger jump back to its position.</p>
+</div>
+<div class="sect3">
+<h4 id="_code_bookmarks"><a class="anchor" href="#_code_bookmarks"></a><a class="link" href="#_code_bookmarks">3.6.1. Code bookmarks</a></h4>
+<div class="paragraph">
+<p>You add code bookmarks by adding the <code>(bookmark)</code> statement to your code, which optionally accepts a label.</p>
+</div>
+<div class="paragraph">
+<p>The first time a bookmark statement is executed it will make the FlowStorm UI jump to it. Since this behavior
+is similar to a <code>debugger</code> statement in languages like Javascript, it is also aliased as <code>(debugger)</code> so you can
+use whichever you prefer.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureScript support</div>
+<div class="paragraph">
+<p>This is currently only supported when using ClojureScriptStorm &gt;= 1.11.132-8</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ui_bookmarks"><a class="anchor" href="#_ui_bookmarks"></a><a class="link" href="#_ui_bookmarks">3.6.2. UI bookmarks</a></h4>
+<div class="paragraph">
+<p>UI bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
+you to mark execution positions so you can come back to them later.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/bookmarks_add_btn.png" alt="bookmarks add btn">
+</div>
+</div>
+<div class="paragraph">
+<p>You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
+It will ask you the bookmark description.</p>
+</div>
 </div>
 </div>
 </div>
@@ -4279,7 +4316,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2024-12-05 09:59:51 -0300
+Last updated 2024-12-12 10:22:24 -0300
 </div>
 </div>
 </body>

@@ -1061,7 +1061,31 @@ sorted by thread and not in the order they happened.
 
 == Bookmarks
 
-Bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
+Bookmarks are another quick way of jumping around in code and they can be added from your code or the FlowStorm UI.
+
+You can find you bookmarks on the top menu `View -> Bookmarks`.
+
+image::user_guide_images/bookmarks.png[]
+
+Double clicking on any bookmark will make the debugger jump back to its position.
+
+=== Code bookmarks
+
+You add code bookmarks by adding the `(bookmark)` statement to your code, which optionally accepts a label.
+
+The first time a bookmark statement is executed it will make the FlowStorm UI jump to it. Since this behavior
+is similar to a `debugger` statement in languages like Javascript, it is also aliased as `(debugger)` so you can
+use whichever you prefer.
+
+[NOTE]
+.ClojureScript support
+====
+This is currently only supported when using ClojureScriptStorm >= 1.11.132-8 
+====
+
+=== UI bookmarks
+
+UI bookmarks are useful when you find yourself jumping around, trying to understand a complex execution. They enable
 you to mark execution positions so you can come back to them later.
 
 image::user_guide_images/bookmarks_add_btn.png[]
@@ -1069,11 +1093,6 @@ image::user_guide_images/bookmarks_add_btn.png[]
 You can bookmark the current position by pressing the bookmark button in the code tool, next to your stepping controls.
 It will ask you the bookmark description.
 
-You can find you bookmarks on the top menu `View -> Bookmarks`.
-
-image::user_guide_images/bookmarks.png[]
-
-Double clicking on any bookmark will make the debugger jump back to its position.
 
 = Browser tool
 

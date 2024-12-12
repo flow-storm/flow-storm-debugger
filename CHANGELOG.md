@@ -7,6 +7,7 @@
     - Add configurable auto jump to exceptions
     - New eql-query-pprint visualizer
     - Add support for setting the visualizer via flow-storm.api/data-window-push-val
+    - Add debugger/bookmark to set bookmarks from code and also quickly jump to the first one
     
 ### Changes
 
