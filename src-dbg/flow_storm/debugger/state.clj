@@ -86,8 +86,7 @@
 (s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
                                 :flow/threads
-                                :flow/exceptions
-                                :flow/marks]
+                                :flow/exceptions]
                           :req-un [::timestamp]))
 
 (s/def :flow/flows (s/map-of :flow/id :flow/flow))
