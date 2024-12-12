@@ -15,10 +15,13 @@
     (let [bookmarks (dbg-state/all-bookmarks)]
       (clear)
       (add-all (mapv (fn [b]
-                       [(assoc b :cell-type :text,  :text (str (:flow-id b)))
+                       [(assoc b :cell-type :text,  :text (case (:source b)
+                                                            :bookmark.source/ui "ui"
+                                                            :bookmark.source/api "api" ))
+                        (assoc b :cell-type :text,  :text (str (:flow-id b)))
                         (assoc b :cell-type :text,  :text (str (:thread-id b)))
                         (assoc b :cell-type :text,  :text (str (:idx b)))
-                        (assoc b :cell-type :text)
+                        (assoc b :cell-type :text,  :text (str (:note b)))
                         (assoc b :cell-type :actions)])
                      bookmarks)))))
 
@@ -28,7 +31,11 @@
                                  :width  800
                                  :height 100
                                  :center-on-stage (dbg-state/main-jfx-stage))]
-    (dbg-state/add-bookmark flow-id thread-id idx text)
+    (dbg-state/add-bookmark {:flow-id flow-id
+                             :thread-id thread-id
+                             :idx idx
+                             :note text
+                             :source :bookmark.source/ui})
     (update-bookmarks)))
 
 (defn remove-bookmarks [flow-id]
@@ -44,8 +51,8 @@
                                                               (dbg-state/remove-bookmark flow-id thread-id idx)
                                                               (update-bookmarks)))))
         {:keys [table-view-pane] :as tv-data} (ui/table-view
-                                               :columns             ["FlowId" "ThreadId" "Idx" "Bookmarks" ""]
-                                               :columns-width-percs [0.1      0.1        0.1   0.6         0.1]
+                                               :columns             ["Source" "Flow Id" "Thread Id" "Idx" "Note" ""]
+                                               :columns-width-percs [0.1 0.1      0.1        0.1   0.5         0.1]
                                                :cell-factory cell-factory
                                                :resize-policy :constrained
                                                :on-click (fn [mev sel-items _]
@@ -57,8 +64,8 @@
                                                                           :thread-id thread-id
                                                                           :idx       idx}))))
                                                :selection-mode :multiple
-                                               :search-predicate (fn [[_ _ _ bookmark-text] search-str]
-                                                                   (str/includes? bookmark-text search-str)))]
+                                               :search-predicate (fn [[_ _ _ _ note-column] search-str]
+                                                                   (str/includes? (:text note-column) search-str)))]
     (store-obj "bookmarks_table_data" tv-data)
     table-view-pane))
 

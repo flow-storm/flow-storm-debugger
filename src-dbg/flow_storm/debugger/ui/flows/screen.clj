@@ -151,7 +151,7 @@
                                                                                            {:on-finished (fn [{:keys [result]}]
                                                                                                            (when result
                                                                                                              (goto-location (assoc result
-                                                                                                                                   :flow-id flow-id))))}))})))
+                                                                                                                              :flow-id flow-id))))}))})))
                                                 (runtime-api/fn-call-stats rt-api flow-id nil))))]
                               :align :center-left)
 
@@ -183,8 +183,8 @@
         right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
                                   :spacing 4)]
 
-    (store-obj "exceptions-box" exceptions-box)
-    (store-obj "exceptions-menu-data" exceptions-menu-data)
+    (store-obj flow-id "exceptions-box" exceptions-box)
+    (store-obj flow-id "exceptions-menu-data" exceptions-menu-data)
 
     (ui/border-pane :left  left-tools-box
                     :right right-tools-box
@@ -313,8 +313,8 @@
 
 (defn update-exceptions-combo [flow-id]
   (let [exceptions (dbg-state/flow-exceptions flow-id)
-        [{:keys [set-items]}] (obj-lookup "exceptions-menu-data")
-        [ex-box] (obj-lookup "exceptions-box")]
+        [{:keys [set-items]}] (obj-lookup flow-id "exceptions-menu-data")
+        [ex-box] (obj-lookup flow-id "exceptions-box")]
     (when ex-box
       (ui-utils/clear-classes ex-box)
       (when (zero? (count exceptions))

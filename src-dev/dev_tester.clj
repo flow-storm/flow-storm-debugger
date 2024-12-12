@@ -115,6 +115,11 @@
         w (make-a-case :type-a)
         ww (true? (instance? String "hello"))]
     (+ 1 2 3)
+    (debugger [1 2 3 4])
+    (debugger (+ 1 2))
+    (debugger "debugger")
+    (bookmark)
+    (bookmark "bookmark")
     (->> xs
          (map (fn [x] (+ 1 (do-it x))))
          (reduce + )

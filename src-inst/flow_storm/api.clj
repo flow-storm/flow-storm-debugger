@@ -361,3 +361,16 @@
 
 (defn data-window-val-update [dw-id new-val]
   (rt-events/publish-event! (rt-events/make-data-window-update-event dw-id {:new-val new-val})))
+
+(in-ns 'clojure.core)
+
+(defmacro bookmark
+  ([note]
+   `(vary-meta (symbol "flow-storm" "bookmark")
+               assoc
+               :flow-storm.bookmark/note ~note))
+  ([] `(bookmark nil)))
+
+(defmacro debugger
+  [& args]
+  `(bookmark ~@args))
