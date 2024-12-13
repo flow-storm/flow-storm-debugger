@@ -269,13 +269,13 @@
 
 (register-data-aspect-extractor
  {:id :number
-  :pred number?
+  :pred (fn [x _] (number? x))
   :extractor (fn [n _]               
                {:number/val n})})
 
 (register-data-aspect-extractor
  {:id :int
-  :pred int?
+  :pred (fn [x _] (int? x))
   :extractor (fn [n _]               
                {:int/decimal n
                 :int/binary (utils/format-int n 2)
@@ -285,7 +285,7 @@
   
 (register-data-aspect-extractor
  {:id :previewable
-  :pred any?
+  :pred (fn [x _] (any? x))
   :extractor (fn [o _]
                {:preview/pprint
                 (-> o
@@ -297,7 +297,7 @@
 
 (register-data-aspect-extractor
  {:id :shallow-map
-  :pred map?
+  :pred (fn [x _] (map? x))
   :extractor (fn [m _]
                (let [m-keys (keys m)
                      m-vals (vals m)]
@@ -307,7 +307,7 @@
 
 (register-data-aspect-extractor
  {:id :paged-shallow-seqable
-  :pred seqable?
+  :pred (fn [x _] (seqable? x))
   :extractor (fn [s _]
                (let [xs (seq s)
                      page-size 100
@@ -320,7 +320,7 @@
 
 (register-data-aspect-extractor
  {:id :shallow-indexed
-  :pred indexed?
+  :pred (fn [x _] (indexed? x))
   :extractor (fn [idx-coll _]
                {:shallow-idx-coll/count (count idx-coll)
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
@@ -328,7 +328,7 @@
 
 (register-data-aspect-extractor
  {:id :eql-query-pprint
-  :pred coll?
+  :pred (fn [x _] (coll? x))
   :extractor (fn [coll {:keys [query]}]
                (let [query (or query '[*])
                      q-pprint (-> (eql/eql-query coll query)
@@ -342,7 +342,7 @@
 #?(:clj
    (register-data-aspect-extractor
     {:id :byte-array
-     :pred bytes?
+     :pred (fn [x _] (bytes? x))
      :extractor (fn [bs _]
                   (let [max-cnt 1000                        
                         format-and-pad (fn [b radix]
