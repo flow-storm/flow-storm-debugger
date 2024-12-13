@@ -655,20 +655,24 @@
         search-params (fn [backward?]
                         (let [^SelectionModel sel-model (.getSelectionModel step-type-combo)
                               step-type-val (.getSelectedItem sel-model)
-                              {:keys [idx result coord]} (dbg-state/current-timeline-entry flow-id thread-id)
+                              tentry (dbg-state/current-timeline-entry flow-id thread-id)
+                              [idx target-val coord] (if (= :fn-unwind (:type tentry))
+                                                       [(:idx tentry) (:throwable tentry) (:coord tentry)]
+                                                       [(:idx tentry) (:result tentry) (:coord tentry)])
+
                               {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
                               from-idx (if backward? (dec idx) (inc idx))
                               sel-fn-call-symb @*selected-fn
                               params (case step-type-val
-                                       "identity"              {:identity-val result
+                                       "identity"              {:identity-val target-val
                                                                 :thread-id thread-id
                                                                 :backward? backward?
                                                                 :from-idx from-idx}
-                                       "identity-other-thread" {:identity-val result
+                                       "identity-other-thread" {:identity-val target-val
                                                                 :from-idx 0
                                                                 :skip-threads #{thread-id}
                                                                 :backward? false}
-                                       "equality"              {:equality-val result
+                                       "equality"              {:equality-val target-val
                                                                 :thread-id thread-id
                                                                 :backward? backward?
                                                                 :from-idx from-idx}

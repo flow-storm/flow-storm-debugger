@@ -21,6 +21,7 @@
     - Fix taps "search value on flows"
     - Fix middleware not working with nrepl > 1.3.0-beta2
     - Fix middleware for ClojureScript
+    - Fix identity and equality powerstepping for unwinds
 
 ## 4.0.2 (25-11-2024)
 	
