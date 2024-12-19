@@ -70,7 +70,9 @@
   ;; If there is a tab open for the thread already, update it
   (when (dbg-state/get-thread flow-id thread-id)
     (ui-utils/run-later
-     (flows-screen/update-outdated-thread-ui flow-id thread-id))))
+     (if (:auto-update-ui? (dbg-state/debugger-config))
+       (flows-screen/update-outdated-thread-ui flow-id thread-id)
+       (flows-screen/make-outdated-thread flow-id thread-id)))))
 
 (defn- task-submitted-event [_]
   (ui-main/set-task-cancel-btn-enable true))

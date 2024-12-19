@@ -25,7 +25,7 @@
            [javafx.scene.web WebView WebEngine]))
 
 
-(defn menu-item [{:keys [text on-click accel check-item? disable?]}]
+(defn menu-item [{:keys [text on-click accel check-item? checked? disable?]}]
   (let [mi (if check-item?
              (CheckMenuItem. text)
              (MenuItem. text))]
@@ -33,6 +33,10 @@
                        (if check-item?
                          (on-click (.isSelected mi))
                          (on-click))))
+
+    (when check-item?
+      (.setSelected mi (boolean checked?)))
+
     (when disable?
       (.setDisable mi true))
     (when accel

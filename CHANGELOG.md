@@ -12,7 +12,7 @@
     
 ### Changes
 
-    - Thread tab auto-update every 1sec (no more red arrow needed)
+    - Configurable thread tab auto-update every 1sec (on by default)
     - Remove middleware dependency on cider-nrepl-middleware
     - Aspect extractors signature deprecation. Now it recieves the object and a map with extras
     

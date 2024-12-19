@@ -246,7 +246,12 @@
                                       :on-click (fn [] (ask-and-set-threads-limit))}
                                      {:text "Auto jump to exceptions"
                                       :check-item? true
-                                      :on-click (fn [enable?] (dbg-state/set-auto-jump-on-exception enable?))}])
+                                      :checked? (:auto-jump-on-exception? (dbg-state/debugger-config))
+                                      :on-click (fn [enable?] (dbg-state/set-auto-jump-on-exception enable?))}
+                                     {:text "Auto update UI"
+                                      :check-item? true
+                                      :checked? (:auto-update-ui? (dbg-state/debugger-config))
+                                      :on-click (fn [enable?] (dbg-state/set-auto-update-ui enable?))}])
         help-menu (ui/menu :label "_Help"
                            :items [{:text "Tutorial"
                                     :on-click (fn []
