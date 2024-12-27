@@ -274,6 +274,12 @@
                {:number/val n})})
 
 (register-data-aspect-extractor
+ {:id :string
+  :pred (fn [x _] (string? x))
+  :extractor (fn [s _]               
+               {:string/val s})})
+
+(register-data-aspect-extractor
  {:id :int
   :pred (fn [x _] (int? x))
   :extractor (fn [n _]               

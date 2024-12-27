@@ -301,6 +301,17 @@
   :on-update (fn [_ {:keys [redraw]} {:keys [eql/pprint]}]
                (redraw pprint))})
 
+(register-visualizer
+ {:id :html
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :string))
+  :on-create (fn [{:keys [string/val]}]
+               (let [{:keys [web-view set-html]} (ui/web-view)]
+                 (set-html val)
+                 {:fx/node web-view
+                  :re-render (fn [s] (set-html s))}))
+  :on-update (fn [_ {:keys [re-render]} {:keys [string/val]}]
+               (re-render val))})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -311,5 +322,5 @@
 ;; Don't make this the default until we can make its render fast
 ;; (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
-(add-default-visualizer (fn [val-data] (#{"java.lang.String" "#object[String]"} (:flow-storm.runtime.values/type val-data))) :preview)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :string)) :preview)
 (add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data))) :preview)
