@@ -328,7 +328,8 @@
       (let [tl-idx (index-protos/add-expr-exec timeline-index coord expr-val)]
         (when (and tl-idx total-order-recording?)
           (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index (get timeline-index tl-idx)))
-        (when (= expr-val 'flow-storm/bookmark)
+        (when (and (symbol? expr-val)
+                   (= expr-val 'flow-storm/bookmark))
           (let [ev (events/make-expression-bookmark-event {:flow-id flow-id
                                                            :thread-id thread-id
                                                            :idx tl-idx
