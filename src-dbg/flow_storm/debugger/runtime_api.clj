@@ -59,14 +59,14 @@
   (callstack-node-frame [_ node])
   (fn-call-stats [_ flow-id thread-id])
 
-  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args render-ret?])
   (interrupt-all-tasks [_])
   (start-task [_ task-id])
-
+  (collect-fn-frames-task [_ flow-id thread-id fn-ns fn-name form-id render-args render-ret?])
   (find-expr-entry-task [_ criteria])
   (total-order-timeline-task [_ opts])
   (thread-prints-task [_ print-cfg])
   (search-collect-timelines-entries-task [_ criteria opts])
+
   (discard-flow [_ flow-id])
 
   (def-value [_ var-symb val-ref])

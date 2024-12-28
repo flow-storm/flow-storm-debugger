@@ -266,6 +266,7 @@
   (log "Unloading" ns)
   (remove-ns ns)
   (dosync
+   #_:clj-kondo/ignore
    (alter @#'clojure.core/*loaded-libs* disj ns)))
 
 (defn- ns-load-file [content ns file-name]

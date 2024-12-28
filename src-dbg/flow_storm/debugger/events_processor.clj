@@ -11,6 +11,8 @@
             [flow-storm.debugger.ui.flows.general :as ui-general]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
+            [flow-storm.utils :refer [log]]
+            [flow-storm.jobs :refer [timeline-updates-check-interval]]
             [flow-storm.debugger.state :as dbg-state]))
 
 (defn- vanilla-var-instrumented-event [{:keys [var-ns var-name]}]
@@ -70,9 +72,16 @@
   ;; If there is a tab open for the thread already, update it
   (when (dbg-state/get-thread flow-id thread-id)
     (ui-utils/run-later
-     (if (:auto-update-ui? (dbg-state/debugger-config))
-       (flows-screen/update-outdated-thread-ui flow-id thread-id)
-       (flows-screen/make-outdated-thread flow-id thread-id)))))
+      (if (:auto-update-ui? (dbg-state/debugger-config))
+
+        (let [start (System/currentTimeMillis)]
+          (flows-screen/update-outdated-thread-ui flow-id thread-id)
+          (when (> (- (System/currentTimeMillis) start)
+                   timeline-updates-check-interval)
+            (log "WARNING: UI updates are slow, disabling automatic updates.")
+            (dbg-state/set-auto-update-ui false)))
+
+        (flows-screen/make-outdated-thread flow-id thread-id)))))
 
 (defn- task-submitted-event [_]
   (ui-main/set-task-cancel-btn-enable true))

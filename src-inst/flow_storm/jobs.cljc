@@ -6,7 +6,7 @@
   #?(:clj (:import [java.util.concurrent Executors TimeUnit])))
 
 (def mem-reporter-interval 1000)
-(def updates-reporter-interval 1000)
+(def timeline-updates-check-interval 2000)
 (defonce cancel-jobs-fn (atom nil))
 
 
@@ -48,7 +48,7 @@
                                   (rt-events/publish-event!
                                    (rt-events/make-timeline-updated-event flow-id thread-id)))
                                 (reset! last-checked-stamps new-stamps)))
-                            updates-reporter-interval)]
+                            timeline-updates-check-interval)]
     (reset! cancel-jobs-fn (fn []
                              (mem-job-cancel)
                              (updates-job-cancel)))))
