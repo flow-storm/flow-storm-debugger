@@ -4,6 +4,14 @@
 	
 ### New Features
 
+### Changes 
+    
+### Bugs fixed
+
+## 4.1.0 (01-01-2025)
+	
+### New Features
+
     - Add configurable auto jump to exceptions
     - New eql-query-pprint visualizer
     - New webpage visualizer
