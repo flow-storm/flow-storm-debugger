@@ -253,6 +253,10 @@
                                                              {:on-eval rt-outputs/handle-eval-result
                                                               :on-out  rt-outputs/handle-out-write
                                                               :on-err  rt-outputs/handle-err-write}))))]
+          ;; TODO: remove binding *msg*
+          ;; this isn't needed anymore for nrepl >= 1.3.1 (https://github.com/nrepl/nrepl/issues/363)
+          ;; Let's leave it for some time since doesn't seams to hurt and allows people to use *out* and *err*
+          ;; with 1.3.0
           (binding [*msg* msg]
             (next-handler msg)))))))
 
