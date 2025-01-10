@@ -161,7 +161,8 @@
                (let [top-bottom-margins 25
                      capture-window-size 1000
                      ^doubles captured-samples (double-array capture-window-size 0)
-                     curr-pos (atom 0)
+                     *curr-pos (atom 0)
+                     *h-scale (atom 1)
                      canvas-width 1000
                      canvas-height 500
                      canvas (Canvas. canvas-width canvas-height)
@@ -175,7 +176,7 @@
                                     (let [maxs (apply max captured-samples)
                                           mins (apply min captured-samples)
                                           sample-range (* 2 (max (Math/abs maxs) (Math/abs mins)))
-                                          scale (/ (- canvas-height (* 2 top-bottom-margins))
+                                          v-scale (/ (- canvas-height (* 2 top-bottom-margins))
                                                    (if (zero? sample-range) 1 sample-range))]
                                       (.clearRect  gc 0 0 canvas-width canvas-height)
                                       (.setStroke  gc Color/MAGENTA)
@@ -195,19 +196,31 @@
                                         (when (< i (dec capture-window-size))
                                           (let [s-i      (aget captured-samples i)
                                                 s-i-next (aget captured-samples (inc i))
-                                                y1 (- mid-y (* scale s-i))
-                                                y2 (- mid-y (* scale s-i-next))]
-                                            (.strokeLine ^GraphicsContext gc x y1 (+ x x-step) y2)
+                                                y1 (- mid-y (* v-scale s-i))
+                                                y2 (- mid-y (* v-scale s-i-next))
+                                                h-scale @*h-scale
+                                                x1 (* h-scale x)
+                                                x2 (* h-scale (+ x x-step))]
+                                            (.strokeLine ^GraphicsContext gc x1 y1 x2 y2)
                                             (recur (inc i) (+ x x-step))))))))
                      add-sample (fn add-sample [^double s]
-                                  (aset-double captured-samples @curr-pos s)
-                                  (swap! curr-pos (fn [cp]
+                                  (aset-double captured-samples @*curr-pos s)
+                                  (swap! *curr-pos (fn [cp]
                                                     (if (< cp (dec capture-window-size))
                                                       (inc cp)
-                                                      0))))]
+                                                      0))))
+                     ;; have to do like this because there is a bug on ScrollEvents firing twice
+                     ;; on the current javafx version
+                     tools-box (ui/h-box :childs [(ui/icon-button :icon-name "mdi-magnify-minus"
+                                                                  :on-click (fn [] (swap! *h-scale - 0.1)))
+                                                  (ui/icon-button :icon-name "mdi-magnify-plus"
+                                                                  :on-click (fn [] (swap! *h-scale + 0.1)))]
+                                         :spacing 5)
+                     box (ui/border-pane :top tools-box
+                                         :center canvas)]
                  (add-sample val)
                  (.start anim-timer)
-                 {:fx/node canvas
+                 {:fx/node box
                   :add-sample add-sample
                   :stop-timer (fn [] (.stop anim-timer))}))
   :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
