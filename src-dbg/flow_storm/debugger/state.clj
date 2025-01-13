@@ -173,12 +173,14 @@
 (s/def :config/debug-mode? boolean?)
 (s/def :config/auto-jump-on-exception? boolean?)
 (s/def :config/auto-update-ui? boolean?)
+(s/def :config/pprint-previews? boolean?)
 
 (s/def ::debugger-config (s/keys :req-un [:config/repl
                                           :config/debugger-host
                                           :config/debugger-ws-port
                                           :config/runtime-host
                                           :config/debug-mode?
+                                          :config/pprint-previews?
                                           :config/auto-jump-on-exception?
                                           :config/auto-update-ui?]))
 
@@ -273,7 +275,8 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false
                      :auto-jump-on-exception? false
-                     :auto-update-ui? true}
+                     :auto-update-ui? true
+                     :pprint-previews? true}
    :bookmarks {}
    :visualizers {}
    :data-windows {}})
@@ -321,6 +324,9 @@
 
 (defn set-auto-update-ui [enable?]
   (swap! state assoc-in [:debugger-config :auto-update-ui?] enable?))
+
+(defn set-pprint-previews [enable?]
+  (swap! state assoc-in [:debugger-config :pprint-previews?] enable?))
 
 (defn toggle-debug-mode []
   (swap! state update-in [:debugger-config :debug-mode?] not))

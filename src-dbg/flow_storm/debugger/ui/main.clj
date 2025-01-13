@@ -251,7 +251,11 @@
                                      {:text "Auto update UI"
                                       :check-item? true
                                       :checked? (:auto-update-ui? (dbg-state/debugger-config))
-                                      :on-click (fn [enable?] (dbg-state/set-auto-update-ui enable?))}])
+                                      :on-click (fn [enable?] (dbg-state/set-auto-update-ui enable?))}
+                                     {:text "Pretty print previews"
+                                      :check-item? true
+                                      :checked? (:pprint-previews? (dbg-state/debugger-config))
+                                      :on-click (fn [enable?] (dbg-state/set-pprint-previews enable?))}])
         help-menu (ui/menu :label "_Help"
                            :items [{:text "Tutorial"
                                     :on-click (fn []

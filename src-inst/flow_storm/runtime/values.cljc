@@ -292,12 +292,12 @@
 (register-data-aspect-extractor
  {:id :previewable
   :pred (fn [x _] (any? x))
-  :extractor (fn [o _]
+  :extractor (fn [o {:keys [pprint-previews?]}]
                {:preview/pprint
                 (-> o
-                    (val-pprint {:pprint? true
+                    (val-pprint {:pprint? pprint-previews?
                                  :print-length 10
-                                 :print-level 10
+                                 :print-level 5
                                  :print-meta? false})
                     :val-str)})})
 

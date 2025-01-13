@@ -2,9 +2,9 @@
   (:require [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.ui.commons :refer [def-val]]
-            [flow-storm.debugger.state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]])
   (:import [javafx.scene.layout VBox Priority]
            [javafx.scene.control TextArea TextField]))
 
@@ -83,7 +83,7 @@
                                      (runtime-api/val-pprint rt-api val-ref {:print-length 50
                                                                              :print-level (Integer/parseInt (.getText ^TextField print-level-txt))
                                                                              :print-meta? (ui-utils/checkbox-checked? print-meta-chk)
-                                                                             :pprint? true}))]
+                                                                             :pprint? (:pprint-previews? (dbg-state/debugger-config))}))]
     (ui-utils/set-button-action def-btn (fn [] (def-val val-ref)))
     (ui-utils/set-button-action inspect-btn (fn [] (data-windows/create-data-window-for-vref val-ref)))
     (ui-utils/set-button-action tap-btn (fn [] (runtime-api/tap-value rt-api val-ref)))

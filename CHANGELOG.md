@@ -4,6 +4,9 @@
 	
 ### New Features
 
+    - Configurable pprint previews menu for slow to pprint values cases
+    - Very crude zoom-in/zoom-out on scope visualizer
+
 ### Changes 
     
 ### Bugs fixed

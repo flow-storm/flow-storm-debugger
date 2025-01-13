@@ -151,13 +151,17 @@
            nil)
          call-resp)))))
 
+(defn- config-dw-extras [extras]
+  (assoc extras
+         :pprint-previews? (:pprint-previews? (dbg-state/debugger-config))))
+
 (defrecord LocalRuntimeApi [api-cache]
 
   RuntimeApiP
 
   (runtime-config [_] (api-call :local "runtime-config" []))
   (val-pprint [_ v opts] (api-call :local "val-pprint" [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
-  (data-window-push-val-data [_ dw-id val-ref extra] (api-call :local "data-window-push-val-data" [dw-id val-ref extra]))
+  (data-window-push-val-data [_ dw-id val-ref extra] (api-call :local "data-window-push-val-data" [dw-id val-ref (config-dw-extras extra)]))
   (get-form [_ form-id] (api-call :local "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :local "timeline-entry" [flow-id thread-id idx drift]))
@@ -297,7 +301,7 @@
 
   (runtime-config [_] (api-call :remote "runtime-config" []))
   (val-pprint [_ v opts] (api-call :remote "val-pprint" [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
-  (data-window-push-val-data [_ dw-id val-ref extra] (api-call :remote "data-window-push-val-data" [dw-id val-ref extra]))
+  (data-window-push-val-data [_ dw-id val-ref extra] (api-call :remote "data-window-push-val-data" [dw-id val-ref (config-dw-extras extra)]))
   (get-form [_ form-id] (api-call :remote "get-form" [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote "timeline-count" [flow-id thread-id]))
   (timeline-entry [_ flow-id thread-id idx drift] (api-call :remote "timeline-entry" [flow-id thread-id idx drift]))
