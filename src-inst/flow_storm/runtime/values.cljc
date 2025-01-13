@@ -335,10 +335,10 @@
 (register-data-aspect-extractor
  {:id :eql-query-pprint
   :pred (fn [x _] (coll? x))
-  :extractor (fn [coll {:keys [query]}]
+  :extractor (fn [coll {:keys [query pprint-previews?]}]
                (let [query (or query '[*])
                      q-pprint (-> (eql/eql-query coll query)
-                                  (val-pprint {:pprint? true
+                                  (val-pprint {:pprint? pprint-previews?
                                                :print-meta? false})
                                   :val-str)]
                  {:eql/pprint q-pprint
