@@ -99,6 +99,8 @@ If you want to enhance, fix, debug, or just learn about the internals of FlowSto
 
 ## Some demo videos (newers at the top)
 
+- [Clojure visual-tools 29 - FlowStorm 4.1 workflows](https://www.youtube.com/watch?v=9nY25hwzWRc)
+- [Clojure web apps with FlowStorm 3.17](https://www.youtube.com/watch?v=h8AFpZkAwPo)
 - [Reifying execution, the interactive programming missing piece](https://www.youtube.com/watch?v=BuSpMvVU7j4&t=1394s)
 - [FlowStorm printer demo](https://www.youtube.com/watch?v=06-MA4HSS24)
 - [Smashing a real ClojureScript bug with FlowStorm](https://www.youtube.com/watch?v=4VXT-RHHuvI)
