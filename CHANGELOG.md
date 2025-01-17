@@ -8,6 +8,8 @@
     - Very crude zoom-in/zoom-out on scope visualizer
 
 ### Changes 
+
+    - Make *out* and *err* print panel font monospaced
     
 ### Bugs fixed
 

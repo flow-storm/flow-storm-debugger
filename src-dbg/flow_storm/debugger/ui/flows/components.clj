@@ -21,7 +21,7 @@
   (let [^TextArea result-txt (ui/text-area
                               :text ""
                               :editable? false
-                              :class "value-pprint")
+                              :class "monospaced")
         print-meta-chk (ui/check-box :selected? false)
         print-level-txt  (ui/text-field :initial-text "5"
                                         :align :center

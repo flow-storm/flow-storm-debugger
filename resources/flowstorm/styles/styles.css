@@ -183,7 +183,7 @@
     -fx-fill: -fx-theme-flow-code-text;
 }
 
-.value-pprint {
+.monospaced {
     -fx-font-family: 'monospaced';
 }
 

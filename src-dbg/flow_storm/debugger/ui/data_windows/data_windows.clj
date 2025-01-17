@@ -147,7 +147,7 @@
                             {:fx/node (ui/text-area
                                        :text (pr-str e)
                                        :editable? false
-                                       :class "value-pprint")})))
+                                       :class "monospaced")})))
            viz-combo (ui/combo-box :items visualizers
                                    :selected default-viz
                                    :cell-factory   (fn [_ {:keys [id]}] (ui/label :text (str id)))

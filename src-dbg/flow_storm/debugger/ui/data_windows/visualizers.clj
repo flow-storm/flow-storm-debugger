@@ -55,7 +55,7 @@
                {:fx/node (ui/text-area
                           :text pprint
                           :editable? false
-                          :class "value-pprint")})
+                          :class "monospaced")})
   :on-update (fn [_ {:keys [fx/node]} {:keys [new-val]}]
                (ui-utils/set-text-input-text node (str new-val)))})
 
@@ -289,7 +289,7 @@
                (let [val-txt (ui/text-area
                               :text pprint
                               :editable? false
-                              :class "value-pprint")
+                              :class "monospaced")
                      query-txt (ui/text-field
                                 :initial-text (pr-str query)
                                 :on-return-key (fn [txt]

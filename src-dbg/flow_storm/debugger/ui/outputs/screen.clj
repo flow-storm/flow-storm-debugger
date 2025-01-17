@@ -87,7 +87,9 @@
                                       (update-outputs-data-window val-ref "eval"))))
                       :selection-mode :single)
 
-        out-and-err-txt (ui/text-area :text "" :editable? false)
+        out-and-err-txt (ui/text-area :text ""
+                                      :editable? false
+                                      :class "monospaced")
 
         taps-lv-data
         (ui/list-view :editable? false
