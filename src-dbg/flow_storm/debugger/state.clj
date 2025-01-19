@@ -340,21 +340,6 @@
 (defn set-runtime-config [config]
   (swap! state assoc :runtime-config config))
 
-(defn create-flow [flow-id timestamp]
-  ;; if a flow for `flow-id` already exist we discard it and
-  ;; will be GCed
-
-  (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
-                                          :flow/threads {}
-                                          :flow/exceptions {}
-                                          :timestamp timestamp}))
-
-(defn remove-flow [flow-id]
-  (swap! state update :flows dissoc flow-id))
-
-(defn all-flows-ids []
-  (keys (get @state :flows)))
-
 (defn update-thread-info [thread-id info]
   (swap! state assoc-in [:threads-info thread-id] info))
 
@@ -381,6 +366,27 @@
                  (-> s
                      (update-in [:flows flow-id :flow/threads] dissoc thread-id)
                      (update :threads-info dissoc thread-id)))))
+
+(defn create-flow [flow-id timestamp]
+  ;; if a flow for `flow-id` already exist we discard it and
+  ;; will be GCed
+
+  (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
+                                          :flow/threads {}
+                                          :flow/exceptions {}
+                                          :timestamp timestamp}))
+
+(defn flow-threads-ids [flow-id]
+  (keys (get-in @state [:flows flow-id :flow/threads])))
+
+(defn remove-flow [flow-id]
+  (doseq [tid (flow-threads-ids flow-id)]
+    (remove-thread flow-id tid))
+
+  (swap! state update :flows dissoc flow-id))
+
+(defn all-flows-ids []
+  (keys (get @state :flows)))
 
 (defn current-timeline-entry [flow-id thread-id]
   (:thread/curr-timeline-entry (get-thread flow-id thread-id)))
