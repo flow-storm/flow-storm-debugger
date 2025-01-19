@@ -13,6 +13,8 @@
     
 ### Bugs fixed
 
+    - Fix printer removing after flow cleanning
+
 ## 4.1.0 (01-01-2025)
 	
 ### New Features

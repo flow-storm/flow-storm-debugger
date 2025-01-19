@@ -13,12 +13,18 @@
            [javafx.stage Stage]))
 
 
+(defn- make-printer-print-outs-list-id [flow-id]
+  (format "printer-print-outs-list-%s" flow-id))
+
+(defn- make-printer-prints-controls-table-id [flow-id]
+  (format "printer-prints-controls-table-%s" flow-id))
+
 (defn clear-prints-ui [flow-id]
-  (when-let [[{:keys [clear]}] (obj-lookup flow-id "printer-print-outs-list")]
+  (when-let [[{:keys [clear]}] (obj-lookup (make-printer-print-outs-list-id flow-id))]
     (clear)))
 
 (defn update-prints-controls [flow-id]
-  (when-let [[{:keys [clear add-all]}] (obj-lookup flow-id "printer-prints-controls-table")]
+  (when-let [[{:keys [clear add-all]}] (obj-lookup (make-printer-prints-controls-table-id flow-id))]
     (let [printers-rows (->> (dbg-state/printers flow-id)
                              (reduce-kv (fn [r _ frm-printers]
                                           (reduce-kv (fn [rr _ p]
@@ -69,7 +75,8 @@
                                                                                    (update-prints-controls flow-id)))))
                        :items [])]
 
-    (store-obj flow-id "printer-prints-controls-table" table-data)
+    ;; Hacky, we store the obj as a global instead of under flow-id so the printers don't need to be redefined after flow-cleanning
+    (store-obj (make-printer-prints-controls-table-id flow-id) table-data)
 
     table-view-pane))
 
@@ -167,7 +174,9 @@
                    :paddings [10 10 10 10])]
 
     (store-obj flow-id "printer-thread-id-combo" thread-id-combo)
-    (store-obj flow-id "printer-print-outs-list" list-data)
+
+    ;; Hacky, we store the obj as a global instead of under flow-id so the printers don't need to be redefined after flow-cleanning
+    (store-obj (make-printer-print-outs-list-id flow-id) list-data)
 
     (VBox/setVgrow list-view Priority/ALWAYS)
 
