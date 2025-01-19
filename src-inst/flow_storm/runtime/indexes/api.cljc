@@ -882,12 +882,13 @@
                                         entry-idx (index-protos/entry-idx tl-entry)]
                                     (binding [*print-length* print-length
                                               *print-level* print-level]
-                                      {:text (->> val
-                                                  transform-expr-fn
-                                                  pr-str
-                                                  (utils/format format-str))
-                                       :idx entry-idx                                       
-                                       :thread-id thread-id}))))))
+                                      (let [transf-expr (transform-expr-fn val)]
+                                        {:text (utils/format format-str
+                                                             (if (string? transf-expr) ;; don't pr-str strings so we don't escape newlines
+                                                               transf-expr
+                                                               (pr-str transf-expr)))                                         
+                                         :idx entry-idx                                       
+                                         :thread-id thread-id})))))))
         threads-stacks (atom {})]
     (fn [thread-id tl-entry]
       (let [form-id (when-let [thread-fn-call (first (get @threads-stacks thread-id))]

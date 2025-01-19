@@ -10,6 +10,7 @@
 ### Changes 
 
     - Make *out* and *err* print panel font monospaced
+    - Make printer support printing multi-line strings when printing strings
     
 ### Bugs fixed
 
