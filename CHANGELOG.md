@@ -15,6 +15,7 @@
 ### Bugs fixed
 
     - Fix printer removing after flow cleanning
+    - Fix data-window eql extractor so it doesn't break on infinite sequences
 
 ## 4.1.0 (01-01-2025)
 	

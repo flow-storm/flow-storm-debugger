@@ -40,10 +40,25 @@
     ;; non entity maps
     (map? data)
     (utils/update-values data #(eql-query % q))
+
+    ;; be carefull with infinite sequences
+    (not (counted? data))
+    (let [length-limit 1000
+          proc-data (map #(eql-query % q) data)]
+      (if (< (bounded-count length-limit data) length-limit)
+        proc-data
+        (conj (take length-limit proc-data) :flow-storm/not-counted-truncated)))
+
+    (list? data)
+    (map #(eql-query % q) data)
+
+    (vector? data)
+    (mapv #(eql-query % q) data)
     
     ;; every other collection
     :else
-    (into (empty data) (map #(eql-query % q) data))))
+    (into (empty data) (map #(eql-query % q)) data)))
+
 
 (comment
   
@@ -62,9 +77,11 @@
                            {:kind :small :position :right}
                            {:kind :big :position :center}}}
                  {:type :bike
-                  :wheels 2}]}])
+                  :wheels 2}]
+      :infinite (cycle [{:name "Bob" :age 41} {:name "Alice" :age 32}])}])
 
-  
+  (tap> data)
+  (eql-query (range) '[*])
   (eql-query data '[*])
   (eql-query data '[:name])
   (eql-query data '[:name :age :vehicles])
@@ -75,6 +92,7 @@
   (eql-query data '[:name :age {:vehicles [:type {:seats [?]}]}])
   (eql-query data '[:name :age {:vehicles [:type {:seats [:kind]}]}])
 
+  (eql-query data '[:name {:infinite [:age]}])
   (eql-query data '[:name {:houses [:rooms]}])
 
   )

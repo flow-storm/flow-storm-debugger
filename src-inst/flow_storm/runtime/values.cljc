@@ -339,7 +339,8 @@
                (let [query (or query '[*])
                      q-pprint (-> (eql/eql-query coll query)
                                   (val-pprint {:pprint? pprint-previews?
-                                               :print-meta? false})
+                                               :print-meta? false
+                                               :print-length 1000})
                                   :val-str)]
                  {:eql/pprint q-pprint
                   :eql/query query}))})
