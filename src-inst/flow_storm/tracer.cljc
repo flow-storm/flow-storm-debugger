@@ -47,8 +47,8 @@
 #?(:clj
    (defn- block-this-thread [flow-id breakpoint]
      (let [thread-obj (Thread/currentThread)
-           tname (.getName thread-obj)
-           tid (.getId thread-obj)]
+           tname (utils/get-current-thread-name)
+           tid (utils/get-current-thread-id)]
        (if (= tname"JavaFX Application Thread")
 
          (utils/log "WARNING, skipping thread block, trace is being executed by the UI thread and doing so will freeze the UI.")

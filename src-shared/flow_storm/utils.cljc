@@ -130,6 +130,8 @@
      :clj (System/nanoTime)))
 
 (defn get-current-thread-id []
+  ;; TODO: eventually move this to (.threadId ...), since .getId was
+  ;; deprecated and it looks like it is not reliable anymore
   #?(:clj (.getId (Thread/currentThread))
      :cljs 0))
 
@@ -138,6 +140,8 @@
      :cljs "main"))
 
 (defn get-thread-object-by-id [thread-id]
+  ;; TODO: eventually move this to (.threadId ...), since .getId was
+  ;; deprecated and it looks like it is not reliable anymore
   #?(:clj (some #(when (= (.getId %) thread-id) %) (.keySet (Thread/getAllStackTraces)))
      :cljs thread-id))
 
