@@ -76,7 +76,7 @@ If your project is using deps.edn, you should modify it to look like this :
  :aliases {:dev {;; for disabling the official compiler
                  :classpath-overrides {org.clojure/clojure nil} 
                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-3"}
-                              com.github.flow-storm/flow-storm-dbg {:mvn/version "4.1.0"}}
+                              com.github.flow-storm/flow-storm-dbg {:mvn/version "4.1.1"}}
                  :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
                             "-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"]}}}
 ----
@@ -105,7 +105,7 @@ If your project uses lein, your project.clj file should look something like this
 ----
 (defproject my.project "1.0.0"
   :profiles {:dev {:dependencies [[com.github.flow-storm/clojure "1.12.0-3"]
-                                  [com.github.flow-storm/flow-storm-dbg "4.1.0"] ]
+                                  [com.github.flow-storm/flow-storm-dbg "4.1.1"] ]
                    ;; for disabling the official compiler
                    :exclusions [org.clojure/clojure] 
                    :jvm-opts ["-Dclojure.storm.instrumentEnable=true"                   
@@ -147,7 +147,7 @@ For example you can modify your ~/.clojure/deps.edn like this :
            :1.12-storm
            {:classpath-overrides {org.clojure/clojure nil}
             :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-3"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.1.0"}}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.1.1"}}
             :jvm-opts ["-Dflowstorm.startRecording=false"
                        "-Dclojure.storm.instrumentEnable=true"
                        "-Dclojure.storm.instrumentAutoPrefixes=true"
@@ -170,7 +170,7 @@ If you are using leiningen instead, you can modify your ~/.lein/profiles.clj lik
 ----
 {:flowstorm
  {:dependencies [[com.github.flow-storm/clojure "1.12.0-3"]
-                 [com.github.flow-storm/flow-storm-dbg "4.1.0"]]
+                 [com.github.flow-storm/flow-storm-dbg "4.1.1"]]
   :exclusions [org.clojure/clojure]
   :jvm-opts ["-Dflowstorm.startRecording=false"
              "-Dclojure.storm.instrumentEnable=true"

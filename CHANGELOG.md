@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+        
+### Changes
+    
+### Bugs fixed
+        
+## 4.1.1 (29-01-2025)
+	
+### New Features
 
     - Configurable pprint previews menu for slow to pprint values cases
     - Very crude zoom-in/zoom-out on scope visualizer
