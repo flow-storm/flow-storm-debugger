@@ -1,6 +1,6 @@
 (ns flow-storm.debugger.ui.flows.call-tree
   (:require [flow-storm.debugger.ui.flows.code :as flow-code]
-            [flow-storm.debugger.ui.flows.general :as ui-flows-gral :refer [show-message]]
+            [flow-storm.debugger.ui.flows.general :as ui-flows-gral]
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
@@ -17,27 +17,25 @@
 
 (defn update-call-stack-tree-pane [flow-id thread-id]
   (let [lazy-tree-item (fn lazy-tree-item [tree-node]
-                         (let [calls (runtime-api/callstack-node-childs rt-api tree-node)]
+                         (let [childs-calls (runtime-api/callstack-node-childs rt-api tree-node)
+                               limited-calls (->> childs-calls
+                                                  (take call-stack-tree-childs-limit)
+                                                  (remove (fn [child-node]
+                                                            (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
+                                                              (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
+                                                  (into []))
+                               final-calls (if (= (count limited-calls) call-stack-tree-childs-limit)
+                                             (update limited-calls (dec (count limited-calls)) (fn [c] (with-meta c {:truncated-last-child? true})))
+                                             limited-calls)]
                            (proxy [TreeItem] [tree-node]
                              (getChildren []
                                (let [^ObservableList super-childrens (proxy-super getChildren)]
                                  (if (.isEmpty super-childrens)
-                                   (let [new-children (->> calls
-                                                           (take call-stack-tree-childs-limit)
-                                                           (remove (fn [child-node]
-                                                                     (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
-                                                                       (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
-                                                           (map lazy-tree-item))]
-
-                                     (when (> (count calls) call-stack-tree-childs-limit)
-                                       (show-message (format "Tree childs had been limited to %d to keep the UI responsive. You can still analyze all of them with the rest of the tools."
-                                                             call-stack-tree-childs-limit)
-                                                     :warning))
-
-                                     (.setAll super-childrens ^objects (into-array Object new-children))
+                                   (do
+                                     (.setAll super-childrens ^objects (into-array Object (map lazy-tree-item final-calls)))
                                      super-childrens)
                                    super-childrens)))
-                             (isLeaf [] (empty? calls)))))
+                             (isLeaf [] (empty? final-calls)))))
         tree-root-node (runtime-api/callstack-tree-root-node rt-api flow-id thread-id)
         ^TreeItem root-item (lazy-tree-item tree-root-node)
         [tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")]
@@ -53,24 +51,25 @@
       (subs step-1 1 (count step-1))
       (subs step-1 1 (dec (count step-1))))))
 
-(defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec] :as frame} item-level]
+(defn- create-call-stack-tree-graphic-node [{:keys [form-id fn-name fn-ns args-vec truncated-last-child?] :as frame} item-level]
   ;; Important !
   ;; this will be called for all visible tree nodes after any expansion
   ;; so it should be fast
-  (if (:root? frame)
+  (if
 
-    (ui/label :text ".")
+    (:root? frame)        (ui/label :text ".")
 
     (let [{:keys [multimethod/dispatch-val form/form]} (runtime-api/get-form rt-api form-id)
           form-hint (if (= item-level 1)
                       (utils/elide-string (pr-str form) 80)
                       "")]
 
-      (ui/h-box :childs [(ui/label :text (if dispatch-val
-                                           (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 1 :print-level 1 :pprint? false})) (format-tree-fn-call-args args-vec))
-                                           (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
-                         (ui/label :text form-hint
-                                   :class "light")]))))
+      (ui/h-box :childs (cond-> [(ui/label :text (if dispatch-val
+                                                   (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 1 :print-level 1 :pprint? false})) (format-tree-fn-call-args args-vec))
+                                                   (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
+                                 (ui/label :text form-hint
+                                           :class "light")]
+                          truncated-last-child? (conj (ui/label :text "Childs limit reached, truncated ...")))))))
 
 (defn- select-call-stack-tree-node [flow-id thread-id match-idx]
   (let [[^TreeView tree-view] (obj-lookup flow-id thread-id "callstack_tree_view")
@@ -118,12 +117,13 @@
 
             (let [^TreeItem tree-item (.getTreeItem ^TreeCell this)
                   item-level (.getTreeItemLevel tree-view tree-item)
-                  frame (runtime-api/callstack-node-frame rt-api tree-node)
+                  {:keys [truncated-last-child?]} (meta tree-node)
+                  frame (cond-> (runtime-api/callstack-node-frame rt-api tree-node)
+                          truncated-last-child? (assoc :truncated-last-child? true))
                   fn-call-idx (:fn-call-idx frame)]
 
+              ;; it's the root dummy node, put controls
               (if (:root? frame)
-
-                ;; it's the root dummy node, put controls
                 (-> this
                     (ui-utils/set-graphic (ui/icon-button :icon-name "mdi-adjust"
                                                           :on-click (fn [] (highlight-current-frame flow-id thread-id))
