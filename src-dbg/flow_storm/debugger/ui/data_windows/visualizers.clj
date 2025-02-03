@@ -8,7 +8,8 @@
            [javafx.animation AnimationTimer]
            [javafx.scene.paint Color]
            [javafx.scene.text Font]
-           [javafx.scene.layout Priority HBox VBox]))
+           [javafx.scene.layout Priority HBox VBox]
+           [java.util.concurrent.locks ReentrantLock]))
 
 (defonce *visualizers (atom {}))
 (defonce *defaults-visualizers (atom ()))
@@ -161,6 +162,7 @@
                (let [top-bottom-margins 25
                      capture-window-size 1000
                      ^doubles captured-samples (double-array capture-window-size 0)
+                     ^ReentrantLock samples-lock (ReentrantLock.)
                      *curr-pos (atom 0)
                      *h-scale (atom 1)
                      canvas-width 1000
@@ -191,20 +193,32 @@
                                       (when-not (zero? mins) (.fillText  gc (str mins) 10 (- canvas-height 5)))
 
                                       (.setStroke  gc Color/ORANGE)
-                                      (loop [i 0
-                                             x 0]
-                                        (when (< i (dec capture-window-size))
-                                          (let [s-i      (aget captured-samples i)
-                                                s-i-next (aget captured-samples (inc i))
-                                                y1 (- mid-y (* v-scale s-i))
-                                                y2 (- mid-y (* v-scale s-i-next))
-                                                h-scale @*h-scale
-                                                x1 (* h-scale x)
-                                                x2 (* h-scale (+ x x-step))]
-                                            (.strokeLine ^GraphicsContext gc x1 y1 x2 y2)
-                                            (recur (inc i) (+ x x-step))))))))
+
+                                      (.lock samples-lock)
+                                      (let [from-idx @*curr-pos]
+                                        (loop [drawed 0
+                                               i from-idx
+                                               x 0]
+                                          (when (< drawed (dec capture-window-size))
+                                            (let [next-i (if (< i (dec capture-window-size))
+                                                           (inc i)
+                                                           0)
+                                                  s-i      (aget captured-samples i)
+                                                  s-i-next (aget captured-samples next-i)
+                                                  y1 (- mid-y (* v-scale s-i))
+                                                  y2 (- mid-y (* v-scale s-i-next))
+                                                  h-scale @*h-scale
+                                                  x1 (* h-scale x)
+                                                  x2 (* h-scale (+ x x-step))]
+                                              (.strokeLine ^GraphicsContext gc x1 y1 x2 y2)
+                                              (recur (inc drawed)
+                                                     next-i
+                                                     (+ x x-step))))))
+                                      (.unlock samples-lock))))
                      add-sample (fn add-sample [^double s]
+                                  (.lock samples-lock)
                                   (aset-double captured-samples @*curr-pos s)
+                                  (.unlock samples-lock)
                                   (swap! *curr-pos (fn [cp]
                                                     (if (< cp (dec capture-window-size))
                                                       (inc cp)
