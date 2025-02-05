@@ -8,6 +8,7 @@
 
     - Make scope visualizer a "rolling scope"
     - Show tree-view childs truncation message inside the tree-view instead of a popup alert
+    - Upgrade to hansel 0.1.84 which doesn't depend on core.async
     
 ### Bugs fixed
         
