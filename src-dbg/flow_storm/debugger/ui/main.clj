@@ -36,6 +36,7 @@
             [flow-storm.debugger.docs]
             [flow-storm.debugger.tutorials.basics :as tut-basics]
             [flow-storm.debugger.user-guide :as user-guide]
+            [flow-storm.debugger.ui.plugins :as plugins]
             [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
@@ -144,7 +145,14 @@
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
-        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab outputs-tab docs-tab]
+        plugins-tabs (->> (plugins/plugins)
+                          (mapv (fn [p]
+                                  (ui/tab :text (:plugin/label p)
+                                          :class "vertical-tab"
+                                          :content (:fx/node ((:plugin/on-create p) nil))
+                                          :on-selection-changed (event-handler [_])
+                                          :id (:plugin/key p)))))
+        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab] plugins-tabs)
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
