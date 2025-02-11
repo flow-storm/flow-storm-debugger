@@ -3,7 +3,9 @@
 ## master (unreleased)
 	
 ### New Features
-        
+    
+    - Basic plugins system
+    
 ### Changes
      
 ### Bugs fixed

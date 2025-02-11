@@ -285,6 +285,7 @@
 
 (defn combo-box-set-items [^ComboBox cbox items]
   (let [observable-list (FXCollections/observableArrayList)]
+    (.clear observable-list)
     (.setItems cbox observable-list)
     (observable-add-all observable-list items)))
 

@@ -8,6 +8,7 @@
 
   (:require [flow-storm.state-management :refer [defstate]]
             [flow-storm.utils :refer [pop-n] :as utils]
+            [flow-storm.debugger.ui.plugins :as plugins]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s])
   (:import [javafx.stage Stage]))
@@ -448,6 +449,12 @@
 
 (defn current-stylesheets []
   (let [{:keys [selected-theme extra-styles selected-font-size-style-idx]} @state
+        plugins-styles (->> (plugins/plugins)
+                            (keep (fn [p]
+                                    (when-let [css-res (case selected-theme
+                                                         :dark  (:plugin/dark-css-resource p)
+                                                         :light (:plugin/light-css-resource p))]
+                                      (str (io/resource css-res))))))
         default-styles (str (io/resource "flowstorm/styles/styles.css"))
         theme-base-styles (str (io/resource (case selected-theme
                                               :dark  "flowstorm/styles/theme_dark.css"
@@ -459,6 +466,7 @@
                        (str (io/as-url (io/file extra-styles))))]
     (cond-> [theme-base-styles
              default-styles]
+      true (into plugins-styles)
       extra-styles (conj extra-styles)
       true (conj font-size-style))))
 

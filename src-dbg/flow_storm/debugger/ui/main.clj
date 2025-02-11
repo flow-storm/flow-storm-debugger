@@ -36,6 +36,7 @@
             [flow-storm.debugger.docs]
             [flow-storm.debugger.tutorials.basics :as tut-basics]
             [flow-storm.debugger.user-guide :as user-guide]
+            [flow-storm.debugger.ui.plugins :as plugins]
             [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [com.jthemedetecor OsThemeDetector]
@@ -144,14 +145,26 @@
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
-        tabs-p (ui/tab-pane :tabs [flows-tab browser-tab outputs-tab docs-tab]
+        plugins-tabs (->> (plugins/plugins)
+                          (mapv (fn [p]
+                                  (ui/tab :text (:plugin/label p)
+                                          :class "vertical-tab"
+                                          :content (:fx/node (plugins/create-plugin (:plugin/key p)))
+                                          :id (:plugin/key p)))))
+        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab] plugins-tabs)
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
                             :on-tab-change (fn [_ to-tab]
                                              (dbg-state/set-selected-tool (keyword (.getId to-tab)))
                                              (cond
-                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces))))
+                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces)
+                                               :else (let [p (some (fn [p]
+                                                                     (when (= (.getId to-tab) (str (:plugin/key p)))
+                                                                       p))
+                                                                   (plugins/plugins))]
+                                                       (when-let [{:keys [plugin/on-focus plugin/create-result]} p]
+                                                         (on-focus create-result))))))
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
