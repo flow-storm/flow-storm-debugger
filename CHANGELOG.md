@@ -5,6 +5,14 @@
 ### New Features
         
 ### Changes
+     
+### Bugs fixed
+
+## 4.1.2 (11-02-2025)
+	
+### New Features
+        
+### Changes
 
     - Make scope visualizer a "rolling scope"
     - Show tree-view childs truncation message inside the tree-view instead of a popup alert
