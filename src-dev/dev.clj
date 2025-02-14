@@ -226,8 +226,10 @@
    {:label "Demo Plugin"
     :dark-css-resource  nil
     :light-css-resource nil
+    :on-focus (fn [{:keys [number]}] (println "Demo plugin focused with data " number))
     :on-create (fn [_]
-                 {:fx/node (ui/label :text "Demo plugin body")})})
+                 {:fx/node (ui/label :text "Demo plugin body")
+                  :number 42})})
   )
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Other utilities ;;

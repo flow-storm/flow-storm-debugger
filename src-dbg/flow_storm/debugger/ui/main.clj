@@ -149,8 +149,7 @@
                           (mapv (fn [p]
                                   (ui/tab :text (:plugin/label p)
                                           :class "vertical-tab"
-                                          :content (:fx/node ((:plugin/on-create p) nil))
-                                          :on-selection-changed (event-handler [_])
+                                          :content (:fx/node (plugins/create-plugin (:plugin/key p)))
                                           :id (:plugin/key p)))))
         tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab] plugins-tabs)
                             :rotate? true
@@ -159,7 +158,13 @@
                             :on-tab-change (fn [_ to-tab]
                                              (dbg-state/set-selected-tool (keyword (.getId to-tab)))
                                              (cond
-                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces))))
+                                               (= to-tab browser-tab) (browser-screen/get-all-namespaces)
+                                               :else (let [p (some (fn [p]
+                                                                     (when (= (.getId to-tab) (str (:plugin/key p)))
+                                                                       p))
+                                                                   (plugins/plugins))]
+                                                       (when-let [{:keys [plugin/on-focus plugin/create-result]} p]
+                                                         (on-focus create-result))))))
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))
