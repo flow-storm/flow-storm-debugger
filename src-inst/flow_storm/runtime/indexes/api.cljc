@@ -67,7 +67,8 @@
   You can retrieve forms with :
 
   - `get-form`
-
+  - `get-sub-form`
+  
   MULTI-THREAD TIMELINES
   ----------------------
   
@@ -987,6 +988,11 @@
   [entry]
   (index-protos/bindings entry))
 
+(defn get-form-id
+  "Given a FnCallTrace entry return its form-id"
+  [entry]
+  (index-protos/get-form-id entry))
+
 (defn get-bind-sym-name
   "Given a BindTrace, return its symbol name."
   [entry]
@@ -998,12 +1004,16 @@
   (index-protos/get-bind-val entry))
 
 (defn tote-thread-id
+  "Given a entry from the total order timeline, returns the thread id of
+  the timeline it points to."
   [entry]
   (index-protos/thread-id
    (index-protos/tote-thread-timeline entry)
    0))
 
 (defn tote-entry
+  "Given a entry from the total order timeline, returns the thread timeline entry
+  it points to."
   [entry]
   (index-protos/tote-thread-timeline-entry entry))
 
@@ -1014,16 +1024,39 @@
   [form coord]
   (hansel-utils/get-form-at-coord form coord))
 
-(defn fn-call-trace? [x]
+(defn get-sub-form
+
+  "Given a timeline and a entry return it's sub-form"
+  
+  [timeline tl-entry]
+  (let [fn-call-entry (get timeline (index-protos/fn-call-idx tl-entry))
+        form-id (index-protos/get-form-id fn-call-entry)
+        expr-coord (when (or (expr-trace/expr-trace? tl-entry)
+                             (fn-return-trace/fn-end-trace? tl-entry))
+                     (get-coord-vec tl-entry))
+        form (:form/form (get-form form-id))]
+    (if expr-coord
+      (get-sub-form-at-coord form expr-coord)
+      form)))
+
+(defn fn-call-trace?
+  "Returns true if x is a FnCallTrace"
+  [x]
   (fn-call-trace/fn-call-trace? x))
 
-(defn expr-trace? [x]
+(defn expr-trace?
+  "Returns true if x is a ExprTrace"
+  [x]
   (expr-trace/expr-trace? x))
 
-(defn fn-return-trace? [x]
+(defn fn-return-trace?
+  "Returns true if x is a FnReturnTrace"
+  [x]
   (fn-return-trace/fn-return-trace? x))
 
-(defn fn-unwind-trace? [x]
+(defn fn-unwind-trace?
+  "Returns true if x is a FnUnwindTrace"
+  [x]
   (fn-return-trace/fn-unwind-trace? x))
 
 (defn fn-end-trace?
