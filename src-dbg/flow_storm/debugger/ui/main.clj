@@ -245,7 +245,9 @@
                                                      :tool-flows   (flows-screen/discard-all-flows)
                                                      :tool-browser nil
                                                      :tool-outputs (outputs-screen/clear-outputs)
-                                                     :tool-docs    nil))
+                                                     :tool-docs    nil
+                                                     ;; TODO: execute clear on the selected plugin ??
+                                                     nil))
                                        :accel {:mods [:ctrl]
                                                :key-code KeyCode/L}}
                                       {:text "Unblock all threads"
