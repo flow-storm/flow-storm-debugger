@@ -551,65 +551,72 @@
 ;; Utils for calling by name, used by the websocket api calls ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def api-fn {:runtime-config runtime-config
-             :val-pprint val-pprint
-             :data-window-push-val-data data-window-push-val-data
-             :get-form get-form
-             :timeline-count timeline-count
-             :timeline-entry timeline-entry
-             :multi-thread-timeline-count multi-thread-timeline-count
-             :frame-data frame-data
-             :bindings bindings
-             :callstack-tree-root-node callstack-tree-root-node
-             :callstack-node-childs callstack-node-childs
-             :callstack-node-frame callstack-node-frame
-             :fn-call-stats fn-call-stats
+(def *api-fn-registry
+  (atom {:runtime-config runtime-config
+         :val-pprint val-pprint
+         :data-window-push-val-data data-window-push-val-data
+         :get-form get-form
+         :timeline-count timeline-count
+         :timeline-entry timeline-entry
+         :multi-thread-timeline-count multi-thread-timeline-count
+         :frame-data frame-data
+         :bindings bindings
+         :callstack-tree-root-node callstack-tree-root-node
+         :callstack-node-childs callstack-node-childs
+         :callstack-node-frame callstack-node-frame
+         :fn-call-stats fn-call-stats
 
-             ;; collectors tasks
-             :collect-fn-frames-task collect-fn-frames-task
-             :total-order-timeline-task total-order-timeline-task
-             :thread-prints-task thread-prints-task
+         ;; collectors tasks
+         :collect-fn-frames-task collect-fn-frames-task
+         :total-order-timeline-task total-order-timeline-task
+         :thread-prints-task thread-prints-task
 
-             ;; finders tasks
-             :search-collect-timelines-entries-task search-collect-timelines-entries-task
-             :find-expr-entry-task find-expr-entry-task
-             :find-fn-call-task find-fn-call-task
+         ;; finders tasks
+         :search-collect-timelines-entries-task search-collect-timelines-entries-task
+         :find-expr-entry-task find-expr-entry-task
+         :find-fn-call-task find-fn-call-task
 
-             :discard-flow discard-flow             
-             :tap-value tap-value
-             :interrupt-all-tasks interrupt-all-tasks
-             :start-task start-task
-             :clear-runtime-state clear-runtime-state
-             :clear-outputs clear-outputs
-             :flow-threads-info flow-threads-info
-             :all-flows-threads all-flows-threads
-             :stack-for-frame stack-for-frame
-             :toggle-recording toggle-recording
-             :toggle-multi-timeline-recording toggle-multi-timeline-recording
-             :switch-record-to-flow switch-record-to-flow
-             :set-thread-trace-limit set-thread-trace-limit
-             :ping ping
-             #?@(:clj
-                 [:def-value def-value
-                  :all-namespaces all-namespaces
-                  :all-vars-for-namespace all-vars-for-namespace
-                  :get-var-meta get-var-meta
-                  
-                  :vanilla-instrument-var vanilla-instrument-var
-                  :vanilla-uninstrument-var vanilla-uninstrument-var
-                  :vanilla-instrument-namespaces vanilla-instrument-namespaces
-                  :vanilla-uninstrument-namespaces vanilla-uninstrument-namespaces
+         :discard-flow discard-flow             
+         :tap-value tap-value
+         :interrupt-all-tasks interrupt-all-tasks
+         :start-task start-task
+         :clear-runtime-state clear-runtime-state
+         :clear-outputs clear-outputs
+         :flow-threads-info flow-threads-info
+         :all-flows-threads all-flows-threads
+         :stack-for-frame stack-for-frame
+         :toggle-recording toggle-recording
+         :toggle-multi-timeline-recording toggle-multi-timeline-recording
+         :switch-record-to-flow switch-record-to-flow
+         :set-thread-trace-limit set-thread-trace-limit
+         :ping ping
+         #?@(:clj
+             [:def-value def-value
+              :all-namespaces all-namespaces
+              :all-vars-for-namespace all-vars-for-namespace
+              :get-var-meta get-var-meta
+              
+              :vanilla-instrument-var vanilla-instrument-var
+              :vanilla-uninstrument-var vanilla-uninstrument-var
+              :vanilla-instrument-namespaces vanilla-instrument-namespaces
+              :vanilla-uninstrument-namespaces vanilla-uninstrument-namespaces
 
-                  :get-storm-instrumentation get-storm-instrumentation
-                  :modify-storm-instrumentation modify-storm-instrumentation
-                  
-                  :unblock-thread unblock-thread
-                  :unblock-all-threads unblock-all-threads
-                  :add-breakpoint! add-breakpoint!
-                  :remove-breakpoint! remove-breakpoint!])})
+              :get-storm-instrumentation get-storm-instrumentation
+              :modify-storm-instrumentation modify-storm-instrumentation
+              
+              :unblock-thread unblock-thread
+              :unblock-all-threads unblock-all-threads
+              :add-breakpoint! add-breakpoint!
+              :remove-breakpoint! remove-breakpoint!])}))
 
-(defn call-by-name [fun-key args]  
-  (let [f (get api-fn fun-key)]
+(defn register-api-function [fn-key f]
+  (swap! *api-fn-registry assoc fn-key f))
+
+(defn api-fn-by-key [fn-key]
+  (get @*api-fn-registry fn-key))
+
+(defn call-api-by-fn-key [fn-key args]
+  (let [f (api-fn-by-key fn-key)]
     (apply f args)))
 
 (defn runtime-started? []
@@ -711,7 +718,7 @@
      ;; connect to the remote websocket
      (remote-websocket-client/start-remote-websocket-client
       (assoc config
-             :api-call-fn call-by-name
+             :api-call-fn call-api-by-fn-key
              :on-connected (fn []
                              (let [enqueue-event! (fn [ev]
                                                     (-> [:event ev]
@@ -730,7 +737,7 @@
      (try
        (remote-websocket-client/start-remote-websocket-client
         (assoc config               
-               :api-call-fn call-by-name
+               :api-call-fn call-api-by-fn-key
                :on-connected (fn []
                                ;; subscribe and automatically push all events thru the websocket
                                ;; if there were any events waiting to be dispatched

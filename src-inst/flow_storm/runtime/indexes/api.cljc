@@ -1039,6 +1039,18 @@
       (get-sub-form-at-coord form expr-coord)
       form)))
 
+(defn find-entry-by-sub-form-pred [timeline pred]
+  (some (fn [tl-entry]
+          (let [sub-form (get-sub-form timeline tl-entry)]
+            (when (pred sub-form)
+              tl-entry)))
+        timeline))
+
+(defn find-entry-by-sub-form-pred-all-threads [flow-id pred]
+  (some (fn [thread-id]
+          (find-entry-by-sub-form-pred (get-timeline flow-id thread-id) pred))
+        (all-threads-ids flow-id)))
+
 (defn fn-call-trace?
   "Returns true if x is a FnCallTrace"
   [x]
