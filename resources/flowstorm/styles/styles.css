@@ -29,6 +29,11 @@
     -fx-text-fill: -fx-theme-button1-text;    
 }
 
+.toggle-button:selected {
+    -fx-background-color: -fx-theme-on;
+    -fx-text-fill: #323232;
+}
+
 .list-view .list-cell:selected {
     -fx-background-color: -fx-theme-list-selection;
 }

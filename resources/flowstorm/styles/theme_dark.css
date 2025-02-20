@@ -27,6 +27,7 @@
 	-fx-theme-links:                              #de00c0;
 	-fx-theme-breadcrums:                         #de00c0;
 	-fx-theme-ok:                                 #00ff00;
+    -fx-theme-on:                                 #00d97e;
 	-fx-theme-attention:                          #ff0000;
     -fx-theme-warning:                            orange;
 	-fx-theme-title-label:                        orange;
@@ -36,7 +37,7 @@
     -fx-theme-form-highlight:                     #636363;
     -fx-theme-list-selection:                     #788da1;
     -fx-theme-hl-combos:                          #555478;
-    -fx-theme-important-combos:                   #792a6c;
+    -fx-theme-important-combos:                   #792a6c;    
 }
 
 .root {

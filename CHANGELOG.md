@@ -5,6 +5,7 @@
 ### New Features
     
     - Basic plugins system
+    - Enable/disable instrumentation from the UI
     
 ### Changes
      

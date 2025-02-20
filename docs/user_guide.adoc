@@ -627,9 +627,10 @@ The toolbar as well as the menu provides quick access to some general commands.
 
 image::user_guide_images/toolbar.png[]
 
-Currently :
+From left to right:
 
 - Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.
+- The `Inst enable` button allows to enable/disable instrumentation when in a Storm environment. A change on instrumentation will only affect newly compiled code.
 
 = Flows tool
 
@@ -1832,6 +1833,11 @@ so no need to implement `flow-storm.runtime.values/snapshot-value` for them.
 If you are using _ClojureStorm_ or _ClojureScriptStorm_ it is important to learn how to control what gets instrumented and
 how to uninstrument things. You can configure what gets instrumented automatically on startup via JVM properties but also
 change this while your repl is running without the need to restart it.
+
+== Turning instrumentation on an off
+
+You can turn instrumentation on an off by using the button on <<#_the_tool_bar,the toolbar>>.
+Remember that the change of this setting will only be effective on newly compiled code.
 
 == Setup startup instrumentation
 

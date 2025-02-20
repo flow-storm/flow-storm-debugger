@@ -287,10 +287,20 @@
                                         :tooltip "Cancel current running task (search, etc) (Ctrl-g)"
                                         :on-click (fn [] (runtime-api/interrupt-all-tasks rt-api))
                                         :disable true)
-        tools [task-cancel-btn]]
+        inst-toggle (ui/toggle-button {:label "Inst Enable"
+                                       :on-change (fn [on?]
+                                                    (if (dbg-state/clojure-storm-env?)
+                                                      (runtime-api/turn-storm-instrumentation rt-api on?)
+                                                      (show-message "This functionality is only available in Storm modes" :warning)))})
+        tools [task-cancel-btn inst-toggle]]
 
     (store-obj "task-cancel-btn" task-cancel-btn)
+    (store-obj "inst-toggle-btn" inst-toggle)
     (ui/toolbar :childs tools)))
+
+(defn set-instrumentation-ui [enable?]
+  (let [[inst-toggle] (obj-lookup "inst-toggle-btn")]
+    (.setSelected inst-toggle enable?)))
 
 (defn- build-top-bar-pane []
   (ui/v-box
@@ -383,6 +393,12 @@
 
        (doseq [fid all-flows-ids]
          (create-flow {:flow-id fid}))))))
+
+(defn setup-instrumentation-ui []
+  (ui-utils/run-later
+    (when (dbg-state/clojure-storm-env?)
+      (let [inst-enable? (runtime-api/storm-instrumentation-enable? rt-api)]
+        (set-instrumentation-ui inst-enable?)))))
 
 (defn open-flow-threads-menu [flow-id]
   (flows-screen/select-flow-tab flow-id)

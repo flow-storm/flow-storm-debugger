@@ -6,7 +6,8 @@
   (:import [javafx.scene.control Button Menu ContextMenu Label ListView SelectionMode ListCell MenuItem CheckMenuItem ScrollPane Tab
             Alert ButtonType Alert$AlertType ProgressIndicator ProgressBar TextField TextArea TableView TableColumn TableCell TableRow
             TabPane$TabClosingPolicy TabPane$TabDragPolicy TableColumn$CellDataFeatures TabPane Tooltip MenuButton CustomMenuItem
-            ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane]
+            ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane
+            ToggleButton]
            [javafx.scene.input KeyCombination$Modifier KeyCodeCombination KeyEvent KeyCode]
            [javafx.scene.layout HBox VBox BorderPane Priority GridPane AnchorPane]
            [javafx.geometry Side Orientation NodeOrientation]
@@ -135,6 +136,22 @@
     (when align
       (.setAlignment box (ui-utils/alignment align)))
     box))
+
+(defn toggle-button [& {:keys [label classes on-change disable]}]
+  (let [tb (ToggleButton. label)]
+    (when on-change
+      (.setOnAction tb (event-handler
+                           [_]
+                         (on-change (.isSelected tb)))))
+
+    (when classes
+      (doseq [c classes]
+        (.add (.getStyleClass tb) c)))
+
+    (when disable
+      (.setDisable tb true))
+
+    tb))
 
 (defn border-pane [& {:keys [center bottom top left right class paddings]}]
   (let [bp (BorderPane.)]

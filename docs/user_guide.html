@@ -759,16 +759,17 @@ pre.rouge {
 <li><a href="#_dealing_with_mutable_values">11. Dealing with mutable values</a></li>
 <li><a href="#_controlling_instrumentation">12. Controlling instrumentation</a>
 <ul class="sectlevel2">
-<li><a href="#_setup_startup_instrumentation">12.1. Setup startup instrumentation</a></li>
-<li><a href="#_modifying_instrumentation_with_the_browser">12.2. Modifying instrumentation with the Browser</a></li>
-<li><a href="#_instrumentation_in_vanilla_flowstorm">12.3. Instrumentation in Vanilla FlowStorm</a>
+<li><a href="#_turning_instrumentation_on_an_off">12.1. Turning instrumentation on an off</a></li>
+<li><a href="#_setup_startup_instrumentation">12.2. Setup startup instrumentation</a></li>
+<li><a href="#_modifying_instrumentation_with_the_browser">12.3. Modifying instrumentation with the Browser</a></li>
+<li><a href="#_instrumentation_in_vanilla_flowstorm">12.4. Instrumentation in Vanilla FlowStorm</a>
 <ul class="sectlevel3">
-<li><a href="#_instrument_any_form_with_trace">12.3.1. Instrument any form with #trace</a></li>
-<li><a href="#_run_code_with_rtrace">12.3.2. Run code with #rtrace</a></li>
-<li><a href="#_instrument_namespaces">12.3.3. Instrument namespaces</a></li>
-<li><a href="#_what_cant_be_instrumented">12.3.4. What can&#8217;t be instrumented?</a></li>
-<li><a href="#_un_instrument_code">12.3.5. Un-instrument code</a></li>
-<li><a href="#_instrument_with_the_browser">12.3.6. Instrument with the browser</a></li>
+<li><a href="#_instrument_any_form_with_trace">12.4.1. Instrument any form with #trace</a></li>
+<li><a href="#_run_code_with_rtrace">12.4.2. Run code with #rtrace</a></li>
+<li><a href="#_instrument_namespaces">12.4.3. Instrument namespaces</a></li>
+<li><a href="#_what_cant_be_instrumented">12.4.4. What can&#8217;t be instrumented?</a></li>
+<li><a href="#_un_instrument_code">12.4.5. Un-instrument code</a></li>
+<li><a href="#_instrument_with_the_browser">12.4.6. Instrument with the browser</a></li>
 </ul>
 </li>
 </ul>
@@ -1693,12 +1694,15 @@ that is basically only allowing the server to run if we are running from babashk
 </div>
 </div>
 <div class="paragraph">
-<p>Currently :</p>
+<p>From left to right:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
 <p>Cancel current running task. Whenever you a running a task that can take some time, this button will be red, and you can use it to cancel the task.</p>
+</li>
+<li>
+<p>The <code>Inst enable</code> button allows to enable/disable instrumentation when in a Storm environment. A change on instrumentation will only affect newly compiled code.</p>
 </li>
 </ul>
 </div>
@@ -3679,7 +3683,14 @@ how to uninstrument things. You can configure what gets instrumented automatical
 change this while your repl is running without the need to restart it.</p>
 </div>
 <div class="sect2">
-<h3 id="_setup_startup_instrumentation"><a class="anchor" href="#_setup_startup_instrumentation"></a><a class="link" href="#_setup_startup_instrumentation">12.1. Setup startup instrumentation</a></h3>
+<h3 id="_turning_instrumentation_on_an_off"><a class="anchor" href="#_turning_instrumentation_on_an_off"></a><a class="link" href="#_turning_instrumentation_on_an_off">12.1. Turning instrumentation on an off</a></h3>
+<div class="paragraph">
+<p>You can turn instrumentation on an off by using the button on <a href="#_the_tool_bar">the toolbar</a>.
+Remember that the change of this setting will only be effective on newly compiled code.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setup_startup_instrumentation"><a class="anchor" href="#_setup_startup_instrumentation"></a><a class="link" href="#_setup_startup_instrumentation">12.2. Setup startup instrumentation</a></h3>
 <div class="paragraph">
 <p>The first important thing is to setup your instrumentation correctly via JVM properties :</p>
 </div>
@@ -3713,7 +3724,7 @@ repl.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_modifying_instrumentation_with_the_browser"><a class="anchor" href="#_modifying_instrumentation_with_the_browser"></a><a class="link" href="#_modifying_instrumentation_with_the_browser">12.2. Modifying instrumentation with the Browser</a></h3>
+<h3 id="_modifying_instrumentation_with_the_browser"><a class="anchor" href="#_modifying_instrumentation_with_the_browser"></a><a class="link" href="#_modifying_instrumentation_with_the_browser">12.3. Modifying instrumentation with the Browser</a></h3>
 <div class="paragraph">
 <p>You can use the <code>Browser tool</code> to check and change on the fly the prefixes you configured in the previous section.</p>
 </div>
@@ -3777,7 +3788,7 @@ by executing something like <code>(require 'the-selected.namespace :reload)</cod
 </div>
 </div>
 <div class="sect2">
-<h3 id="_instrumentation_in_vanilla_flowstorm"><a class="anchor" href="#_instrumentation_in_vanilla_flowstorm"></a><a class="link" href="#_instrumentation_in_vanilla_flowstorm">12.3. Instrumentation in Vanilla FlowStorm</a></h3>
+<h3 id="_instrumentation_in_vanilla_flowstorm"><a class="anchor" href="#_instrumentation_in_vanilla_flowstorm"></a><a class="link" href="#_instrumentation_in_vanilla_flowstorm">12.4. Instrumentation in Vanilla FlowStorm</a></h3>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -3799,7 +3810,7 @@ this is done automatically for you, so just skip this section.</p>
 but when executed will trace everything the code is doing.</p>
 </div>
 <div class="sect3">
-<h4 id="_instrument_any_form_with_trace"><a class="anchor" href="#_instrument_any_form_with_trace"></a><a class="link" href="#_instrument_any_form_with_trace">12.3.1. Instrument any form with #trace</a></h4>
+<h4 id="_instrument_any_form_with_trace"><a class="anchor" href="#_instrument_any_form_with_trace"></a><a class="link" href="#_instrument_any_form_with_trace">12.4.1. Instrument any form with #trace</a></h4>
 <div class="paragraph">
 <p>You can instrument any top level form at the repl by writing <code>#trace</code> before it, like this :</p>
 </div>
@@ -3824,7 +3835,7 @@ Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (r
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_code_with_rtrace"><a class="anchor" href="#_run_code_with_rtrace"></a><a class="link" href="#_run_code_with_rtrace">12.3.2. Run code with #rtrace</a></h4>
+<h4 id="_run_code_with_rtrace"><a class="anchor" href="#_run_code_with_rtrace"></a><a class="link" href="#_run_code_with_rtrace">12.4.2. Run code with #rtrace</a></h4>
 <div class="paragraph">
 <p><code>#rtrace</code> is useful in two situations :</p>
 </div>
@@ -3838,7 +3849,7 @@ Use <code>#rtrace</code> to trace and run a form, like <code>#rtrace (map inc (r
 </div>
 </div>
 <div class="sect3">
-<h4 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">12.3.3. Instrument namespaces</a></h4>
+<h4 id="_instrument_namespaces"><a class="anchor" href="#_instrument_namespaces"></a><a class="link" href="#_instrument_namespaces">12.4.3. Instrument namespaces</a></h4>
 <div class="paragraph">
 <p><em>FlowStorm</em> allows you to instrument entire namespaces by providing <code>flow-storm.api/instrument-namespaces-clj</code>.</p>
 </div>
@@ -3872,7 +3883,7 @@ instrument all namespaces starting with <code>org.my-app.core</code>, and all st
 </div>
 </div>
 <div class="sect3">
-<h4 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">12.3.4. What can&#8217;t be instrumented?</a></h4>
+<h4 id="_what_cant_be_instrumented"><a class="anchor" href="#_what_cant_be_instrumented"></a><a class="link" href="#_what_cant_be_instrumented">12.4.4. What can&#8217;t be instrumented?</a></h4>
 <div class="paragraph">
 <p>These are some limitations when instrumenting forms :</p>
 </div>
@@ -3893,7 +3904,7 @@ and <em>FlowStorm</em> automatically tries to instrument it with a lighter profi
 </div>
 </div>
 <div class="sect3">
-<h4 id="_un_instrument_code"><a class="anchor" href="#_un_instrument_code"></a><a class="link" href="#_un_instrument_code">12.3.5. Un-instrument code</a></h4>
+<h4 id="_un_instrument_code"><a class="anchor" href="#_un_instrument_code"></a><a class="link" href="#_un_instrument_code">12.4.5. Un-instrument code</a></h4>
 <div class="paragraph">
 <p>Un-instrumenting code that has been instrumented with <code>#trace</code> or <code>#ctrace</code> is straight forward, just remove the tag and re evaluate the form.</p>
 </div>
@@ -3902,7 +3913,7 @@ and <em>FlowStorm</em> automatically tries to instrument it with a lighter profi
 </div>
 </div>
 <div class="sect3">
-<h4 id="_instrument_with_the_browser"><a class="anchor" href="#_instrument_with_the_browser"></a><a class="link" href="#_instrument_with_the_browser">12.3.6. Instrument with the browser</a></h4>
+<h4 id="_instrument_with_the_browser"><a class="anchor" href="#_instrument_with_the_browser"></a><a class="link" href="#_instrument_with_the_browser">12.4.6. Instrument with the browser</a></h4>
 <div class="paragraph">
 <p>Most of the time you can instrument code by just clicking in the browser. The only exceptions are functions that were just defined in the repl
 and weren&#8217;t loaded from a file.</p>
@@ -4316,7 +4327,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-19 12:20:37 -0300
+Last updated 2025-02-20 10:57:30 -0300
 </div>
 </div>
 </body>

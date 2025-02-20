@@ -118,6 +118,18 @@
                               (.pattern pat)))
                     (catch Exception _ nil))}))
 
+#?(:clj
+   (defn storm-instrumentation-enable? [env-kind]
+     (case env-kind
+       :clj  (utils/call-jvm-method "clojure.storm.Emitter" "getInstrumentationEnable" [])
+       :cljs (deref (requiring-resolve 'cljs.storm.emitter/instrument-enable)))))
+
+#?(:clj
+   (defn turn-storm-instrumentation [env-kind on?]
+     (case env-kind
+       :clj  (utils/call-jvm-method "clojure.storm.Emitter" "setInstrumentationEnable" [on?])
+       :cljs ((requiring-resolve 'cljs.storm.api/set-instrumentation) on?))))
+
 (defn runtime-config []
   (let [storm? (utils/storm-env?)
         env-kind #?(:clj :clj :cljs :cljs)]
@@ -601,8 +613,13 @@
               :vanilla-instrument-namespaces vanilla-instrument-namespaces
               :vanilla-uninstrument-namespaces vanilla-uninstrument-namespaces
 
+              ;; these are about configuring the prefixes
               :get-storm-instrumentation get-storm-instrumentation
               :modify-storm-instrumentation modify-storm-instrumentation
+
+              ;; these are about turning on/off 
+              :storm-instrumentation-enable? storm-instrumentation-enable?
+              :turn-storm-instrumentation turn-storm-instrumentation
               
               :unblock-thread unblock-thread
               :unblock-all-threads unblock-all-threads

@@ -81,8 +81,12 @@
   (vanilla-uninstrument-var [_ var-ns var-name opts])
   (vanilla-instrument-namespaces [_ nsnames opts])
   (vanilla-uninstrument-namespaces [_ nanames opts])
+
   (modify-storm-instrumentation [_ operation opts])
   (get-storm-instrumentation [_])
+
+  (storm-instrumentation-enable? [_])
+  (turn-storm-instrumentation [_ on?])
 
   (reload-namespace [_ ns-info])
 
@@ -212,6 +216,12 @@
 
   (get-storm-instrumentation [_]
     (api-call :local :get-storm-instrumentation [:clj]))
+
+  (storm-instrumentation-enable? [_]
+    (api-call :local :storm-instrumentation-enable? [:clj]))
+
+  (turn-storm-instrumentation [_ on?]
+    (api-call :local :turn-storm-instrumentation [:clj on?]))
 
   (reload-namespace [_ ns-info]
     (require (symbol (:namespace-name ns-info)) :reload))
@@ -395,6 +405,20 @@
 
       ;; for Clojure just call the api
       :clj (api-call :remote :get-storm-instrumentation [:clj])))
+
+  (storm-instrumentation-enable? [_]
+    (case (dbg-state/env-kind)
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/storm-instrumentation-enable? :cljs)"))
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote :storm-instrumentation-enable? [:clj])))
+
+  (turn-storm-instrumentation [_ on?]
+    (case (dbg-state/env-kind)
+      :cljs (safe-eval-code-str (format "(flow-storm.runtime.debuggers-api/turn-storm-instrumentation :cljs %s)" on?))
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote :turn-storm-instrumentation [:clj on?])))
 
   (reload-namespace [_ ns-info]
     (let [reload-code (format "(require '%s :reload)" (:namespace-name ns-info))]

@@ -96,7 +96,8 @@
      (do
        (state-management/start {:only local-debugger-state-vars
                                 :config config})
-       (ui-main/setup-ui-from-runtime-config))
+       (ui-main/setup-ui-from-runtime-config)
+       (ui-main/setup-instrumentation-ui))
 
      ;; else, start components for remote debugging
      (let [ws-connected? (promise)
@@ -147,10 +148,12 @@
        ;; initialize the UI with the info retrieved from the runtime
        (when @ws-connected?
          (signal-ws-connected true)
-         (ui-main/setup-ui-from-runtime-config)))))
+         (ui-main/setup-ui-from-runtime-config)
+         (ui-main/setup-instrumentation-ui)))))
 
   ;; for both, local and remote
 
   ;; we set the events dispatch-fn afater `state-management/start` returns because
   ;; we know the UI is ready to start processing events
-  (events-queue/add-dispatch-fn :events-processor events-processor/process-event))
+  (events-queue/add-dispatch-fn :events-processor events-processor/process-event)
+  )
