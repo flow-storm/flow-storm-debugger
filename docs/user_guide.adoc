@@ -2029,6 +2029,85 @@ image::user_guide_images/fully_instrument_form.png[]
 If you have instrumented a form with the <<#_instrument_namespaces_2, :light profile>> you can fully instrument it by right clicking on the current form
 and then clicking `Fully instrument this form`.
 
+= Plugins
+
+FlowStorm plugins allows you to add specialized tools to visualize and interact
+with your recordings.
+
+== Using plugins
+
+For using a pluggin follow each plugging instructions which should normally consists of adding
+its dependency and then requiring its namespace somewhere in your user or dev namespace before starting
+debugger UI.
+
+After that you should see a new vertical tab with the plugin UI as you can see here :
+
+image::user_guide_images/plugin_demo.png[]
+
+== Creating plugins
+
+Creating a pluging consists of two parts :
+
+- The runtime code that will analyze the recordings and expose an api for the UI
+- The UI component which will visualize and interact with the data via the runtime api
+
+This split is not required, but it is important if you want your plugin to support ClojureScript also or
+remote Clojure debugging where the UI is not running in the same process as the runtime.
+
+This components are normally splitted in two files, a runtime.clj and ui.clj, but you can name them however you
+want.
+
+We are going to go over each part in more detail but for a real plugin please checkout the https://github.com/flow-storm/flow-storm-async-flow-plugin[core.async.flow plugin].
+
+=== Runtime
+
+Here is a runtime file template you can use :
+
+[%nowrap,clojure]
+----
+(ns flow-storm.plugins.my-plugin.runtime
+  (:require [flow-storm.runtime.indexes.api :as ia]
+            [flow-storm.runtime.debuggers-api :as dbg-api]))
+
+(defn my-data-extraction [flow-id thread-id]
+  (let [timeline (ia/get-timeline flow-id thread-id)]
+    (reduce (fn [acc tl-entry]
+              ;; extract some interesting infor from the timeline
+              )
+            {}
+            timeline)
+    ))
+
+;; Expose your function so it can be called from the UI part
+(dbg-api/register-api-function :plugins.my-plugin/extract-data my-data-extraction)
+----
+
+=== UI
+
+Here is a ui file template you can use :
+
+[%nowrap,clojure]
+----
+(ns flow-storm.plugins.my-plugin.ui
+  (:require [flow-storm.debugger.ui.plugins :as fs-plugins]
+            [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]])
+  (:import [javafx.scene.control Label]))
+
+(fs-plugins/register-plugin
+ :my-plugin
+ {:label "My plugin"
+  :dark-css-resource  "flow-storm-my-plugin/dark.css"
+  :light-css-resource "flow-storm-my-plugin/light.css"
+  :on-focus (fn [{:keys [some-other-data]}]
+              ;; This gets called everytime the plugin tab gets focused
+              )
+  :on-create (fn [_]
+               {:fx/node (Label.
+                          ;; You can call your runtime registered function
+                          (str (runtime-api/call-by-fn-key rt-api :plugins.my-plugin/extract-data [0 10])))
+                :some-other-data 42})})
+----
+
 
 = Styling and theming
 

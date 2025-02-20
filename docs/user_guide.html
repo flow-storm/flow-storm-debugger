@@ -774,37 +774,48 @@ pre.rouge {
 </li>
 </ul>
 </li>
-<li><a href="#_styling_and_theming">13. Styling and theming</a></li>
-<li><a href="#_key_bindings">14. Key bindings</a>
+<li><a href="#_plugins">13. Plugins</a>
 <ul class="sectlevel2">
-<li><a href="#_general">14.1. General</a></li>
-<li><a href="#_flows">14.2. Flows</a></li>
+<li><a href="#_using_plugins">13.1. Using plugins</a></li>
+<li><a href="#_creating_plugins">13.2. Creating plugins</a>
+<ul class="sectlevel3">
+<li><a href="#_runtime">13.2.1. Runtime</a></li>
+<li><a href="#_ui">13.2.2. UI</a></li>
 </ul>
 </li>
-<li><a href="#_debugging_react_native_applications">15. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></li>
-<li><a href="#_opening_forms_in_editors">17. Opening forms in editors</a>
-<ul class="sectlevel2">
-<li><a href="#_emacs">17.1. Emacs</a></li>
-<li><a href="#_vscode">17.2. VSCode</a></li>
-<li><a href="#_intellij">17.3. IntelliJ</a></li>
-<li><a href="#_vim">17.4. Vim</a></li>
 </ul>
 </li>
-<li><a href="#_editorsides_integration">18. Editors/IDEs integration</a>
+<li><a href="#_styling_and_theming">14. Styling and theming</a></li>
+<li><a href="#_key_bindings">15. Key bindings</a>
 <ul class="sectlevel2">
-<li><a href="#_emacs_2">18.1. Emacs</a></li>
-<li><a href="#_vscode_2">18.2. VSCode</a></li>
-<li><a href="#_intellij_idea_cursive">18.3. IntelliJ IDEA (Cursive)</a></li>
+<li><a href="#_general">15.1. General</a></li>
+<li><a href="#_flows">15.2. Flows</a></li>
 </ul>
 </li>
-<li><a href="#_tutorials_and_demos">19. Tutorials and demos</a></li>
-<li><a href="#_troubleshooting">20. Troubleshooting</a>
+<li><a href="#_debugging_react_native_applications">16. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></li>
+<li><a href="#_opening_forms_in_editors">18. Opening forms in editors</a>
 <ul class="sectlevel2">
-<li><a href="#_run_with_jdk_11">20.1. Run with JDK 11</a></li>
+<li><a href="#_emacs">18.1. Emacs</a></li>
+<li><a href="#_vscode">18.2. VSCode</a></li>
+<li><a href="#_intellij">18.3. IntelliJ</a></li>
+<li><a href="#_vim">18.4. Vim</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">21. Internals, diagrams and documentation</a></li>
+<li><a href="#_editorsides_integration">19. Editors/IDEs integration</a>
+<ul class="sectlevel2">
+<li><a href="#_emacs_2">19.1. Emacs</a></li>
+<li><a href="#_vscode_2">19.2. VSCode</a></li>
+<li><a href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></li>
+</ul>
+</li>
+<li><a href="#_tutorials_and_demos">20. Tutorials and demos</a></li>
+<li><a href="#_troubleshooting">21. Troubleshooting</a>
+<ul class="sectlevel2">
+<li><a href="#_run_with_jdk_11">21.1. Run with JDK 11</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">22. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -4000,7 +4011,112 @@ and then clicking <code>Fully instrument this form</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">13. Styling and theming</a></h2>
+<h2 id="_plugins"><a class="anchor" href="#_plugins"></a><a class="link" href="#_plugins">13. Plugins</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>FlowStorm plugins allows you to add specialized tools to visualize and interact
+with your recordings.</p>
+</div>
+<div class="sect2">
+<h3 id="_using_plugins"><a class="anchor" href="#_using_plugins"></a><a class="link" href="#_using_plugins">13.1. Using plugins</a></h3>
+<div class="paragraph">
+<p>For using a pluggin follow each plugging instructions which should normally consists of adding
+its dependency and then requiring its namespace somewhere in your user or dev namespace before starting
+debugger UI.</p>
+</div>
+<div class="paragraph">
+<p>After that you should see a new vertical tab with the plugin UI as you can see here :</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="user_guide_images/plugin_demo.png" alt="plugin demo">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_plugins"><a class="anchor" href="#_creating_plugins"></a><a class="link" href="#_creating_plugins">13.2. Creating plugins</a></h3>
+<div class="paragraph">
+<p>Creating a pluging consists of two parts :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The runtime code that will analyze the recordings and expose an api for the UI</p>
+</li>
+<li>
+<p>The UI component which will visualize and interact with the data via the runtime api</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This split is not required, but it is important if you want your plugin to support ClojureScript also or
+remote Clojure debugging where the UI is not running in the same process as the runtime.</p>
+</div>
+<div class="paragraph">
+<p>This components are normally splitted in two files, a runtime.clj and ui.clj, but you can name them however you
+want.</p>
+</div>
+<div class="paragraph">
+<p>We are going to go over each part in more detail but for a real plugin please checkout the <a href="https://github.com/flow-storm/flow-storm-async-flow-plugin">core.async.flow plugin</a>.</p>
+</div>
+<div class="sect3">
+<h4 id="_runtime"><a class="anchor" href="#_runtime"></a><a class="link" href="#_runtime">13.2.1. Runtime</a></h4>
+<div class="paragraph">
+<p>Here is a runtime file template you can use :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="nf">ns</span><span class="w"> </span><span class="n">flow-storm.plugins.my-plugin.runtime</span><span class="w">
+  </span><span class="p">(</span><span class="no">:require</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.runtime.indexes.api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">ia</span><span class="p">]</span><span class="w">
+            </span><span class="p">[</span><span class="n">flow-storm.runtime.debuggers-api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">dbg-api</span><span class="p">]))</span><span class="w">
+
+</span><span class="p">(</span><span class="k">defn</span><span class="w"> </span><span class="n">my-data-extraction</span><span class="w"> </span><span class="p">[</span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">]</span><span class="w">
+  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[</span><span class="n">timeline</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/get-timeline</span><span class="w"> </span><span class="n">flow-id</span><span class="w"> </span><span class="n">thread-id</span><span class="p">)]</span><span class="w">
+    </span><span class="p">(</span><span class="nb">reduce</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">acc</span><span class="w"> </span><span class="n">tl-entry</span><span class="p">]</span><span class="w">
+              </span><span class="c1">;; extract some interesting infor from the timeline</span><span class="w">
+              </span><span class="p">)</span><span class="w">
+            </span><span class="p">{}</span><span class="w">
+            </span><span class="n">timeline</span><span class="p">)</span><span class="w">
+    </span><span class="p">))</span><span class="w">
+
+</span><span class="c1">;; Expose your function so it can be called from the UI part</span><span class="w">
+</span><span class="p">(</span><span class="nf">dbg-api/register-api-function</span><span class="w"> </span><span class="no">:plugins.my-plugin/extract-data</span><span class="w"> </span><span class="n">my-data-extraction</span><span class="p">)</span></code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ui"><a class="anchor" href="#_ui"></a><a class="link" href="#_ui">13.2.2. UI</a></h4>
+<div class="paragraph">
+<p>Here is a ui file template you can use :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="nf">ns</span><span class="w"> </span><span class="n">flow-storm.plugins.my-plugin.ui</span><span class="w">
+  </span><span class="p">(</span><span class="no">:require</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.debugger.ui.plugins</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">fs-plugins</span><span class="p">]</span><span class="w">
+            </span><span class="p">[</span><span class="n">flow-storm.debugger.runtime-api</span><span class="w"> </span><span class="no">:as</span><span class="w"> </span><span class="n">runtime-api</span><span class="w"> </span><span class="no">:refer</span><span class="w"> </span><span class="p">[</span><span class="n">rt-api</span><span class="p">]])</span><span class="w">
+  </span><span class="p">(</span><span class="no">:import</span><span class="w"> </span><span class="p">[</span><span class="n">javafx.scene.control</span><span class="w"> </span><span class="n">Label</span><span class="p">]))</span><span class="w">
+
+</span><span class="p">(</span><span class="nf">fs-plugins/register-plugin</span><span class="w">
+ </span><span class="no">:my-plugin</span><span class="w">
+ </span><span class="p">{</span><span class="no">:label</span><span class="w"> </span><span class="s">"My plugin"</span><span class="w">
+  </span><span class="no">:dark-css-resource</span><span class="w">  </span><span class="s">"flow-storm-my-plugin/dark.css"</span><span class="w">
+  </span><span class="no">:light-css-resource</span><span class="w"> </span><span class="s">"flow-storm-my-plugin/light.css"</span><span class="w">
+  </span><span class="no">:on-focus</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">some-other-data</span><span class="p">]}]</span><span class="w">
+              </span><span class="c1">;; This gets called everytime the plugin tab gets focused</span><span class="w">
+              </span><span class="p">)</span><span class="w">
+  </span><span class="no">:on-create</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">_</span><span class="p">]</span><span class="w">
+               </span><span class="p">{</span><span class="no">:fx/node</span><span class="w"> </span><span class="p">(</span><span class="nf">Label.</span><span class="w">
+                          </span><span class="c1">;; You can call your runtime registered function</span><span class="w">
+                          </span><span class="p">(</span><span class="nb">str</span><span class="w"> </span><span class="p">(</span><span class="nf">runtime-api/call-by-fn-key</span><span class="w"> </span><span class="n">rt-api</span><span class="w"> </span><span class="no">:plugins.my-plugin/extract-data</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="w"> </span><span class="mi">10</span><span class="p">])))</span><span class="w">
+                </span><span class="no">:some-other-data</span><span class="w"> </span><span class="mi">42</span><span class="p">})})</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">14. Styling and theming</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
@@ -4032,10 +4148,10 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">14. Key bindings</a></h2>
+<h2 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">15. Key bindings</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">14.1. General</a></h3>
+<h3 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">15.1. General</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -4075,7 +4191,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">14.2. Flows</a></h3>
+<h3 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">15.2. Flows</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -4129,7 +4245,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">15. Debugging react native applications</a></h2>
+<h2 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">16. Debugging react native applications</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
@@ -4162,7 +4278,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">16. Working on Windows with WSL2</a></h2>
+<h2 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For those using current versions of WSL2 on Windows it should be pretty straight forward.</p>
@@ -4184,7 +4300,7 @@ seams to be solved just by installing font packages like <code>dejavu-fonts</cod
 </div>
 </div>
 <div class="sect1">
-<h2 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">17. Opening forms in editors</a></h2>
+<h2 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">18. Opening forms in editors</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :</p>
@@ -4208,7 +4324,7 @@ which should open the file at that specific line (useful for long forms).</p>
 <p>Here are some known setups for most common editors :</p>
 </div>
 <div class="sect2">
-<h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">17.1. Emacs</a></h3>
+<h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">18.1. Emacs</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="c1">;; for opening your project files</span><span class="w">
@@ -4223,7 +4339,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">17.2. VSCode</a></h3>
+<h3 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">18.2. VSCode</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=code --goto &lt;&lt;FILE&gt;&gt;:&lt;&lt;LINE&gt;&gt;"</span></code></pre>
@@ -4231,7 +4347,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">17.3. IntelliJ</a></h3>
+<h3 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">18.3. IntelliJ</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=idea --line &lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
@@ -4239,7 +4355,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">17.4. Vim</a></h3>
+<h3 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">18.4. Vim</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=vim +&lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
@@ -4249,26 +4365,26 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">18. Editors/IDEs integration</a></h2>
+<h2 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">19. Editors/IDEs integration</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">18.1. Emacs</a></h3>
+<h3 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">19.1. Emacs</a></h3>
 <div class="paragraph">
 <p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">18.2. VSCode</a></h3>
+<h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">19.2. VSCode</a></h3>
 
 </div>
 <div class="sect2">
-<h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">18.3. IntelliJ IDEA (Cursive)</a></h3>
+<h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></h3>
 
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">19. Tutorials and demos</a></h2>
+<h2 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">20. Tutorials and demos</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top" class="bare">https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top</a></p>
@@ -4276,10 +4392,10 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">20. Troubleshooting</a></h2>
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">21. Troubleshooting</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">20.1. Run with JDK 11</a></h3>
+<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">21.1. Run with JDK 11</a></h3>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -4298,7 +4414,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">21. Internals, diagrams and documentation</a></h2>
+<h2 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">22. Internals, diagrams and documentation</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :</p>
@@ -4327,7 +4443,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-20 10:57:30 -0300
+Last updated 2025-02-20 11:57:33 -0300
 </div>
 </div>
 </body>
