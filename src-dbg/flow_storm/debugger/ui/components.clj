@@ -9,7 +9,7 @@
             ComboBox CheckBox TextInputDialog SplitPane TreeView ToolBar MenuBar DialogPane
             ToggleButton]
            [javafx.scene.input KeyCombination$Modifier KeyCodeCombination KeyEvent KeyCode]
-           [javafx.scene.layout HBox VBox BorderPane Priority GridPane AnchorPane]
+           [javafx.scene.layout HBox VBox BorderPane Priority GridPane AnchorPane Pane]
            [javafx.geometry Side Orientation NodeOrientation]
            [javafx.collections.transformation FilteredList]
            [javafx.beans.value ChangeListener]
@@ -25,6 +25,12 @@
            [javafx.stage Stage]
            [javafx.scene.web WebView WebEngine]))
 
+(defn pane [& {:keys [childs classes]}]
+  (let [p (Pane. (into-array Node childs))]
+    (when classes
+      (doseq [c classes]
+        (.add (.getStyleClass p) c)))
+    p))
 
 (defn menu-item [{:keys [text on-click accel check-item? checked? disable?]}]
   (let [mi (if check-item?

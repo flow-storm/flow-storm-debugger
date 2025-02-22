@@ -8,6 +8,7 @@
             [flow-storm.debugger.ui.flows.multi-thread-timeline :as multi-thread-timeline]
             [flow-storm.debugger.ui.flows.printer :as printer]
             [flow-storm.debugger.ui.tasks :as tasks]
+            [flow-storm.debugger.ui.plugins :as plugins]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler key-combo-match?]]
             [flow-storm.debugger.ui.components :as ui]
@@ -37,7 +38,12 @@
     (dbg-state/remove-flow flow-id)
 
     ;; clean ui state objects
-    (clean-objs flow-id)))
+    (clean-objs flow-id)
+
+    ;; notify all plugins
+    (doseq [{:keys [plugin/on-flow-clear plugin/create-result]} (plugins/plugins)]
+      (when on-flow-clear
+        (on-flow-clear flow-id create-result)))))
 
 (defn discard-all-flows []
   (doseq [fid (dbg-state/all-flows-ids)]

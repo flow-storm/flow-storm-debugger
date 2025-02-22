@@ -449,12 +449,18 @@
 
 (defn current-stylesheets []
   (let [{:keys [selected-theme extra-styles selected-font-size-style-idx]} @state
-        plugins-styles (->> (plugins/plugins)
-                            (keep (fn [p]
-                                    (when-let [css-res (case selected-theme
-                                                         :dark  (:plugin/dark-css-resource p)
-                                                         :light (:plugin/light-css-resource p))]
-                                      (str (io/resource css-res))))))
+        plugins-styles (reduce (fn [styles {:keys [plugin/css-resource plugin/dark-css-resource plugin/light-css-resource]}]
+                                 (cond-> styles
+                                   css-resource
+                                   (conj (str (io/resource css-resource)))
+
+                                   (and (= selected-theme :dark) dark-css-resource)
+                                   (conj (str (io/resource dark-css-resource)))
+
+                                   (and (= selected-theme :light) light-css-resource)
+                                   (conj (str (io/resource light-css-resource)))))
+                               []
+                               (plugins/plugins))
         default-styles (str (io/resource "flowstorm/styles/styles.css"))
         theme-base-styles (str (io/resource (case selected-theme
                                               :dark  "flowstorm/styles/theme_dark.css"

@@ -4099,6 +4099,7 @@ want.</p>
 </span><span class="p">(</span><span class="nf">fs-plugins/register-plugin</span><span class="w">
  </span><span class="no">:my-plugin</span><span class="w">
  </span><span class="p">{</span><span class="no">:label</span><span class="w"> </span><span class="s">"My plugin"</span><span class="w">
+  </span><span class="no">:css-resource</span><span class="w">  </span><span class="s">"flow-storm-my-plugin/dark.css"</span><span class="w">
   </span><span class="no">:dark-css-resource</span><span class="w">  </span><span class="s">"flow-storm-my-plugin/dark.css"</span><span class="w">
   </span><span class="no">:light-css-resource</span><span class="w"> </span><span class="s">"flow-storm-my-plugin/light.css"</span><span class="w">
   </span><span class="no">:on-focus</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">some-other-data</span><span class="p">]}]</span><span class="w">
@@ -4108,7 +4109,44 @@ want.</p>
                </span><span class="p">{</span><span class="no">:fx/node</span><span class="w"> </span><span class="p">(</span><span class="nf">Label.</span><span class="w">
                           </span><span class="c1">;; You can call your runtime registered function</span><span class="w">
                           </span><span class="p">(</span><span class="nb">str</span><span class="w"> </span><span class="p">(</span><span class="nf">runtime-api/call-by-fn-key</span><span class="w"> </span><span class="n">rt-api</span><span class="w"> </span><span class="no">:plugins.my-plugin/extract-data</span><span class="w"> </span><span class="p">[</span><span class="mi">0</span><span class="w"> </span><span class="mi">10</span><span class="p">])))</span><span class="w">
-                </span><span class="no">:some-other-data</span><span class="w"> </span><span class="mi">42</span><span class="p">})})</span></code></pre>
+                </span><span class="no">:some-other-data</span><span class="w"> </span><span class="mi">42</span><span class="p">})</span><span class="w">
+  </span><span class="no">:on-flow-clear</span><span class="w"> </span><span class="p">(</span><span class="k">fn</span><span class="w"> </span><span class="p">[</span><span class="n">flow-id</span><span class="w"> </span><span class="p">{</span><span class="no">:keys</span><span class="w"> </span><span class="p">[</span><span class="n">some-other-data</span><span class="p">]}]</span><span class="w">
+                     </span><span class="c1">;; this gets called everytime a flow is discarded so you can update your plugin UI accordignly</span><span class="w">
+                   </span><span class="p">)</span><span class="w">
+  </span><span class="p">})</span></code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_styling_plugins_uis"><a class="anchor" href="#_styling_plugins_uis"></a><a class="link" href="#_styling_plugins_uis">Styling plugins UIs</a></h5>
+<div class="paragraph">
+<p>As you saw in the ui plugin registration, you can provide three resources related to styling :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>:css-resource If there is any, it will be loaded and applied. Here is where you put your JavaFX pluging styles</p>
+</li>
+<li>
+<p>:dark-css-resource This styles are going to be applied only in dark mode</p>
+</li>
+<li>
+<p>:light-css-resource This styles are going to be applied only in light mode</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For making sure you plugin styles doesn&#8217;t mix with other styles, your plugin is automatically wrapped in a pane
+with your plugin key (my-plugin in the example above) as a class.</p>
+</div>
+<div class="paragraph">
+<p>This means your plugin css can contain code like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">.my-plugin</span><span class="w"> </span><span class="n">.table-view</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="n">-fx-font-family</span><span class="err">:</span><span class="w"> </span><span class="ss">'monospaced</span><span class="o">'</span><span class="c1">;</span><span class="w">
+</span><span class="p">}</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -4443,7 +4481,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-20 11:57:33 -0300
+Last updated 2025-02-22 17:43:55 -0300
 </div>
 </div>
 </body>

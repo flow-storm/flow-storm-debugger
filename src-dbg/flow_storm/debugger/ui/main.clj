@@ -149,7 +149,10 @@
                           (mapv (fn [p]
                                   (ui/tab :text (:plugin/label p)
                                           :class "vertical-tab"
-                                          :content (:fx/node (plugins/create-plugin (:plugin/key p)))
+                                          :content (ui/border-pane
+                                                    :center (:fx/node (plugins/create-plugin (:plugin/key p)))
+                                                    :class (name (:plugin/key p))
+                                                    :paddings [10 10 10 10])
                                           :id (:plugin/key p)))))
         tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab] plugins-tabs)
                             :rotate? true
@@ -164,7 +167,8 @@
                                                                        p))
                                                                    (plugins/plugins))]
                                                        (when-let [{:keys [plugin/on-focus plugin/create-result]} p]
-                                                         (on-focus create-result))))))
+                                                         (when on-focus
+                                                           (on-focus create-result)))))))
         _ (store-obj "main-tools-tab" tabs-p)]
 
     tabs-p))

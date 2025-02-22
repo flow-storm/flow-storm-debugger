@@ -2096,6 +2096,7 @@ Here is a ui file template you can use :
 (fs-plugins/register-plugin
  :my-plugin
  {:label "My plugin"
+  :css-resource  "flow-storm-my-plugin/dark.css"
   :dark-css-resource  "flow-storm-my-plugin/dark.css"
   :light-css-resource "flow-storm-my-plugin/light.css"
   :on-focus (fn [{:keys [some-other-data]}]
@@ -2105,9 +2106,32 @@ Here is a ui file template you can use :
                {:fx/node (Label.
                           ;; You can call your runtime registered function
                           (str (runtime-api/call-by-fn-key rt-api :plugins.my-plugin/extract-data [0 10])))
-                :some-other-data 42})})
+                :some-other-data 42})
+  :on-flow-clear (fn [flow-id {:keys [some-other-data]}]
+                     ;; this gets called everytime a flow is discarded so you can update your plugin UI accordignly
+                   )
+  })
 ----
 
+==== Styling plugins UIs
+
+As you saw in the ui plugin registration, you can provide three resources related to styling :
+
+- :css-resource If there is any, it will be loaded and applied. Here is where you put your JavaFX pluging styles
+- :dark-css-resource This styles are going to be applied only in dark mode
+- :light-css-resource This styles are going to be applied only in light mode
+
+For making sure you plugin styles doesn't mix with other styles, your plugin is automatically wrapped in a pane
+with your plugin key (my-plugin in the example above) as a class.
+
+This means your plugin css can contain code like :
+
+[%nowrap,clojure]
+----
+.my-plugin .table-view {
+    -fx-font-family: 'monospaced';
+}
+----
 
 = Styling and theming
 
