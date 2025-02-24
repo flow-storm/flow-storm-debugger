@@ -26,8 +26,7 @@
             [clojure.string :as str]
             [clojure.spec.alpha :as s]
             [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.debugger.ui.components :as ui]
-            [flow-storm.debugger.ui.plugins :refer [register-plugin]]))
+            [flow-storm.debugger.ui.components :as ui]))
 
 (set! *warn-on-reflection* true)
 
@@ -215,22 +214,6 @@
   (.interrupt th)
   )
 
-;;;;;;;;;;;;;;;;;;;;;
-;; Plugins testing ;;
-;;;;;;;;;;;;;;;;;;;;;
-
-(comment
-
-  (register-plugin
-   :demo
-   {:label "Demo Plugin"
-    :dark-css-resource  nil
-    :light-css-resource nil
-    :on-focus (fn [{:keys [number]}] (println "Demo plugin focused with data " number))
-    :on-create (fn [_]
-                 {:fx/node (ui/label :text "Demo plugin body")
-                  :number 42})})
-  )
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Other utilities ;;
 ;;;;;;;;;;;;;;;;;;;;;
