@@ -2037,8 +2037,8 @@ with your recordings.
 == Using plugins
 
 For using a pluggin follow each plugging instructions which should normally consists of adding
-its dependency and then requiring its namespace somewhere in your user or dev namespace before starting
-debugger UI.
+its dependency and then setting the jvm prop `flowstorm.plugins.namespaces` with all the main
+namespaces of the plugins you want loaded at startup, like : `"-Dflowstorm.plugins.namespaces=flow-storm.plugins.my-plugin.all"`
 
 After that you should see a new vertical tab with the plugin UI as you can see here :
 

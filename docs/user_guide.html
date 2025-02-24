@@ -4021,8 +4021,8 @@ with your recordings.</p>
 <h3 id="_using_plugins"><a class="anchor" href="#_using_plugins"></a><a class="link" href="#_using_plugins">13.1. Using plugins</a></h3>
 <div class="paragraph">
 <p>For using a pluggin follow each plugging instructions which should normally consists of adding
-its dependency and then requiring its namespace somewhere in your user or dev namespace before starting
-debugger UI.</p>
+its dependency and then setting the jvm prop <code>flowstorm.plugins.namespaces</code> with all the main
+namespaces of the plugins you want loaded at startup, like : <code>"-Dflowstorm.plugins.namespaces=flow-storm.plugins.my-plugin.all"</code></p>
 </div>
 <div class="paragraph">
 <p>After that you should see a new vertical tab with the plugin UI as you can see here :</p>
@@ -4481,7 +4481,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-22 17:43:55 -0300
+Last updated 2025-02-24 12:54:37 -0300
 </div>
 </div>
 </body>

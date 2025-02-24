@@ -28,7 +28,8 @@
             [flow-storm.debugger.repl.core :as repl-core]
             [flow-storm.utils :as utils]
             [flow-storm.state-management :as state-management]
-            [flow-storm.debugger.ui.utils :as ui-utils]))
+            [flow-storm.debugger.ui.utils :as ui-utils]
+            [flow-storm.debugger.ui.plugins :as plugins]))
 
 (def flow-storm-core-ns 'flow-storm.core)
 
@@ -61,11 +62,13 @@
 (defn debugger-config []
   (let [theme-prop (System/getProperty "flowstorm.theme")
         title-prop (System/getProperty "flowstorm.title")
-        styles-prop (System/getProperty "flowstorm.styles")]
+        styles-prop (System/getProperty "flowstorm.styles")
+        plugins-prop (System/getProperty "flowstorm.plugins.namespaces")]
     (cond-> {}
-      theme-prop            (assoc :theme (keyword theme-prop))
-      styles-prop           (assoc :styles styles-prop)
-      title-prop            (assoc :title  title-prop))))
+      theme-prop                      (assoc :theme (keyword theme-prop))
+      styles-prop                     (assoc :styles styles-prop)
+      title-prop                      (assoc :title  title-prop)
+      plugins-prop                    (assoc :plugins-ns-str plugins-prop))))
 
 (defn start-debugger
 
@@ -90,6 +93,9 @@
   (ui-utils/init-toolkit)
 
   (let [config (merge config (debugger-config))]
+
+    (plugins/load-plugins-namespaces config)
+
     (if local?
 
      ;; start components for local debugging

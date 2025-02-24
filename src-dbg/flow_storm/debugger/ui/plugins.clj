@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.plugins
-  (:require [flow-storm.utils :as utils :refer [log-error]]))
+  (:require [flow-storm.utils :as utils :refer [log-error log]]
+            [clojure.string :as str]))
 
 (defonce *plugins (atom {}))
 
@@ -25,3 +26,11 @@
 
 (defn plugins []
   (vals @*plugins))
+
+(defn load-plugins-namespaces [{:keys [plugins-ns-str]}]
+  (when-not (str/blank? plugins-ns-str)
+    (let [namespaces (->> (str/split plugins-ns-str #",")
+                          (mapv symbol))]
+      (doseq [n namespaces]
+        (log (format "Requiring plugin ns %s" n))
+        (require n)))))
