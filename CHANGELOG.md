@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+           
+### Changes
+     
+### Bugs fixed
+
+## 4.2.0 (25-02-2025)
+	
+### New Features
     
     - Basic plugins system
     - Enable/disable instrumentation from the UI
