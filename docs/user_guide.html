@@ -899,10 +899,10 @@ and forth by starting your repl with a different alias or lein profile.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}'</span> <span class="nt">-A</span>:dev
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-4"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}'</span> <span class="nt">-A</span>:dev
 
 <span class="p">;;</span> on Windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """RELEASE"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-4"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -926,7 +926,7 @@ following sections describe.</p>
  </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="c1">;; for disabling the official compiler</span><span class="w">
                  </span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
                  </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-4"</span><span class="p">}</span><span class="w">
-                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.1.2"</span><span class="p">}}</span><span class="w">
+                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                             </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"</span><span class="p">]}}}</span></code></pre>
 </div>
@@ -966,7 +966,7 @@ the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</co
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="nf">defproject</span><span class="w"> </span><span class="n">my.project</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">
   </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-4"</span><span class="p">]</span><span class="w">
-                                  </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.1.2"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
+                                  </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
                    </span><span class="c1">;; for disabling the official compiler</span><span class="w">
                    </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
                    </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
@@ -1022,7 +1022,7 @@ or <code>lein profile</code> so you don&#8217;t have to modify each of your proj
            </span><span class="no">:1.12-storm</span><span class="w">
            </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
             </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-4"</span><span class="p">}</span><span class="w">
-                         </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.1.2"</span><span class="p">}}</span><span class="w">
+                         </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
             </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentAutoPrefixes=true"</span><span class="w">
@@ -1048,7 +1048,7 @@ and use the instructions there to finetune them.</p>
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:flowstorm</span><span class="w">
  </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-4"</span><span class="p">]</span><span class="w">
-                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.1.2"</span><span class="p">]]</span><span class="w">
+                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">]]</span><span class="w">
   </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
   </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
              </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
@@ -1088,28 +1088,11 @@ Moving to lein latest version should work ok even if your global :dependencies c
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span>
 
 <span class="p">;;</span> on Windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span></code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}}}'</span></code></pre>
 </div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using maven RELEASE as version</div>
-<div class="paragraph">
-<p>Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
-but it will be cached unless you run with -Sforce.
-It is much safer to just write the latest versions. Check out  the <a href="https://github.com/flow-storm/flow-storm-debugger/">github page</a> for the latest stable releases.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>If you are a <a href="https://leiningen.org/">lein</a> user add the dependency to your project.clj <code>:dependencies</code> and run <code>lein repl</code>.</p>
@@ -1266,9 +1249,9 @@ is the first one.</p>
         </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"2.25.6"</span><span class="w"> </span><span class="c1">;; &gt;= 2.25.4</span><span class="w">
                                            </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
                      </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
-                     </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
+                     </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.11.132-8"</span><span class="p">}</span><span class="w">
                      </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
-                     </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
+                     </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
        </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"</span><span class="w">
                    </span><span class="s">"-Dcljs.storm.instrumentEnable=true"</span><span class="w">
                    </span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="p">]}}}</span></code></pre>
@@ -1295,7 +1278,7 @@ instrument.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1335,7 +1318,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-8"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.0"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1343,7 +1326,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "RELEASE"} com.github.flow-storm/flow-storm-inst {:mvn/version "RELEASE"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-8"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.0"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1351,7 +1334,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1371,30 +1354,13 @@ still make that work by wrapping the expression on a fn and immediately calling 
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">$</span><span class="w"> </span><span class="n">cat</span><span class="w"> </span><span class="n">shadow-cljs.edn</span><span class="w">
 
 </span><span class="p">{</span><span class="n">...</span><span class="w">
- </span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[</span><span class="n">...</span><span class="w"> </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">]]</span><span class="w">
+ </span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[</span><span class="n">...</span><span class="w"> </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">]]</span><span class="w">
 
  </span><span class="c1">;; the next two lines aren't needed but pretty convenient</span><span class="w">
  </span><span class="no">:nrepl</span><span class="w"> </span><span class="p">{</span><span class="no">:port</span><span class="w"> </span><span class="mi">9000</span><span class="p">}</span><span class="w">
  </span><span class="no">:my-build-id</span><span class="w"> </span><span class="p">{</span><span class="no">:devtools</span><span class="w"> </span><span class="p">{</span><span class="no">:preloads</span><span class="w"> </span><span class="p">[</span><span class="n">flow-storm.preload</span><span class="p">]}}</span><span class="w">
  </span><span class="n">...</span><span class="p">}</span></code></pre>
 </div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Important</div>
-</td>
-<td class="content">
-<div class="title">On using maven RELEASE as version</div>
-<div class="paragraph">
-<p>Be careful when using RELEASE as maven versions, since the first time is going to fetch the latest one
-but it will be cached unless you run with -Sforce.
-It is much safer to just write the latest versions. Check out  the <a href="https://github.com/flow-storm/flow-storm-debugger/">github page</a> for the latest stable releases.</p>
-</div>
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s say you start your repl like :</p>
@@ -1421,10 +1387,10 @@ so to start the debugger and connect to it you run :</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="p">;;</span> on linux and mac-os
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 
 <span class="p">;;</span> on windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """RELEASE"""}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1466,7 +1432,7 @@ but not all features will be supported (mainly the browser features).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1562,10 +1528,10 @@ to run each instance under a different port. You can do this by providing a <cod
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="bash"><span class="c"># on one terminal start your app debugger instance</span>
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
 
 <span class="c"># on a second terminal start your webworker debugger instance</span>
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1660,8 +1626,8 @@ which runs a webserver with a basic todo app.</p>
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
  </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; for disabling the official compiler</span><span class="w">
-                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}</span><span class="w">
-                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"RELEASE"</span><span class="p">}}</span><span class="w">
+                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-4"</span><span class="p">}</span><span class="w">
+                              </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                             </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=user"</span><span class="p">]}}}</span></code></pre>
 </div>
@@ -3524,7 +3490,7 @@ that the debugger websocket server is running on the default port.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3535,7 +3501,7 @@ that the debugger websocket server is running on the default port.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host <span class="s1">'"YOUR-APP-BOX-IP-ADDRESS"'</span> :debugger-host <span class="s1">'"YOUR-BOX-IP-ADDRESS"'</span> :ws-port WS-SERVER-PORT</code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host <span class="s1">'"YOUR-APP-BOX-IP-ADDRESS"'</span> :debugger-host <span class="s1">'"YOUR-BOX-IP-ADDRESS"'</span> :ws-port WS-SERVER-PORT</code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -4294,7 +4260,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "RELEASE"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host <span class="s1">'"YOUR_DEV_MACHINE_IP"'</span></code></pre>
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host <span class="s1">'"YOUR_DEV_MACHINE_IP"'</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4481,7 +4447,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-24 12:54:37 -0300
+Last updated 2025-02-25 11:25:52 -0300
 </div>
 </div>
 </body>
