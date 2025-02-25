@@ -277,7 +277,7 @@
                      :debug-mode? false
                      :auto-jump-on-exception? false
                      :auto-update-ui? true
-                     :pprint-previews? true}
+                     :pprint-previews? false}
    :bookmarks {}
    :visualizers {}
    :data-windows {}})

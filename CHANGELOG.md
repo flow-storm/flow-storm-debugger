@@ -8,6 +8,8 @@
     - Enable/disable instrumentation from the UI
     
 ### Changes
+
+    - Disable preview pprints by default for speed. You can still enable them via the Config menu.
      
 ### Bugs fixed
 
