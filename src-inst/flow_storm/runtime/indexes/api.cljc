@@ -10,24 +10,27 @@
   TIMELINES
   ---------
   
-  Let's say you want to explore recordings on flow 0 thread 18, you can retrieve the timeline
-  by using `get-timeline` like this :
-
+  Retrieving a timeline by flow-id and thread id.
+  If you don't provide the flow-id 0 is assumed.
+  
+  (def timeline (get-timeline 18))
   (def timeline (get-timeline 0 18))
 
-  Once you have the timeline you can start exploring it.
   The timeline implements many of the Clojure basic interfaces, so you can :
   
-  - (count timeline)
-  - (take 10 timeline)
-  - (get timeline 0)
-  - etc
-
+  (count timeline)
+  (take 10 timeline)
+  (get timeline 0)
+  
   The easiest way to take a look at a thread timeline is with some code like this :
 
   (->> timeline
        (take 10)
-       (map as-immutable))
+       (mapv as-immutable))
+
+  Converting all entries to immutable values is very practical since each entry will become a
+  Clojure map, but it is slower and consumes more memory, which becomes a thing in very long timelines,
+  so there are functions to deal with entries objects, without having to create a map out of them.
   
   Timelines entries are of 4 different kinds: FnCallTrace, FnReturnTrace, FnUnwindTrace and ExprTrace.
 
@@ -54,7 +57,13 @@
   - `get-fn-parent-idx`
   - `get-fn-ret-idx`
   - `get-fn-bindings`
+  - `get-form-id`
 
+  FnBind :
+
+  - `get-bind-sym-name`
+  - `get-bind-val`
+  
   You can also access the timeline as a tree by calling :
 
   - `callstack-root-node`
@@ -82,6 +91,11 @@
   (->> mt-timeline
        (take 10)
        (map as-immutable))
+
+  Each total order timeline entry object can give you a pointer to the entry on its thread timeline and the thread id via :
+
+  - `tote-entry`
+  - `tote-thread-id`
   
   OTHER UTILITIES
   ---------------
@@ -90,7 +104,18 @@
   - `fn-call-stats`
   - `find-expr-entry`
   - `find-fn-call-entry`
-  
+  - `print-threads`
+  - `get-fn-call`
+  - `get-sub-form-at-coord`
+  - `get-sub-form`
+  - `find-entry-by-sub-form-pred`
+  - `find-entry-by-sub-form-pred-all-threads`
+  - `fn-call-trace?`
+  - `expr-trace?`
+  - `fn-return-trace?`
+  - `fn-unwind-trace?`
+  - `fn-end-trace?`
+
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.runtime.indexes.timeline-index :as timeline-index]            
@@ -909,7 +934,10 @@
           (expr-trace/expr-trace? tl-entry)
           (maybe-print-entry form-id thread-id tl-entry))))))
 
-(defn timelines-mod-timestamps []
+(defn timelines-mod-timestamps
+  "Returns a set of maps, each containing the thread timeilne last-modified
+  timestamp, which is the last time something was recorded on it."
+  []
   (reduce (fn [acc [fid tid]]
             (let [tl (get-timeline fid tid)]
               (conj acc {:flow-id fid
@@ -918,11 +946,15 @@
           #{}
    (all-threads)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities for exploring indexes from the repl ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn print-threads []
+(defn print-threads
+  "Prints a table with all :flow-id, :thread-id and :thread-name currently
+  found in recordings "
+  []
   (->> (all-threads)
        (map #(zipmap [:flow-id :thread-id :thread-name] %))
        pp/print-table))
@@ -1003,6 +1035,14 @@
   [entry]
   (index-protos/get-bind-val entry))
 
+(defn get-fn-call
+  "Given any timeline entry return its FnCallTrace"
+  [timeline entry]
+  (if (fn-call-trace/fn-call-trace? entry)
+    entry
+    (let [fn-call-idx (fn-call-idx entry)]
+      (get timeline fn-call-idx))))
+
 (defn tote-thread-id
   "Given a entry from the total order timeline, returns the thread id of
   the timeline it points to."
@@ -1039,14 +1079,20 @@
       (get-sub-form-at-coord form expr-coord)
       form)))
 
-(defn find-entry-by-sub-form-pred [timeline pred]
+(defn find-entry-by-sub-form-pred
+  "Find a entry on the timeline that matches a predicate called with
+  each entry sub-form."
+  [timeline pred]
   (some (fn [tl-entry]
           (let [sub-form (get-sub-form timeline tl-entry)]
             (when (pred sub-form)
               tl-entry)))
         timeline))
 
-(defn find-entry-by-sub-form-pred-all-threads [flow-id pred]
+(defn find-entry-by-sub-form-pred-all-threads
+  "Find a entry on all thread timelines for a flow that matches a predicate called with
+  each entry sub-form."
+  [flow-id pred]
   (some (fn [thread-id]
           (find-entry-by-sub-form-pred (get-timeline flow-id thread-id) pred))
         (all-threads-ids flow-id)))
