@@ -2140,7 +2140,7 @@ which is disabled by default.</p>
 <div class="sect3">
 <h4 id="_locals"><a class="anchor" href="#_locals"></a><a class="link" href="#_locals">3.1.6. Locals</a></h4>
 <div class="paragraph">
-<p>The locals panel will always show the locals bounded for the current point in time.</p>
+<p>The locals panel will show the locals visible for the current point in time and their values at binding time.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2169,6 +2169,23 @@ which is disabled by default.</p>
 <div class="paragraph">
 <p><code>Define all frame vars</code> will define all the bindings for the entire frame in the current form namespace.
 This is useful for trying things at your editor as described here <a href="https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required" class="bare">https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required</a></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Locals and mutable values</div>
+<div class="paragraph">
+<p>The Locals panel will show the value of each binding for a symbol at binding time, which are the same thing
+no matter where you are in the current block when working with immutable objects, but not when working with mutable ones.
+If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -3649,6 +3666,27 @@ so no need to implement <code>flow-storm.runtime.values/snapshot-value</code> fo
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Snapshoting and nested values</div>
+<div class="paragraph">
+<p>Snapshoting only applies to direct references to mutable values.
+For example if you have an atom inside a nested immutable collection, it will not be snapshoted every time
+that collection expression is being recorded, because the value being recorded is not a reference to an atom.</p>
+</div>
+<div class="paragraph">
+<p>If this is important to you, you can still define snapshot-value for clojure.lang.PersistentArrayMap, etc, and
+walk it down snapshoting everything mutable inside.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4447,7 +4485,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-02-25 11:25:52 -0300
+Last updated 2025-03-08 16:26:48 -0300
 </div>
 </div>
 </body>

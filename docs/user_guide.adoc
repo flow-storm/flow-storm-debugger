@@ -854,7 +854,7 @@ which is disabled by default.
 
 === Locals
 
-The locals panel will always show the locals bounded for the current point in time.
+The locals panel will show the locals visible for the current point in time and their values at binding time.
 
 image::user_guide_images/locals.png[]
 
@@ -867,6 +867,15 @@ Right clicking on them will show a menu where you can :
 
 `Define all frame vars` will define all the bindings for the entire frame in the current form namespace.
 This is useful for trying things at your editor as described here https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required
+
+[NOTE]
+.Locals and mutable values
+====
+The Locals panel will show the value of each binding for a symbol at binding time, which are the same thing
+no matter where you are in the current block when working with immutable objects, but not when working with mutable ones.
+If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time. 
+====
+
 
 === Stack
 
@@ -1809,6 +1818,17 @@ Be aware that this is tricky in multithreading situations, as always with mutabl
 ====
 FlowStorm will automatically deref Atoms, Refs, Agents, Vars and all pending-realized derefables on tracing
 so no need to implement `flow-storm.runtime.values/snapshot-value` for them.
+====
+
+[NOTE]
+.Snapshoting and nested values
+====
+Snapshoting only applies to direct references to mutable values.
+For example if you have an atom inside a nested immutable collection, it will not be snapshoted every time
+that collection expression is being recorded, because the value being recorded is not a reference to an atom.
+
+If this is important to you, you can still define snapshot-value for clojure.lang.PersistentArrayMap, etc, and
+walk it down snapshoting everything mutable inside.
 ====
 
 = Controlling instrumentation
