@@ -35,7 +35,7 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-4"}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-5"}
                                 timelines-counters/timelines-counter {:local/root "./examples/plugins/basic-plugin/"}}
                    :jvm-opts [
                               ;; "-Xmx20500m"

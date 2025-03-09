@@ -5,6 +5,8 @@
 ### New Features
            
 ### Changes
+
+    - Make the locals pane a table, so columns can be resized
      
 ### Bugs fixed
 

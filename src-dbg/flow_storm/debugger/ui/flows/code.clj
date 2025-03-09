@@ -375,21 +375,18 @@
 
     form-pane))
 
-(defn- locals-list-cell-factory [list-cell symb-val]
-  (let [symb-lbl (ui/label :text (first symb-val)
-                           :pref-width 100)
+(defn- locals-cell-factory [_ {:keys [cell-type symb-name val-ref]}]
+  (case cell-type
+    :symbol (ui/label :text symb-name)
+    :val-ref (ui/label :text (utils/elide-string (:val-str (runtime-api/val-pprint rt-api val-ref
+                                                                                   {:print-length 20
+                                                                                    :print-level 5
+                                                                                    :pprint? false}))
+                                                 80))))
 
-        val-lbl (ui/label :text (utils/elide-string (:val-str (runtime-api/val-pprint rt-api (second symb-val)
-                                                                                      {:print-length 20
-                                                                                       :print-level 5
-                                                                                       :pprint? false}))
-                                                    80))
-        hbox (ui/h-box :childs [symb-lbl val-lbl])]
-    (ui-utils/set-graphic list-cell hbox)))
-
-(defn- on-locals-list-item-click [flow-id thread-id mev selected-items {:keys [list-view-pane]}]
+(defn- on-locals-item-click [flow-id thread-id mev selected-items {:keys [table-view-pane]}]
   (when (ui-utils/mouse-secondary? mev)
-    (let [[_ val] (first selected-items)
+    (let [[_ {:keys [val-ref]}] (first selected-items)
           ctx-menu (ui/context-menu :items
                                     [{:text "Define all frame vars"
                                       :on-click (fn []
@@ -401,31 +398,39 @@
                                                         (runtime-api/def-value rt-api symb vref)))))}
                                      {:text "Define var for val"
                                       :on-click (fn []
-                                                  (def-val val))}
+                                                  (def-val val-ref))}
                                      {:text "Tap val"
                                       :on-click (fn []
-                                                  (runtime-api/tap-value rt-api val))}
+                                                  (runtime-api/tap-value rt-api val-ref))}
                                      {:text "Inspect"
                                       :on-click (fn []
-                                                  (data-windows/create-data-window-for-vref val))}])]
+                                                  (data-windows/create-data-window-for-vref val-ref))}])]
       (ui-utils/show-context-menu :menu ctx-menu
-                                  :parent list-view-pane
+                                  :parent table-view-pane
                                   :mouse-ev mev))))
 
 (defn- create-locals-pane [flow-id thread-id]
-  (let [{:keys [list-view-pane] :as lv-data}
-        (ui/list-view :editable? false
-                      :selection-mode :single
-                      :cell-factory locals-list-cell-factory
-                      :on-click (partial on-locals-list-item-click flow-id thread-id))]
-    (store-obj flow-id thread-id "locals_list" lv-data)
+  (let [{:keys [table-view-pane] :as tv-data}
+        (ui/table-view
+         :columns ["Binding" "Value"]
+         :cell-factory locals-cell-factory
+         :resize-policy :constrained
+         :on-click (partial on-locals-item-click flow-id thread-id)
+         :selection-mode :single)]
+    (store-obj flow-id thread-id "locals_table" tv-data)
 
-    list-view-pane))
+    table-view-pane))
 
 (defn- update-locals-pane [flow-id thread-id bindings]
-  (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "locals_list")]
+  (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "locals_table")]
     (clear)
-    (add-all bindings)))
+    (->> bindings
+         (mapv (fn [[symb-name val-ref]]
+                 [{:cell-type :symbol
+                   :symb-name symb-name}
+                  {:cell-type :val-ref
+                   :val-ref val-ref}]))
+         add-all) ))
 
 (defn- create-stack-pane [flow-id thread-id]
   (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name form-def-kind dispatch-val]}]
