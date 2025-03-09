@@ -905,10 +905,10 @@ and forth by starting your repl with a different alias or lein profile.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="bash"><span class="p">;;</span> on Linux and OSX
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-5"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}'</span> <span class="nt">-A</span>:dev
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-6"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}'</span> <span class="nt">-A</span>:dev
 
 <span class="p">;;</span> on Windows
-clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-5"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
+clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-6"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}'</span> <span class="nt">-A</span>:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -931,7 +931,7 @@ following sections describe.</p>
  </span><span class="no">:deps</span><span class="w"> </span><span class="p">{}</span><span class="w">
  </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="c1">;; for disabling the official compiler</span><span class="w">
                  </span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
-                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-5"</span><span class="p">}</span><span class="w">
+                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-6"</span><span class="p">}</span><span class="w">
                               </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                             </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"</span><span class="p">]}}}</span></code></pre>
@@ -971,7 +971,7 @@ the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</co
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="nf">defproject</span><span class="w"> </span><span class="n">my.project</span><span class="w"> </span><span class="s">"1.0.0"</span><span class="w">
-  </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-5"</span><span class="p">]</span><span class="w">
+  </span><span class="no">:profiles</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-6"</span><span class="p">]</span><span class="w">
                                   </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">]</span><span class="w"> </span><span class="p">]</span><span class="w">
                    </span><span class="c1">;; for disabling the official compiler</span><span class="w">
                    </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
@@ -1027,7 +1027,7 @@ or <code>lein profile</code> so you don&#8217;t have to modify each of your proj
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="n">...</span><span class="w">
            </span><span class="no">:1.12-storm</span><span class="w">
            </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
-            </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-5"</span><span class="p">}</span><span class="w">
+            </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-6"</span><span class="p">}</span><span class="w">
                          </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
             </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
                        </span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
@@ -1053,7 +1053,7 @@ and use the instructions there to finetune them.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:flowstorm</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-5"</span><span class="p">]</span><span class="w">
+ </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-6"</span><span class="p">]</span><span class="w">
                  </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">]]</span><span class="w">
   </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
   </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="w">
@@ -1632,7 +1632,7 @@ which runs a webserver with a basic todo app.</p>
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
  </span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; for disabling the official compiler</span><span class="w">
-                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-5"</span><span class="p">}</span><span class="w">
+                 </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-6"</span><span class="p">}</span><span class="w">
                               </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.0"</span><span class="p">}}</span><span class="w">
                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentEnable=true"</span><span class="w">
                             </span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes=user"</span><span class="p">]}}}</span></code></pre>
@@ -4528,7 +4528,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-09 17:05:11 -0300
+Last updated 2025-03-09 17:53:18 -0300
 </div>
 </div>
 </body>
