@@ -813,6 +813,7 @@ pre.rouge {
 <li><a href="#_known_limitations">21. Known limitations</a>
 <ul class="sectlevel2">
 <li><a href="#_locals_pane_and_mutable_values">21.1. Locals pane and mutable values</a></li>
+<li><a href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></li>
 </ul>
 </li>
 <li><a href="#_troubleshooting">22. Troubleshooting</a>
@@ -4452,6 +4453,23 @@ no matter where you are in the current block when working with immutable objects
 could cause some confusion.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></h3>
+<div class="paragraph">
+<p>FlowStorm works ok with most macros, but in order to link what gets executed to your source code it adds meta data on the forms
+before macroexpansion so after it can link the macro expanded forms to the source code.</p>
+</div>
+<div class="paragraph">
+<p>Macros can be as simple as code reorganizing ones (like &#8594;, &#8594;&gt;, when, and, defn, etc) or whole compilers like clojure.core.async/go and electric.</p>
+</div>
+<div class="paragraph">
+<p>For the later, if the macro doesn&#8217;t preserve the meta from the original sub-forms, there is no way to link executed code to the original expressions,
+so the code will run as normal but you will not get all the expressions captured.</p>
+</div>
+<div class="paragraph">
+<p>This sometimes can be fixed on the macros themselves, making sure it preserves all meta after macro expansion.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4506,7 +4524,7 @@ could cause some confusion.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-09 10:39:24 -0300
+Last updated 2025-03-09 11:46:51 -0300
 </div>
 </div>
 </body>

@@ -2301,6 +2301,17 @@ no matter where you are in the current block when working with immutable objects
 If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time which
 could cause some confusion.
 
+== Code with macros that don't preserve meta
+
+FlowStorm works ok with most macros, but in order to link what gets executed to your source code it adds meta data on the forms
+before macroexpansion so after it can link the macro expanded forms to the source code.
+
+Macros can be as simple as code reorganizing ones (like ->, ->>, when, and, defn, etc) or whole compilers like clojure.core.async/go and electric.
+
+For the later, if the macro doesn't preserve the meta from the original sub-forms, there is no way to link executed code to the original expressions,
+so the code will run as normal but you will not get all the expressions captured.
+
+This sometimes can be fixed on the macros themselves, making sure it preserves all meta after macro expansion.
 
 = Troubleshooting
 
