@@ -871,7 +871,7 @@ This is useful for trying things at your editor as described here https://www.co
 [NOTE]
 .Locals and mutable values
 ====
-The Locals panel will show the value of each binding for a symbol at binding time, which are the same thing
+The Locals pane will show the value of each binding for a symbol at binding time, which are the same thing
 no matter where you are in the current block when working with immutable objects, but not when working with mutable ones.
 If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time. 
 ====
@@ -2290,6 +2290,17 @@ Checkout https://github.com/flow-storm/cider-storm[Cider Storm] an Emacs Cider f
 = Tutorials and demos
 
 https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top
+
+= Known limitations
+
+== Locals pane and mutable values
+
+The Locals pane will show the value of each binding for a symbol AT BINDING TIME, which is the same thing
+no matter where you are in the current block when working with immutable objects, BUT NOT WHEN WORKING WITH MUTABLE ONES.
+
+If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time which
+could cause some confusion.
+
 
 = Troubleshooting
 
