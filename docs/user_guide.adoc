@@ -190,6 +190,13 @@ If you are usig lein < 2.11.0 make sure your global :dependencies don't include 
 Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.
 ====
 
+[NOTE]
+.How are auto prefixes calculated?
+====
+When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
+a set of all top level namespace.
+====
+
 === Vanilla FlowStorm
 
 If you use the https://clojure.org/guides/deps_and_cli[clojure cli] you can start a repl with the _FlowStorm_ dependency loaded like this :
