@@ -50,7 +50,7 @@ If you want to use it with Clojure checkout the [Clojure QuickStart guide](https
 
 or the [ClojureScript QuickStart Guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_clojurescript) if you are using ClojureScript.
 
-Please refer to the [user guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
+Please refer to the [user's guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html) for a list of features and how to use them.
 
 # ClojureStorm and ClojureScriptStorm
 
@@ -66,31 +66,8 @@ ClojureScriptStorm sources are here : https://github.com/flow-storm/clojurescrip
 
 # Features
 
-Flow storm debugger is packed with a ton of features :
-
-- Instrument any Clojure and ClojureScript form (single, namespace or entire codebases)
-- A [time travel stepper](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_code_tool) allows you to jump around your execution
-- Many [power stepping](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_power_stepping) tools
-- Value [searching](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_searching) capabilities
-- [Loops](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_loops) debugging
-- [Exception](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_exception_debugging) debugging
-- [Locals](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_locals) explorer
-- [Stack](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_stack) explorer
-- Execution [call tree explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_call_stack_tree_tool)
-- Functions [calls explorer](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_functions_tool)
-- [Inspect any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_value_inspector) with the value inspector
-- [Explore your exceptions](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_exceptions_debugging)
-- [Define any values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_define_value_for_repl) and take them to your repl
-- [Multi-threading](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_timeline_tool) debugging with a timeline
-- [Thread blocking](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_thread_breakpoints) support via thread breakpoints
-- [Println](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_printer_tool) debugging
-- [Tap](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_taps_tool) values inspection
-- [Remote](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_remote_debugging) Clojure and ClojureScript debugging
-- [Programmable](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_programmable_debugging) debugging
-- A [namespace browser](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_browser_tool)
-- [Mutable values](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_dealing_with_mutable_values) debugging
-- [Keyboard](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_key_bindings) support
-- [Themes and styling](https://flow-storm.github.io/flow-storm-debugger/user_guide.html#_styling_and_theming) support 
+Flow storm debugger is packed with a ton of features, which the [user's guide](https://flow-storm.github.io/flow-storm-debugger/user_guide.html)
+covers in detail.
 
 ## Information for developers 
 
@@ -99,6 +76,8 @@ If you want to enhance, fix, debug, or just learn about the internals of FlowSto
 
 ## Some demo videos (newers at the top)
 
+- [ClojureScript compiler fun with FlowStorm](https://www.youtube.com/watch?v=YYHRx3EnPmg)
+- [Don't fear the storm](https://www.youtube.com/watch?v=CspQX_R0NbM)
 - [Clojure visual-tools 29 - FlowStorm 4.1 workflows](https://www.youtube.com/watch?v=9nY25hwzWRc)
 - [Clojure web apps with FlowStorm 3.17](https://www.youtube.com/watch?v=h8AFpZkAwPo)
 - [Reifying execution, the interactive programming missing piece](https://www.youtube.com/watch?v=BuSpMvVU7j4&t=1394s)
