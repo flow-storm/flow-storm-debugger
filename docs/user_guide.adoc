@@ -2303,15 +2303,19 @@ could cause some confusion.
 
 == Code with macros that don't preserve meta
 
-FlowStorm works ok with most macros, but in order to link what gets executed to your source code it adds meta data on the forms
-before macroexpansion so after it can link the macro expanded forms to the source code.
+FlowStorm works fine with most macros, except the ones that don't preserve meta at macroexpansion, which FlowStorm needs in order
+to link the executed code back to the original source code.
 
-Macros can be as simple as code reorganizing ones (like ->, ->>, when, and, defn, etc) or whole compilers like clojure.core.async/go and electric.
+When macros are involved, the forms compiled by the Clojure compiler aren't the ones on your source files, but the ones generated
+by macro-expanding all the macros. In order to link the compiled forms back to the forms in your source code, for each instrumented form,
+right after the form is read by the reader, FlowStorm will walk the form down, annotating with meta each sub-form with a coordinate,
+which will then be used after macro expansion to link a compiled expression back to your source code.
 
-For the later, if the macro doesn't preserve the meta from the original sub-forms, there is no way to link executed code to the original expressions,
-so the code will run as normal but you will not get all the expressions captured.
+Macros can be as simple as code reorganizing ones (like ->, ->>, when, and, defn, etc) or whole compilers like clojure.core.async/go and
+Electric, so it really depends on the macros.
 
-This sometimes can be fixed on the macros themselves, making sure it preserves all meta after macro expansion.
+If you see code inside a macro not being traced feel free to report an issue, there is nothing FlowStorm can do from its side but
+we can work together with the macro developer making sure it preserves all meta after macro expansion, which sometimes may be possible.
 
 = Troubleshooting
 

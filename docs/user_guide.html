@@ -4456,18 +4456,22 @@ could cause some confusion.</p>
 <div class="sect2">
 <h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></h3>
 <div class="paragraph">
-<p>FlowStorm works ok with most macros, but in order to link what gets executed to your source code it adds meta data on the forms
-before macroexpansion so after it can link the macro expanded forms to the source code.</p>
+<p>FlowStorm works fine with most macros, except the ones that don&#8217;t preserve meta at macroexpansion, which FlowStorm needs in order
+to link the executed code back to the original source code.</p>
 </div>
 <div class="paragraph">
-<p>Macros can be as simple as code reorganizing ones (like &#8594;, &#8594;&gt;, when, and, defn, etc) or whole compilers like clojure.core.async/go and electric.</p>
+<p>When macros are involved, the forms compiled by the Clojure compiler aren&#8217;t the ones on your source files, but the ones generated
+by macro-expanding all the macros. In order to link the compiled forms back to the forms in your source code, for each instrumented form,
+right after the form is read by the reader, FlowStorm will walk the form down, annotating with meta each sub-form with a coordinate,
+which will then be used after macro expansion to link a compiled expression back to your source code.</p>
 </div>
 <div class="paragraph">
-<p>For the later, if the macro doesn&#8217;t preserve the meta from the original sub-forms, there is no way to link executed code to the original expressions,
-so the code will run as normal but you will not get all the expressions captured.</p>
+<p>Macros can be as simple as code reorganizing ones (like &#8594;, &#8594;&gt;, when, and, defn, etc) or whole compilers like clojure.core.async/go and
+Electric, so it really depends on the macros.</p>
 </div>
 <div class="paragraph">
-<p>This sometimes can be fixed on the macros themselves, making sure it preserves all meta after macro expansion.</p>
+<p>If you see code inside a macro not being traced feel free to report an issue, there is nothing FlowStorm can do from its side but
+we can work together with the macro developer making sure it preserves all meta after macro expansion, which sometimes may be possible.</p>
 </div>
 </div>
 </div>
@@ -4524,7 +4528,7 @@ so the code will run as normal but you will not get all the expressions captured
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-09 11:46:51 -0300
+Last updated 2025-03-09 17:05:11 -0300
 </div>
 </div>
 </body>
