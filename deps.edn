@@ -35,7 +35,7 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-7"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-8"}}
                    :jvm-opts ["-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentEnable=true"
                               "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
