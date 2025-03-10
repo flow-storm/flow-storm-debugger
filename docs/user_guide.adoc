@@ -2280,15 +2280,15 @@ could cause some confusion.
 
 == Code with macros that don't preserve meta
 
-FlowStorm works fine with most macros, except the ones that don't preserve meta at macroexpansion, which FlowStorm needs in order
-to link the executed code back to the original source code.
+FlowStorm works fine with most macros, except the ones that don't preserve meta at macroexpansion, which FlowStorm needs in their absence,
+can cause GAPS IN EXECUTION TRACING AND PREVENT IT FROM LINKING THE EXECUTED CODE BACK TO THE ORIGINAL SOURCE.
 
 When macros are involved, the forms compiled by the Clojure compiler aren't the ones on your source files, but the ones generated
 by macro-expanding all the macros. In order to link the compiled forms back to the forms in your source code, for each instrumented form,
 right after the form is read by the reader, FlowStorm will walk the form down, annotating with meta each sub-form with a coordinate,
 which will then be used after macro expansion to link a compiled expression back to your source code.
 
-Macros can be as simple as code reorganizing ones (like ->, ->>, when, and, defn, etc) or whole compilers like clojure.core.async/go and
+Macros can be as simple as code reorganizing ones (like `->`, `when`, `and`, `defn`, etc) or whole compilers like `clojure.core.async/go` and
 Electric, so it really depends on the macros.
 
 If you see code inside a macro not being traced feel free to report an issue, there is nothing FlowStorm can do from its side but

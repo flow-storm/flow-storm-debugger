@@ -4440,8 +4440,8 @@ could cause some confusion.</p>
 <div class="sect2">
 <h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></h3>
 <div class="paragraph">
-<p>FlowStorm works fine with most macros, except the ones that don&#8217;t preserve meta at macroexpansion, which FlowStorm needs in order
-to link the executed code back to the original source code.</p>
+<p>FlowStorm works fine with most macros, except the ones that don&#8217;t preserve meta at macroexpansion, which FlowStorm needs in their absence,
+can cause GAPS IN EXECUTION TRACING AND PREVENT IT FROM LINKING THE EXECUTED CODE BACK TO THE ORIGINAL SOURCE.</p>
 </div>
 <div class="paragraph">
 <p>When macros are involved, the forms compiled by the Clojure compiler aren&#8217;t the ones on your source files, but the ones generated
@@ -4450,7 +4450,7 @@ right after the form is read by the reader, FlowStorm will walk the form down, a
 which will then be used after macro expansion to link a compiled expression back to your source code.</p>
 </div>
 <div class="paragraph">
-<p>Macros can be as simple as code reorganizing ones (like &#8594;, &#8594;&gt;, when, and, defn, etc) or whole compilers like clojure.core.async/go and
+<p>Macros can be as simple as code reorganizing ones (like <code>&#8594;</code>, <code>when</code>, <code>and</code>, <code>defn</code>, etc) or whole compilers like <code>clojure.core.async/go</code> and
 Electric, so it really depends on the macros.</p>
 </div>
 <div class="paragraph">
@@ -4512,7 +4512,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-09 18:48:52 -0300
+Last updated 2025-03-10 08:07:11 -0300
 </div>
 </div>
 </body>

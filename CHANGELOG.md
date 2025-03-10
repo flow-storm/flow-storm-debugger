@@ -6,7 +6,7 @@
            
 ### Changes
 
-    - Make the locals pane a table, so columns can be resized
+    - Make the locals pane a table, so columns can be resized and searched
      
 ### Bugs fixed
 
