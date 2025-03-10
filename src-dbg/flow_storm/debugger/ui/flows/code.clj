@@ -1,5 +1,6 @@
 (ns flow-storm.debugger.ui.flows.code
   (:require [clojure.pprint :as pp]
+            [clojure.string :as str]
             [flow-storm.form-pprinter :as form-pprinter]
             [flow-storm.debugger.ui.flows.general :refer [open-form-in-editor]]
             [flow-storm.debugger.ui.commons :refer [def-val]]
@@ -416,7 +417,9 @@
          :cell-factory locals-cell-factory
          :resize-policy :constrained
          :on-click (partial on-locals-item-click flow-id thread-id)
-         :selection-mode :single)]
+         :selection-mode :single
+         :search-predicate (fn [[{:keys [symb-name]} _] search-str]
+                             (str/includes? symb-name search-str)))]
     (store-obj flow-id thread-id "locals_table" tv-data)
 
     table-view-pane))
