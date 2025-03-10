@@ -29,7 +29,8 @@
             [flow-storm.utils :as utils]
             [flow-storm.state-management :as state-management]
             [flow-storm.debugger.ui.utils :as ui-utils]
-            [flow-storm.debugger.ui.plugins :as plugins]))
+            [flow-storm.debugger.ui.plugins :as plugins]
+            [clojure.string :as str]))
 
 (def flow-storm-core-ns 'flow-storm.core)
 
@@ -63,12 +64,17 @@
   (let [theme-prop (System/getProperty "flowstorm.theme")
         title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
-        plugins-prop (System/getProperty "flowstorm.plugins.namespaces")]
+        plugins-nss-set (->> (reduce-kv (fn [acc prop value]
+                                          (if (str/starts-with? prop "flowstorm.plugins.namespaces")
+                                            (into acc (str/split value #","))
+                                            acc))
+                                        #{}
+                                        (System/getProperties)))]
     (cond-> {}
       theme-prop                      (assoc :theme (keyword theme-prop))
       styles-prop                     (assoc :styles styles-prop)
       title-prop                      (assoc :title  title-prop)
-      plugins-prop                    (assoc :plugins-ns-str plugins-prop))))
+      (seq plugins-nss-set)              (assoc :plugins-namespaces-set plugins-nss-set))))
 
 (defn start-debugger
 

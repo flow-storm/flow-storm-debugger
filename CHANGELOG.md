@@ -3,7 +3,9 @@
 ## master (unreleased)
 	
 ### New Features
-           
+
+    - Accept multiple flowstorm.plugins.namespaces.* jvm props that will get merged
+    
 ### Changes
 
     - Make the locals pane a table, so columns can be resized and searched
