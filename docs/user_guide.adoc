@@ -53,10 +53,10 @@ You can start a repl with FlowStorm with a single command like this :
 [%nowrap,bash]
 ----
 ;; on Linux and OSX
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-8"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}} :jvm-opts ["-Dclojure.storm.instrumentEnable=true"]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}}}' -A:dev
 
 ;; on Windows
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-8"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}} :jvm-opts ["""-Dclojure.storm.instrumentEnable=true"""]}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-9"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.0"""}}}}}' -A:dev
 ----
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up
@@ -69,7 +69,7 @@ The simplest way is to add it globally but you can also add it only to specific 
 
 ==== Setup with deps.edn
 
-If your project is using deps.edn, you can add a global (`~/.clojure/deps.edn`) or per project alias that looks like this :
+If your project is using deps.edn, you can add <<#_global_deps_edn_aliases,a global>> or per project alias that looks like this :
 
 [%nowrap,clojure]
 ----
@@ -77,19 +77,14 @@ If your project is using deps.edn, you can add a global (`~/.clojure/deps.edn`) 
  :aliases {:1.12-storm
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil} 
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-8"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}
-            :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
-                       "-Dflowstorm.startRecording=false"
-                       "-Dclojure.storm.instrumentAutoPrefixes=true"]
-                       ;; change for your specific editor
-                       "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
-                       "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"
-                       }}}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}}}}
 ----
 
-By using the `-Dclojure.storm.instrumentAutoPrefixes=true` JVM property you tell ClojrueStorm to automatically figure out
-what namespaces should be instrumented.
+What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
+by setting the `-Dclojure.storm.instrumentAutoPrefixes=false` JVM property and provide instrumentation explicitly.
+
+See <<#_controlling_instrumentation,controlling instrumentation>>.
 
 [NOTE]
 .How are auto prefixes calculated?
@@ -105,34 +100,22 @@ If it is your first time using FlowStorm, when the UI comes up click on `Help->T
 
 ==== Setup with leiningen
 
-If your project uses lein, you can add a global (`~/.lein/profiles.clj`) or per project profile that looks like this :
-
-[%nowrap,clojure]
-----
-{:1.12-storm
- {:dependencies [[com.github.flow-storm/clojure "1.12.0-8"]
-                 [com.github.flow-storm/flow-storm-dbg "4.2.0"]]
-  :exclusions [org.clojure/clojure]
-  :jvm-opts ["-Dflowstorm.startRecording=false"
-             "-Dclojure.storm.instrumentEnable=true"
-             "-Dclojure.storm.instrumentAutoPrefixes=true"
-             ;; change for your specific editor
-             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
-             "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"
-             ]}}
-----
-
-If you want to add it to your project instead, your profiles goes like this :
+If your project uses lein, you can add <<#_global_leiningen_profiles,a global>> or per project profile that looks like this :
 
 [%nowrap,clojure]
 ----
 (defproject my.project "1.0.0"
-  :profiles {:1.12-storm {...}}
+  :profiles {:1.12-storm
+             {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
+                             [com.github.flow-storm/flow-storm-dbg "4.2.0"]]
+              :exclusions [org.clojure/clojure]}}
   ...)
 ----
 
-By using the `-Dclojure.storm.instrumentAutoPrefixes=true` JVM property you tell ClojureStorm to automatically figure out
-what namespaces should be instrumented.
+What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
+by setting the `-Dclojure.storm.instrumentAutoPrefixes=false` JVM property and provide instrumentation explicitly.
+
+See <<#_controlling_instrumentation,controlling instrumentation>>.
 
 [NOTE]
 .How are auto prefixes calculated?
@@ -141,7 +124,7 @@ When the process starts it will scan all source folders on the classpath (everyt
 a set of all top level namespace. All namespaces under those will be instrumented.
 ====
 
-Once you have setup your lein profile globaly or per project, start your repl with the `1.12-storm` profile and run the debugger by evaluating
+Once you have setup your lein profile globally or per project, start your repl with the `1.12-storm` profile and run the debugger by evaluating
 the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
 
 Make sure you activate the profile with `lein with-profile +1.12-storm repl`. 
@@ -151,21 +134,74 @@ If it is your first time using FlowStorm, when the UI comes up click on `Help->T
 [NOTE]
 .lein dependencies
 ====
-If you are usig lein < 2.11.0 make sure your global :dependencies don't include the official org.clojure/clojure dependency.
+If you are using lein < 2.11.0 make sure your global :dependencies don't include the official org.clojure/clojure dependency.
 Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.
 ====
 
-==== Explicit instrumentation
+==== Example global configurations
 
-If you prefer to be explicit about what gets instrumented you can use the JVM property `"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"`
+===== Global deps.edn aliases
 
-where `YOUR_INSTRUMENTATION_STRING` should be a comma separated list of namespaces prefixes like :
+You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPROFILE%\.clojure\deps.edn` (on windows) like this :
 
-	  my-project.,lib1.,lib2.core
+[%nowrap,clojure]
+----
+{...
+ :aliases
+ {:1.12-storm {:classpath-overrides {org.clojure/clojure nil}
+               :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
+                            com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}
+               :jvm-opts ["-Dflowstorm.theme=dark"
+                          "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+                          "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"]}
 
-which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
+  ;; Optional plugins you are normally using
+  :fs-web-plugin {:extra-deps {com.github.flow-storm/flow-storm-web-plugin {:mvn/version "1.0.0-beta"}}
+                  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
+                             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
 
-All this can be changed after without restarting your repl from <<#_modifying_instrumentation_with_the_browser, FlowStorm browser>>.
+  :fs-cljs-compiler-plugin {:extra-deps {com.github.flow-storm/flow-storm-cljs-compiler-plugin {:mvn/version "1.0.0-beta2"}}
+                            :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."
+                                       "-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"]}
+
+  :fs-async-flow-plugin {:extra-deps {com.github.flow-storm/flow-storm-async-flow-plugin {:mvn/version "1.0.0-beta3"}}
+                         :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"
+                                    "-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"]}
+  ...}}
+----
+
+===== Global leiningen profiles
+
+You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERPROFILE%\.lein\profiles.clj` (on windows) like this :
+
+[%nowrap,clojure]
+----
+{:1.12-storm
+ {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
+                 [com.github.flow-storm/flow-storm-dbg "4.2.0"]]
+  :exclusions [org.clojure/clojure]
+  :jvm-opts ["-Dflowstorm.theme=dark"
+             ;; change for your specific editor
+             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
+             "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"]}
+
+ ;; Optional plugins you are normally using
+ :fs-web-plugin
+ {:dependencies [[com.github.flow-storm/flow-storm-web-plugin "1.0.0-beta"]]
+  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
+             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
+
+ :fs-cljs-compiler-plugin
+ {:dependencies [[com.github.flow-storm/flow-storm-cljs-compiler-plugin "1.0.0-beta2"]]
+  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."
+             "-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"]}
+
+ :fs-async-flow-plugin
+ {:dependencies [[com.github.flow-storm/flow-storm-async-flow-plugin "1.0.0-beta3"]]
+  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"
+             "-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"]}}
+----
+
 
 === Vanilla FlowStorm
 
@@ -247,7 +283,7 @@ If you want a shadow-cljs template to play with, take a look at https://github.c
 ====
 Currently you can only use _ClojureScriptStorm_ with shadow-cljs if you are resolving your
 dependencies with deps.edn. This means having `:deps true` or similar in your shadow-cljs.edn.
-If you have your dependecies directly in your shadow-cljs.edn you will have to use <<#_clojurescript_vanilla_flowstorm,Vanilla FlowStorm>>
+If you have your dependencies directly in your shadow-cljs.edn you will have to use <<#_clojurescript_vanilla_flowstorm,Vanilla FlowStorm>>
 for now.
 This is because there is currently no way to swap the ClojureScript compiler in shadow-cljs.edn.
 ====
@@ -315,7 +351,7 @@ under the main thread.
 [NOTE]
 .recording expressions typed on the repl
 ====
-If you type at the repl something like `(defn foo [a b] (+ a b))` under an instrumented ns, the `foo` funciton will get instrumented
+If you type at the repl something like `(defn foo [a b] (+ a b))` under an instrumented ns, the `foo` function will get instrumented
 automatically and you will able to explore the recordings after the function is called.
 On the other side, typing a simple expression like `(+ 1 2)` will not show anything, this is currently a limitation but you can
 still make that work by wrapping the expression on a fn and immediately calling it, like `((fn [] (+ 1 2)))`
@@ -556,10 +592,9 @@ Then modify the resulting deps.edn to add the FlowStorm alias like this :
 ----
 {...
  :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
-                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-8"}
+                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
                               com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.0"}}
-                 :jvm-opts ["-Dclojure.storm.instrumentEnable=true"
-                            "-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}
+                 :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}
 ----
 
 With `clojure.storm.instrumentOnlyPrefixes=user` we are telling ClojureStorm to instrument everything inside
@@ -663,7 +698,7 @@ image::user_guide_images/controls.png[]
 
 For moving around using the controls we have two rows of buttons.
 
-The second row of controls, the most imoprtant one, are the stepping controls.
+The second row of controls, the most important one, are the stepping controls.
 
 From left to right they are :
 
@@ -786,7 +821,7 @@ over the selected threads expressions values using identity.
 
 image::user_guide_images/search_pred.png[]
 
-Searching by predicate allows you to provide a Clojure predicate which will be used over all selected threds expressions values.
+Searching by predicate allows you to provide a Clojure predicate which will be used over all selected threads expressions values.
 
 === Loops
 
@@ -1004,7 +1039,7 @@ image::user_guide_images/printer_add_box.png[]
 The `Message format` is the "println text". A message to identify the print on the printer output. Here you can use any text, in which you can
 optionally use `%s` for the printed value, same as you would use it with format.
 
-The `Expression` field can be use to apply a transfomer function over the value before printing it. Useful when you want to see a part of the value.
+The `Expression` field can be use to apply a transformer function over the value before printing it. Useful when you want to see a part of the value.
 
 image::user_guide_images/printer_access.png[]
 
@@ -1081,7 +1116,7 @@ results, your taps outputs and your `*out*` and `*err*` streams writes (like pri
 The advantages being :
 
 - Custom visualizations
-- Quick nested values navigations
+- Quick nested values navigation
 - Quick taps values navigation
 - Datafy nav navigation
 - Access to all previously tapped values
@@ -1173,7 +1208,7 @@ image::user_guide_images/data_window_dig.png[]
 
 You can navigate into any key or value by clicking on it.
 
-Use the breadcrums at the top to navigate back.
+Use the breadcrumbs at the top to navigate back.
 
 == Metadata navigation
 
@@ -1219,7 +1254,7 @@ From your program's code you can always create a data window with :
 (flow-storm.api/data-window-push-val :changing-long-dw-id 0 "a-long")
 ----
 
-by providing a data window id, a value, and optionally the initial breadcrum label.
+by providing a data window id, a value, and optionally the initial breadcrumb label.
 
 But you can also update it (given that the selected visualizer supports updating like :scope for numbers) with :
 
@@ -1346,7 +1381,7 @@ the original value (the one that created the DataWindow) and whatever map was re
 or because you went back with breadcrums. It can be useful in case you need to clear resources created by
 `:on-create`.
 
-`:pred` and `:on-create` will not recieve the original value but the extracted aspects of it after
+`:pred` and `:on-create` will not receive the original value but the extracted aspects of it after
 all registered extractors run.
 
 You can check the data available to your visualizer for a value in a data window by calling :
@@ -1443,7 +1478,7 @@ For situations like the previous one, _FlowStorm_ has the ability to set thread 
 in the execution of your program where you want your threads to wait.
 While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
 click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again.
-Then you can analyse the new recordings.
+Then you can analyze the new recordings.
 
 Once you are done, you can choose to uninstrument your functions, or maybe easier to just pause recording
 using the pause button in the main toolbar. Then you can remove the breakpoints and un-block every thread.
@@ -1814,6 +1849,19 @@ If you are using _ClojureStorm_ or _ClojureScriptStorm_ it is important to learn
 how to uninstrument things. You can configure what gets instrumented automatically on startup via JVM properties but also
 change this while your repl is running without the need to restart it.
 
+FlowStorm by default will automatically figure out what to instrument from your project, which
+you can always disable by setting the `-Dclojure.storm.instrumentAutoPrefixes=false`.
+
+If you prefer to be explicit about what gets instrumented you can use the JVM property `"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"`
+
+where `YOUR_INSTRUMENTATION_STRING` should be a comma separated list of namespaces prefixes like :
+
+	  my-project.,lib1.,lib2.core
+
+which means automatically instrument my-project.* (which includes all sub namespaces), all lib1.* and only everything under lib2.core
+
+All this can be changed after without restarting your repl from <<#_modifying_instrumentation_with_the_browser, FlowStorm browser>>.
+
 == Turning instrumentation on an off
 
 You can turn instrumentation on an off by using the button on <<#_the_tool_bar,the toolbar>>.
@@ -1855,17 +1903,17 @@ image::user_guide_images/browser_storm_instrumentation_1.png[]
 
 Right clicking any namespace will give you options for what level of a namespace you want to instrument.
 
-On the bottom pane (instrumentations) you will see your current instrumentation configution (if any). Here we can see that everything under
+On the bottom pane (instrumentations) you will see your current instrumentation configuration (if any). Here we can see that everything under
 `ring.middleware.anti-forgery` will be instrumented every time something inside it gets compiled.
 
-You can remove entries using the `del` buttons or temporarly disable/enable them using the `Enable all` checkbox.
+You can remove entries using the `del` buttons or temporarily disable/enable them using the `Enable all` checkbox.
 
 image::user_guide_images/browser_storm_instrumentation_2.png[]
 
 You can use the `Add` menu in the picure above to add instrumentation prefixes.
 
 After changing any prefix FlowStorm will ask if you want it to reload the affected namespaces for you. Namespace reloading will
-all reload all namespaces it depends on in topological order, so it shoulnd't break your system in any way.
+all reload all namespaces it depends on in topological order, so it shouldn't break your system in any way.
 
 image::user_guide_images/browser_storm_instrumentation_3.png[]
 
@@ -2034,7 +2082,7 @@ Creating a pluging consists of two parts :
 This split is not required, but it is important if you want your plugin to support ClojureScript also or
 remote Clojure debugging where the UI is not running in the same process as the runtime.
 
-This components are normally splitted in two files, a runtime.clj and ui.clj, but you can name them however you
+This components are normally split in two files, a runtime.clj and ui.clj, but you can name them however you
 want.
 
 We are going to go over each part in more detail but for a real plugin please checkout the https://github.com/flow-storm/flow-storm-async-flow-plugin[core.async.flow plugin].
@@ -2052,7 +2100,7 @@ Here is a runtime file template you can use :
 (defn my-data-extraction [flow-id thread-id]
   (let [timeline (ia/get-timeline flow-id thread-id)]
     (reduce (fn [acc tl-entry]
-              ;; extract some interesting infor from the timeline
+              ;; extract some interesting info from the timeline
               )
             {}
             timeline)
@@ -2275,7 +2323,7 @@ https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-v
 The Locals pane will show the value of each binding for a symbol AT BINDING TIME, which is the same thing
 no matter where you are in the current block when working with immutable objects, BUT NOT WHEN WORKING WITH MUTABLE ONES.
 
-If what was bound was muttable in any way, you will be seeing the value at binding time, and not at current time which
+If what was bound was mutable in any way, you will be seeing the value at binding time, and not at current time which
 could cause some confusion.
 
 == Code with macros that don't preserve meta

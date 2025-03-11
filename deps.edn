@@ -35,15 +35,14 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-8"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}}
                    :jvm-opts ["-Dflowstorm.theme=dark"
-                              "-Dclojure.storm.instrumentEnable=true"
-                              "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
-                              "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
-
+                              "-Dclojure.storm.instrumentAutoPrefixes=false"
                               "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
 
-                              ]}
+                              "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
+                              "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}
+
            :fs-timelines-counters-plugin {:extra-deps {timelines-counters/timelines-counter {:local/root "./examples/plugins/basic-plugin/"}}
                                           :jvm-opts ["-Dflowstorm.plugins.namespaces.timelines-counters=flow-storm.plugins.timelines-counters.all"]}
 
