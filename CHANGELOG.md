@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes
+         
+### Bugs fixed
+
+## 4.2.1 (11-03-2025)
+	
+### New Features
 
     - Accept multiple flowstorm.plugins.namespaces.* jvm props that will get merged
     
