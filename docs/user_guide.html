@@ -898,7 +898,7 @@ and forth by starting your repl with a different alias or lein profile.</p>
 <p>The easiest way to run and learn <em>FlowStorm</em> with <em>ClojureStorm</em> is by running the repl tutorial.</p>
 </div>
 <div class="sect4">
-<h5 id="_try_it_with_no_project"><a class="anchor" href="#_try_it_with_no_project"></a><a class="link" href="#_try_it_with_no_project">Try it with no project</a></h5>
+<h5 id="_try_it_with_no_project_and_no_config"><a class="anchor" href="#_try_it_with_no_project_and_no_config"></a><a class="link" href="#_try_it_with_no_project_and_no_config">Try it with no project and no config</a></h5>
 <div class="paragraph">
 <p>You can start a repl with FlowStorm with a single command like this :</p>
 </div>
@@ -919,13 +919,81 @@ evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <co
 <p>After the tutorial you may want to use it on your projects. You use it by adding a deps.edn alias or  lein profile.</p>
 </div>
 <div class="paragraph">
-<p>The simplest way is to add it globally but you can also add it only to specific projects if they require special configurations.</p>
+<p>The simplest way is to setup it globally so that is what we are going to do next, but you can also add it only
+to specific projects if they require special configurations.</p>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_setup_with_deps_edn"><a class="anchor" href="#_setup_with_deps_edn"></a><a class="link" href="#_setup_with_deps_edn">Setup with deps.edn</a></h5>
+<h5 id="_global_setup_as_deps_edn_aliases"><a class="anchor" href="#_global_setup_as_deps_edn_aliases"></a><a class="link" href="#_global_setup_as_deps_edn_aliases">Global setup as deps.edn aliases</a></h5>
 <div class="paragraph">
-<p>If your project is using deps.edn, you can add <a href="#_global_deps_edn_aliases">a global</a> or per project alias that looks like this :</p>
+<p>You can setup your global <code>~/.clojure/deps.edn</code> (on linux and macOS) or <code>%USERPROFILE%\.clojure\deps.edn</code> (on windows) like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
+ </span><span class="no">:aliases</span><span class="w">
+ </span><span class="p">{</span><span class="no">:1.12-storm</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
+               </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">}</span><span class="w">
+                            </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.1"</span><span class="p">}}}</span><span class="w">
+
+  </span><span class="c1">;; Optional plugins you find yourself using regularly</span><span class="w">
+  </span><span class="no">:fs-web-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/flow-storm-web-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.0.0-beta"</span><span class="p">}}</span><span class="w">
+                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"</span><span class="w">
+                             </span><span class="s">"-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"</span><span class="p">]}</span><span class="w">
+
+  </span><span class="n">...</span><span class="p">}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can start your repls with <code>:1.12-storm</code> alias (like <code>clj -A::1.12-storm</code>) and when the repl comes up evaluate the <code>:dbg</code> keyword to bring up the UI,
+then click on  <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_global_setup_as_leiningen_profiles"><a class="anchor" href="#_global_setup_as_leiningen_profiles"></a><a class="link" href="#_global_setup_as_leiningen_profiles">Global setup as leiningen profiles</a></h5>
+<div class="paragraph">
+<p>You can setup your global <code>~/.lein/profiles.clj</code> (on linux and macOS) or <code>%USERPROFILE%\.lein\profiles.clj</code> (on windows) like this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:1.12-storm</span><span class="w">
+ </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">]</span><span class="w">
+                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.1"</span><span class="p">]]</span><span class="w">
+  </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]}</span><span class="w">
+
+ </span><span class="c1">;; Optional plugins you find yourself using regularly</span><span class="w">
+ </span><span class="no">:fs-web-plugin</span><span class="w">
+ </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/flow-storm-web-plugin</span><span class="w"> </span><span class="s">"1.0.0-beta"</span><span class="p">]]</span><span class="w">
+  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"</span><span class="w">
+             </span><span class="s">"-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"</span><span class="p">]}</span><span class="w">
+</span><span class="n">...</span><span class="p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can start your repls with <code>+1.12-storm</code> profile (like <code>lein with-profile +1.12-storm repl</code>) and when the repl comes up evaluate the <code>:dbg</code> keyword to bring up the UI,
+then click on  <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Running lein repl without a project</div>
+<div class="paragraph">
+<p>For some reason if you run <code>lein with-profile +1.12-storm repl</code> outside of a project it will not run with the profile
+activated correctly.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_per_project_setup_with_deps_edn"><a class="anchor" href="#_per_project_setup_with_deps_edn"></a><a class="link" href="#_per_project_setup_with_deps_edn">Per project setup with deps.edn</a></h5>
+<div class="paragraph">
+<p>If your project is using deps.edn, you can add an alias that looks like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -938,40 +1006,20 @@ evaluate the <code>:dbg</code> keyword to bring up the UI and then click on  <co
 </div>
 </div>
 <div class="paragraph">
-<p>What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
-by setting the <code>-Dclojure.storm.instrumentAutoPrefixes=false</code> JVM property and provide instrumentation explicitly.</p>
-</div>
-<div class="paragraph">
-<p>See <a href="#_controlling_instrumentation">controlling instrumentation</a>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">How are auto prefixes calculated?</div>
-<div class="paragraph">
-<p>When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
-a set of all top level namespace. All namespaces under those will be instrumented.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
 <p>Once you have setup your deps.edn, start your repl with the <code>:1.12-storm</code> alias and run the debugger by evaluating
 the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</code> and hit return).</p>
 </div>
 <div class="paragraph">
 <p>If it is your first time using FlowStorm, when the UI comes up click on <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
 </div>
+<div class="paragraph">
+<p>If you need more fine control over instrumentation see <a href="#_controlling_instrumentation">controlling instrumentation</a>.</p>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_setup_with_leiningen"><a class="anchor" href="#_setup_with_leiningen"></a><a class="link" href="#_setup_with_leiningen">Setup with leiningen</a></h5>
 <div class="paragraph">
-<p>If your project uses lein, you can add <a href="#_global_leiningen_profiles">a global</a> or per project profile that looks like this :</p>
+<p>If your project uses lein, you can add a profile that looks like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -984,29 +1032,6 @@ the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</co
 </div>
 </div>
 <div class="paragraph">
-<p>What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
-by setting the <code>-Dclojure.storm.instrumentAutoPrefixes=false</code> JVM property and provide instrumentation explicitly.</p>
-</div>
-<div class="paragraph">
-<p>See <a href="#_controlling_instrumentation">controlling instrumentation</a>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="title">How are auto prefixes calculated?</div>
-<div class="paragraph">
-<p>When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
-a set of all top level namespace. All namespaces under those will be instrumented.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
 <p>Once you have setup your lein profile globally or per project, start your repl with the <code>1.12-storm</code> profile and run the debugger by evaluating
 the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</code> and hit return).</p>
 </div>
@@ -1015,6 +1040,9 @@ the <code>:dbg</code> keyworkd on your repl (this means just type <code>:dbg</co
 </div>
 <div class="paragraph">
 <p>If it is your first time using FlowStorm, when the UI comes up click on <code>Help&#8594;Tutorial</code> on the menu for a tour of the basics.</p>
+</div>
+<div class="paragraph">
+<p>If you need more fine control over instrumentation see <a href="#_controlling_instrumentation">controlling instrumentation</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1031,75 +1059,6 @@ Moving to lein latest version should work ok even if your global :dependencies c
 </td>
 </tr>
 </table>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_example_global_configurations"><a class="anchor" href="#_example_global_configurations"></a><a class="link" href="#_example_global_configurations">Example global configurations</a></h5>
-<div class="sect5">
-<h6 id="_global_deps_edn_aliases"><a class="anchor" href="#_global_deps_edn_aliases"></a><a class="link" href="#_global_deps_edn_aliases">Global deps.edn aliases</a></h6>
-<div class="paragraph">
-<p>You can setup your global <code>~/.clojure/deps.edn</code> (on linux and macOS) or <code>%USERPROFILE%\.clojure\deps.edn</code> (on windows) like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
- </span><span class="no">:aliases</span><span class="w">
- </span><span class="p">{</span><span class="no">:1.12-storm</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
-               </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">}</span><span class="w">
-                            </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.1"</span><span class="p">}}</span><span class="w">
-               </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.theme=dark"</span><span class="w">
-                          </span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="w">
-                          </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span><span class="p">]}</span><span class="w">
-
-  </span><span class="c1">;; Optional plugins you are normally using</span><span class="w">
-  </span><span class="no">:fs-web-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/flow-storm-web-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.0.0-beta"</span><span class="p">}}</span><span class="w">
-                  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"</span><span class="w">
-                             </span><span class="s">"-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"</span><span class="p">]}</span><span class="w">
-
-  </span><span class="no">:fs-cljs-compiler-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/flow-storm-cljs-compiler-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.0.0-beta2"</span><span class="p">}}</span><span class="w">
-                            </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."</span><span class="w">
-                                       </span><span class="s">"-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"</span><span class="p">]}</span><span class="w">
-
-  </span><span class="no">:fs-async-flow-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/flow-storm-async-flow-plugin</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.0.0-beta3"</span><span class="p">}}</span><span class="w">
-                         </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"</span><span class="w">
-                                    </span><span class="s">"-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"</span><span class="p">]}</span><span class="w">
-  </span><span class="n">...</span><span class="p">}}</span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect5">
-<h6 id="_global_leiningen_profiles"><a class="anchor" href="#_global_leiningen_profiles"></a><a class="link" href="#_global_leiningen_profiles">Global leiningen profiles</a></h6>
-<div class="paragraph">
-<p>You can setup your global <code>~/.lein/profiles.clj</code> (on linux and macOS) or <code>%USERPROFILE%\.lein\profiles.clj</code> (on windows) like this :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:1.12-storm</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">]</span><span class="w">
-                 </span><span class="p">[</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="s">"4.2.1"</span><span class="p">]]</span><span class="w">
-  </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojure</span><span class="p">]</span><span class="w">
-  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.theme=dark"</span><span class="w">
-             </span><span class="c1">;; change for your specific editor</span><span class="w">
-             </span><span class="s">"-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;"</span><span class="w">
-             </span><span class="s">"-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:&lt;&lt;JAR&gt;&gt;!/&lt;&lt;FILE&gt;&gt;\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- &lt;&lt;LINE&gt;&gt;))))'"</span><span class="p">]}</span><span class="w">
-
- </span><span class="c1">;; Optional plugins you are normally using</span><span class="w">
- </span><span class="no">:fs-web-plugin</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/flow-storm-web-plugin</span><span class="w"> </span><span class="s">"1.0.0-beta"</span><span class="p">]]</span><span class="w">
-  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"</span><span class="w">
-             </span><span class="s">"-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"</span><span class="p">]}</span><span class="w">
-
- </span><span class="no">:fs-cljs-compiler-plugin</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/flow-storm-cljs-compiler-plugin</span><span class="w"> </span><span class="s">"1.0.0-beta2"</span><span class="p">]]</span><span class="w">
-  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."</span><span class="w">
-             </span><span class="s">"-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"</span><span class="p">]}</span><span class="w">
-
- </span><span class="no">:fs-async-flow-plugin</span><span class="w">
- </span><span class="p">{</span><span class="no">:dependencies</span><span class="w"> </span><span class="p">[[</span><span class="n">com.github.flow-storm/flow-storm-async-flow-plugin</span><span class="w"> </span><span class="s">"1.0.0-beta3"</span><span class="p">]]</span><span class="w">
-  </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"</span><span class="w">
-             </span><span class="s">"-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"</span><span class="p">]}}</span></code></pre>
-</div>
-</div>
 </div>
 </div>
 </div>
@@ -3723,6 +3682,22 @@ change this while your repl is running without the need to restart it.</p>
 <p>FlowStorm by default will automatically figure out what to instrument from your project, which
 you can always disable by setting the <code>-Dclojure.storm.instrumentAutoPrefixes=false</code>.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">How are auto prefixes calculated?</div>
+<div class="paragraph">
+<p>When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
+a set of all top level namespace. All namespaces under those will be instrumented.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>If you prefer to be explicit about what gets instrumented you can use the JVM property <code>"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"</code></p>
 </div>
@@ -4565,7 +4540,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-11 09:58:02 -0300
+Last updated 2025-03-11 16:08:23 -0300
 </div>
 </div>
 </body>

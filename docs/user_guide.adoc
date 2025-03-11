@@ -46,7 +46,7 @@ and forth by starting your repl with a different alias or lein profile.
 
 The easiest way to run and learn _FlowStorm_ with _ClojureStorm_ is by running the repl tutorial.
 
-==== Try it with no project
+==== Try it with no project and no config
 
 You can start a repl with FlowStorm with a single command like this :
 
@@ -64,12 +64,64 @@ evaluate the `:dbg` keyword to bring up the UI and then click on  `Help->Tutoria
 
 After the tutorial you may want to use it on your projects. You use it by adding a deps.edn alias or  lein profile.
 
-The simplest way is to add it globally but you can also add it only to specific projects if they require special configurations.
+The simplest way is to setup it globally so that is what we are going to do next, but you can also add it only
+to specific projects if they require special configurations.
 
+==== Global setup as deps.edn aliases
 
-==== Setup with deps.edn
+You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPROFILE%\.clojure\deps.edn` (on windows) like this :
 
-If your project is using deps.edn, you can add <<#_global_deps_edn_aliases,a global>> or per project alias that looks like this :
+[%nowrap,clojure]
+----
+{...
+ :aliases
+ {:1.12-storm {:classpath-overrides {org.clojure/clojure nil}
+               :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
+                            com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}
+
+  ;; Optional plugins you find yourself using regularly 
+  :fs-web-plugin {:extra-deps {com.github.flow-storm/flow-storm-web-plugin {:mvn/version "1.0.0-beta"}}
+                  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
+                             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
+  
+  ...}}
+----
+
+Then you can start your repls with `:1.12-storm` alias (like `clj -A::1.12-storm`) and when the repl comes up evaluate the `:dbg` keyword to bring up the UI,
+then click on  `Help->Tutorial` on the menu for a tour of the basics.
+
+==== Global setup as leiningen profiles
+
+You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERPROFILE%\.lein\profiles.clj` (on windows) like this :
+
+[%nowrap,clojure]
+----
+{:1.12-storm
+ {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
+                 [com.github.flow-storm/flow-storm-dbg "4.2.1"]]
+  :exclusions [org.clojure/clojure]}
+
+ ;; Optional plugins you find yourself using regularly 
+ :fs-web-plugin
+ {:dependencies [[com.github.flow-storm/flow-storm-web-plugin "1.0.0-beta"]]
+  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
+             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
+...}
+----
+
+Then you can start your repls with `+1.12-storm` profile (like `lein with-profile +1.12-storm repl`) and when the repl comes up evaluate the `:dbg` keyword to bring up the UI,
+then click on  `Help->Tutorial` on the menu for a tour of the basics.
+
+[NOTE]
+.Running lein repl without a project
+====
+For some reason if you run `lein with-profile +1.12-storm repl` outside of a project it will not run with the profile
+activated correctly.
+====
+
+==== Per project setup with deps.edn
+
+If your project is using deps.edn, you can add an alias that looks like this :
 
 [%nowrap,clojure]
 ----
@@ -81,26 +133,16 @@ If your project is using deps.edn, you can add <<#_global_deps_edn_aliases,a glo
                          com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}}}
 ----
 
-What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
-by setting the `-Dclojure.storm.instrumentAutoPrefixes=false` JVM property and provide instrumentation explicitly.
-
-See <<#_controlling_instrumentation,controlling instrumentation>>.
-
-[NOTE]
-.How are auto prefixes calculated?
-====
-When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
-a set of all top level namespace. All namespaces under those will be instrumented.
-====
-
 Once you have setup your deps.edn, start your repl with the `:1.12-storm` alias and run the debugger by evaluating
 the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
 
 If it is your first time using FlowStorm, when the UI comes up click on `Help->Tutorial` on the menu for a tour of the basics.
 
+If you need more fine control over instrumentation see <<#_controlling_instrumentation,controlling instrumentation>>.
+
 ==== Setup with leiningen
 
-If your project uses lein, you can add <<#_global_leiningen_profiles,a global>> or per project profile that looks like this :
+If your project uses lein, you can add a profile that looks like this :
 
 [%nowrap,clojure]
 ----
@@ -112,18 +154,6 @@ If your project uses lein, you can add <<#_global_leiningen_profiles,a global>> 
   ...)
 ----
 
-What gets instrumented will be determined automatically by ClojureStorm from your project. You can always disable this
-by setting the `-Dclojure.storm.instrumentAutoPrefixes=false` JVM property and provide instrumentation explicitly.
-
-See <<#_controlling_instrumentation,controlling instrumentation>>.
-
-[NOTE]
-.How are auto prefixes calculated?
-====
-When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
-a set of all top level namespace. All namespaces under those will be instrumented.
-====
-
 Once you have setup your lein profile globally or per project, start your repl with the `1.12-storm` profile and run the debugger by evaluating
 the `:dbg` keyworkd on your repl (this means just type `:dbg` and hit return).
 
@@ -131,77 +161,14 @@ Make sure you activate the profile with `lein with-profile +1.12-storm repl`.
 
 If it is your first time using FlowStorm, when the UI comes up click on `Help->Tutorial` on the menu for a tour of the basics.
 
+If you need more fine control over instrumentation see <<#_controlling_instrumentation,controlling instrumentation>>.
+
 [NOTE]
 .lein dependencies
 ====
 If you are using lein < 2.11.0 make sure your global :dependencies don't include the official org.clojure/clojure dependency.
 Moving to lein latest version should work ok even if your global :dependencies contains the Clojure dep.
 ====
-
-==== Example global configurations
-
-===== Global deps.edn aliases
-
-You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPROFILE%\.clojure\deps.edn` (on windows) like this :
-
-[%nowrap,clojure]
-----
-{...
- :aliases
- {:1.12-storm {:classpath-overrides {org.clojure/clojure nil}
-               :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
-                            com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}
-               :jvm-opts ["-Dflowstorm.theme=dark"
-                          "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
-                          "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"]}
-
-  ;; Optional plugins you are normally using
-  :fs-web-plugin {:extra-deps {com.github.flow-storm/flow-storm-web-plugin {:mvn/version "1.0.0-beta"}}
-                  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
-                             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
-
-  :fs-cljs-compiler-plugin {:extra-deps {com.github.flow-storm/flow-storm-cljs-compiler-plugin {:mvn/version "1.0.0-beta2"}}
-                            :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."
-                                       "-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"]}
-
-  :fs-async-flow-plugin {:extra-deps {com.github.flow-storm/flow-storm-async-flow-plugin {:mvn/version "1.0.0-beta3"}}
-                         :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"
-                                    "-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"]}
-  ...}}
-----
-
-===== Global leiningen profiles
-
-You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERPROFILE%\.lein\profiles.clj` (on windows) like this :
-
-[%nowrap,clojure]
-----
-{:1.12-storm
- {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
-                 [com.github.flow-storm/flow-storm-dbg "4.2.1"]]
-  :exclusions [org.clojure/clojure]
-  :jvm-opts ["-Dflowstorm.theme=dark"
-             ;; change for your specific editor
-             "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"
-             "-Dflowstorm.jarEditorCommand=emacsclient --eval '(let ((b (cider-find-file \"jar:file:<<JAR>>!/<<FILE>>\"))) (with-current-buffer b (switch-to-buffer b) (goto-char (point-min)) (forward-line (1- <<LINE>>))))'"]}
-
- ;; Optional plugins you are normally using
- :fs-web-plugin
- {:dependencies [[com.github.flow-storm/flow-storm-web-plugin "1.0.0-beta"]]
-  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.webPlugin=org.httpkit.server,ring.adapter.jetty,next.jdbc.result-set"
-             "-Dflowstorm.plugins.namespaces.webPlugin=flow-storm.plugins.web.all"]}
-
- :fs-cljs-compiler-plugin
- {:dependencies [[com.github.flow-storm/flow-storm-cljs-compiler-plugin "1.0.0-beta2"]]
-  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.cljsCompilerPlugin=cljs."
-             "-Dflowstorm.plugins.namespaces.cljsCompilerPlugin=flow-storm.plugins.cljs-compiler.all"]}
-
- :fs-async-flow-plugin
- {:dependencies [[com.github.flow-storm/flow-storm-async-flow-plugin "1.0.0-beta3"]]
-  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes.asyncFlowPlugin=clojure.core.async.flow"
-             "-Dflowstorm.plugins.namespaces.asyncFlowPlugin=flow-storm.plugins.async-flow.all"]}}
-----
-
 
 === Vanilla FlowStorm
 
@@ -1851,6 +1818,13 @@ change this while your repl is running without the need to restart it.
 
 FlowStorm by default will automatically figure out what to instrument from your project, which
 you can always disable by setting the `-Dclojure.storm.instrumentAutoPrefixes=false`.
+
+[NOTE]
+.How are auto prefixes calculated?
+====
+When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
+a set of all top level namespace. All namespaces under those will be instrumented.
+====
 
 If you prefer to be explicit about what gets instrumented you can use the JVM property `"-Dclojure.storm.instrumentOnlyPrefixes=YOUR_INSTRUMENTATION_STRING"`
 
