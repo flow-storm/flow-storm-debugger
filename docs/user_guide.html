@@ -785,43 +785,50 @@ pre.rouge {
 </li>
 </ul>
 </li>
-<li><a href="#_styling_and_theming">14. Styling and theming</a></li>
-<li><a href="#_key_bindings">15. Key bindings</a>
+<li><a href="#_jvm_options_list">14. JVM options list</a>
 <ul class="sectlevel2">
-<li><a href="#_general">15.1. General</a></li>
-<li><a href="#_flows">15.2. Flows</a></li>
+<li><a href="#_clojure_and_clojurescript">14.1. Clojure and ClojureScript</a></li>
+<li><a href="#_only_clojure">14.2. Only Clojure</a></li>
+<li><a href="#_only_clojurescript">14.3. Only ClojureScript</a></li>
 </ul>
 </li>
-<li><a href="#_debugging_react_native_applications">16. Debugging react native applications</a></li>
-<li><a href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></li>
-<li><a href="#_opening_forms_in_editors">18. Opening forms in editors</a>
+<li><a href="#_styling_and_theming">15. Styling and theming</a></li>
+<li><a href="#_key_bindings">16. Key bindings</a>
 <ul class="sectlevel2">
-<li><a href="#_emacs">18.1. Emacs</a></li>
-<li><a href="#_vscode">18.2. VSCode</a></li>
-<li><a href="#_intellij">18.3. IntelliJ</a></li>
-<li><a href="#_vim">18.4. Vim</a></li>
+<li><a href="#_general">16.1. General</a></li>
+<li><a href="#_flows">16.2. Flows</a></li>
 </ul>
 </li>
-<li><a href="#_editorsides_integration">19. Editors/IDEs integration</a>
+<li><a href="#_debugging_react_native_applications">17. Debugging react native applications</a></li>
+<li><a href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></li>
+<li><a href="#_opening_forms_in_editors">19. Opening forms in editors</a>
 <ul class="sectlevel2">
-<li><a href="#_emacs_2">19.1. Emacs</a></li>
-<li><a href="#_vscode_2">19.2. VSCode</a></li>
-<li><a href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></li>
+<li><a href="#_emacs">19.1. Emacs</a></li>
+<li><a href="#_vscode">19.2. VSCode</a></li>
+<li><a href="#_intellij">19.3. IntelliJ</a></li>
+<li><a href="#_vim">19.4. Vim</a></li>
 </ul>
 </li>
-<li><a href="#_tutorials_and_demos">20. Tutorials and demos</a></li>
-<li><a href="#_known_limitations">21. Known limitations</a>
+<li><a href="#_editorsides_integration">20. Editors/IDEs integration</a>
 <ul class="sectlevel2">
-<li><a href="#_locals_pane_and_mutable_values">21.1. Locals pane and mutable values</a></li>
-<li><a href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></li>
+<li><a href="#_emacs_2">20.1. Emacs</a></li>
+<li><a href="#_vscode_2">20.2. VSCode</a></li>
+<li><a href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></li>
 </ul>
 </li>
-<li><a href="#_troubleshooting">22. Troubleshooting</a>
+<li><a href="#_tutorials_and_demos">21. Tutorials and demos</a></li>
+<li><a href="#_known_limitations">22. Known limitations</a>
 <ul class="sectlevel2">
-<li><a href="#_run_with_jdk_11">22.1. Run with JDK 11</a></li>
+<li><a href="#_locals_pane_and_mutable_values">22.1. Locals pane and mutable values</a></li>
+<li><a href="#_code_with_macros_that_dont_preserve_meta">22.2. Code with macros that don&#8217;t preserve meta</a></li>
 </ul>
 </li>
-<li><a href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></li>
+<li><a href="#_troubleshooting">23. Troubleshooting</a>
+<ul class="sectlevel2">
+<li><a href="#_run_with_jdk_11">23.1. Run with JDK 11</a></li>
+</ul>
+</li>
+<li><a href="#_internals_diagrams_and_documentation">24. Internals, diagrams and documentation</a></li>
 </ul>
 </div>
 </div>
@@ -4175,7 +4182,88 @@ with your plugin key (my-plugin in the example above) as a class.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">14. Styling and theming</a></h2>
+<h2 id="_jvm_options_list"><a class="anchor" href="#_jvm_options_list"></a><a class="link" href="#_jvm_options_list">14. JVM options list</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section only collects the options, search for them in the User&#8217;s guide for more context
+and possible values.</p>
+</div>
+<div class="sect2">
+<h3 id="_clojure_and_clojurescript"><a class="anchor" href="#_clojure_and_clojurescript"></a><a class="link" href="#_clojure_and_clojurescript">14.1. Clojure and ClojureScript</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>-Dflowstorm.startRecording=false</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.plugins.namespaces[.+]=ns1,ns2</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.title=FlowStormMainDebugger</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.theme=dark</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.styles=~/.flow-storm/big-fonts.css</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.fileEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;FILE&gt;&gt;</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_only_clojure"><a class="anchor" href="#_only_clojure"></a><a class="link" href="#_only_clojure">14.2. Only Clojure</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>-Dclojure.storm.instrumentEnable=true</code></p>
+</li>
+<li>
+<p><code>-Dclojure.storm.instrumentOnlyPrefixes[.*]=ns-prefix1,ns-prefix2</code></p>
+</li>
+<li>
+<p><code>-Dclojure.storm.instrumentAutoPrefixes=false</code></p>
+</li>
+<li>
+<p><code>-Dclojure.storm.instrumentSkipPrefixes[.*]=my-app.too-heavy,my-lib.uninteresting</code></p>
+</li>
+<li>
+<p><code>-Dclojure.storm.instrumentSkipRegex=.*test.*</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_only_clojurescript"><a class="anchor" href="#_only_clojurescript"></a><a class="link" href="#_only_clojurescript">14.3. Only ClojureScript</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>-Dcljs.storm.instrumentEnable=true</code></p>
+</li>
+<li>
+<p><code>-Dcljs.storm.instrumentOnlyPrefixes=ns-prefix1,ns-prefix2</code></p>
+</li>
+<li>
+<p><code>-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib</code></p>
+</li>
+<li>
+<p><code>-Dcljs.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_styling_and_theming"><a class="anchor" href="#_styling_and_theming"></a><a class="link" href="#_styling_and_theming">15. Styling and theming</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>All functions that start the debugger ui (<code>flow-storm.api/local-connect</code>, <code>flow-storm.debugger.main/start-debugger</code>) accept a map
@@ -4207,10 +4295,10 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">15. Key bindings</a></h2>
+<h2 id="_key_bindings"><a class="anchor" href="#_key_bindings"></a><a class="link" href="#_key_bindings">16. Key bindings</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">15.1. General</a></h3>
+<h3 id="_general"><a class="anchor" href="#_general"></a><a class="link" href="#_general">16.1. General</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -4250,7 +4338,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">15.2. Flows</a></h3>
+<h3 id="_flows"><a class="anchor" href="#_flows"></a><a class="link" href="#_flows">16.2. Flows</a></h3>
 <div class="ulist">
 <ul>
 <li>
@@ -4304,7 +4392,7 @@ distinguish between multiple debugger instances.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">16. Debugging react native applications</a></h2>
+<h2 id="_debugging_react_native_applications"><a class="anchor" href="#_debugging_react_native_applications"></a><a class="link" href="#_debugging_react_native_applications">17. Debugging react native applications</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Debugging ClojureScript react native application needs a combination of ClojureScript and remote debugging.</p>
@@ -4337,7 +4425,7 @@ can start a debugger and connect to it by running :</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">17. Working on Windows with WSL2</a></h2>
+<h2 id="_working_on_windows_with_wsl2"><a class="anchor" href="#_working_on_windows_with_wsl2"></a><a class="link" href="#_working_on_windows_with_wsl2">18. Working on Windows with WSL2</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For those using current versions of WSL2 on Windows it should be pretty straight forward.</p>
@@ -4359,7 +4447,7 @@ seams to be solved just by installing font packages like <code>dejavu-fonts</cod
 </div>
 </div>
 <div class="sect1">
-<h2 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">18. Opening forms in editors</a></h2>
+<h2 id="_opening_forms_in_editors"><a class="anchor" href="#_opening_forms_in_editors"></a><a class="link" href="#_opening_forms_in_editors">19. Opening forms in editors</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can add this two jvm options to tell FlowStorm how to open forms in files and inside jars :</p>
@@ -4383,7 +4471,7 @@ which should open the file at that specific line (useful for long forms).</p>
 <p>Here are some known setups for most common editors :</p>
 </div>
 <div class="sect2">
-<h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">18.1. Emacs</a></h3>
+<h3 id="_emacs"><a class="anchor" href="#_emacs"></a><a class="link" href="#_emacs">19.1. Emacs</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="c1">;; for opening your project files</span><span class="w">
@@ -4398,7 +4486,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">18.2. VSCode</a></h3>
+<h3 id="_vscode"><a class="anchor" href="#_vscode"></a><a class="link" href="#_vscode">19.2. VSCode</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=code --goto &lt;&lt;FILE&gt;&gt;:&lt;&lt;LINE&gt;&gt;"</span></code></pre>
@@ -4406,7 +4494,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">18.3. IntelliJ</a></h3>
+<h3 id="_intellij"><a class="anchor" href="#_intellij"></a><a class="link" href="#_intellij">19.3. IntelliJ</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=idea --line &lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
@@ -4414,7 +4502,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">18.4. Vim</a></h3>
+<h3 id="_vim"><a class="anchor" href="#_vim"></a><a class="link" href="#_vim">19.4. Vim</a></h3>
 <div class="listingblock">
 <div class="content">
 <pre class="rouge highlight"><code data-lang="clojure"><span class="s">"-Dflowstorm.fileEditorCommand=vim +&lt;&lt;LINE&gt;&gt; &lt;&lt;FILE&gt;&gt;"</span></code></pre>
@@ -4424,26 +4512,26 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">19. Editors/IDEs integration</a></h2>
+<h2 id="_editorsides_integration"><a class="anchor" href="#_editorsides_integration"></a><a class="link" href="#_editorsides_integration">20. Editors/IDEs integration</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">19.1. Emacs</a></h3>
+<h3 id="_emacs_2"><a class="anchor" href="#_emacs_2"></a><a class="link" href="#_emacs_2">20.1. Emacs</a></h3>
 <div class="paragraph">
 <p>Checkout <a href="https://github.com/flow-storm/cider-storm">Cider Storm</a> an Emacs Cider front-end with support for Clojure and ClojureScript.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">19.2. VSCode</a></h3>
+<h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">20.2. VSCode</a></h3>
 
 </div>
 <div class="sect2">
-<h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">19.3. IntelliJ IDEA (Cursive)</a></h3>
+<h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></h3>
 
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">20. Tutorials and demos</a></h2>
+<h2 id="_tutorials_and_demos"><a class="anchor" href="#_tutorials_and_demos"></a><a class="link" href="#_tutorials_and_demos">21. Tutorials and demos</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p><a href="https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top" class="bare">https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top</a></p>
@@ -4451,10 +4539,10 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_known_limitations"><a class="anchor" href="#_known_limitations"></a><a class="link" href="#_known_limitations">21. Known limitations</a></h2>
+<h2 id="_known_limitations"><a class="anchor" href="#_known_limitations"></a><a class="link" href="#_known_limitations">22. Known limitations</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_locals_pane_and_mutable_values"><a class="anchor" href="#_locals_pane_and_mutable_values"></a><a class="link" href="#_locals_pane_and_mutable_values">21.1. Locals pane and mutable values</a></h3>
+<h3 id="_locals_pane_and_mutable_values"><a class="anchor" href="#_locals_pane_and_mutable_values"></a><a class="link" href="#_locals_pane_and_mutable_values">22.1. Locals pane and mutable values</a></h3>
 <div class="paragraph">
 <p>The Locals pane will show the value of each binding for a symbol AT BINDING TIME, which is the same thing
 no matter where you are in the current block when working with immutable objects, BUT NOT WHEN WORKING WITH MUTABLE ONES.</p>
@@ -4465,7 +4553,7 @@ could cause some confusion.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">21.2. Code with macros that don&#8217;t preserve meta</a></h3>
+<h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">22.2. Code with macros that don&#8217;t preserve meta</a></h3>
 <div class="paragraph">
 <p>FlowStorm works fine with most macros, except the ones that don&#8217;t preserve meta at macroexpansion, which FlowStorm needs in their absence,
 can cause GAPS IN EXECUTION TRACING AND PREVENT IT FROM LINKING THE EXECUTED CODE BACK TO THE ORIGINAL SOURCE.</p>
@@ -4488,10 +4576,10 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">22. Troubleshooting</a></h2>
+<h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">23. Troubleshooting</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">22.1. Run with JDK 11</a></h3>
+<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">23.1. Run with JDK 11</a></h3>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -4510,7 +4598,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">23. Internals, diagrams and documentation</a></h2>
+<h2 id="_internals_diagrams_and_documentation"><a class="anchor" href="#_internals_diagrams_and_documentation"></a><a class="link" href="#_internals_diagrams_and_documentation">24. Internals, diagrams and documentation</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For people interested in enhancing, troubleshooting, fixing or just learning about FlowStorm internals take a look at here :</p>
@@ -4539,7 +4627,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-11 16:15:41 -0300
+Last updated 2025-03-12 07:15:40 -0300
 </div>
 </div>
 </body>

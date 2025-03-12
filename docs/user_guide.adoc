@@ -2134,6 +2134,37 @@ This means your plugin css can contain code like :
 }
 ----
 
+= JVM options list
+
+This section only collects the options, search for them in the User's guide for more context
+and possible values.
+
+== Clojure and ClojureScript
+
+- `-Dflowstorm.startRecording=false`
+- `-Dflowstorm.plugins.namespaces[.+]=ns1,ns2`
+- `-Dflowstorm.threadFnCallLimits=org.my-app/fn1:2,org.my-app/fn2:4`
+- `-Dflowstorm.title=FlowStormMainDebugger`
+- `-Dflowstorm.theme=dark`
+- `-Dflowstorm.styles=~/.flow-storm/big-fonts.css`
+- `-Dflowstorm.fileEditorCommand=emacsclient -n +\<<LINE>>:0 \<<FILE>>`
+- `-Dflowstorm.jarEditorCommand=emacsclient -n +\<<LINE>>:0 \<<JAR>>/\<<FILE>>`
+
+== Only Clojure
+
+- `-Dclojure.storm.instrumentEnable=true`
+- `-Dclojure.storm.instrumentOnlyPrefixes[.*]=ns-prefix1,ns-prefix2`
+- `-Dclojure.storm.instrumentAutoPrefixes=false`
+- `-Dclojure.storm.instrumentSkipPrefixes[.*]=my-app.too-heavy,my-lib.uninteresting`
+- `-Dclojure.storm.instrumentSkipRegex=.\*test.*`
+
+== Only ClojureScript 
+
+- `-Dcljs.storm.instrumentEnable=true`
+- `-Dcljs.storm.instrumentOnlyPrefixes=ns-prefix1,ns-prefix2`
+- `-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib`
+- `-Dcljs.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting`
+
 = Styling and theming
 
 All functions that start the debugger ui (`flow-storm.api/local-connect`, `flow-storm.debugger.main/start-debugger`) accept a map
