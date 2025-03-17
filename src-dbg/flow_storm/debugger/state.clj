@@ -183,7 +183,8 @@
                                           :config/debug-mode?
                                           :config/pprint-previews?
                                           :config/auto-jump-on-exception?
-                                          :config/auto-update-ui?]))
+                                          :config/auto-update-ui?
+                                          :config/call-tree-update?]))
 
 (s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
 (s/def :bookmark/flow-id :flow/id)
@@ -276,8 +277,8 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false
                      :auto-jump-on-exception? false
-                     :auto-update-ui? (or auto-update-ui? true)
-                     :call-tree-update? (or call-tree-update? true)
+                     :auto-update-ui? (if-not (nil? auto-update-ui?) auto-update-ui? true)
+                     :call-tree-update? (if-not (nil? call-tree-update?) call-tree-update? true)
                      :pprint-previews? false}
    :bookmarks {}
    :visualizers {}
