@@ -276,7 +276,7 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false
                      :auto-jump-on-exception? false
-                     :auto-update-ui? auto-update-ui?
+                     :auto-update-ui? (or auto-update-ui? true)
                      :pprint-previews? false}
    :bookmarks {}
    :visualizers {}

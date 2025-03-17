@@ -2849,6 +2849,21 @@ add a blue arrow next to the value.</p>
 <p>The <code>eql-query-pprint</code> visualizer allows you to explore your data "entities" by looking at subsets of it
 using queries similar to datomic pull queries like in the screenshots above.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Disable by default</div>
+<div class="paragraph">
+<p>The EQL query pprint is disable by default. To enable it call <code>(flow-storm.runtime.values/register-eql-query-pprint-extractor)</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>By entities it means maps which contains only keywords as their keys. Every other collection
 is just traversed.</p>
@@ -3573,12 +3588,18 @@ It is off by default but you can enable it from the Config menu.</p>
 </div>
 <div class="paragraph">
 <p>Let&#8217;s say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
-record those first 1000 traces and stop recording.
-Your code will continue execution as normal, which you can break using
+record those first 1000 traces per thread and discard the rest as if recording is off.</p>
+</div>
+<div class="paragraph">
+<p>Your code will continue execution as normal, which you can break using
 your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.</p>
 </div>
 <div class="paragraph">
 <p>You can set a limit of 0 to disable it again.</p>
+</div>
+<div class="paragraph">
+<p>You can set this limits at startup via the JVM options <code>"-Dflowstorm.threadTraceLimit=1000"</code> and
+<code>"-Dflowstorm.throwOnThreadLimit=true"</code>.</p>
 </div>
 <div class="paragraph">
 <p>This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.</p>
@@ -3698,7 +3719,9 @@ you can always disable by setting the <code>-Dclojure.storm.instrumentAutoPrefix
 <div class="title">How are auto prefixes calculated?</div>
 <div class="paragraph">
 <p>When the process starts it will scan all source folders on the classpath (everything not inside a jar containing clojure files) and build
-a set of all top level namespace. All namespaces under those will be instrumented.</p>
+a set of all top level namespace. All namespaces under those will be instrumented.
+Currently it doesn&#8217;t detect single level namespaces, like when you have <code>src/core.clj</code>, if this is your case use
+instrumentOnlyPrefixes.</p>
 </div>
 </td>
 </tr>
@@ -4216,6 +4239,15 @@ and possible values.</p>
 <li>
 <p><code>-Dflowstorm.jarEditorCommand=emacsclient -n +&lt;&lt;LINE&gt;&gt;:0 &lt;&lt;JAR&gt;&gt;/&lt;&lt;FILE&gt;&gt;</code></p>
 </li>
+<li>
+<p><code>-Dflowstorm.threadTraceLimit=1000</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.throwOnThreadLimit=true</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.autoUpdateUI=false</code></p>
+</li>
 </ul>
 </div>
 </div>
@@ -4627,7 +4659,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-12 07:15:40 -0300
+Last updated 2025-03-17 15:45:12 -0300
 </div>
 </div>
 </body>
