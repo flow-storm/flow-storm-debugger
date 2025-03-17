@@ -129,8 +129,12 @@
         res))))
 
 (defn api-call
-  ([call-type fkey args] (api-call call-type fkey args {}))
-  ([call-type fkey args {:keys [cache timeout]}]
+  "Calling the runtime side function fkey with args. The call-type can be :local or :remote.
+  If a callback is provided then this function will be async, nil will be returned and
+  the callback will be called with the response. Otherwise it will block and return the response."
+  ([call-type fkey args] (api-call call-type fkey args {} nil))
+  ([call-type fkey args opts] (api-call call-type fkey args opts nil))
+  ([call-type fkey args {:keys [cache timeout]} callback]
    (let [f (case call-type
              :local (dbg-api/api-fn-by-key fkey)
              :remote (fn [& args] (websocket/sync-remote-api-request fkey args)))
@@ -141,22 +145,27 @@
      ;; make the calls in a future so we can have a timeout and don't block the UI thread
      ;; forever
      (let [call-resp-fut (future
-                           (if cache
+                           (let [result (if cache
 
-                             (let [cache-key (into [fkey] args)]
-                               (cached-apply cache cache-key f args))
+                                          (let [cache-key (into [fkey] args)]
+                                            (cached-apply cache cache-key f args))
 
-                             (do
-                               (when debug-mode? (log (utils/colored-string "CALLED" :red)))
-                               (apply f args))))
-           call-resp (if timeout
-                       (deref call-resp-fut timeout :flow-storm/call-time-out)
-                       (deref call-resp-fut))]
-       (if (= call-resp :flow-storm/call-time-out)
-         (do
-           (show-message (format "A call to %s timed out" fkey) :warning)
-           nil)
-         call-resp)))))
+                                          (do
+                                            (when debug-mode? (log (utils/colored-string "CALLED" :red)))
+                                            (apply f args)))]
+                             (if callback
+                               (callback result)
+                               result)))]
+
+       (when-not callback
+         (let [call-resp (if timeout
+                           (deref call-resp-fut timeout :flow-storm/call-time-out)
+                           (deref call-resp-fut))]
+           (if (= call-resp :flow-storm/call-time-out)
+             (do
+               (show-message (format "A call to %s timed out" fkey) :warning)
+               nil)
+             call-resp)))))))
 
 (defn- config-dw-extras [extras]
   (assoc extras

@@ -11,6 +11,7 @@
 ### Changes
 
     - Disable eql-query-pprint by default
+    - Perf improvements. We were calling val-pprint in a bunch of places where v-ref :val-preview could be used
          
 ### Bugs fixed
 

@@ -35,7 +35,7 @@
 
     :function (let [{:keys [form-def-kind fn-name fn-ns dispatch-val]} cell-info
                     fn-lbl (case form-def-kind
-                             :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 3 :print-level 3 :pprint? false}))) form-def-kind)
+                             :defmethod       (flow-cmp/def-kind-colored-label (format "%s/%s %s" fn-ns fn-name (-> dispatch-val meta :val-preview)) form-def-kind)
                              :extend-protocol (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                              :extend-type     (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)
                              :defrecord       (flow-cmp/def-kind-colored-label (format "%s/%s" fn-ns fn-name) form-def-kind)

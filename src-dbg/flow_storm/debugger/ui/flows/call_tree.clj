@@ -43,9 +43,7 @@
     (.setRoot ^TreeView tree-view root-item)))
 
 (defn format-tree-fn-call-args [args-vec]
-  (let [v-str (-> (runtime-api/val-pprint rt-api args-vec {:print-length 3 :print-level 3 :pprint? false})
-                  :val-str
-                  (ui-utils/remove-newlines))
+  (let [v-str (-> args-vec meta :val-preview ui-utils/remove-newlines)
         ^String step-1 (utils/elide-string v-str 80)]
     (if (= \. (.charAt step-1 (dec (count step-1))))
       (subs step-1 1 (count step-1))
@@ -65,7 +63,7 @@
                       "")]
 
       (ui/h-box :childs (cond-> [(ui/label :text (if dispatch-val
-                                                   (format "(%s/%s %s %s) " fn-ns fn-name (:val-str (runtime-api/val-pprint rt-api dispatch-val {:print-length 1 :print-level 1 :pprint? false})) (format-tree-fn-call-args args-vec))
+                                                   (format "(%s/%s %s %s) " fn-ns fn-name (-> dispatch-val meta :val-preview) (format-tree-fn-call-args args-vec))
                                                    (format "(%s/%s %s)" fn-ns fn-name (format-tree-fn-call-args args-vec))))
                                  (ui/label :text form-hint
                                            :class "light")]

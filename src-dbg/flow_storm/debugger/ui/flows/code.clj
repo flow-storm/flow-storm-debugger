@@ -176,9 +176,7 @@
                          (if (= idx curr-idx)
                            {:text (format "%d - << we are here >>" curr-idx)
                             :disable? true}
-                           (let [v-str (-> (runtime-api/val-pprint rt-api result {:print-length 3 :print-level 3 :pprint? false})
-                                           :val-str
-                                           (utils/elide-string 80))]
+                           (let [v-str (-> result meta :val-preview (utils/elide-string 80))]
                              {:text (cond
                                       (= (:idx first-entry) idx) (format "[FIRST] %d - %s" idx v-str)
                                       (= (:idx last-entry) idx)  (format "[LAST] %d - %s" idx v-str)
@@ -379,11 +377,7 @@
 (defn- locals-cell-factory [_ {:keys [cell-type symb-name val-ref]}]
   (case cell-type
     :symbol (ui/label :text symb-name)
-    :val-ref (ui/label :text (utils/elide-string (:val-str (runtime-api/val-pprint rt-api val-ref
-                                                                                   {:print-length 20
-                                                                                    :print-level 5
-                                                                                    :pprint? false}))
-                                                 80))))
+    :val-ref (ui/label :text (-> val-ref meta :val-preview (utils/elide-string 80)))))
 
 (defn- on-locals-item-click [flow-id thread-id mev selected-items {:keys [table-view-pane]}]
   (when (ui-utils/mouse-secondary? mev)
