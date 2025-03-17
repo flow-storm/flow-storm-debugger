@@ -65,6 +65,7 @@
         title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
         auto-update-ui-prop (System/getProperty "flowstorm.autoUpdateUI")
+        call-tree-update-prop (System/getProperty "flowstorm.callTreeUpdate")
         plugins-nss-set (->> (reduce-kv (fn [acc prop value]
                                           (if (str/starts-with? prop "flowstorm.plugins.namespaces")
                                             (into acc (str/split value #","))
@@ -76,6 +77,7 @@
       styles-prop           (assoc :styles styles-prop)
       title-prop            (assoc :title  title-prop)
       auto-update-ui-prop   (assoc :auto-update-ui? (= "true" auto-update-ui-prop))
+      call-tree-update-prop (assoc :call-tree-update? (= "true" call-tree-update-prop))
       (seq plugins-nss-set) (assoc :plugins-namespaces-set plugins-nss-set))))
 
 (defn start-debugger

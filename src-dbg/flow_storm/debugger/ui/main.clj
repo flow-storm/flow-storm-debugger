@@ -274,7 +274,11 @@
                                      {:text "Pretty print previews"
                                       :check-item? true
                                       :checked? (:pprint-previews? (dbg-state/debugger-config))
-                                      :on-click (fn [enable?] (dbg-state/set-pprint-previews enable?))}])
+                                      :on-click (fn [enable?] (dbg-state/set-pprint-previews enable?))}
+                                     {:text "Call tree update"
+                                      :check-item? true
+                                      :checked? (:call-tree-update? (dbg-state/debugger-config))
+                                      :on-click (fn [enable?] (dbg-state/set-call-tree-update enable?))}])
         help-menu (ui/menu :label "_Help"
                            :items [{:text "Tutorial"
                                     :on-click (fn []

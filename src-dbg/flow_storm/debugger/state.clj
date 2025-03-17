@@ -246,7 +246,7 @@
                                 ::bookmarks
                                 ::data-windows]))
 
-(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui?] :as config}]
+(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui? call-tree-update?] :as config}]
   {:flows {}
    :printers {}
    :selected-font-size-style-idx 0
@@ -277,6 +277,7 @@
                      :debug-mode? false
                      :auto-jump-on-exception? false
                      :auto-update-ui? (or auto-update-ui? true)
+                     :call-tree-update? (or call-tree-update? true)
                      :pprint-previews? false}
    :bookmarks {}
    :visualizers {}
@@ -325,6 +326,9 @@
 
 (defn set-auto-update-ui [enable?]
   (swap! state assoc-in [:debugger-config :auto-update-ui?] enable?))
+
+(defn set-call-tree-update [enable?]
+  (swap! state assoc-in [:debugger-config :call-tree-update?] enable?))
 
 (defn set-pprint-previews [enable?]
   (swap! state assoc-in [:debugger-config :pprint-previews?] enable?))

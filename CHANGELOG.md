@@ -7,6 +7,7 @@
     - Add flowstorm.autoUpdateUI jvm opt
     - Add flowstorm.threadTraceLimit jvm opt
     - Add flowstorm.throwOnThreadLimit jvm opt
+    - Add flowstorm.callTreeUpdate jvm opt
     
 ### Changes
 

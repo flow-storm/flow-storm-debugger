@@ -90,7 +90,8 @@
     (ui-general/select-thread-tool-tab flow-id (:thread/id thread-info) "flows-code-stepper")))
 
 (defn update-outdated-thread-ui [flow-id thread-id]
-  (flow-tree/update-call-stack-tree-pane flow-id thread-id)
+  (when (:call-tree-update? (dbg-state/debugger-config))
+    (flow-tree/update-call-stack-tree-pane flow-id thread-id))
   (flow-fns/update-functions-pane flow-id thread-id)
   (flow-code/update-thread-trace-count-lbl flow-id thread-id))
 

@@ -4,7 +4,7 @@
             [flow-storm.debugger.ui.flows.components :as flow-cmp]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.state :as state :refer [store-obj obj-lookup]]
+            [flow-storm.debugger.state :as dbg-state :refer [store-obj obj-lookup]]
             [flow-storm.debugger.ui.utils :as ui-utils :refer [event-handler]]
             [flow-storm.debugger.ui.components :as ui])
   (:import [javafx.collections ObservableList]
@@ -22,7 +22,7 @@
                                                   (take call-stack-tree-childs-limit)
                                                   (remove (fn [child-node]
                                                             (let [{:keys [fn-name fn-ns]} (runtime-api/callstack-node-frame rt-api child-node)]
-                                                              (state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
+                                                              (dbg-state/callstack-tree-hidden? flow-id thread-id fn-name fn-ns))))
                                                   (into []))
                                final-calls (if (= (count limited-calls) call-stack-tree-childs-limit)
                                              (update limited-calls (dec (count limited-calls)) (fn [c] (with-meta c {:truncated-last-child? true})))
@@ -97,7 +97,7 @@
       (select-call-stack-tree-node flow-id thread-id curr-idx))))
 
 (defn highlight-current-frame [flow-id thread-id]
-  (let [curr-idx (:fn-call-idx (state/current-timeline-entry flow-id thread-id))
+  (let [curr-idx (:fn-call-idx (dbg-state/current-timeline-entry flow-id thread-id))
         {:keys [fn-call-idx-path]} (runtime-api/frame-data rt-api flow-id thread-id curr-idx {:include-path? true})]
     (expand-and-highlight flow-id thread-id fn-call-idx-path)))
 
@@ -168,7 +168,7 @@
                           {:text "Hide from tree"
                            :on-click (fn [& _]
                                        (let [{:keys [fn-name fn-ns]} (get-selected-frame)]
-                                         (state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
+                                         (dbg-state/callstack-tree-hide-fn flow-id thread-id fn-name fn-ns)
                                          (update-call-stack-tree-pane flow-id thread-id)))}]
         ctx-menu (ui/context-menu :items ctx-menu-options)
         callstack-fn-args-pane   (flow-cmp/create-pprint-pane flow-id thread-id "fn_args")
@@ -216,6 +216,7 @@
     (VBox/setVgrow tree-view Priority/ALWAYS)
     (VBox/setVgrow top-bottom-split Priority/ALWAYS)
 
-    (update-call-stack-tree-pane flow-id thread-id)
+    (when (:call-tree-update? (dbg-state/debugger-config))
+      (update-call-stack-tree-pane flow-id thread-id))
 
     top-bottom-split))

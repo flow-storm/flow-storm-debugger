@@ -914,6 +914,14 @@ Use the button at the top left corner of the tree tool to show the current frame
 
 There are also two <<#_value_panels,value panels>> at the bottom that show the arguments and return value for the currently selected function call.
 
+[NOTE]
+.Disabling the call stack tree tool
+====
+The call stack tree tool can be enable/disable on the fly if you are not using it and performance is an issue,
+since keeping it updated can be expensive.
+You can disable it from the Config menu or via the `flowstorm.callTreeUpdate=false` JVM prop.
+====
+
 == Functions tool
 
 The functions tool is the third one of the `Flows` tab.
@@ -2164,6 +2172,7 @@ and possible values.
 - `-Dflowstorm.threadTraceLimit=1000`
 - `-Dflowstorm.throwOnThreadLimit=true`
 - `-Dflowstorm.autoUpdateUI=false`
+- `-Dflowstorm.callTreeUpdate=false`
 
 == Only Clojure
 
