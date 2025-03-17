@@ -18,10 +18,10 @@
                               *print-meta* false]
                       (pr-str v))
                     #?(:clj (catch Exception e
-                              (println (utils/format "Couldn't build preview for type %s because of %s") (type v) (.getMessage e))
+                              (println (utils/format "Couldn't build preview for type %s because of %s" (type v) (.getMessage e)))
                               (str (type v)))
                        :cljs (catch js/Error e
-                               (println (utils/format "Couldn't build preview for type %s because of %s") (type v) (.-message e))
+                               (println (utils/format "Couldn't build preview for type %s because of %s" (type v) (.-message e)))
                                (str (type v)))))}))
 
 (defn vref-preview [vref]
