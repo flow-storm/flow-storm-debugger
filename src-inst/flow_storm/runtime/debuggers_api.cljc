@@ -653,8 +653,16 @@
        (log "Runtime already started, skipping ...")
        
        (let [_ (log "Starting up runtime")
-             fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))]
+             fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
+             thread-trace-limit (when-let [limit-prop (System/getProperty "flowstorm.threadTraceLimit")]
+                                  (utils/parse-int limit-prop))]
 
+         (when thread-trace-limit
+           (let [break? (boolean (System/getProperty "flowstorm.throwOnThreadLimit"))]
+             (log (utils/format "Limiting threads trace count to %d. Throw on limit %s?" thread-trace-limit break?))
+             (set-thread-trace-limit {:limit thread-trace-limit
+                                      :break? break?})))
+         
          (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "true") true false))
 
          (doseq [[fn-ns fn-name l] fn-call-limits]
@@ -694,6 +702,14 @@
            (doseq [[fn-ns fn-name l] fn-call-limits]
              (index-api/add-fn-call-limit fn-ns fn-name l)))
 
+         (when-let [limit-prop (env-prop "flowstorm.threadTraceLimit")]
+           (let [thread-trace-limit (utils/parse-int limit-prop)
+                 break? (boolean (env-prop "flowstorm.throwOnThreadLimit"))]
+             (when thread-trace-limit
+               (log (utils/format "Limiting threads trace count to %d. Throw on limit %s?" thread-trace-limit break?))           
+               (set-thread-trace-limit {:limit thread-trace-limit
+                                        :break? break?}))))
+         
          (rt-values/clear-vals-ref-registry)
          
          (rt-outputs/setup-tap!)

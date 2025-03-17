@@ -64,6 +64,7 @@
   (let [theme-prop (System/getProperty "flowstorm.theme")
         title-prop (System/getProperty "flowstorm.title")
         styles-prop (System/getProperty "flowstorm.styles")
+        auto-update-ui-prop (System/getProperty "flowstorm.autoUpdateUI")
         plugins-nss-set (->> (reduce-kv (fn [acc prop value]
                                           (if (str/starts-with? prop "flowstorm.plugins.namespaces")
                                             (into acc (str/split value #","))
@@ -71,10 +72,11 @@
                                         #{}
                                         (System/getProperties)))]
     (cond-> {}
-      theme-prop                      (assoc :theme (keyword theme-prop))
-      styles-prop                     (assoc :styles styles-prop)
-      title-prop                      (assoc :title  title-prop)
-      (seq plugins-nss-set)              (assoc :plugins-namespaces-set plugins-nss-set))))
+      theme-prop            (assoc :theme (keyword theme-prop))
+      styles-prop           (assoc :styles styles-prop)
+      title-prop            (assoc :title  title-prop)
+      auto-update-ui-prop   (assoc :auto-update-ui? (= "true" auto-update-ui-prop))
+      (seq plugins-nss-set) (assoc :plugins-namespaces-set plugins-nss-set))))
 
 (defn start-debugger
 

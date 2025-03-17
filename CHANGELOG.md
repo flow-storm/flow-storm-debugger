@@ -3,10 +3,18 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Add flowstorm.autoUpdateUI jvm opt
+    - Add flowstorm.threadTraceLimit jvm opt
+    - Add flowstorm.throwOnThreadLimit jvm opt
     
 ### Changes
+
+    - Disable eql-query-pprint by default
          
 ### Bugs fixed
+
+    - Catch exceptions on preview build when print fails
 
 ## 4.2.1 (11-03-2025)
 	

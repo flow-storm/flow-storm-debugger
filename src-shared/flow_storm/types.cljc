@@ -9,13 +9,20 @@
 (defn make-value-ref [vid]
   (->ValueRef vid))
 
-(defn add-val-preview [vref v]
+(defn add-val-preview [vref v]  
   (with-meta
     vref
-    {:val-preview (binding [*print-level* 4
-                            *print-length* 20
-                            *print-meta* false]
-                    (pr-str v))}))
+    {:val-preview (try
+                    (binding [*print-level* 4
+                              *print-length* 20
+                              *print-meta* false]
+                      (pr-str v))
+                    #?(:clj (catch Exception e
+                              (println (utils/format "Couldn't build preview for type %s because of %s") (type v) (.getMessage e))
+                              (str (type v)))
+                       :cljs (catch js/Error e
+                               (println (utils/format "Couldn't build preview for type %s because of %s") (type v) (.-message e))
+                               (str (type v)))))}))
 
 (defn vref-preview [vref]
   (-> vref meta :val-preview))

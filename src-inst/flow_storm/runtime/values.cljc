@@ -332,20 +332,6 @@
                 :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 
-(register-data-aspect-extractor
- {:id :eql-query-pprint
-  :pred (fn [x _] (coll? x))
-  :extractor (fn [coll {:keys [query pprint-previews?]}]
-               (let [query (or query '[*])
-                     q-pprint (-> (eql/eql-query coll query)
-                                  (val-pprint {:pprint? pprint-previews?
-                                               :print-meta? false
-                                               :print-length 1000})
-                                  :val-str)]
-                 {:eql/pprint q-pprint
-                  :eql/query query}))})
-
-
 #?(:clj
    (register-data-aspect-extractor
     {:id :byte-array
@@ -372,6 +358,23 @@
                          :bytes/head-binary (mapv #(format-and-pad % 2)  head)
                          :bytes/tail-hex    (mapv #(format-and-pad % 16) tail)
                          :bytes/tail-binary (mapv #(format-and-pad % 2)  tail)}))))}))
+
+(defn register-eql-query-pprint-extractor []
+  ;; Let's leave this disable by default for now since it has some
+  ;; performance implications.
+  
+  (register-data-aspect-extractor
+   {:id :eql-query-pprint
+    :pred (fn [x _] (coll? x))
+    :extractor (fn [coll {:keys [query pprint-previews?]}]
+                 (let [query (or query '[*])
+                       q-pprint (-> (eql/eql-query coll query)
+                                    (val-pprint {:pprint? pprint-previews?
+                                                 :print-meta? false
+                                                 :print-length 1000})
+                                    :val-str)]
+                   {:eql/pprint q-pprint
+                    :eql/query query}))}))
 
 (comment
     

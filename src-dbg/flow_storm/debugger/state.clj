@@ -246,7 +246,7 @@
                                 ::bookmarks
                                 ::data-windows]))
 
-(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host] :as config}]
+(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui?] :as config}]
   {:flows {}
    :printers {}
    :selected-font-size-style-idx 0
@@ -276,7 +276,7 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false
                      :auto-jump-on-exception? false
-                     :auto-update-ui? true
+                     :auto-update-ui? auto-update-ui?
                      :pprint-previews? false}
    :bookmarks {}
    :visualizers {}
