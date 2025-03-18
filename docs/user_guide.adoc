@@ -53,10 +53,10 @@ You can start a repl with FlowStorm with a single command like this :
 [%nowrap,bash]
 ----
 ;; on Linux and OSX
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}}}' -A:dev
 
 ;; on Windows
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-9"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.1"""}}}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-9"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.2"""}}}}}' -A:dev
 ----
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up
@@ -77,7 +77,7 @@ You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPR
  :aliases
  {:1.12-storm {:classpath-overrides {org.clojure/clojure nil}
                :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
-                            com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}
+                            com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}
 
   ;; Optional plugins you find yourself using regularly 
   :fs-web-plugin {:extra-deps {com.github.flow-storm/flow-storm-web-plugin {:mvn/version "1.0.0-beta"}}
@@ -98,7 +98,7 @@ You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERP
 ----
 {:1.12-storm
  {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
-                 [com.github.flow-storm/flow-storm-dbg "4.2.1"]]
+                 [com.github.flow-storm/flow-storm-dbg "4.2.2"]]
   :exclusions [org.clojure/clojure]}
 
  ;; Optional plugins you find yourself using regularly 
@@ -130,7 +130,7 @@ If your project is using deps.edn, you can add an alias that looks like this :
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil} 
             :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
-                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}}}
+                         com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}}}
 ----
 
 Once you have setup your deps.edn, start your repl with the `:1.12-storm` alias and run the debugger by evaluating
@@ -149,7 +149,7 @@ If your project uses lein, you can add a profile that looks like this :
 (defproject my.project "1.0.0"
   :profiles {:1.12-storm
              {:dependencies [[com.github.flow-storm/clojure "1.12.0-9"]
-                             [com.github.flow-storm/flow-storm-dbg "4.2.1"]]
+                             [com.github.flow-storm/flow-storm-dbg "4.2.2"]]
               :exclusions [org.clojure/clojure]}}
   ...)
 ----
@@ -177,10 +177,10 @@ If you use the https://clojure.org/guides/deps_and_cli[clojure cli] you can star
 [,bash]
 ----
 ;; on Linux and OSX
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}'
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}'
 
 ;; on Windows
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.1"""}}}'
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.2"""}}}'
 ----
 
 If you are a https://leiningen.org/[lein] user add the dependency to your project.clj `:dependencies` and run `lein repl`.
@@ -282,9 +282,9 @@ Then, modify your `deps.edn` dev profile to look like this :
         :extra-deps {thheller/shadow-cljs {:mvn/version "2.25.6" ;; >= 2.25.4
                                            :exclusions [org.clojure/clojurescript]}
                      ;; bring ClojureScriptStorm
-                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-8"}
+                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"}
                      ;; add FlowStorm runtime dep
-                     com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.1"}}
+                     com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.2"}}
        :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"
                    "-Dcljs.storm.instrumentEnable=true"
                    "-Dflowstorm.startRecording=false"]}}}
@@ -306,7 +306,7 @@ Whenever your need the debugger, on a terminal run the ui with your shadow-cljs.
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app
 ----
 
 and then reload you page so it connects to it.
@@ -332,21 +332,21 @@ To compile instrumented files :
 
 [%nowrap,bash]
 ----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-8"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.1"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.2"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
 ----
 
 To run a repl that instrument everything under org.foo :
 
 [%nowrap,bash]
 ----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-8"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.1"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.2"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
 ----
 
 Then run the _FlowStorm_ UI :
 
 [%nowrap,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger
 ----
 
 And now refresh your browser page so your browser app connects to the UI.
@@ -362,7 +362,7 @@ First you need to add _FlowStorm_ dependency to your project dependencies, like 
 $ cat shadow-cljs.edn
 
 {...
- :dependencies [... [com.github.flow-storm/flow-storm-inst "4.2.1"]]
+ :dependencies [... [com.github.flow-storm/flow-storm-inst "4.2.2"]]
 
  ;; the next two lines aren't needed but pretty convenient
  :nrepl {:port 9000}
@@ -393,10 +393,10 @@ so to start the debugger and connect to it you run :
 [,bash]
 ----
 ;; on linux and mac-os
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 
 ;; on windows
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.1"""}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version """4.2.2"""}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-build-id
 ----
 
 And that is all you need, the debugger GUI will pop up and everything will be ready.
@@ -429,7 +429,7 @@ For this you can start the debugger like before but without any parameters, like
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger
 ----
 
 And then go to your app code and call `(flow-storm.runtime.debuggers-api/remote-connect)` maybe on your main, so every time your program starts
@@ -482,10 +482,10 @@ So let's say you want to run two debuggers, one for your page and one for a webw
 [,bash]
 ----
 # on one terminal start your app debugger instance
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :ws-port 7722
 
 # on a second terminal start your webworker debugger instance
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-web-worker :ws-port 7733
 ----
 
 Now you also need to configure your builds to tell them what port they should connect to.
@@ -560,7 +560,7 @@ Then modify the resulting deps.edn to add the FlowStorm alias like this :
 {...
  :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
-                              com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}
+                              com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}
                  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}
 ----
 
@@ -1060,7 +1060,7 @@ use whichever you prefer.
 [NOTE]
 .ClojureScript support
 ====
-This is currently only supported when using ClojureScriptStorm >= 1.11.132-8 
+This is currently only supported when using ClojureScriptStorm >= 1.11.132-9 
 ====
 
 === UI bookmarks
@@ -1705,7 +1705,7 @@ After the tunnel is established, you can run you debugger UI like this :
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000
 ----
 
 and that is it.
@@ -1714,7 +1714,7 @@ If you need to connect the debugger to a remote process without a ssh tunnel or 
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
 ----
 
 == Docker
@@ -2255,7 +2255,7 @@ can start a debugger and connect to it by running :
 
 [,bash]
 ----
-clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.1"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host '"YOUR_DEV_MACHINE_IP"'
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :your-app-build-id :debugger-host '"YOUR_DEV_MACHINE_IP"'
 ----
 
 You also need to make it possible for the device to connect back to the debugger on port 7722. You can accomplish this by running :

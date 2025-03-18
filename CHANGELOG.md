@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes
+         
+### Bugs fixed
+    
+## 4.2.2 (18-03-2025)
+	
+### New Features
 
     - Add flowstorm.autoUpdateUI jvm opt
     - Add flowstorm.threadTraceLimit jvm opt
