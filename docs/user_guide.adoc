@@ -1685,11 +1685,13 @@ Take a look at their docstrings for more info.
   
 = Remote debugging
 
-You can remotely debug any Clojure application the exposes a nrepl server.
+You can remotely debug any Clojure application that exposes a nrepl server.
 
 In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
 `flow-storm-inst` instead of `flow-storm-dbg`, being the former a slimmed down version of the later one that
 doesn't contain some libraries used only by the UI, but using the full `flow-storm-dbg` is also ok.
+
+== SSH tunnel
 
 The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :
 
@@ -1716,6 +1718,30 @@ If you need to connect the debugger to a remote process without a ssh tunnel or 
 ----
 clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}' -X flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host '"YOUR-APP-BOX-IP-ADDRESS"' :debugger-host '"YOUR-BOX-IP-ADDRESS"' :ws-port WS-SERVER-PORT
 ----
+
+== Out of process
+
+Sometimes you are not debugging across a network but you want to run the FlowStorm UI on a different process.
+
+A couple of aliases that can help for this :
+
+[,clojure]
+----
+{:aliases
+ ;; for your system process
+ {:runtime-storm {:classpath-overrides {org.clojure/clojure nil}
+                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
+                               com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.2"}}}
+  ;; for the FlowStorm GUI process
+  :ui-storm {:extra-deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}
+             :exec-fn flow-storm.debugger.main/start-debugger
+             :exec-args {:port 7888}}}} ;; set your nrepl port here!
+----
+
+With those aliases you can start your application process by adding `:runtime-storm` and that is it.
+
+To start the FlowStorm UI, go to another terminal and run `clj -X:ui-storm`.
+
 
 == Docker
 

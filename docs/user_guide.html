@@ -752,7 +752,9 @@ pre.rouge {
 </li>
 <li><a href="#_remote_debugging">9. Remote debugging</a>
 <ul class="sectlevel2">
-<li><a href="#_docker">9.1. Docker</a></li>
+<li><a href="#_ssh_tunnel">9.1. SSH tunnel</a></li>
+<li><a href="#_out_of_process">9.2. Out of process</a></li>
+<li><a href="#_docker">9.3. Docker</a></li>
 </ul>
 </li>
 <li><a href="#_dealing_with_too_many_traces">10. Dealing with too many traces</a></li>
@@ -3502,13 +3504,15 @@ performance you can access entries information without creating a immutable map 
 <h2 id="_remote_debugging"><a class="anchor" href="#_remote_debugging"></a><a class="link" href="#_remote_debugging">9. Remote debugging</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can remotely debug any Clojure application the exposes a nrepl server.</p>
+<p>You can remotely debug any Clojure application that exposes a nrepl server.</p>
 </div>
 <div class="paragraph">
 <p>In terms of dependencies, the debuggee side should be setup the same as a normal local setup, with the optional change that you can use
 <code>flow-storm-inst</code> instead of <code>flow-storm-dbg</code>, being the former a slimmed down version of the later one that
 doesn&#8217;t contain some libraries used only by the UI, but using the full <code>flow-storm-dbg</code> is also ok.</p>
 </div>
+<div class="sect2">
+<h3 id="_ssh_tunnel"><a class="anchor" href="#_ssh_tunnel"></a><a class="link" href="#_ssh_tunnel">9.1. SSH tunnel</a></h3>
 <div class="paragraph">
 <p>The easiest way to debug a remote application is via a ssh tunnel. You can create it from your dev box like this :</p>
 </div>
@@ -3540,8 +3544,37 @@ that the debugger websocket server is running on the default port.</p>
 <pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.2.2"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port NREPL-PORT :runtime-host <span class="s1">'"YOUR-APP-BOX-IP-ADDRESS"'</span> :debugger-host <span class="s1">'"YOUR-BOX-IP-ADDRESS"'</span> :ws-port WS-SERVER-PORT</code></pre>
 </div>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_docker"><a class="anchor" href="#_docker"></a><a class="link" href="#_docker">9.1. Docker</a></h3>
+<h3 id="_out_of_process"><a class="anchor" href="#_out_of_process"></a><a class="link" href="#_out_of_process">9.2. Out of process</a></h3>
+<div class="paragraph">
+<p>Sometimes you are not debugging across a network but you want to run the FlowStorm UI on a different process.</p>
+</div>
+<div class="paragraph">
+<p>A couple of aliases that can help for this :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:aliases</span><span class="w">
+ </span><span class="c1">;; for your system process</span><span class="w">
+ </span><span class="p">{</span><span class="no">:runtime-storm</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
+                  </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">}</span><span class="w">
+                               </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.2"</span><span class="p">}}}</span><span class="w">
+  </span><span class="c1">;; for the FlowStorm GUI process</span><span class="w">
+  </span><span class="no">:ui-storm</span><span class="w"> </span><span class="p">{</span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.2.2"</span><span class="p">}}</span><span class="w">
+             </span><span class="no">:exec-fn</span><span class="w"> </span><span class="n">flow-storm.debugger.main/start-debugger</span><span class="w">
+             </span><span class="no">:exec-args</span><span class="w"> </span><span class="p">{</span><span class="no">:port</span><span class="w"> </span><span class="mi">7888</span><span class="p">}}}}</span><span class="w"> </span><span class="c1">;; set your nrepl port here!</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With those aliases you can start your application process by adding <code>:runtime-storm</code> and that is it.</p>
+</div>
+<div class="paragraph">
+<p>To start the FlowStorm UI, go to another terminal and run <code>clj -X:ui-storm</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_docker"><a class="anchor" href="#_docker"></a><a class="link" href="#_docker">9.3. Docker</a></h3>
 <div class="paragraph">
 <p>If you run you process inside a docker container, here is a basic template for using <em>FlowStorm</em> with it
 <a href="https://github.com/flow-storm/docker-flow-storm-basic" class="bare">https://github.com/flow-storm/docker-flow-storm-basic</a></p>
@@ -4679,7 +4712,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-18 11:27:43 -0300
+Last updated 2025-03-19 09:34:12 -0300
 </div>
 </div>
 </body>
