@@ -64,7 +64,7 @@ evaluate the `:dbg` keyword to bring up the UI and then click on  `Help->Tutoria
 
 After the tutorial you may want to use it on your projects. You use it by adding a deps.edn alias or  lein profile.
 
-The simplest way is to setup it globally so that is what we are going to do next, but you can also add it only
+The simplest way is to setup it globally, so that is what we are going to do next. You can also add it only
 to specific projects if they require special configurations.
 
 ==== Global setup as deps.edn aliases
@@ -87,7 +87,7 @@ You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPR
   ...}}
 ----
 
-Then you can start your repls with `:1.12-storm` alias (like `clj -A::1.12-storm`) and when the repl comes up evaluate the `:dbg` keyword to bring up the UI,
+Then you can start your repls with the `:1.12-storm` alias (like `clj -A:1.12-storm`). When the repl comes up evaluate the `:dbg` keyword to bring up the UI,
 then click on  `Help->Tutorial` on the menu for a tour of the basics.
 
 ==== Global setup as leiningen profiles
@@ -109,7 +109,7 @@ You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERP
 ...}
 ----
 
-Then you can start your repls with `+1.12-storm` profile (like `lein with-profile +1.12-storm repl`) and when the repl comes up evaluate the `:dbg` keyword to bring up the UI,
+Then you can start your project repls with `+1.12-storm` profile (like `lein with-profile +1.12-storm repl`). When the repl comes up evaluate the `:dbg` keyword to bring up the UI,
 then click on  `Help->Tutorial` on the menu for a tour of the basics.
 
 [NOTE]
