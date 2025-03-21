@@ -1,5 +1,6 @@
 (ns flow-storm.runtime.indexes.total-order-timeline
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
+            [flow-storm.runtime.indexes.timeline-index :refer [ensure-indexes]]
             [flow-storm.runtime.indexes.utils :refer [make-mutable-list ml-add ml-clear ml-count ml-get]]
             [flow-storm.runtime.types.fn-return-trace :as fn-return-trace :refer [fn-end-trace?]]
             [flow-storm.runtime.types.fn-call-trace :as fn-call-trace :refer [fn-call-trace?]]
@@ -10,23 +11,24 @@
 
 (defn- print-tote [tote]
   (let [th-tl (index-protos/tote-thread-timeline tote)
-        th-tle (index-protos/tote-thread-timeline-entry tote)
-        th-idx (index-protos/entry-idx th-tle)
+        th-idx (index-protos/tote-thread-timeline-idx tote)
         th-id (index-protos/thread-id th-tl th-idx)]
     (utils/format "#flow-storm/total-order-timeline-entry [ThreadId: %d, Idx: %d]"
                   th-id th-idx)))
 
-(deftype TotalOrderTimelineEntry [th-timeline entry]
+(deftype TotalOrderTimelineEntry [th-timeline th-idx]
 
   index-protos/ImmutableP
   (as-immutable [_]
-    (merge {:thread-id (index-protos/thread-id th-timeline 0)}
-           (index-protos/as-immutable entry)))
+    (-> (get th-timeline th-idx)
+        index-protos/as-immutable
+        (ensure-indexes th-idx)
+        (assoc :thread-id (index-protos/thread-id th-timeline 0))))
   
   index-protos/TotalOrderTimelineEntryP
   
   (tote-thread-timeline [_] th-timeline)
-  (tote-thread-timeline-entry [_] entry)
+  (tote-thread-timeline-idx [_] th-idx)
 
   #?@(:cljs
       [IPrintWithWriter
@@ -58,9 +60,9 @@
   
   index-protos/TotalOrderTimelineP
 
-  (tot-add-entry [this th-timeline entry]    
+  (tot-add-entry [this th-timeline th-idx]    
     (locking this
-      (ml-add mt-timeline (TotalOrderTimelineEntry. th-timeline entry))))
+      (ml-add mt-timeline (TotalOrderTimelineEntry. th-timeline th-idx))))
   
   (tot-clear-all [this]
     (locking this
@@ -124,43 +126,42 @@
 
 (defn make-detailed-timeline-mapper [forms-registry]
   (let [threads-stacks (atom {})]
-    (fn [thread-id entry]
-      (let [te-idx (index-protos/entry-idx entry)]
-        (cond
-          (fn-call-trace? entry)
-          (do
-            (swap! threads-stacks update thread-id conj entry)
-            {:type                :fn-call
-             :thread-id           thread-id
-             :thread-timeline-idx te-idx
-             :fn-ns               (index-protos/get-fn-ns entry)
-             :fn-name             (index-protos/get-fn-name entry)})
+    (fn [thread-id te-idx entry]
+      (cond
+        (fn-call-trace? entry)
+        (do
+          (swap! threads-stacks update thread-id conj entry)
+          {:type                :fn-call
+           :thread-id           thread-id
+           :thread-timeline-idx te-idx
+           :fn-ns               (index-protos/get-fn-ns entry)
+           :fn-name             (index-protos/get-fn-name entry)})
+        
+        (fn-end-trace? entry)
+        (do
+          (swap! threads-stacks update thread-id pop)
+          {:type                (if (fn-return-trace/fn-return-trace? entry)
+                                  :fn-return
+                                  :fn-unwind)
+           :thread-id           thread-id
+           :thread-timeline-idx te-idx})
+        
+        (expr-trace? entry)
+        (let [[curr-fn-call] (get @threads-stacks thread-id)
+              form-id (index-protos/get-form-id curr-fn-call)
+              form-data (index-protos/get-form forms-registry form-id)
+              coord (index-protos/get-coord-vec entry)
+              expr-val (index-protos/get-expr-val entry)]
           
-          (fn-end-trace? entry)
-          (do
-            (swap! threads-stacks update thread-id pop)
-            {:type                (if (fn-return-trace/fn-return-trace? entry)
-                                    :fn-return
-                                    :fn-unwind)
-             :thread-id           thread-id
-             :thread-timeline-idx te-idx})
-          
-          (expr-trace? entry)
-          (let [[curr-fn-call] (get @threads-stacks thread-id)
-                form-id (index-protos/get-form-id curr-fn-call)
-                form-data (index-protos/get-form forms-registry form-id)
-                coord (index-protos/get-coord-vec entry)
-                expr-val (index-protos/get-expr-val entry)]
-            
-            {:type                :expr-exec
-             :thread-id           thread-id
-             :thread-timeline-idx te-idx
-             :expr-str            (binding [*print-length* 5
-                                            *print-level*  3]
-                                    (pr-str
-                                     (hansel-utils/get-form-at-coord (:form/form form-data)
-                                                                     coord)))
-             :expr-type (pr-str (type expr-val))
-             :expr-val-str  (binding [*print-length* 3
-                                      *print-level*  2]
-                              (pr-str expr-val))}))))))
+          {:type                :expr-exec
+           :thread-id           thread-id
+           :thread-timeline-idx te-idx
+           :expr-str            (binding [*print-length* 5
+                                          *print-level*  3]
+                                  (pr-str
+                                   (hansel-utils/get-form-at-coord (:form/form form-data)
+                                                                   coord)))
+           :expr-type (pr-str (type expr-val))
+           :expr-val-str  (binding [*print-length* 3
+                                    *print-level*  2]
+                            (pr-str expr-val))})))))

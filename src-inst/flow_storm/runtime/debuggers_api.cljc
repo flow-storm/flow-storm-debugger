@@ -1,5 +1,6 @@
 (ns flow-storm.runtime.debuggers-api
   (:require [flow-storm.runtime.indexes.api :as index-api]
+            [flow-storm.runtime.indexes.timeline-index :refer [ensure-indexes]]
             [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.json-serializer :as serializer]
             #?@(:clj  [[flow-storm.utils :as utils :refer [log]]]
@@ -271,11 +272,11 @@
   (let [timeline (index-api/total-order-timeline flow-id)
         detail-mapper (total-order-timeline/make-detailed-timeline-mapper index-api/forms-registry)
         keeper (if only-functions?
-                 (fn [thread-id tl-entry]
+                 (fn [thread-id tl-idx tl-entry]
                    (when (fn-call-trace/fn-call-trace? tl-entry)
-                     (detail-mapper thread-id tl-entry)))
-                 (fn [thread-id tl-entry]
-                   (detail-mapper thread-id tl-entry)))]    
+                     (detail-mapper thread-id tl-idx tl-entry)))
+                 (fn [thread-id tl-idx tl-entry]
+                   (detail-mapper thread-id tl-idx tl-entry)))]    
     (submit-async-interruptible-batched-timelines-keep-task [timeline] keeper)))
 
 (defn thread-prints-task [{:keys [flow-id thread-id printers]}]
@@ -292,7 +293,7 @@
 
 (defn search-collect-timelines-entries-task [{:keys [search-type predicate-code-str query-str val-ref] :as criteria} {:keys [print-length print-level] :or {print-level 2 print-length 10}}]
   (let [keeper (case search-type
-                 :pr-str (fn [thread-id tl-entry]
+                 :pr-str (fn [thread-id tl-idx tl-entry]
                            (when (or (expr-trace/expr-trace? tl-entry)
                                      (fn-return-trace/fn-return-trace? tl-entry))
 
@@ -303,13 +304,14 @@
                                (when (str/includes? pprint-val query-str)
                                  (-> tl-entry
                                      index-protos/as-immutable
+                                     (ensure-indexes tl-idx)
                                      reference-timeline-entry!
                                      (assoc :entry-preview pprint-val
                                             :thread-id thread-id))))))
                  :custorm-predicate #?(:clj (let [custom-pred-fn (try
                                                                    (eval (read-string predicate-code-str))
                                                                    (catch Exception _ (constantly false)))]
-                                              (fn [thread-id tl-entry]                                                            
+                                              (fn [thread-id tl-idx tl-entry]                                                            
                                                 (try
                                                   (when (or (expr-trace/expr-trace? tl-entry)
                                                             (fn-return-trace/fn-return-trace? tl-entry))
@@ -322,13 +324,14 @@
                                                                                                                      :pprint? false}))]
                                                           (-> tl-entry
                                                               index-protos/as-immutable
+                                                              (ensure-indexes tl-idx)
                                                               reference-timeline-entry!
                                                               (assoc :entry-preview pprint-val
                                                                      :thread-id thread-id))))))
                                                   (catch Exception _ nil))))
                                        :cljs (do #_:clj-kondo/ignore predicate-code-str identity))
                  :val-identity (let [search-val (deref-value val-ref)]
-                                 (fn [thread-id tl-entry]
+                                 (fn [thread-id tl-idx tl-entry]
                                    (when (or (expr-trace/expr-trace? tl-entry)
                                              (fn-return-trace/fn-return-trace? tl-entry))
 
@@ -340,6 +343,7 @@
                                                                                                       :pprint? false}))]
                                            (-> tl-entry
                                                index-protos/as-immutable
+                                               (ensure-indexes tl-idx)
                                                reference-timeline-entry!
                                                (assoc :entry-preview pprint-val
                                                       :thread-id thread-id)))))))))]
@@ -815,6 +819,7 @@
                            (= fn-target-name (index-api/get-fn-name entry)))
                     (-> entry
                         index-api/as-immutable
+                        (ensure-indexes i)
                         (assoc :flow-id (index-protos/flow-id tl i)
                                :thread-id (index-protos/thread-id tl i))
                         reference-timeline-entry!)                    

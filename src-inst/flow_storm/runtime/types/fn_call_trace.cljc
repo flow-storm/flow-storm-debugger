@@ -6,8 +6,7 @@
 (def nil-idx -1)
 
 (defn- print-it [fn-call]
-  (utils/format "#flow-storm/fn-call-trace [Idx: %d %s/%s]"
-                (index-protos/entry-idx fn-call)
+  (utils/format "#flow-storm/fn-call-trace [%s/%s]"
                 (index-protos/get-fn-ns fn-call)
                 (index-protos/get-fn-name fn-call)))
 
@@ -17,7 +16,6 @@
      ^int                     formId     
                               fnArgs
                               frameBindings
-     ^:unsynchronized-mutable ^int thisIdx
      ^:unsynchronized-mutable ^int parentIdx
      ^:unsynchronized-mutable ^int retIdx]
 
@@ -37,8 +35,6 @@
       parentIdx))
   (set-parent-idx [_ idx]
     (set! parentIdx (int idx)))
-  (set-idx [_ idx]
-    (set! thisIdx (int idx)))
   (add-binding [_ bind]
     (index-utils/ml-add frameBindings bind))
   (bindings [_]
@@ -47,11 +43,6 @@
   index-protos/TimelineEntryP
 
   (entry-type [_] :fn-call)
-  (entry-idx [_]
-    (when (not= thisIdx nil-idx)
-      thisIdx))
-  (fn-call-idx [this]
-    (index-protos/entry-idx this))
   
   index-protos/ImmutableP
   
@@ -61,8 +52,6 @@
      :fn-ns fnNs
      :form-id formId
      :fn-args fnArgs
-     :fn-call-idx (index-protos/entry-idx this)
-     :idx (index-protos/entry-idx this)
      :parent-idx (index-protos/get-parent-idx this)
      :ret-idx (index-protos/get-ret-idx this)})
 
@@ -75,13 +64,12 @@
    (defmethod print-method FnCallTrace [fn-call ^java.io.Writer w]
      (.write w ^String (print-it fn-call))))
 
-(defn make-fn-call-trace [fn-ns fn-name form-id fn-args this-idx parent-idx]
+(defn make-fn-call-trace [fn-ns fn-name form-id fn-args parent-idx]
   (->FnCallTrace fn-name
                  fn-ns
                  form-id
                  fn-args
                  (index-utils/make-mutable-list)
-                 this-idx
                  (or parent-idx nil-idx)
                  nil-idx))
 

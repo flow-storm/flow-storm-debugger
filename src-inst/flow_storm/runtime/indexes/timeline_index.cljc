@@ -50,6 +50,14 @@
                 (index-protos/thread-id timeline 0)
                 (count timeline)))
 
+(defn ensure-indexes
+  "Make sure all immutable entries (which we send to the UIs) will contain :idx and :fn-call-idx
+  no matter what kind of entries they are."
+  [{:keys [fn-call-idx] :as immutable-entry} idx]  
+  (assoc immutable-entry
+         :idx idx
+         :fn-call-idx (or fn-call-idx idx)))
+
 (deftype ExecutionTimelineTree [;; this timeline flow id
                                 flow-id
                                 
@@ -78,18 +86,16 @@
   (add-fn-call [this fn-ns fn-name form-id args]
     (locking this
       (let [tl-idx (ml-count timeline)
-            curr-fn-call (ms-peek build-stack)
-            parent-idx (when curr-fn-call (index-protos/entry-idx curr-fn-call))
+            parent-idx (ms-peek build-stack)
             fn-call (fn-call-trace/make-fn-call-trace fn-ns
                                                       fn-name
                                                       form-id
                                                       args
-                                                      tl-idx
                                                       parent-idx)
             fn-id (->FnId form-id fn-name fn-ns)]
 
         ;; update our build stack
-        (ms-push build-stack fn-call)
+        (ms-push build-stack tl-idx)
 
         ;; add the fn-call to the timeline
         (ml-add timeline fn-call)
@@ -109,9 +115,10 @@
     (locking this
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [curr-fn-call-idx (ms-peek build-stack)
+              curr-fn-call (ml-get timeline curr-fn-call-idx)
               tl-idx (ml-count timeline)
-              fn-ret (fn-return-trace/make-fn-return-trace coord ret-val tl-idx (index-protos/entry-idx curr-fn-call))]
+              fn-ret (fn-return-trace/make-fn-return-trace coord ret-val curr-fn-call-idx)]
           (index-protos/set-ret-idx curr-fn-call tl-idx)          
           (ml-add timeline fn-ret)
           (ms-pop build-stack)
@@ -121,12 +128,12 @@
     (locking this
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [ curr-fn-call-idx (ms-peek build-stack)
+              curr-fn-call (ml-get timeline curr-fn-call-idx)
               tl-idx (ml-count timeline)
               fn-unwind (fn-return-trace/make-fn-unwind-trace coord
                                                               throwable
-                                                              tl-idx
-                                                              (index-protos/entry-idx curr-fn-call))]
+                                                              curr-fn-call-idx)]
           (index-protos/set-ret-idx curr-fn-call tl-idx)
           (ml-add timeline fn-unwind)
           (ms-pop build-stack)
@@ -137,8 +144,8 @@
       ;; discard all expressions when no FnCall has been made yet
       (when (pos? (ms-count build-stack))
         (let [tl-idx (ml-count timeline)
-              curr-fn-call (ms-peek build-stack)
-              expr-exec (expr-trace/make-expr-trace coord expr-val tl-idx (index-protos/entry-idx curr-fn-call))]
+              curr-fn-call-idx (ms-peek build-stack)
+              expr-exec (expr-trace/make-expr-trace coord expr-val curr-fn-call-idx)]
           (ml-add timeline expr-exec)
           tl-idx))))
   
@@ -146,7 +153,8 @@
     ;; discard all expressions when no FnCall has been made yet
     (locking this
       (when (pos? (ms-count build-stack))
-        (let [curr-fn-call (ms-peek build-stack)
+        (let [curr-fn-call-idx (ms-peek build-stack)
+              curr-fn-call (ml-get timeline curr-fn-call-idx)
               last-entry-idx (ml-count timeline)
               bind-trace (bind-trace/make-bind-trace symb-name symb-val coord last-entry-idx)]
           (index-protos/add-binding curr-fn-call bind-trace)))))
@@ -291,7 +299,9 @@
             (if (expr-trace/expr-trace? tle)
               
               ;; if expr collect it
-              (recur (inc idx) (conj! collected tle))
+              (recur (inc idx) (conj! collected (-> tle
+                                                    index-protos/as-immutable
+                                                    (ensure-indexes idx))))
 
               ;; else if fn-call, jump over
               (if (fn-call-trace/fn-call-trace? tle)
@@ -316,6 +326,17 @@
         (recur (index-protos/get-parent-idx (get timeline curr-fn-call-idx))
                (conj! fn-call-idx-path curr-fn-call-idx))))))
 
+(defn get-fn-call-idx
+  [timeline idx]
+  (let [entry (get timeline idx)]
+    (if (fn-call-trace/fn-call-trace? entry)
+      idx
+      (index-protos/fn-call-idx entry))))
+
+(defn get-fn-call
+  [timeline idx]
+  (get timeline (get-fn-call-idx timeline idx)))
+
 (defn- timeline-next-out-idx
 
   "Given `idx` return the next index after the current call frame for the `timeline`."
@@ -323,7 +344,7 @@
   [timeline idx]
   (locking timeline
     (let [last-idx (dec (count timeline))
-          curr-fn-call (get timeline (index-protos/fn-call-idx (get timeline idx)))
+          curr-fn-call (get-fn-call timeline idx)
           curr-fn-call-ret-idx (index-protos/get-ret-idx curr-fn-call)]
       (min last-idx
            (if curr-fn-call-ret-idx
@@ -334,7 +355,7 @@
   (locking timeline
     (let [last-idx (dec (count timeline))
           init-entry (get timeline idx)
-          init-fn-call-idx (index-protos/fn-call-idx init-entry)]
+          init-fn-call-idx (get-fn-call-idx timeline idx)]
       (if (fn-return-trace/fn-end-trace? init-entry)
         ;; if we are on a return just move next
         (inc idx)
@@ -342,8 +363,9 @@
         (loop [i (inc idx)]
           (if (>= i last-idx)
             idx
-            (let [tl-entry (get timeline i)]
-              (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+            (let [tl-entry (get timeline i)
+                  entry-fn-call-idx (get-fn-call-idx timeline i)]
+              (if (= entry-fn-call-idx init-fn-call-idx)            
                 i
                 (if (fn-call-trace/fn-call-trace? tl-entry)
                   ;; this is an imporatant optimization for big timelines,
@@ -356,7 +378,7 @@
 (defn- timeline-prev-over-idx [timeline idx]  
   (locking timeline
     (let [init-entry (get timeline idx)
-         init-fn-call-idx (index-protos/fn-call-idx init-entry)]
+          init-fn-call-idx (get-fn-call-idx timeline idx)]
      (if (fn-call-trace/fn-call-trace? init-entry)
        
        ;; if we are on a fn-call just move prev
@@ -365,14 +387,14 @@
        (loop [i (dec idx)]
          (if-not (pos? i)
            idx
-           (let [tl-entry (get timeline i)]
-             (if (= (index-protos/fn-call-idx tl-entry) init-fn-call-idx)            
+           (let [entry-fn-call-idx (get-fn-call-idx timeline i)]
+             (if (= entry-fn-call-idx init-fn-call-idx)            
                i
                ;; this is an important optimization for big timelines
                ;; when moving back sikip over entire functions instead
                ;; of just searching backwards one entry at a time until
                ;; we find our original frame
-               (recur (dec (index-protos/fn-call-idx tl-entry)))))))))))
+               (recur (dec entry-fn-call-idx))))))))))
 
 (defn- timeline-prev-idx [timeline idx]  
   (locking timeline
@@ -420,7 +442,8 @@
                            :at   idx)
               target-idx (-> target-idx (max 0) (min last-idx)) ;; clamp the target-idx
               tl-entry (get timeline target-idx)]
-          (index-protos/as-immutable tl-entry)))))
+          (-> (index-protos/as-immutable tl-entry)
+              (ensure-indexes idx))))))
   
 (defn tree-frame-data [timeline fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
   (if (= fn-call-idx tree-root-idx)
@@ -449,8 +472,10 @@
               fr-data (if include-exprs?
                         (let [expressions (fn-call-exprs timeline fn-call-idx)]
                           ;; expr-executions will contain also the fn-return at the end
-                          (assoc fr-data :expr-executions (cond-> (mapv index-protos/as-immutable expressions)
-                                                            fn-return (conj (index-protos/as-immutable fn-return)))))
+                          (assoc fr-data :expr-executions (cond-> expressions
+                                                            fn-return (conj (-> fn-return
+                                                                                index-protos/as-immutable
+                                                                                (ensure-indexes fn-ret-idx))))))
                         fr-data)
               fr-data (if include-binds?
                         (assoc fr-data :bindings (map index-protos/as-immutable (index-protos/bindings fn-call)))

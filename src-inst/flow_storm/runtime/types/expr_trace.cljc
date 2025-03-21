@@ -5,16 +5,14 @@
 (def nil-idx -1)
 
 (defn- print-it [expr]
-  (utils/format "#flow-storm/expr-trace [Idx: %d, Coord: %s, Type: %s]"
-                (index-protos/entry-idx expr)
+  (utils/format "#flow-storm/expr-trace [Coord: %s, Type: %s]"
                 (index-protos/get-coord-raw expr)
                 (pr-str (type (index-protos/get-expr-val expr)))))
 
 (deftype ExprTrace
     [coord
      exprVal
-     ^int fnCallIdx
-     ^int thisIdx]
+     ^int fnCallIdx]
 
   index-protos/ExpressionTimelineEntryP
   (get-expr-val [_] exprVal)
@@ -26,12 +24,11 @@
   index-protos/TimelineEntryP
 
   (entry-type [_] :expr)
+
+  index-protos/FnChildTimelineEntryP
   (fn-call-idx [_]
     (when (not= fnCallIdx nil-idx)
       fnCallIdx))
-  (entry-idx [_]
-    (when (not= thisIdx nil-idx)
-      thisIdx))
   
   index-protos/ImmutableP
   
@@ -39,8 +36,7 @@
     {:type :expr
      :coord (index-protos/get-coord-vec this)
      :result (index-protos/get-expr-val this)
-     :fn-call-idx (index-protos/fn-call-idx this)
-     :idx (index-protos/entry-idx this)})
+     :fn-call-idx (index-protos/fn-call-idx this)})
 
   #?@(:cljs
       [IPrintWithWriter
@@ -51,8 +47,8 @@
    (defmethod print-method ExprTrace [expr ^java.io.Writer w]
      (.write w ^String (print-it expr))))
 
-(defn make-expr-trace [coord expr-val this-idx fn-call-idx]
-  (->ExprTrace coord expr-val fn-call-idx this-idx))
+(defn make-expr-trace [coord expr-val fn-call-idx]
+  (->ExprTrace coord expr-val fn-call-idx))
 
 (defn expr-trace? [x]
   (and x (instance? ExprTrace x)))

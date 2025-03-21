@@ -19,9 +19,7 @@
   (thread-id [_ idx]))
 
 (defprotocol TimelineEntryP
-  (entry-type [_])
-  (entry-idx [_])
-  (fn-call-idx [_]))
+  (entry-type [_]))
 
 (defprotocol CoordableTimelineEntryP
   (get-coord-vec [_])
@@ -29,6 +27,9 @@
 
 (defprotocol ExpressionTimelineEntryP
   (get-expr-val [_]))
+
+(defprotocol FnChildTimelineEntryP
+  (fn-call-idx [_]))
 
 (defprotocol UnwindTimelineEntryP
   (get-throwable [_]))
@@ -44,12 +45,12 @@
   (last-modified [_]))
 
 (defprotocol TotalOrderTimelineP
-  (tot-add-entry [_ th-timeline entry])
+  (tot-add-entry [_ th-timeline th-idx])
   (tot-clear-all [_]))
 
 (defprotocol TotalOrderTimelineEntryP
   (tote-thread-timeline [_])
-  (tote-thread-timeline-entry [_]))
+  (tote-thread-timeline-idx [_]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Function stats protocols ;;
@@ -80,7 +81,7 @@
   (get-thread-indexes [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
   (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
-  (record-total-order-entry [_ flow-id th-timeline entry])
+  (record-total-order-entry [_ flow-id th-timeline th-idx])
   (total-order-timeline [_ flow-id])
   (discard-threads [_ flow-threads-ids])
   (start-thread-registry [_ callbacks])

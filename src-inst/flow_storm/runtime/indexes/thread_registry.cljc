@@ -95,9 +95,9 @@
 
   (stop-thread-registry [_] nil)
 
-  (record-total-order-entry [_ flow-id th-timeline entry]
+  (record-total-order-entry [_ flow-id th-timeline th-idx]
     (-> (get @total-order-timelines flow-id)
-        (index-protos/tot-add-entry th-timeline entry)))
+        (index-protos/tot-add-entry th-timeline th-idx)))
 
   (total-order-timeline [_ flow-id]
     (get @total-order-timelines flow-id)))
