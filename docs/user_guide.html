@@ -823,6 +823,7 @@ pre.rouge {
 <ul class="sectlevel2">
 <li><a href="#_locals_pane_and_mutable_values">22.1. Locals pane and mutable values</a></li>
 <li><a href="#_code_with_macros_that_dont_preserve_meta">22.2. Code with macros that don&#8217;t preserve meta</a></li>
+<li><a href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.3. Don&#8217;t instrument clojure.core or FlowStorm itself</a></li>
 </ul>
 </li>
 <li><a href="#_troubleshooting">23. Troubleshooting</a>
@@ -4658,6 +4659,13 @@ Electric, so it really depends on the macros.</p>
 we can work together with the macro developer making sure it preserves all meta after macro expansion, which sometimes may be possible.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_dont_instrument_clojure_core_or_flowstorm_itself"><a class="anchor" href="#_dont_instrument_clojure_core_or_flowstorm_itself"></a><a class="link" href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.3. Don&#8217;t instrument clojure.core or FlowStorm itself</a></h3>
+<div class="paragraph">
+<p>Currently we can&#8217;t instrument clojure.core or FlowStorm itself since they endup in infinite tracing recursions.
+This can be solved, but it is currently a limitation.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4712,7 +4720,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-20 10:45:22 -0300
+Last updated 2025-03-24 09:58:20 -0300
 </div>
 </div>
 </body>

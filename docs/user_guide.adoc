@@ -2396,6 +2396,11 @@ Electric, so it really depends on the macros.
 If you see code inside a macro not being traced feel free to report an issue, there is nothing FlowStorm can do from its side but
 we can work together with the macro developer making sure it preserves all meta after macro expansion, which sometimes may be possible.
 
+== Don't instrument clojure.core or FlowStorm itself
+
+Currently we can't instrument clojure.core or FlowStorm itself since they endup in infinite tracing recursions.
+This can be solved, but it is currently a limitation. 
+
 = Troubleshooting
 
 == Run with JDK 11
