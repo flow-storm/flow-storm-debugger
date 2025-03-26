@@ -538,7 +538,7 @@
   
   ([flow-id thread-id fn-ns fn-name form-id]
    (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-     (into [] (keep (make-frame-keeper flow-id thread-id fn-ns fn-name form-id))
+     (into [] (keep-indexed (make-frame-keeper flow-id thread-id fn-ns fn-name form-id))
            timeline-index))))
 
 (defn discard-flow [flow-id] 
