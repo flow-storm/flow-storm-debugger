@@ -227,8 +227,8 @@
                     :pprint?      false}]    
     (submit-async-interruptible-batched-timelines-keep-task
      (index-api/timelines-for {:flow-id flow-id :thread-id thread-id})
-     (fn [_ tl-entry]
-       (when-let [{:keys [args-vec ret throwable] :as fn-frame} (frame-keeper tl-entry)]
+     (fn [_ idx tl-entry]
+       (when-let [{:keys [args-vec ret throwable] :as fn-frame} (frame-keeper idx tl-entry)]
          (let [fr (-> fn-frame
                       reference-frame-data!
                       (assoc :args-vec-str  (:val-str (rt-values/val-pprint args-vec (assoc print-opts :nth-elems render-args)))))]

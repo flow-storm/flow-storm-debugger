@@ -443,7 +443,7 @@
               target-idx (-> target-idx (max 0) (min last-idx)) ;; clamp the target-idx
               tl-entry (get timeline target-idx)]
           (-> (index-protos/as-immutable tl-entry)
-              (ensure-indexes idx))))))
+              (ensure-indexes target-idx))))))
   
 (defn tree-frame-data [timeline fn-call-idx {:keys [include-path? include-exprs? include-binds?]}]
   (if (= fn-call-idx tree-root-idx)

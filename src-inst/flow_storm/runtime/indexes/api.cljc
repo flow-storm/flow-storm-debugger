@@ -881,7 +881,7 @@
   ;; printers is a map of {form-id {coord-vec-1 {:format-str :print-length :print-level :transform-expr-str}}}
   (let [printers (utils/update-values
                   printers
-                  (fn [_ corrds-map]
+                  (fn [corrds-map]
                     (-> corrds-map
                         (utils/update-keys (fn [coord-vec]
                                              (let [scoord (str/join "," coord-vec)]
