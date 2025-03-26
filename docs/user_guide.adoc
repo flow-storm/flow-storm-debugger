@@ -1565,7 +1565,6 @@ You can access their data by using the following functions depending on the entr
 All kinds :
 
   - `as-immutable`
-  - `entry-idx`
   - `fn-call-idx`
 
 `ExprTrace`, `FnReturnTrace` and `FnUnwindTrace` :
