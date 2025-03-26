@@ -811,17 +811,21 @@
         fn-target-name (name fq-fn-call-symb)
         next-fn (if backward dec inc)]
     (some (fn [tl]
-            (loop [i from-idx]
-              (when (<= 0 i (dec (count tl)))
-                (let [entry (get tl i)]
-                  (if (and (index-api/fn-call-trace? entry)
-                           (= fn-target-ns (index-api/get-fn-ns entry))
-                           (= fn-target-name (index-api/get-fn-name entry)))
-                    (-> entry
-                        index-api/as-immutable
-                        (ensure-indexes i)
-                        (assoc :flow-id (index-protos/flow-id tl i)
-                               :thread-id (index-protos/thread-id tl i))
-                        reference-timeline-entry!)                    
-                    (recur (next-fn i)))))))
+            (let [from-idx (or from-idx
+                               (if backward
+                                 (dec (count tl))
+                                 0))]
+              (loop [i from-idx]
+                (when (<= 0 i (dec (count tl)))
+                  (let [entry (get tl i)]
+                    (if (and (index-api/fn-call-trace? entry)
+                             (= fn-target-ns (index-api/get-fn-ns entry))
+                             (= fn-target-name (index-api/get-fn-name entry)))
+                      (-> entry
+                          index-api/as-immutable
+                          (ensure-indexes i)
+                          (assoc :flow-id (index-protos/flow-id tl i)
+                                 :thread-id (index-protos/thread-id tl i))
+                          reference-timeline-entry!)                    
+                      (recur (next-fn i))))))))
           timelines)))

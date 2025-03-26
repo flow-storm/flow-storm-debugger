@@ -459,6 +459,7 @@
                        :args-vec (index-protos/get-fn-args fn-call)
                        :form-id (index-protos/get-form-id fn-call)
                        :fn-call-idx fn-call-idx
+                       :idx fn-call-idx
                        :parent-fn-call-idx (index-protos/get-parent-idx fn-call)}
               fr-data (cond-> fr-data
                         (nil? fn-return)                             (assoc :return/kind :waiting)
