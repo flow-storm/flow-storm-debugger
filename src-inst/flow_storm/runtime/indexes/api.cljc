@@ -1129,3 +1129,9 @@
   [x]
   (fn-return-trace/fn-end-trace? x))
 
+(defn timeline-thread-id
+  "Given a timeline and a idx, returns the thread-id associated to the entry.
+  On single thread timelines all index are going to return the same thread-id, which
+  is not the case for total order timelines."
+  [timeline idx]
+  (index-protos/thread-id timeline idx))
