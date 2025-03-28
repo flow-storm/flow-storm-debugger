@@ -15,7 +15,7 @@
   (reset-build-stack [_]))
 
 (defprotocol TimelineP
-  (flow-id [_ idx])
+  (flow-id [_])
   (thread-id [_ idx]))
 
 (defprotocol TimelineEntryP

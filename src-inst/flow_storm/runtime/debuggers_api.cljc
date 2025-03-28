@@ -824,7 +824,7 @@
                       (-> entry
                           index-api/as-immutable
                           (ensure-indexes i)
-                          (assoc :flow-id (index-protos/flow-id tl i)
+                          (assoc :flow-id (index-protos/flow-id tl)
                                  :thread-id (index-protos/thread-id tl i))
                           reference-timeline-entry!)                    
                       (recur (next-fn i))))))))

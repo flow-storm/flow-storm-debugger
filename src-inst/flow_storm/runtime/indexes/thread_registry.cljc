@@ -51,7 +51,7 @@
 
   (register-thread-indexes [this flow-id thread-id thread-name form-id indexes]
     (when-not (index-protos/flow-exists? this flow-id)
-      (swap! total-order-timelines assoc flow-id (total-order-timeline/make-total-order-timeline)))
+      (swap! total-order-timelines assoc flow-id (total-order-timeline/make-total-order-timeline flow-id)))
     
     (swap! registry update flow-id
            (fn [threads]               

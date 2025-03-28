@@ -42,15 +42,12 @@
    (defmethod print-method TotalOrderTimelineEntry [tote ^java.io.Writer w]
      (.write w ^String (print-tote tote))))
 
-(deftype TotalOrderTimeline [mt-timeline]
+(deftype TotalOrderTimeline [flow-id mt-timeline]
 
   index-protos/TimelineP
 
-  (flow-id [this idx]
-    (locking this
-      (let [tote (ml-get mt-timeline idx)
-            th-tl (index-protos/tote-thread-timeline tote)]
-        (index-protos/flow-id th-tl 0))))
+  (flow-id [_]
+    flow-id)
   
   (thread-id [this idx]
     (locking this
@@ -121,8 +118,8 @@
        (-nth [_ n] (ml-get mt-timeline n))
        (-nth [_ n not-found] (or (ml-get mt-timeline n) not-found))]))
 
-(defn make-total-order-timeline []
-  (TotalOrderTimeline. (make-mutable-list)))
+(defn make-total-order-timeline [flow-id]
+  (TotalOrderTimeline. flow-id (make-mutable-list)))
 
 (defn make-detailed-timeline-mapper [forms-registry]
   (let [threads-stacks (atom {})]
