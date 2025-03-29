@@ -822,6 +822,7 @@
     (fn [entry-form-id _ tl-entry]
       (when (and (or (fn-return-trace/fn-return-trace? tl-entry)
                      (expr-trace/expr-trace? tl-entry))
+                 (not (identical? (index-protos/get-expr-val tl-entry) :flow-storm.power-step/skip))
                  (if (contains? criteria :identity-val) (identical? (index-protos/get-expr-val tl-entry) identity-val)  true)
                  (if (contains? criteria :equality-val) (= (index-protos/get-expr-val tl-entry) equality-val)           true)
                  (if coord           (= coord (index-protos/get-coord-raw tl-entry))                 true)
