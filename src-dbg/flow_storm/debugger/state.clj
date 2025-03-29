@@ -478,8 +478,8 @@
     (cond-> [theme-base-styles
              default-styles]
       true (into plugins-styles)
-      extra-styles (conj extra-styles)
-      true (conj font-size-style))))
+      true (conj font-size-style)
+      extra-styles (conj extra-styles))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; JFX objects index ;;

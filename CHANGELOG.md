@@ -8,6 +8,8 @@
              
 ### Bugs fixed
 
+    - Extra styles should be applied at the end
+    
 ## 4.3.0 (29-03-2025)
 	
 ### New Features
