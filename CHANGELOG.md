@@ -5,6 +5,14 @@
 ### New Features
     
 ### Changes
+             
+### Bugs fixed
+
+## 4.3.0 (29-03-2025)
+	
+### New Features
+    
+### Changes
      
     - Reduced memory footprint by ~10% (jvm17) by removing this-idx from FnCall, ExprExec, FnReturn, FnUnwind entries 
     - Programmable API BREAKING: 
