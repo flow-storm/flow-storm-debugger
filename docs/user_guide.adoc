@@ -2363,6 +2363,32 @@ Checkout https://github.com/flow-storm/cider-storm[Cider Storm] an Emacs Cider f
 
 == VSCode
 
+With the following alias setup in deps.edn:
+
+[source,clojure]
+{:aliases {:flowstorm {:classpath-overrides {org.clojure/clojure nil}
+                       :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-9"}
+                                    com.github.flow-storm/flow-storm-dbg {:mvn/version "4.3.0"}}
+                       :jvm-opts ["-Dflowstorm.startRecording=true"
+                                  "-Dclojure.storm.intrumentEnable=true"
+                                  "-Dclojure.storm.intrumentAutoPrefixes=true"]}}}
+
+Create a custom connect sequence in the VSCode settings.json:
+
+[source,json]
+{
+      "name": "flowstorm",
+      "projectType": "deps.edn",
+      "cljsType": "none",
+      "extraNReplMiddleware": ["flow-storm.nrepl.middleware/wrap-flow-storm"],
+      "afterCLJReplJackInCode": "((requiring-resolve 'flow-storm.storm-api/start-debugger))",
+      "menuSelections": {
+        "cljAliases": ["flowstorm"]
+      }
+}
+
+Jack-in using the `flowstorm` sequence from the menu.
+
 == IntelliJ IDEA (Cursive)
 
 = Tutorials and demos
