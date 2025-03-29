@@ -6,10 +6,11 @@
     
 ### Changes
      
-    - Reduced memory footprint by ~10% (jvm17) removing this-idx from FnCall, ExprExec, FnReturn, FnUnwind entries 
-    - BREAKING: Removed indexes-api/entry-idx now that each entry doesn't know its own index
-    - BREAKING: indexes-api/get-fn-call receives a timeline and an idx, instead of timeline and entry
-    - BREAKING: indexes-api/get-sub-form receives a timeline and an idx, instead of timeline and entry
+    - Reduced memory footprint by ~10% (jvm17) by removing this-idx from FnCall, ExprExec, FnReturn, FnUnwind entries 
+    - Programmable API BREAKING: 
+            - removed indexes-api/entry-idx now that each entry doesn't know its own index
+            - (indexes-api/get-fn-call timeline entry) -> (indexes-api/get-fn-call timeline idx)
+            - (indexes-api/get-sub-form timeline entry) -> (indexes-api/get-sub-form timeline idx)
          
 ### Bugs fixed
     
