@@ -4605,7 +4605,39 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 <div class="sect2">
 <h3 id="_vscode_2"><a class="anchor" href="#_vscode_2"></a><a class="link" href="#_vscode_2">20.2. VSCode</a></h3>
-
+<div class="paragraph">
+<p>With the following alias setup in deps.edn:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="clojure"><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">{</span><span class="no">:flowstorm</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojure</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w">
+                       </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">com.github.flow-storm/clojure</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.0-9"</span><span class="p">}</span><span class="w">
+                                    </span><span class="n">com.github.flow-storm/flow-storm-dbg</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.3.0"</span><span class="p">}}</span><span class="w">
+                       </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dflowstorm.startRecording=true"</span><span class="w">
+                                  </span><span class="s">"-Dclojure.storm.intrumentEnable=true"</span><span class="w">
+                                  </span><span class="s">"-Dclojure.storm.intrumentAutoPrefixes=true"</span><span class="p">]}}}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a custom connect sequence in the VSCode settings.json:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="json"><span class="p">{</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"flowstorm"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"projectType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"deps.edn"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"cljsType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"extraNReplMiddleware"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flow-storm.nrepl.middleware/wrap-flow-storm"</span><span class="p">],</span><span class="w">
+      </span><span class="nl">"afterCLJReplJackInCode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"((requiring-resolve 'flow-storm.storm-api/start-debugger))"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"menuSelections"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"cljAliases"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"flowstorm"</span><span class="p">]</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Jack-in using the <code>flowstorm</code> sequence from the menu.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_intellij_idea_cursive"><a class="anchor" href="#_intellij_idea_cursive"></a><a class="link" href="#_intellij_idea_cursive">20.3. IntelliJ IDEA (Cursive)</a></h3>
@@ -4717,7 +4749,7 @@ This can be solved, but it is currently a limitation.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-29 09:53:37 -0300
+Last updated 2025-03-29 22:45:18 -0300
 </div>
 </div>
 </body>
