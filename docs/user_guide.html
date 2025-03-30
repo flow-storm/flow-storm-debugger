@@ -2003,6 +2003,11 @@ section, specially the <code>find-expr-entry</code> function.</p>
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>Power stepping automatically skips all values equals to <code>:flow-storm.power-step/skip</code>. This can be useful when combined
+with <a href="#_dealing_with_mutable_values">snapshot-value</a> as a way of ignoring some of them, which provides a way of sampling
+tight loops like in games.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_searching"><a class="anchor" href="#_searching"></a><a class="link" href="#_searching">3.1.3. Searching</a></h4>
@@ -3743,6 +3748,23 @@ walk it down snapshoting everything mutable inside.</p>
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">snapshot-value and memory footprint</div>
+<div class="paragraph">
+<p>Although snapshot-value was created as a way to deal with mutable values it can be used to replace any value by another in the
+recordings, which can be useful in other situations like reducing memory footprint when you don&#8217;t need the entire
+value to be recorded.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4749,7 +4771,7 @@ This can be solved, but it is currently a limitation.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-03-29 22:45:18 -0300
+Last updated 2025-03-30 15:39:11 -0300
 </div>
 </div>
 </body>

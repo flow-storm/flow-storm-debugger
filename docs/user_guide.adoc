@@ -756,6 +756,10 @@ There are currently six power stepping tools :
 Custom power stepping is only supported in Clojure now.
 ====
 
+Power stepping automatically skips all values equals to `:flow-storm.power-step/skip`. This can be useful when combined
+with <<#_dealing_with_mutable_values, snapshot-value>> as a way of ignoring some of them, which provides a way of sampling
+tight loops like in games.
+
 
 === Searching
 
@@ -1850,6 +1854,14 @@ that collection expression is being recorded, because the value being recorded i
 
 If this is important to you, you can still define snapshot-value for clojure.lang.PersistentArrayMap, etc, and
 walk it down snapshoting everything mutable inside.
+====
+
+[NOTE]
+.snapshot-value and memory footprint
+====
+Although snapshot-value was created as a way to deal with mutable values it can be used to replace any value by another in the
+recordings, which can be useful in other situations like reducing memory footprint when you don't need the entire
+value to be recorded.
 ====
 
 = Controlling instrumentation
