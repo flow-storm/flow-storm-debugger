@@ -124,12 +124,12 @@
                  (= 1 (count (dbg-state/flow-exceptions flow-id))))
         (flows-screen/goto-location unwind-data)))))
 
-(defn expression-bookmark-event [{:keys [flow-id thread-id idx note] :as bookmark-location}]
+(defn expression-bookmark-event [{:keys [flow-id thread-id idx note source] :as bookmark-location}]
   (ui-utils/run-later
    (dbg-state/add-bookmark {:flow-id flow-id
                             :thread-id thread-id
                             :idx idx
-                            :source :bookmark.source/api
+                            :source (or source :bookmark.source/api)
                             :note note})
    (bookmarks/update-bookmarks)
    ;; jump to the first mark, unless, we've already jumped to an exception

@@ -124,7 +124,7 @@
                      (contains? brks [fn-ns fn-name])
                      (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args))
             ;; before blocking, let's make sure the thread exists
-            (indexes-api/get-or-create-thread-indexes flow-id thread-id thread-name form-id)
+            (indexes-api/get-or-create-thread-tracker flow-id thread-id thread-name)
             (block-this-thread flow-id [fn-ns fn-name]))))
      
      (when @recording       

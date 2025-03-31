@@ -63,6 +63,9 @@
                                 
                                 ;; this timeline thread id
                                 tid
+
+                                ;; the thread name that created this timeilne
+                                tname
                                 
                                 ;; an array of FnCall, Expr, FnRet, FnUnwind
                                 timeline 
@@ -80,6 +83,7 @@
   index-protos/TimelineP
   (flow-id [_] flow-id)
   (thread-id [_ _] tid)
+  (thread-name [_ _] tname)
   
   index-protos/ThreadTimelineRecorderP                                       
   
@@ -276,11 +280,11 @@
    (defmethod print-method ExecutionTimelineTree [timeline ^java.io.Writer w]
       (.write w ^String (print-it timeline))))
 
-(defn make-index [flow-id thread-id]
+(defn make-index [flow-id thread-id thread-name]
   (let [build-stack (make-mutable-stack)
         timeline (make-mutable-list)
         stats (make-mutable-hashmap)]    
-    (->ExecutionTimelineTree flow-id thread-id timeline build-stack stats 0)))
+    (->ExecutionTimelineTree flow-id thread-id thread-name timeline build-stack stats 0)))
 
 (defn- fn-call-exprs [timeline fn-call-idx]
   (locking timeline

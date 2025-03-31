@@ -23,7 +23,8 @@
            [org.fxmisc.richtext CodeArea]
            [org.fxmisc.flowless VirtualFlow]
            [javafx.stage Stage]
-           [javafx.scene.web WebView WebEngine]))
+           [javafx.scene.web WebView WebEngine]
+           [javafx.concurrent Worker$State]))
 
 (defn pane [& {:keys [childs classes]}]
   (let [p (Pane. (into-array Node childs))]
@@ -855,4 +856,14 @@
         ^WebEngine web-engine (.getEngine wv)]
     {:web-view wv
      :set-html (fn [html] (.loadContent web-engine html))
-     :load-url (fn [url] (.load web-engine url))}))
+     :load-url (fn [url] (.load web-engine url))
+     :set-handlers (fn [handlers-map]
+                     (-> web-engine
+                         .getLoadWorker
+                         .stateProperty
+                         (.addListener (proxy [ChangeListener] []
+                                         (changed [_ old-state new-state]
+                                           (when (= new-state Worker$State/SUCCEEDED)
+                                             (let [window (.executeScript web-engine "window")]
+                                               (doseq [[method-name method-fn] handlers-map]
+                                                 (.setMember window method-name method-fn)))))))))}))

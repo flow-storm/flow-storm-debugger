@@ -43,7 +43,8 @@
 (defprotocol PValueRefRegistry
   (add-val-ref [_ v])
   (get-value [_ vref])
-  (get-value-ref [_ v]))
+  (get-value-ref [_ v])
+  (all-val-ref-tuples [_]))
 
 ;; Fast way of going from
 ;;    value-ref -> value 
@@ -63,7 +64,7 @@
       (if (contains? wv->vref wv)
         this
         (let [next-vid (inc max-vid)
-              vref (types/make-value-ref next-vid)]
+              vref (types/make-value-ref max-vid)]
           (-> this
               (assoc :max-vid next-vid)
               (update :vref->wv assoc vref wv)
@@ -74,11 +75,16 @@
 
   (get-value-ref [_ v]
     (let [wv (hashable-obj-wrap v)]
-      (get wv->vref wv))))
+      (get wv->vref wv)))
 
-(def init-ref-registry (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0}))
+  (all-val-ref-tuples [_]
+    (->> (seq wv->vref)
+         (map (fn [[wv vref]] [(unwrap wv) vref])))))
 
-(defonce values-ref-registry (atom init-ref-registry))
+(defn make-empty-value-ref-registry []
+  (map->ValueRefRegistry {:vref->wv {} :wv->vref {} :max-vid 0}))
+
+(defonce values-ref-registry (atom (make-empty-value-ref-registry)))
 
 (defn deref-value [vref]
   (if (types/value-ref? vref)
@@ -109,7 +115,7 @@
                (reference-value! :flow-storm/error-referencing-value)))))
 
 (defn clear-vals-ref-registry []
-  (reset! values-ref-registry init-ref-registry))
+  (reset! values-ref-registry (make-empty-value-ref-registry)))
 
 (defprotocol SnapshotP
   (snapshot-value [_]))

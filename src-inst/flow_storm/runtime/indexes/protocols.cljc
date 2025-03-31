@@ -16,7 +16,8 @@
 
 (defprotocol TimelineP
   (flow-id [_])
-  (thread-id [_ idx]))
+  (thread-id [_ idx])
+  (thread-name [_ idx]))
 
 (defprotocol TimelineEntryP
   (entry-type [_]))
@@ -74,18 +75,16 @@
 ;; Thread registry protocols ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defprotocol ThreadRegistryP
+(defprotocol FlowsThreadsRegistryP
   (all-threads [_])
   (flow-threads-info [_ flow-id])
   (set-thread-blocked [_ flow-id thread-id breakpoint])
-  (get-thread-indexes [_ flow-id thread-id])
+  (get-thread-tracker [_ flow-id thread-id])
   (flow-exists? [_ flow-id])
-  (register-thread-indexes [_ flow-id thread-id thread-name form-id indexes])
+  (register-thread [_ flow-id thread-id thread-name timeline init-fn-call-limits])
   (record-total-order-entry [_ flow-id th-timeline th-idx])
   (total-order-timeline [_ flow-id])
-  (discard-threads [_ flow-threads-ids])
-  (start-thread-registry [_ callbacks])
-  (stop-thread-registry [_]))
+  (discard-threads [_ flow-threads-ids]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Entries protocols ;;
