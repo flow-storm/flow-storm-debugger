@@ -132,7 +132,6 @@
             [clojure.string :as str]))
 
 (declare discard-flow)
-(declare get-thread-indexes)
 
 ;; Registry that contains all flows and threads timelines.
 ;; It is an instance of `flow-storm.runtime.indexes.thread-registry/ThreadRegistry`.
@@ -163,20 +162,6 @@
 (defn indexes-started? []
   (not (nil? flow-thread-registry)))
 
-(defn check-fn-limit!
-  
-  "Automatically decrease the limit for the function if it exists.
-  Returns true when there is a limit and it is reached, false otherwise."
-  
-  [thread-fn-call-limits fn-ns fn-name]
-  (when-let [fcl @thread-fn-call-limits]
-    (when-let [l (get-in fcl [fn-ns fn-name])]
-      (if (not (pos? l))
-        true
-        (do
-          (swap! thread-fn-call-limits update-in [fn-ns fn-name] dec)
-          false)))))
-
 (defn register-form [form-data]
   (if forms-registry
     
@@ -195,11 +180,7 @@
                                               (when (utils/storm-env?)
                                                 ((requiring-resolve 'flow-storm.tracer/hook-clojure-storm))
                                                 (utils/log "Storm functions plugged in"))
-                                              (let [registry (index-protos/start-thread-registry
-                                                              (thread-registry/make-thread-registry)
-                                                              {:on-thread-created (fn [{:keys [flow-id]}]                                                                    
-                                                                                    (events/publish-event!
-                                                                                     (events/make-threads-updated-event flow-id)))})]                                                
+                                              (let [registry (thread-registry/make-flows-threads-registry)]                                                
                                                 registry)))
      
      (alter-var-root #'forms-registry (fn [_]                                       
@@ -211,11 +192,7 @@
    :cljs
    (defn start []
      (when-not flow-thread-registry
-       (set! flow-thread-registry (index-protos/start-thread-registry
-                                   (thread-registry/make-thread-registry)
-                                   {:on-thread-created (fn [{:keys [flow-id]}]
-                                                         (events/publish-event!
-                                                          (events/make-threads-updated-event flow-id)))}))     
+       (set! flow-thread-registry (thread-registry/make-flows-threads-registry))     
        (set! forms-registry (index-protos/start-form-registry
                              (form-registry/make-form-registry)))
        (utils/log (str "Runtime index system started")))))
@@ -225,13 +202,13 @@
      (when (utils/storm-env?)
        ((requiring-resolve 'flow-storm.tracer/unhook-clojure-storm))
        (utils/log "Storm functions unplugged"))     
-     (alter-var-root #'flow-thread-registry index-protos/stop-thread-registry)
+     (alter-var-root #'flow-thread-registry (constantly nil))
      (alter-var-root #'forms-registry index-protos/stop-form-registry)
      (utils/log "Runtime index system stopped"))
    
    :cljs
    (defn stop []
-     (set! flow-thread-registry index-protos/stop-thread-registry)
+     (set! flow-thread-registry (constantly nil))
      (set! forms-registry index-protos/stop-form-registry)
      (utils/log "Runtime index system stopped")))
 
@@ -239,133 +216,143 @@
   (when flow-thread-registry
     (index-protos/flow-exists? flow-thread-registry flow-id)))
 
-(defn create-thread-indexes! [flow-id thread-id thread-name form-id]
-  (let [thread-indexes {:timeline-index (timeline-index/make-index flow-id thread-id)
-                        :fn-call-limits (atom @fn-call-limits)
-                        :thread-limited (atom nil)}]    
+(defn check-fn-limit!
+  
+  "Automatically decrease the limit for the function if it exists.
+  Returns true when there is a limit and it is reached, false otherwise."
+  
+  [*thread-fn-call-limits fn-ns fn-name]
+  (when-let [fcl @*thread-fn-call-limits]
+    (when-let [l (get-in fcl [fn-ns fn-name])]
+      (if (not (pos? l))
+        true
+        (do
+          (swap! *thread-fn-call-limits update-in [fn-ns fn-name] dec)
+          false)))))
 
-    (when flow-thread-registry
-        (index-protos/register-thread-indexes flow-thread-registry flow-id thread-id thread-name form-id thread-indexes))
+(defn create-thread-tracker! [flow-id thread-id thread-name]
+  (let [timeline (timeline-index/make-index flow-id thread-id thread-name)
+        thread-tracker (index-protos/register-thread flow-thread-registry
+                                                     flow-id
+                                                     thread-id
+                                                     thread-name
+                                                     timeline
+                                                     @fn-call-limits)]    
+
+    (events/publish-event!
+     (events/make-threads-updated-event flow-id))
     
-    thread-indexes))
-
-(defn get-thread-indexes [flow-id thread-id]  
-  (when flow-thread-registry
-    (index-protos/get-thread-indexes flow-thread-registry flow-id thread-id)))
+    thread-tracker))
 
 (defn get-timeline
   ([flow-id thread-id]
-   (-> (get-thread-indexes flow-id thread-id)
-       :timeline-index))
+   (when flow-thread-registry
+     (:thread/timeline (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id))))
   ([thread-id]
    (some (fn [[fid tid]]
            (when (= thread-id tid)
              (get-timeline fid tid)))
          (index-protos/all-threads flow-thread-registry))))
 
-(defn get-or-create-thread-indexes [flow-id thread-id thread-name form-id]
+(defn get-or-create-thread-tracker [flow-id thread-id thread-name]
 
   (when-not (flow-exists? flow-id)
     (create-flow {:flow-id flow-id}))
   
-  (if-let [ti (get-thread-indexes flow-id thread-id)]
-    ti
-    (create-thread-indexes! flow-id thread-id thread-name form-id)))
+  (if-let [th-tracker (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    th-tracker
+    (create-thread-tracker! flow-id thread-id thread-name)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Indexes build api, this functions are meant to be called by  ;;
-;; Hansel, ClojureStorm or ClojureScriptStorm instrumented code ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn add-flow-init-trace [trace]
-  (create-flow trace))
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Indexes build api ;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn add-form-init-trace [trace]  
   (register-form trace))
 
 (defn add-fn-call-trace [flow-id thread-id thread-name fn-ns fn-name form-id args total-order-recording?]
-  (let [{:keys [timeline-index fn-call-limits thread-limited]} (get-or-create-thread-indexes flow-id thread-id thread-name form-id)]
-    (when timeline-index
-      (if-not @thread-limited
-        
-        (if-not (check-fn-limit! fn-call-limits fn-ns fn-name)
-          ;; if we are not limited, go ahead and record fn-call
-          (let [tl-idx (index-protos/add-fn-call timeline-index fn-ns fn-name form-id args)]
-            (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index tl-idx)))
+  (let [{:thread/keys [timeline *fn-call-limits *thread-limited]} (get-or-create-thread-tracker flow-id thread-id thread-name)]
+    (if-not @*thread-limited
+      
+      (if-not (check-fn-limit! *fn-call-limits fn-ns fn-name)
+        ;; if we are not limited, go ahead and record fn-call
+        (let [tl-idx (index-protos/add-fn-call timeline fn-ns fn-name form-id args)]
+          (when (and tl-idx total-order-recording?)
+            (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
+          tl-idx)
 
-          ;; we hitted the limit, limit the thread with depth 1
-          (reset! thread-limited 1))
+        ;; we hitted the limit, limit the thread with depth 1
+        (reset! *thread-limited 1))
 
-        ;; if this thread is already limited, just increment the depth
-        (swap! thread-limited inc)))))
+      ;; if this thread is already limited, just increment the depth
+      (swap! *thread-limited inc))))
 
 (defn add-fn-return-trace [flow-id thread-id coord ret-val total-order-recording?]
-  (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    (when timeline-index
-      (if-not @thread-limited
-        ;; when not limited, go ahead
-        (let [tl-idx (index-protos/add-fn-return timeline-index coord ret-val)]
-          (when (and tl-idx total-order-recording?)
-            (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index tl-idx)))
+  (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (if-not @*thread-limited
+      ;; when not limited, go ahead
+      (let [tl-idx (index-protos/add-fn-return timeline coord ret-val)]
+        (when (and tl-idx total-order-recording?)
+          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
+        tl-idx)
 
-        ;; if we are limited decrease the limit depth or remove it when it reaches to 0
-        (do
-          (swap! thread-limited (fn [l]
-                                  (when (> l 1)
-                                    (dec l))))
-          nil)))))
+      ;; if we are limited decrease the limit depth or remove it when it reaches to 0
+      (do
+        (swap! *thread-limited (fn [l]
+                                 (when (> l 1)
+                                   (dec l))))
+        nil))))
 
 (defn add-fn-unwind-trace [flow-id thread-id coord throwable total-order-recording?]
-  (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    (when timeline-index
-      (if-not @thread-limited
-        ;; when not limited, go ahead
-        (when-let [tl-idx (index-protos/add-fn-unwind timeline-index coord throwable)]
-          (let [unwind-trace (get timeline-index tl-idx)
-                fn-idx (index-protos/fn-call-idx unwind-trace)
-                {:keys [fn-ns fn-name]} (-> (get timeline-index fn-idx)
-                                            index-protos/as-immutable)
-                ev (events/make-function-unwinded-event {:flow-id flow-id
-                                                         :thread-id thread-id
-                                                         :idx tl-idx
-                                                         :fn-ns fn-ns
-                                                         :fn-name fn-name
-                                                         :ex-type (pr-str (type throwable))
-                                                         :ex-message (ex-message throwable)
-                                                         :ex-hash (hash throwable)})]
+  (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (if-not @*thread-limited
+      ;; when not limited, go ahead
+      (when-let [tl-idx (index-protos/add-fn-unwind timeline coord throwable)]
+        (let [unwind-trace (get timeline tl-idx)
+              fn-idx (index-protos/fn-call-idx unwind-trace)
+              {:keys [fn-ns fn-name]} (-> (get timeline fn-idx)
+                                          index-protos/as-immutable)
+              ev (events/make-function-unwinded-event {:flow-id flow-id
+                                                       :thread-id thread-id
+                                                       :idx tl-idx
+                                                       :fn-ns fn-ns
+                                                       :fn-name fn-name
+                                                       :ex-type (pr-str (type throwable))
+                                                       :ex-message (ex-message throwable)
+                                                       :ex-hash (hash throwable)})]
 
-            (when (and tl-idx total-order-recording?)
-              (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index tl-idx))
+          (when (and tl-idx total-order-recording?)
+            (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
 
-            (events/publish-event! ev)))
+          (events/publish-event! ev))
+        tl-idx)
 
-        ;; if we are limited decrease the limit depth or remove it when it reaches to 0
-        (do
-          (swap! thread-limited (fn [l]
-                                  (when (> l 1)
-                                    (dec l))))
-          nil)))))
+      ;; if we are limited decrease the limit depth or remove it when it reaches to 0
+      (do
+        (swap! *thread-limited (fn [l]
+                                 (when (> l 1)
+                                   (dec l))))
+        nil))))
 
 (defn add-expr-exec-trace [flow-id thread-id coord expr-val total-order-recording?]
-  (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-
-    (when (and timeline-index (not @thread-limited))
-      (let [tl-idx (index-protos/add-expr-exec timeline-index coord expr-val)]
+  (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (when (not @*thread-limited)
+      (let [tl-idx (index-protos/add-expr-exec timeline coord expr-val)]
         (when (and tl-idx total-order-recording?)
-          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline-index tl-idx))
+          (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
         (when (and (symbol? expr-val)
                    (= expr-val 'flow-storm/bookmark))
           (let [ev (events/make-expression-bookmark-event {:flow-id flow-id
                                                            :thread-id thread-id
                                                            :idx tl-idx
                                                            :note (:flow-storm.bookmark/note (meta expr-val))})]
-            (events/publish-event! ev)))))))
+            (events/publish-event! ev)))
+        tl-idx))))
 
 (defn add-bind-trace [flow-id thread-id coord symb-name symb-val]
-  (let [{:keys [timeline-index thread-limited]} (get-thread-indexes flow-id thread-id)]
-    (when (and timeline-index (not @thread-limited))
-      (index-protos/add-bind timeline-index coord symb-name symb-val))))
+  (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (when (not @*thread-limited)
+      (index-protos/add-bind timeline coord symb-name symb-val))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indexes API. This are functions meant to be called by            ;;
@@ -396,13 +383,13 @@
   (index-protos/all-forms forms-registry))
 
 (defn timeline-entry [flow-id thread-id idx drift]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (when timeline-index
-      (timeline-index/timeline-entry timeline-index idx drift))))
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (when timeline
+      (timeline-index/timeline-entry timeline idx drift))))
 
 (defn frame-data [flow-id thread-id idx opts]  
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (timeline-index/tree-frame-data timeline-index idx opts)))
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (timeline-index/tree-frame-data timeline idx opts)))
 
 (defn- coord-in-scope? [scope-coord current-coord]
   (if (empty? scope-coord)
@@ -411,9 +398,9 @@
          (> (count current-coord) (count scope-coord)))))
 
 (defn bindings [flow-id thread-id idx {:keys [all-frame?]}]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        {:keys [fn-call-idx] :as entry} (timeline-index/timeline-entry timeline-index idx :at)
-        frame-data (timeline-index/tree-frame-data timeline-index fn-call-idx {:include-binds? true})
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)
+        {:keys [fn-call-idx] :as entry} (timeline-index/timeline-entry timeline idx :at)
+        frame-data (timeline-index/tree-frame-data timeline fn-call-idx {:include-binds? true})
         [entry-coord entry-idx] (case (:type entry)
                                   :fn-call   [[] fn-call-idx]
                                   :fn-return [(:coord entry) (:idx entry)]
@@ -434,8 +421,8 @@
   use to start exploring the tree by calling `callstack-node-frame-data` and `callstack-node-childs`."
   
   [flow-id thread-id]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        idx (index-protos/tree-root-index timeline-index)
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)
+        idx (index-protos/tree-root-index timeline)
         node [flow-id thread-id idx]]
     node))
 
@@ -445,8 +432,8 @@
   with the frame data."
 
   [flow-id thread-id fn-call-idx]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
-    (timeline-index/tree-frame-data timeline-index fn-call-idx {})))
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
+    (timeline-index/tree-frame-data timeline fn-call-idx {})))
 
 (defn callstack-node-childs
 
@@ -454,11 +441,11 @@
   of touples containing [flow-id thread-id idx] of all childs."
   
   [flow-id thread-id fn-call-idx]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (into [] 
           (map (fn [idx]
                  [flow-id thread-id idx]))
-          (index-protos/tree-childs-indexes timeline-index fn-call-idx))))
+          (index-protos/tree-childs-indexes timeline fn-call-idx))))
 
 (defn stack-for-frame
 
@@ -466,10 +453,10 @@
   stack for the given frame as vector of maps containing {:keys [fn-name fn-ns fn-call-idx]}."
   
   [flow-id thread-id fn-call-idx]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)
-        {:keys [fn-call-idx-path]} (timeline-index/tree-frame-data timeline-index fn-call-idx {:include-path? true})]
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)
+        {:keys [fn-call-idx-path]} (timeline-index/tree-frame-data timeline fn-call-idx {:include-path? true})]
     (reduce (fn [stack fidx]
-              (let [{:keys [fn-name fn-ns fn-call-idx form-id]} (timeline-index/tree-frame-data timeline-index fidx {})
+              (let [{:keys [fn-name fn-ns fn-call-idx form-id]} (timeline-index/tree-frame-data timeline fidx {})
                     {:keys [form/def-kind multimethod/dispatch-val]} (get-form form-id)]
                 (conj stack (cond-> {:fn-name fn-name
                                      :fn-ns fn-ns
@@ -483,9 +470,8 @@
   (when flow-thread-registry
     (let [flow-threads (index-protos/flow-threads-info flow-thread-registry flow-id)]
       (doseq [{:keys [thread/id]} flow-threads]
-        (let [{:keys [fn-call-idx]} (get-thread-indexes flow-id id)]
-          (when fn-call-idx
-            (index-protos/reset-build-stack fn-call-idx)))))))
+        (when-let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id id)]
+          (index-protos/reset-build-stack timeline))))))
 
 (defn fn-call-stats
 
@@ -497,8 +483,8 @@
                      [thread-id]
                      (all-threads-ids flow-id))
         timelines-stats (mapcat (fn [tid]
-                                  (let [{:keys [timeline-index]} (get-thread-indexes flow-id tid)]
-                                    (index-protos/all-stats timeline-index))) 
+                                  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id tid)]
+                                    (index-protos/all-stats timeline))) 
                                 thread-ids)]
     (into []
           (keep (fn [[fn-call cnt]]
@@ -515,13 +501,13 @@
 
 
 (defn make-frame-keeper [flow-id thread-id fn-ns fn-name form-id]
-  (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (fn [tl-idx tl-entry]
       (when (and (fn-call-trace/fn-call-trace? tl-entry)
                  (if form-id (= form-id (index-protos/get-form-id tl-entry)) true)
                  (if fn-ns   (= fn-ns   (index-protos/get-fn-ns tl-entry))   true)
                  (if fn-name (= fn-name (index-protos/get-fn-name tl-entry)) true))
-        (timeline-index/tree-frame-data timeline-index tl-idx {})))))
+        (timeline-index/tree-frame-data timeline tl-idx {})))))
 
 (defn find-fn-frames
   
@@ -529,17 +515,17 @@
   
   ([flow-id thread-id pred]
    
-   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+   (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
      (into [] (keep-indexed (fn [tl-idx tl-entry]
                               (when (and (fn-call-trace/fn-call-trace? tl-entry)
                                          (pred tl-entry))
-                                (timeline-index/tree-frame-data timeline-index tl-idx {}))))
-           timeline-index)))
+                                (timeline-index/tree-frame-data timeline tl-idx {}))))
+           timeline)))
   
   ([flow-id thread-id fn-ns fn-name form-id]
-   (let [{:keys [timeline-index]} (get-thread-indexes flow-id thread-id)]
+   (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
      (into [] (keep-indexed (make-frame-keeper flow-id thread-id fn-ns fn-name form-id))
-           timeline-index))))
+           timeline))))
 
 (defn discard-flow [flow-id] 
   (let [discard-keys (some->> flow-thread-registry
@@ -759,9 +745,9 @@
 (defn find-flow-fn-call [flow-id]
   (some (fn [[fid tid]]
           (when (= flow-id fid)
-            (let [{:keys [timeline-index]} (get-thread-indexes fid tid)]
-              (when (pos? (count timeline-index))
-                (-> timeline-index
+            (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id tid)]
+              (when (pos? (count timeline))
+                (-> timeline
                     first
                     index-protos/as-immutable
                     (ensure-indexes 0)
@@ -976,6 +962,11 @@
   [entry]
   (index-protos/get-coord-vec entry))
 
+(defn get-coord
+  "Given a ExprTrace, FnReturnTrace or FnUnwindTrace return its coordinate string."
+  [entry]
+  (index-protos/get-coord-raw entry))
+
 (defn get-expr-val
   "Given a ExprTrace or FnReturnTrace entry return its expression value."
   [entry]
@@ -1141,5 +1132,12 @@
   is not the case for total order timelines."
   [timeline idx]
   (index-protos/thread-id timeline idx))
+
+(defn timeline-thread-name
+  "Given a timeline and a idx, returns the thread-name associated to the entry.
+  On single thread timelines all index are going to return the same thread-id, which
+  is not the case for total order timelines."
+  [timeline idx]
+  (index-protos/thread-name timeline idx))
 
 
