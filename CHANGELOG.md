@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes
+
+### Bugs fixed
+    
+## 4.4.0 (17-04-2025)
+	
+### New Features
 
     - Check for `:flow-storm.power-step/skip` value when power stepping
 
