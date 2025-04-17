@@ -2191,6 +2191,14 @@ This means your plugin css can contain code like :
 }
 ----
 
+== List of known plugins
+
+- https://github.com/flow-storm/flow-storm-web-plugin
+- https://github.com/flow-storm/flow-storm-flowbook-plugin
+- https://github.com/flow-storm/flow-storm-cljs-compiler-plugin
+- https://github.com/flow-storm/flow-storm-async-flow-plugin
+
+
 = JVM options list
 
 This section only collects the options, search for them in the User's guide for more context
