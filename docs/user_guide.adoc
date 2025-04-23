@@ -1749,7 +1749,7 @@ To start the FlowStorm UI, go to another terminal and run `clj -X:ui-storm`.
 == Docker
 
 If you run you process inside a docker container, here is a basic template for using _FlowStorm_ with it
-https://github.com/flow-storm/docker-flow-storm-basic
+https://github.com/jpmonettas/docker-flow-storm-basic
 
 = Dealing with too many traces
 
