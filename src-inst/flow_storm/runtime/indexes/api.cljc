@@ -397,7 +397,26 @@
     (and (every? true? (map = scope-coord current-coord))
          (> (count current-coord) (count scope-coord)))))
 
-(defn bindings [flow-id thread-id idx {:keys [all-frame?]}]
+(defn- partition-bindings-loops [bindings]
+  (loop [[curr-b & rest-bindings] bindings
+         seen-symb-coords #{}
+         partitions []
+         curr-part []]
+    (if-not curr-b
+      (cond-> partitions
+        (seq curr-part) (conj curr-part))
+      (let [symb-coord [(:symbol curr-b) (:coord curr-b)]]
+        (if (seen-symb-coords symb-coord)
+          (recur rest-bindings
+                 #{symb-coord}
+                 (conj partitions curr-part)
+                 [curr-b])
+          (recur rest-bindings
+                 (conj seen-symb-coords symb-coord)
+                 partitions
+                 (conj curr-part curr-b)))))))
+
+(defn bindings [flow-id thread-id idx _]
   (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)
         {:keys [fn-call-idx] :as entry} (timeline-index/timeline-entry timeline idx :at)
         frame-data (timeline-index/tree-frame-data timeline fn-call-idx {:include-binds? true})
@@ -405,15 +424,38 @@
                                   :fn-call   [[] fn-call-idx]
                                   :fn-return [(:coord entry) (:idx entry)]
                                   :fn-unwind [(:coord entry) (:idx entry)]
-                                  :expr      [(:coord entry) (:idx entry)])]
-    
-    (cond->> (:bindings frame-data)
-      (not all-frame?) (filter (fn [bind]
-                                 (and (coord-in-scope? (:coord bind) entry-coord)
-                                      (>= entry-idx (:visible-after bind)))))
-      true             (map (fn [bind]
-                              [(:symbol bind) (:value bind)]))
-      true             (into {}))))
+                                  :expr      [(:coord entry) (:idx entry)])
+
+        ;; Bindings calculation for a given index (current locals) is a little bit involved because of loops.
+        ;; To account for loops, we partition all the bindings by "iterations", which are delimited by
+        ;; a first repeating [symbol coordinate].
+        ;; `visible-loops-iterations` then are all iterations partitions with a first binding <= our target idx.
+        ;; We are not interested in any iteration that starts after our idx.
+        visible-loops-iterations (->> (partition-bindings-loops (:bindings frame-data))
+                                      (take-while (fn [part] (<= (-> part first :visible-after) entry-idx))))
+        ;; The last iteration will contain bindings that are visible, and bindings that are not so
+        ;; `invisible-last-iteration` are all the [symbol coordinate] from the last visible iteration that
+        ;; aren't still visible at idx
+        invisible-last-iteration (->> (last visible-loops-iterations)
+                                      (keep (fn [bind]
+                                              (when (> (:visible-after bind) entry-idx)
+                                                [(:symbol bind) (:coord bind)])))
+                                      (into #{}))
+        ;; for our final visible-bindings we reduce all our partitions keeping only the bindings
+        ;; with :visible-after >= to the idx, and also which coordinates are "wrapping"
+        ;; the coordinate for the entry at idx, but not included the `invisible-last-iteration` ones.
+        visible-bindings (reduce (fn [vbs part]
+                                   (reduce (fn [vbs' bind]
+                                             (if (and (coord-in-scope? (:coord bind) entry-coord)
+                                                      (>= entry-idx (:visible-after bind))
+                                                      (not (invisible-last-iteration [(:symbol bind) (:coord bind)])))
+                                               (assoc vbs' (:symbol bind) (:value bind))
+                                               vbs'))
+                                           vbs
+                                           part))
+                                 {}
+                                 visible-loops-iterations)]
+    visible-bindings))
 
 (defn callstack-root-node
   

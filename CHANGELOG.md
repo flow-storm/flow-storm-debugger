@@ -6,7 +6,12 @@
     
 ### Changes
 
+    - Locals context menu changed "Define all frame vars" to "Define all" which only defines the visible ones. 
+      This is to make the future less confusing, specially in the presence of loops.
+
 ### Bugs fixed
+
+    - Fix locals display inside loops
     
 ## 4.4.0 (17-04-2025)
 	

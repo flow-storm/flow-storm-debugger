@@ -843,12 +843,12 @@ image::user_guide_images/locals.png[]
 
 Right clicking on them will show a menu where you can :
 
-	  - define all frame vars 
+      - define all
 	  - define the value with a name, so you can use it at the repl
 	  - inspect the value with a <<#_data_windows,data window>>
 	  - tap the value as with `tap>`
 
-`Define all frame vars` will define all the bindings for the entire frame in the current form namespace.
+`Define all` will define all the bindings currently visible in the locals pane in the current form namespace.
 This is useful for trying things at your editor as described here https://www.cognitect.com/blog/2017/6/5/repl-debugging-no-stacktrace-required
 
 [NOTE]

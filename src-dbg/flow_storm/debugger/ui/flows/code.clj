@@ -383,11 +383,11 @@
   (when (ui-utils/mouse-secondary? mev)
     (let [[_ {:keys [val-ref]}] (first selected-items)
           ctx-menu (ui/context-menu :items
-                                    [{:text "Define all frame vars"
+                                    [{:text "Define all"
                                       :on-click (fn []
                                                   (let [curr-idx (dbg-state/current-idx flow-id thread-id)
                                                         {:keys [fn-ns]} (dbg-state/current-frame flow-id thread-id)
-                                                        all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {:all-frame? true})]
+                                                        all-bindings (runtime-api/bindings rt-api flow-id thread-id curr-idx {})]
                                                     (doseq [[symb-name vref] all-bindings]
                                                       (let [symb (symbol fn-ns symb-name)]
                                                         (runtime-api/def-value rt-api symb vref)))))}

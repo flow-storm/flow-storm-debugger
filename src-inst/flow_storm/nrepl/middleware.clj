@@ -105,11 +105,11 @@
                 {:status :done
                  :pprint pprint-str})})
 
-(defn bindings [{:keys [flow-id thread-id idx all-frame]}]
+(defn bindings [{:keys [flow-id thread-id idx]}]
   {:code `(debuggers-api/bindings ~(if (number? flow-id) flow-id nil)
                                   ~thread-id
                                   ~idx
-                                  {:all-frame? ~(Boolean/parseBoolean all-frame)})
+                                  nil)
    :post-proc (fn [bindings]
                 {:status :done
                  :bindings (reduce-kv (fn [r k vref]
@@ -339,8 +339,7 @@
                {:doc "Return all bindings for the provided idx"
                 :requires {"flow-id" "The id of the flow"
                            "thread-id" "The id of the thread"
-                           "idx" "The current timeline index"
-                           "all-frame" "When true return all the bindings for the frame, not just the current visible ones"}
+                           "idx" "The current timeline index"}
                 :optional {}
                 :returns {"bindings" "A map with {:keys [bind-symb val-ref-id]}"}}
 
@@ -405,8 +404,7 @@
       #_(h {:op "flow-storm-bindings"
             :flow-id flow-id
             :thread-id thread-id
-            :idx 8
-            :all-frame "true"})
+            :idx 8})
 
       #_(h {:op "flow-storm-toggle-recording"})
 
