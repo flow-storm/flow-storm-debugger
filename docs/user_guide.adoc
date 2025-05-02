@@ -2425,6 +2425,11 @@ no matter where you are in the current block when working with immutable objects
 If what was bound was mutable in any way, you will be seeing the value at binding time, and not at current time which
 could cause some confusion.
 
+== Closed over bindings aren't displayed in Locals
+
+The locals pane will only display bindings for the current function. Locals visible from the current function but not defined
+in it (like in the case of closures) aren't shown.
+
 == Code with macros that don't preserve meta
 
 FlowStorm works fine with most macros, except the ones that don't preserve meta at macroexpansion, which FlowStorm needs in their absence,

@@ -8,6 +8,7 @@
 
     - Locals context menu changed "Define all frame vars" to "Define all" which only defines the visible ones. 
       This is to make the future less confusing, specially in the presence of loops.
+    - Sort locals by symbol name
 
 ### Bugs fixed
 

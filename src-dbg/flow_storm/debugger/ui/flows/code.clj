@@ -422,12 +422,13 @@
   (let [[{:keys [clear add-all]}] (obj-lookup flow-id thread-id "locals_table")]
     (clear)
     (->> bindings
+         (sort-by first)
          (mapv (fn [[symb-name val-ref]]
                  [{:cell-type :symbol
                    :symb-name symb-name}
                   {:cell-type :val-ref
                    :val-ref val-ref}]))
-         add-all) ))
+         add-all)))
 
 (defn- create-stack-pane [flow-id thread-id]
   (let [cell-factory (fn [list-cell {:keys [fn-ns fn-name form-def-kind dispatch-val]}]

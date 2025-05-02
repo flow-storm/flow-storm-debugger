@@ -823,8 +823,9 @@ pre.rouge {
 <li><a href="#_known_limitations">22. Known limitations</a>
 <ul class="sectlevel2">
 <li><a href="#_locals_pane_and_mutable_values">22.1. Locals pane and mutable values</a></li>
-<li><a href="#_code_with_macros_that_dont_preserve_meta">22.2. Code with macros that don&#8217;t preserve meta</a></li>
-<li><a href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.3. Don&#8217;t instrument clojure.core or FlowStorm itself</a></li>
+<li><a href="#_closed_over_bindings_arent_displayed_in_locals">22.2. Closed over bindings aren&#8217;t displayed in Locals</a></li>
+<li><a href="#_code_with_macros_that_dont_preserve_meta">22.3. Code with macros that don&#8217;t preserve meta</a></li>
+<li><a href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.4. Don&#8217;t instrument clojure.core or FlowStorm itself</a></li>
 </ul>
 </li>
 <li><a href="#_troubleshooting">23. Troubleshooting</a>
@@ -4710,7 +4711,14 @@ could cause some confusion.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">22.2. Code with macros that don&#8217;t preserve meta</a></h3>
+<h3 id="_closed_over_bindings_arent_displayed_in_locals"><a class="anchor" href="#_closed_over_bindings_arent_displayed_in_locals"></a><a class="link" href="#_closed_over_bindings_arent_displayed_in_locals">22.2. Closed over bindings aren&#8217;t displayed in Locals</a></h3>
+<div class="paragraph">
+<p>The locals pane will only display bindings for the current function. Locals visible from the current function but not defined
+in it (like in the case of closures) aren&#8217;t shown.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">22.3. Code with macros that don&#8217;t preserve meta</a></h3>
 <div class="paragraph">
 <p>FlowStorm works fine with most macros, except the ones that don&#8217;t preserve meta at macroexpansion, which FlowStorm needs in their absence,
 can cause GAPS IN EXECUTION TRACING AND PREVENT IT FROM LINKING THE EXECUTED CODE BACK TO THE ORIGINAL SOURCE.</p>
@@ -4731,7 +4739,7 @@ we can work together with the macro developer making sure it preserves all meta 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_dont_instrument_clojure_core_or_flowstorm_itself"><a class="anchor" href="#_dont_instrument_clojure_core_or_flowstorm_itself"></a><a class="link" href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.3. Don&#8217;t instrument clojure.core or FlowStorm itself</a></h3>
+<h3 id="_dont_instrument_clojure_core_or_flowstorm_itself"><a class="anchor" href="#_dont_instrument_clojure_core_or_flowstorm_itself"></a><a class="link" href="#_dont_instrument_clojure_core_or_flowstorm_itself">22.4. Don&#8217;t instrument clojure.core or FlowStorm itself</a></h3>
 <div class="paragraph">
 <p>Currently we can&#8217;t instrument clojure.core or FlowStorm itself since they endup in infinite tracing recursions.
 This can be solved, but it is currently a limitation.</p>
@@ -4791,7 +4799,7 @@ This can be solved, but it is currently a limitation.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-05-02 12:29:25 -0300
+Last updated 2025-05-02 15:39:35 -0300
 </div>
 </div>
 </body>
