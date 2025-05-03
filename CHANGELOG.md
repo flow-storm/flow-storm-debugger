@@ -5,6 +5,14 @@
 ### New Features
     
 ### Changes
+              
+### Bugs fixed
+    
+## 4.4.1 (03-05-2025)
+	
+### New Features
+    
+### Changes
 
     - Locals context menu changed "Define all frame vars" to "Define all" which only defines the visible ones. 
       This is to make the future less confusing, specially in the presence of loops.
