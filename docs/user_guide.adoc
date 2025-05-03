@@ -2417,19 +2417,6 @@ https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-v
 
 = Known limitations
 
-== Locals pane and mutable values
-
-The Locals pane will show the value of each binding for a symbol AT BINDING TIME, which is the same thing
-no matter where you are in the current block when working with immutable objects, BUT NOT WHEN WORKING WITH MUTABLE ONES.
-
-If what was bound was mutable in any way, you will be seeing the value at binding time, and not at current time which
-could cause some confusion.
-
-== Closed over bindings aren't displayed in Locals
-
-The locals pane will only display bindings for the current function. Locals visible from the current function but not defined
-in it (like in the case of closures) aren't shown.
-
 == Code with macros that don't preserve meta
 
 FlowStorm works fine with most macros, except the ones that don't preserve meta at macroexpansion, which FlowStorm needs in their absence,
@@ -2446,10 +2433,38 @@ Electric, so it really depends on the macros.
 If you see code inside a macro not being traced feel free to report an issue, there is nothing FlowStorm can do from its side but
 we can work together with the macro developer making sure it preserves all meta after macro expansion, which sometimes may be possible.
 
+== Locals pane and mutable values
+
+The Locals pane will show the value of each binding for a symbol AT BINDING TIME, which is the same thing
+no matter where you are in the current block when working with immutable objects, BUT NOT WHEN WORKING WITH MUTABLE ONES.
+
+If what was bound was mutable in any way, you will be seeing the value at binding time, and not at current time which
+could cause some confusion.
+
+== Closed over bindings aren't displayed in Locals
+
+The locals pane will only display bindings for the current function. Locals visible from the current function but not defined
+in it (like in the case of closures) aren't shown.
+
 == Don't instrument clojure.core or FlowStorm itself
 
 Currently we can't instrument clojure.core or FlowStorm itself since they endup in infinite tracing recursions.
 This can be solved, but it is currently a limitation. 
+
+== IF test expressions tracing with intrinsics
+
+When you have code like :
+[,clojure]
+----
+(defn foo [^long l]
+  (if (zero? l)
+    (+ l 1)
+    (+ l 2)))
+----
+
+because `l` is a primitive long, the compiler can replace the (zero? l) with intrinsics (LCONST_0, LCMP, IFNE) so the
+(zero? l) isn't a expression anymore, just a statement. In these cases you will see the if test return un-highlighted, but
+you can still tell which branch the code went thru because the chosen branch will be the highlighted one.
 
 = Troubleshooting
 
