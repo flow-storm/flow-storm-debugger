@@ -2468,6 +2468,12 @@ you can still tell which branch the code went thru because the chosen branch wil
 
 = Troubleshooting
 
+== The outputs panel doesn't work
+
+Checkout that you don't have piggieback on the classpath dragged by some dependency. Currently
+if piggieback is pressent FlowStorm will assume a ClojureScript repl in which the outputs panel
+isn't supported yet.
+
 == Run with JDK 11
 
 FlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.

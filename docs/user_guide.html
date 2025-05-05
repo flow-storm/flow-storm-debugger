@@ -831,7 +831,8 @@ pre.rouge {
 </li>
 <li><a href="#_troubleshooting">23. Troubleshooting</a>
 <ul class="sectlevel2">
-<li><a href="#_run_with_jdk_11">23.1. Run with JDK 11</a></li>
+<li><a href="#_the_outputs_panel_doesnt_work">23.1. The outputs panel doesn&#8217;t work</a></li>
+<li><a href="#_run_with_jdk_11">23.2. Run with JDK 11</a></li>
 </ul>
 </li>
 <li><a href="#_internals_diagrams_and_documentation">24. Internals, diagrams and documentation</a></li>
@@ -4771,7 +4772,15 @@ you can still tell which branch the code went thru because the chosen branch wil
 <h2 id="_troubleshooting"><a class="anchor" href="#_troubleshooting"></a><a class="link" href="#_troubleshooting">23. Troubleshooting</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">23.1. Run with JDK 11</a></h3>
+<h3 id="_the_outputs_panel_doesnt_work"><a class="anchor" href="#_the_outputs_panel_doesnt_work"></a><a class="link" href="#_the_outputs_panel_doesnt_work">23.1. The outputs panel doesn&#8217;t work</a></h3>
+<div class="paragraph">
+<p>Checkout that you don&#8217;t have piggieback on the classpath dragged by some dependency. Currently
+if piggieback is pressent FlowStorm will assume a ClojureScript repl in which the outputs panel
+isn&#8217;t supported yet.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_run_with_jdk_11"><a class="anchor" href="#_run_with_jdk_11"></a><a class="link" href="#_run_with_jdk_11">23.2. Run with JDK 11</a></h3>
 <div class="paragraph">
 <p>FlowStorm UI requires JDK &gt;= 17. If you can&#8217;t upgrade your JDK you can still use it by downgrading JavaFx.</p>
 </div>
@@ -4819,7 +4828,7 @@ you can still tell which branch the code went thru because the chosen branch wil
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-05-03 09:20:34 -0300
+Last updated 2025-05-05 11:03:36 -0300
 </div>
 </div>
 </body>
