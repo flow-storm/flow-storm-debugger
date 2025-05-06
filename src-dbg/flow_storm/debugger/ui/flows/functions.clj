@@ -129,7 +129,7 @@
         cell (ui/v-box :childs (cond-> []
                                  args-node     (conj args-node)
                                  ret-kind-node (conj ret-kind-node))
-                       :class "contrast-background"
+                       :class "fn-call-list-cell"
                        :spacing 5
                        :paddings [5])]
     (ui-utils/set-graphic list-cell cell)))

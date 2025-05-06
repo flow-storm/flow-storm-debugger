@@ -3,8 +3,8 @@
             [flow-storm.utils :as utils]
             [flow-storm.types :as types]
             [flow-storm.eql :as eql]
-            [clojure.datafy :refer [datafy nav]]
-            #?(:clj [clojure.string :as str])))
+            [clojure.datafy :refer [datafy nav]]            
+            [clojure.string :as str]))
 
 (defprotocol PWrapped
   (unwrap [_]))
@@ -181,19 +181,20 @@
 
                     "FlowStorm : Unrealized value"
 
-                    (with-out-str
-                      (binding [*print-level* print-level
-                                *print-length* print-length
-                                *print-meta* print-meta?]
+                    (binding [*print-level* print-level
+                              *print-length* print-length
+                              *print-meta* print-meta?]
 
-                        (if nth-elems
+                      (if nth-elems
 
-                          (let [max-idx (dec (count val))
-                                nth-valid-elems (filter #(<= % max-idx) nth-elems)]
-                            (doseq [n nth-valid-elems]
-                              (print-fn (nth val n))
-                              (print " ")))
+                        (let [max-idx (dec (count val))
+                              nth-valid-elems (filter #(<= % max-idx) nth-elems)
+                              printed-elems (->> nth-valid-elems
+                                                 (mapv (fn [n]
+                                                         (str/trim-newline (with-out-str (print-fn (nth val n)))))))]
+                          (str "[" (str/join " " printed-elems) "]"))
 
+                        (with-out-str
                           (print-fn val)))))
 
                   ;; return somthing so the user knows the value can't be trusted
