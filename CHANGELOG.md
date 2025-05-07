@@ -11,6 +11,7 @@
 ### Bugs fixed
     
     - Fix fn calls list styling
+    - Fix Browser's function 'Break' button styling
 
 ## 4.4.1 (03-05-2025)
 	

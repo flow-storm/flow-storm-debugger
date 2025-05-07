@@ -271,11 +271,17 @@
 
 .button.browser-break-btn {    
 	visibility: hidden;
-    -fx-background-color: -fx-theme-breakpoint;
+    -fx-background-color: -fx-theme-breakpoint;    
+}
+
+.button.browser-break-btn:hover {    
+	visibility: hidden;
+    -fx-background-color: -fx-theme-button-hover;
+    -fx-color: -fx-hover-base;
 }
 
 .button.browser-break-btn.enable {
-	visibility: visible;
+	visibility: visible;    
 }
 
 .button.browser-instrument-btn.enable {
