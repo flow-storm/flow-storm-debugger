@@ -488,6 +488,9 @@
     (when form-paint-fn
       (form-paint-fn expr-executions (:coord entry)))))
 
+(defn- make-output-datawindow-id [flow-id thread-id]
+  (keyword (format "expr-result-flow-%s-thread-%s" flow-id thread-id)))
+
 (defn jump-to-coord [flow-id thread-id next-tentry]
   (try
     (when (:debug-mode? (dbg-state/debugger-config))
@@ -542,7 +545,7 @@
                                      :expr      [(:result next-tentry)    ""        :normal]
                                      :fn-return [(:result next-tentry)    "Return"  :normal]
                                      :fn-unwind [(:throwable next-tentry) "Throws" :fail])
-            dw-id (format "expr-result-flow-%s-thread-%s" flow-id thread-id)]
+            dw-id (make-output-datawindow-id flow-id thread-id)]
         (flow-cmp/update-pprint-pane flow-id thread-id "expr_result"
                                      {:val-ref   val-ref
                                       :extra-text e-text
@@ -847,8 +850,9 @@
 (defn- create-result-pane [flow-id thread-id]
   (let [pprint-tab (ui/tab :graphic (ui/icon :name "mdi-code-braces")
                            :content (flow-cmp/create-pprint-pane flow-id thread-id "expr_result"))
+        dw-id (make-output-datawindow-id flow-id thread-id)
         dw-tab (ui/tab :graphic (ui/icon :name "mdi-flash-red-eye")
-                       :content (data-windows/data-window-pane {:data-window-id (format "expr-result-flow-%s-thread-%s" flow-id thread-id)}))
+                       :content (data-windows/data-window-pane {:data-window-id dw-id}))
         tools-tab-pane (ui/tab-pane :closing-policy :unavailable
                                     :tabs [dw-tab pprint-tab])]
     tools-tab-pane))

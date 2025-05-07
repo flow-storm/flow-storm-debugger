@@ -5,9 +5,13 @@
 ### New Features
     
 ### Changes
+
+    - Make :preview the default visualizer for numbers
               
 ### Bugs fixed
     
+    - Fix fn calls list styling
+
 ## 4.4.1 (03-05-2025)
 	
 ### New Features
