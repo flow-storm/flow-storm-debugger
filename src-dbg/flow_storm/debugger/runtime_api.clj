@@ -134,7 +134,7 @@
   the callback will be called with the response. Otherwise it will block and return the response."
   ([call-type fkey args] (api-call call-type fkey args {} nil))
   ([call-type fkey args opts] (api-call call-type fkey args opts nil))
-  ([call-type fkey args {:keys [cache timeout]} callback]
+  ([call-type fkey args {:keys [cache timeout] :or {timeout 5000}} callback]
    (let [f (case call-type
              :local (dbg-api/api-fn-by-key fkey)
              :remote (fn [& args] (websocket/sync-remote-api-request fkey args)))
@@ -158,13 +158,11 @@
                                result)))]
 
        (when-not callback
-         (let [call-resp (if timeout
-                           (deref call-resp-fut timeout :flow-storm/call-time-out)
-                           (deref call-resp-fut))]
+         (let [call-resp (deref call-resp-fut timeout :flow-storm/call-time-out)]
            (if (= call-resp :flow-storm/call-time-out)
-             (do
-               (show-message (format "A call to %s timed out" fkey) :warning)
-               nil)
+             (let [msg (format "A call to %s timed out" fkey)]
+               (show-message msg :warning)
+               (throw (ex-info msg {:call-type call-type :fkey fkey :args args})))
              call-resp)))))))
 
 (defn- config-dw-extras [extras]

@@ -7,6 +7,7 @@
 ### Changes
 
     - Make :preview the default visualizer for numbers
+    - Improved thread breakpoints UX/UI
               
 ### Bugs fixed
     

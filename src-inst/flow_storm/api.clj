@@ -338,6 +338,7 @@
   (dbg-api/remove-breakpoint! fq-fn-symb {}))
 
 (def unblock-thread dbg-api/unblock-thread)
+(def unblock-all-threads dbg-api/unblock-all-threads)
 (def clear-breaks dbg-api/clear-breakpoints!)
 
 (defn start-recording [] (dbg-api/set-recording true))

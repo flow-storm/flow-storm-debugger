@@ -28,7 +28,7 @@
                           examples-box]
                  :spacing 10)
 
-        doc-pane (doto (ui/scroll-pane :class "hidden-pane")
+        doc-pane (doto (ui/scroll-pane :class "hidden-node")
                    (.setFitToHeight true)
                    (.setFitToWidth true))]
 
@@ -209,7 +209,7 @@
 (defn show-doc [fn-symb]
   (let [fn-data (get dbg-docs/fn-docs fn-symb)
         [fn-doc-pane] (obj-lookup "docs-doc-pane")]
-    (ui-utils/rm-class fn-doc-pane "hidden-pane")
+    (ui-utils/rm-class fn-doc-pane "hidden-node")
     (update-fn-doc-pane fn-symb fn-data)))
 
 (defn main-pane []

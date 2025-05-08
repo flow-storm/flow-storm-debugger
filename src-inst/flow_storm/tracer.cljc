@@ -118,16 +118,15 @@
          thread-id (utils/get-current-thread-id)
          thread-name (utils/get-current-thread-name)]
      
-     #?(:clj
-        (let [brks @breakpoints]
-          (when (and (pos? (count brks))
-                     (contains? brks [fn-ns fn-name])
-                     (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args))
-            ;; before blocking, let's make sure the thread exists
-            (indexes-api/get-or-create-thread-tracker flow-id thread-id thread-name)
-            (block-this-thread flow-id [fn-ns fn-name]))))
-     
-     (when @recording       
+     (when @recording
+       
+       #?(:clj
+          (let [brks @breakpoints]
+            (when (and (pos? (count brks))
+                       (contains? brks [fn-ns fn-name])
+                       (apply (-> (get brks [fn-ns fn-name]) meta :predicate) fn-args))
+              (block-this-thread flow-id [fn-ns fn-name]))))
+       
        (let [limit-hit? (and (pos? thread-trace-limit)
                              (> (count (indexes-api/get-timeline flow-id thread-id)) thread-trace-limit))
              args (mapv snapshot-reference fn-args)]

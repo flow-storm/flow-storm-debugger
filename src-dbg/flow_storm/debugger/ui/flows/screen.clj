@@ -113,22 +113,49 @@
         (.setText nil)
         (.setGraphic refresh-tab-content)))))
 
-(defn update-threads-list [flow-id]
-  (let [[{:keys [set-items menu-button] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
-    (when menu-data
-      (let [threads-info (runtime-api/flow-threads-info rt-api flow-id)
-            [threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")]
+(defn update-blocked-threads []
+  (try
+    (let [[{:keys [set-items clear-items]}] (obj-lookup "blocked-threads-menu-data")
+          [blocked-threads-box] (obj-lookup "blocked-threads-box")
+         blocked-threads (->> (dbg-state/get-threads-info)
+                              (filter :thread/blocked))]
+      (if (seq blocked-threads)
+       (do
+         (ui-utils/rm-class blocked-threads-box "hidden-node")
+         (->> blocked-threads
+              (mapv (fn [bthread]
+                      (let [[bp-var-ns bp-var-name] (:thread/blocked bthread)]
+                        {:thread-id (:thread/id bthread)
+                         :text (format "Unblock %s - %s/%s"
+                                       (ui/thread-label (:thread/id bthread) (:thread/name bthread))
+                                       bp-var-ns bp-var-name)})))
+              (into [{:thread-id :all
+                      :text "Unblock all threads"}])
+              set-items))
 
-        (doseq [tinfo threads-info]
-          (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
+       (do
+         (clear-items)
+         (ui-utils/add-class blocked-threads-box "hidden-node"))))
+    (catch Exception e (.printStackTrace e))))
 
-        (when (and (seq threads-info)
-                   threads-tabs-pane
-                   (zero? (count (.getTabs threads-tabs-pane))))
-          (open-thread (first threads-info)))
+(defn update-threads-list
+  ([flow-id] (update-threads-list flow-id (runtime-api/flow-threads-info rt-api flow-id)))
+  ([flow-id threads-info]
 
-        (set-items threads-info)
-        (.setText menu-button (format "Threads [%d]" (count threads-info)))))))
+   (doseq [tinfo threads-info] (dbg-state/update-thread-info (:thread/id tinfo) tinfo))
+
+   (let [[{:keys [set-items menu-button] :as menu-data}] (obj-lookup flow-id "flow_threads_menu")]
+     (when menu-data
+       (let [[threads-tabs-pane] (obj-lookup flow-id "threads_tabs_pane")]
+
+         (when (and (seq threads-info)
+                    threads-tabs-pane
+                    (zero? (count (.getTabs threads-tabs-pane))))
+           (open-thread (first threads-info)))
+
+         (set-items threads-info)
+         (.setText menu-button (format "Threads [%d]" (count threads-info))))))
+   (update-blocked-threads)))
 
 (defn select-flow-tab [flow-id]
   (let [[^TabPane flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -161,32 +188,44 @@
                            (runtime-api/timeline-entry rt-api flow-id thread-id idx :at)))
 
 (defn- build-flow-tool-bar-pane [flow-id]
-  (let [quick-jump-textfield (ui/h-box
+  (let [quick-jump-autocomplete (ui/autocomplete-textfield
+                                 :get-completions
+                                 (fn []
+                                   (into []
+                                         (keep (fn [{:keys [fn-ns fn-name cnt]}]
+                                                 (when-not (re-find #"fn--[\d]+$" fn-name)
+                                                   {:text (format "%s/%s (%d)" fn-ns fn-name cnt)
+                                                    :on-select (fn []
+                                                                 (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                    [(symbol fn-ns fn-name) 0 {:flow-id flow-id}]
+                                                                                    {:on-finished (fn [{:keys [result]}]
+                                                                                                    (when result
+                                                                                                      (goto-location (assoc result
+                                                                                                                            :flow-id flow-id))))}))})))
+                                         (runtime-api/fn-call-stats rt-api flow-id nil))))
+        quick-jump-textfield (ui/h-box
                               :childs [(ui/label :text "Quick jump:")
-                                       (ui/autocomplete-textfield
-                                        :get-completions
-                                        (fn []
-                                          (into []
-                                                (keep (fn [{:keys [fn-ns fn-name cnt]}]
-                                                        (when-not (re-find #"fn--[\d]+$" fn-name)
-                                                          {:text (format "%s/%s (%d)" fn-ns fn-name cnt)
-                                                           :on-select (fn []
-                                                                        (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                           [(symbol fn-ns fn-name) 0 {:flow-id flow-id}]
-                                                                                           {:on-finished (fn [{:keys [result]}]
-                                                                                                           (when result
-                                                                                                             (goto-location (assoc result
-                                                                                                                              :flow-id flow-id))))}))})))
-                                                (runtime-api/fn-call-stats rt-api flow-id nil))))]
+                                       quick-jump-autocomplete]
                               :align :center-left)
 
+        blocked-threads-menu-data (ui/menu-button
+                                   :title "Threads blocked"
+                                   :on-action (fn [{:keys [thread-id]}]
+                                                (if (= thread-id :all)
+                                                  (runtime-api/unblock-all-threads rt-api)
+                                                  (runtime-api/unblock-thread rt-api thread-id)))
+                                   :items []
+                                   :class "important-combo")
         exceptions-menu-data (ui/menu-button
                               :title "Exceptions"
                               :on-action (fn [loc] (goto-location loc))
                               :items []
                               :class "important-combo")
         exceptions-box (ui/h-box :childs [(:menu-button exceptions-menu-data)]
-                                 :class "hidden-pane"
+                                 :class "hidden-node"
+                                 :align :center-left)
+        blocked-threads-box (ui/h-box :childs [(:menu-button blocked-threads-menu-data)]
+                                 :class "hidden-node"
                                  :align :center-left)
         tools-menu  (ui/menu-button :title "More tools"
                                     :items [{:key :search
@@ -203,13 +242,16 @@
                                                    :printers              (printer/open-printers-window flow-id)))
                                     :orientation :right-to-left)
         left-tools-box (ui/h-box :childs [quick-jump-textfield
-                                          exceptions-box]
+                                          exceptions-box
+                                          blocked-threads-box]
                                  :spacing 4)
         right-tools-box (ui/h-box :childs [(:menu-button tools-menu)]
                                   :spacing 4)]
 
     (store-obj flow-id "exceptions-box" exceptions-box)
     (store-obj flow-id "exceptions-menu-data" exceptions-menu-data)
+    (store-obj "blocked-threads-box" blocked-threads-box)
+    (store-obj "blocked-threads-menu-data" blocked-threads-menu-data)
 
     (ui/border-pane :left  left-tools-box
                     :right right-tools-box
@@ -225,23 +267,8 @@
         (ui/menu-button
          :title "Threads"
          :on-action (fn [th] (open-thread th))
-         :item-factory (fn [{:keys [thread/name thread/blocked thread/id]}]
-                         (if blocked
-                           ;; build blocked thread node
-                           (let [[bp-var-ns bp-var-name] blocked
-                                 thread-unblock-btn (ui/icon-button :icon-name "mdi-play"
-                                                                    :on-click (fn []
-                                                                                (runtime-api/unblock-thread rt-api id))
-                                                                    :classes ["thread-continue-btn"
-                                                                              "btn-xs"])]
-                             (ui/h-box :childs [(ui/v-box :childs [(ui/label :text (ui/thread-label id name)
-                                                                             :class "thread-blocked")
-                                                                   (ui/label :text (format "%s/%s" bp-var-ns bp-var-name) :class "light")])
-                                                thread-unblock-btn]
-                                       :spacing 5))
-
-                           ;; if not blocked just render a label
-                           (ui/label :text (ui/thread-label id name))))
+         :item-factory (fn [{:keys [thread/name thread/id]}]
+                         (ui/label :text (ui/thread-label id name)))
          :class "hl-combo")
 
         flow-toolbar (build-flow-tool-bar-pane flow-id)
@@ -343,7 +370,7 @@
     (when ex-box
       (ui-utils/clear-classes ex-box)
       (when (zero? (count exceptions))
-        (ui-utils/add-class ex-box "hidden-pane"))
+        (ui-utils/add-class ex-box "hidden-node"))
 
       (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
                          {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
@@ -398,6 +425,7 @@
                                            flows-combo]
                                   :paddings [4 4 4 4]
                                   :spacing 4)
+
         flow-anchor (ui/anchor-pane
                      :childs [{:node flows-tpane
                                :top-anchor 5.0

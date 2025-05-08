@@ -3152,18 +3152,20 @@ new one.</p>
 <div class="paragraph">
 <p><em>FlowStorm</em> is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn&#8217;t cover every possible situation. There are
-cases where recording everything is impractical, and even if you can start stop recording whenever you want
+cases where recording everything is impractical, and even if you can start/stop recording whenever you want,
 being able to automatically stop your threads at certain points is useful.</p>
 </div>
 <div class="paragraph">
-<p>For that, <em>FlowStorm</em> has the ability to set thread breakpoints, which means to define points
+<p>For these cases, <em>FlowStorm</em> has the ability to set thread breakpoints, which means to define points (functions)
 in the execution of your program where you want your threads to wait.
-While the threads are waiting you can explore what happened so far. If the recorded information isn&#8217;t enough you can
-click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again.
-Then you can analyze the new recordings.</p>
+While the threads are waiting you can explore what happened so far.</p>
 </div>
 <div class="paragraph">
-<p>Once you are done, you can pause recording using the pause button in the main toolbar and then the breakpoints and un-block every thread.</p>
+<p>As soon as a thread hits a break function, if recording is on, it will be blocked, and a "Threads blocked" menu will show up in the UI.
+You can use this menu to unblock different threads.</p>
+</div>
+<div class="paragraph">
+<p>Once you are done, you can pause recording using the pause button in the main toolbar and un-block every thread.</p>
 </div>
 <div class="paragraph">
 <p>You can define thread breakpoints in two ways :</p>
@@ -4828,7 +4830,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-05-05 11:03:36 -0300
+Last updated 2025-05-08 09:08:03 -0300
 </div>
 </div>
 </body>

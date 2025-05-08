@@ -1456,16 +1456,17 @@ image::user_guide_images/thread_breaks.png[]
 
 _FlowStorm_ is a tracing debugger, which means it can record what is happening without the need of stopping
 your programs execution. This is all fine but doesn't cover every possible situation. There are
-cases where recording everything is impractical, and even if you can start stop recording whenever you want
+cases where recording everything is impractical, and even if you can start/stop recording whenever you want,
 being able to automatically stop your threads at certain points is useful.
 
-For that, _FlowStorm_ has the ability to set thread breakpoints, which means to define points
+For these cases, _FlowStorm_ has the ability to set thread breakpoints, which means to define points (functions)
 in the execution of your program where you want your threads to wait.
-While the threads are waiting you can explore what happened so far. If the recorded information isn't enough you can
-click the play buttons next to each blocked thread to tell it to continue until it hit a breakpoint again.
-Then you can analyze the new recordings.
+While the threads are waiting you can explore what happened so far.
 
-Once you are done, you can pause recording using the pause button in the main toolbar and then the breakpoints and un-block every thread.
+As soon as a thread hits a break function, if recording is on, it will be blocked, and a "Threads blocked" menu will show up in the UI.
+You can use this menu to unblock different threads.
+
+Once you are done, you can pause recording using the pause button in the main toolbar and un-block every thread.
 
 You can define thread breakpoints in two ways :
 

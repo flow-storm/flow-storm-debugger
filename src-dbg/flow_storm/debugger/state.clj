@@ -46,7 +46,7 @@
 
 (s/def :thread/id int?)
 (s/def :thread/name string?)
-(s/def :thread/blocked? boolean?)
+(s/def :thread/blocked (s/tuple :flow-storm/fn-ns :flow-storm/fn-name))
 (s/def :thread/curr-timeline-entry (s/nilable :flow-storm/timeline-entry))
 (s/def :thread/curr-frame :flow-storm/frame)
 
@@ -94,7 +94,7 @@
 (s/def :thread/info (s/keys :req [:flow/id
                                   :thread/id
                                   :thread/name]
-                            :opt [:thread/blocked?]))
+                            :opt [:thread/blocked]))
 (s/def :flow/threads-info (s/map-of :flow/id :thread/info))
 
 (s/def :printer/enable? boolean?)
@@ -348,6 +348,9 @@
 
 (defn update-thread-info [thread-id info]
   (swap! state assoc-in [:threads-info thread-id] info))
+
+(defn get-threads-info []
+  (vals (get @state :threads-info)))
 
 (defn get-thread-info [thread-id]
   (get-in @state [:threads-info thread-id]))

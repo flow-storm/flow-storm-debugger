@@ -24,8 +24,8 @@
 (defn make-flow-discarded-event [flow-id]
   [:flow-discarded {:flow-id flow-id}])
 
-(defn make-threads-updated-event [flow-id]
-  [:threads-updated {:flow-id flow-id}])
+(defn make-threads-updated-event [flow-id flow-threads-info]
+  [:threads-updated {:flow-id flow-id :flow-threads-info flow-threads-info}])
 
 (defn make-timeline-updated-event [flow-id thread-id]
   [:timeline-updated {:flow-id flow-id :thread-id thread-id}])

@@ -230,6 +230,11 @@
           (swap! *thread-fn-call-limits update-in [fn-ns fn-name] dec)
           false)))))
 
+#?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main" :thread/blocked? false}])
+   :clj (defn flow-threads-info [flow-id]          
+          (when flow-thread-registry
+            (index-protos/flow-threads-info flow-thread-registry flow-id))))
+
 (defn create-thread-tracker! [flow-id thread-id thread-name]
   (let [timeline (timeline-index/make-index flow-id thread-id thread-name)
         thread-tracker (index-protos/register-thread flow-thread-registry
@@ -239,8 +244,7 @@
                                                      timeline
                                                      @fn-call-limits)]    
 
-    (events/publish-event!
-     (events/make-threads-updated-event flow-id))
+    (events/publish-event! (events/make-threads-updated-event flow-id (flow-threads-info flow-id)))
     
     thread-tracker))
 
@@ -579,20 +583,15 @@
       (index-protos/discard-threads flow-thread-registry discard-keys)
       (events/publish-event! (events/make-flow-discarded-event flow-id)))))
 
-#?(:cljs (defn flow-threads-info [flow-id] [{:flow/id flow-id :thread/id 0 :thread/name "main" :thread/blocked? false}])
-   :clj (defn flow-threads-info [flow-id]          
-          (when flow-thread-registry
-            (index-protos/flow-threads-info flow-thread-registry flow-id))))
-
 (defn mark-thread-blocked [flow-id thread-id breakpoint]
   (when flow-thread-registry
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id breakpoint)
-    (events/publish-event! (events/make-threads-updated-event flow-id))))
+    (events/publish-event! (events/make-threads-updated-event flow-id (flow-threads-info flow-id)))))
 
 (defn mark-thread-unblocked [flow-id thread-id]
   (when flow-thread-registry
     (index-protos/set-thread-blocked flow-thread-registry flow-id thread-id nil)
-    (events/publish-event! (events/make-threads-updated-event flow-id))))
+    (events/publish-event! (events/make-threads-updated-event flow-id (flow-threads-info flow-id)))))
 
 (defn timelines-for
 

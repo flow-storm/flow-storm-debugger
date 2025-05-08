@@ -64,9 +64,9 @@
   (ui-utils/run-now
     (flows-screen/clear-debugger-flow (:flow-id flow-info))))
 
-(defn- threads-updated-event [{:keys [flow-id]}]
+(defn- threads-updated-event [{:keys [flow-id flow-threads-info]}]
   (ui-utils/run-now
-    (flows-screen/update-threads-list flow-id)))
+    (flows-screen/update-threads-list flow-id flow-threads-info)))
 
 (defn- timeline-updated-event [{:keys [flow-id thread-id]}]
   ;; If there is a tab open for the thread already, update it

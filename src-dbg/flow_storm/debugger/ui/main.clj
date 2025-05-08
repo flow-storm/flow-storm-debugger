@@ -300,8 +300,8 @@
                                                     (if (dbg-state/clojure-storm-env?)
                                                       (runtime-api/turn-storm-instrumentation rt-api on?)
                                                       (show-message "This functionality is only available in Storm modes" :warning)))})
-        tools [task-cancel-btn inst-toggle]]
 
+        tools [task-cancel-btn inst-toggle]]
     (store-obj "task-cancel-btn" task-cancel-btn)
     (store-obj "inst-toggle-btn" inst-toggle)
     (ui/toolbar :childs tools)))

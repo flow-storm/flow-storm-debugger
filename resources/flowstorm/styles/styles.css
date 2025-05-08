@@ -340,9 +340,10 @@
 	-fx-text-fill: -fx-theme-dim-text;    
 }
 
-.hidden-pane {
+.hidden-node {
 	-fx-display: none;
 	visibility: hidden;
+    -fx-max-width: 0;
 }
 
 .docs-example-ret-symbol {
