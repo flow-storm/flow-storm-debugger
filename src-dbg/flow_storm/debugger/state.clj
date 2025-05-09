@@ -46,7 +46,7 @@
 
 (s/def :thread/id int?)
 (s/def :thread/name string?)
-(s/def :thread/blocked (s/tuple :flow-storm/fn-ns :flow-storm/fn-name))
+(s/def :thread/blocked (s/nilable (s/tuple :flow-storm/fn-ns :flow-storm/fn-name)))
 (s/def :thread/curr-timeline-entry (s/nilable :flow-storm/timeline-entry))
 (s/def :thread/curr-frame :flow-storm/frame)
 
