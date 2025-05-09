@@ -2219,6 +2219,7 @@ and possible values.
 - `-Dflowstorm.throwOnThreadLimit=true`
 - `-Dflowstorm.autoUpdateUI=false`
 - `-Dflowstorm.callTreeUpdate=false`
+- `-Dflowstorm.uiTimeoutMillis=4000`
 
 == Only Clojure
 

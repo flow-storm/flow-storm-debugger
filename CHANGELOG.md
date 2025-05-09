@@ -8,6 +8,7 @@
 
     - Make :preview the default visualizer for numbers
     - Improved thread breakpoints UX/UI
+    - All api calls from UI have now a timeout, configurable via flowstorm.uiTimeoutMillis
               
 ### Bugs fixed
     

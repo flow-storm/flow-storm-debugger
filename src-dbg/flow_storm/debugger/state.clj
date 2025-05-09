@@ -174,6 +174,7 @@
 (s/def :config/debug-mode? boolean?)
 (s/def :config/auto-jump-on-exception? boolean?)
 (s/def :config/auto-update-ui? boolean?)
+(s/def :config/ui-timeout-millis number?)
 (s/def :config/pprint-previews? boolean?)
 
 (s/def ::debugger-config (s/keys :req-un [:config/repl
@@ -184,6 +185,7 @@
                                           :config/pprint-previews?
                                           :config/auto-jump-on-exception?
                                           :config/auto-update-ui?
+                                          :config/ui-timeout-millis
                                           :config/call-tree-update?]))
 
 (s/def :bookmark/id (s/tuple :flow/id :thread/id int?))
@@ -247,7 +249,7 @@
                                 ::bookmarks
                                 ::data-windows]))
 
-(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui? call-tree-update?] :as config}]
+(defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui? ui-timeout-millis call-tree-update?] :as config}]
   {:flows {}
    :printers {}
    :selected-font-size-style-idx 0
@@ -277,6 +279,7 @@
                      :runtime-host (or runtime-host "localhost")
                      :debug-mode? false
                      :auto-jump-on-exception? false
+                     :ui-timeout-millis (or ui-timeout-millis 5000)
                      :auto-update-ui? (if-not (nil? auto-update-ui?) auto-update-ui? true)
                      :call-tree-update? (if-not (nil? call-tree-update?) call-tree-update? true)
                      :pprint-previews? false}

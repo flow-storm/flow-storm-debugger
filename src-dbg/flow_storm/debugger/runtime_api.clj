@@ -28,8 +28,6 @@
 (declare rt-api)
 (declare api-call)
 
-(def api-call-timeout 4000)
-
 (def ^:dynamic *cache-disabled?* false)
 
 (defstate rt-api
@@ -134,8 +132,9 @@
   the callback will be called with the response. Otherwise it will block and return the response."
   ([call-type fkey args] (api-call call-type fkey args {} nil))
   ([call-type fkey args opts] (api-call call-type fkey args opts nil))
-  ([call-type fkey args {:keys [cache timeout] :or {timeout 5000}} callback]
-   (let [f (case call-type
+  ([call-type fkey args {:keys [cache]} callback]
+   (let [timeout (:ui-timeout-millis (dbg-state/debugger-config))
+         f (case call-type
              :local (dbg-api/api-fn-by-key fkey)
              :remote (fn [& args] (websocket/sync-remote-api-request fkey args)))
          debug-mode? (:debug-mode? (dbg-state/debugger-config))]
@@ -174,7 +173,7 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :local :runtime-config []))
-  (val-pprint [_ v opts] (api-call :local :val-pprint [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
+  (val-pprint [_ v opts] (api-call :local :val-pprint [v opts] {:cache api-cache})) ;; CACHED
   (data-window-push-val-data [_ dw-id val-ref extra] (api-call :local :data-window-push-val-data [dw-id val-ref (config-dw-extras extra)]))
   (get-form [_ form-id] (api-call :local :get-form [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :local :timeline-count [flow-id thread-id]))
@@ -323,7 +322,7 @@
   RuntimeApiP
 
   (runtime-config [_] (api-call :remote :runtime-config []))
-  (val-pprint [_ v opts] (api-call :remote :val-pprint [v opts] {:cache api-cache :timeout api-call-timeout})) ;; CACHED
+  (val-pprint [_ v opts] (api-call :remote :val-pprint [v opts] {:cache api-cache})) ;; CACHED
   (data-window-push-val-data [_ dw-id val-ref extra] (api-call :remote :data-window-push-val-data [dw-id val-ref (config-dw-extras extra)]))
   (get-form [_ form-id] (api-call :remote :get-form [form-id] {:cache api-cache}))  ;; CACHED
   (timeline-count [_ flow-id thread-id] (api-call :remote :timeline-count [flow-id thread-id]))
