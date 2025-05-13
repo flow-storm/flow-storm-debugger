@@ -6,6 +6,14 @@
     
 ### Changes
 
+### Bugs fixed
+    
+## 4.4.2 (13-05-2025)
+	
+### New Features
+    
+### Changes
+
     - Make :preview the default visualizer for numbers
     - Improved thread breakpoints UX/UI
     - All api calls from UI have now a timeout, configurable via flowstorm.uiTimeoutMillis
