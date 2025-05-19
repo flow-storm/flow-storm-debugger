@@ -235,7 +235,7 @@ Currently only shadow-cljs repl over nrepl is supported.
 [IMPORTANT]
 .Minimum requirements
 ====
-    - Shadow Cljs >= 2.25.4
+    - For ClojureScript 1.11.* shadow-cljs >= 2.25.4,  For ClojureScript 1.12.* shadow-cljs >= 3.1.1
     - FlowStorm >= 3.7.4
 ====
 
@@ -279,10 +279,10 @@ Then, modify your `deps.edn` dev profile to look like this :
 {...
  :aliases
  {:dev {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
-        :extra-deps {thheller/shadow-cljs {:mvn/version "2.25.6" ;; >= 2.25.4
+        :extra-deps {thheller/shadow-cljs {:mvn/version "3.1.1" 
                                            :exclusions [org.clojure/clojurescript]}
                      ;; bring ClojureScriptStorm
-                     com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"}
+                     com.github.flow-storm/clojurescript {:mvn/version "1.12.42-0"}
                      ;; add FlowStorm runtime dep
                      com.github.flow-storm/flow-storm-inst {:mvn/version "4.4.2"}}
        :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"

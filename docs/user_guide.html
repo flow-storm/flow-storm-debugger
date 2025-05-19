@@ -1177,7 +1177,7 @@ Currently only shadow-cljs repl over nrepl is supported.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Shadow Cljs &gt;= 2.25.4</p>
+<p>For ClojureScript 1.11.* shadow-cljs &gt;= 2.25.4,  For ClojureScript 1.12.* shadow-cljs &gt;= 3.1.1</p>
 </li>
 <li>
 <p>FlowStorm &gt;= 3.7.4</p>
@@ -1242,10 +1242,10 @@ is the first one.</p>
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
  </span><span class="no">:aliases</span><span class="w">
  </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojurescript</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; disable the official compiler</span><span class="w">
-        </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"2.25.6"</span><span class="w"> </span><span class="c1">;; &gt;= 2.25.4</span><span class="w">
+        </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.1.1"</span><span class="w">
                                            </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
                      </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
-                     </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.11.132-9"</span><span class="p">}</span><span class="w">
+                     </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.42-0"</span><span class="p">}</span><span class="w">
                      </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
                      </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.4.2"</span><span class="p">}}</span><span class="w">
        </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"</span><span class="w">
@@ -4833,7 +4833,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-05-13 14:34:20 -0300
+Last updated 2025-05-19 14:30:10 -0300
 </div>
 </div>
 </body>
