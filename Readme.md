@@ -76,6 +76,7 @@ If you want to enhance, fix, debug, or just learn about the internals of FlowSto
 
 ## Some demo videos (newers at the top)
 
+- [FlowStorm demo at Clojure Apropos](https://www.youtube.com/watch?v=a-PrBjlBdw8)
 - [ClojureScript compiler fun with FlowStorm](https://www.youtube.com/watch?v=YYHRx3EnPmg)
 - [Don't fear the storm](https://www.youtube.com/watch?v=CspQX_R0NbM)
 - [Clojure visual-tools 29 - FlowStorm 4.1 workflows](https://www.youtube.com/watch?v=9nY25hwzWRc)
