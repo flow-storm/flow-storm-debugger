@@ -7,6 +7,8 @@
 ### Changes
 
 ### Bugs fixed
+
+    - Fix data windows default visualizers system
     
 ## 4.4.2 (13-05-2025)
 	

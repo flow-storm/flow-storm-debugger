@@ -12,7 +12,10 @@
            [java.util.concurrent.locks ReentrantLock]))
 
 (defonce *visualizers (atom {}))
-(defonce *defaults-visualizers (atom []))
+
+;; *defaults-visualizers should be a list (stack) and not a vector so
+;; the latest added take precedence and visualizers can be overwritten by users
+(defonce *defaults-visualizers (atom ()))
 
 (defn register-visualizer [{:keys [id] :as viz}]
   (swap! *visualizers assoc id viz))
@@ -343,13 +346,15 @@
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data)))                           :preview)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable)) :seqable)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))       :indexed)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-map))           :map)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :number))                :preview)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :string))                :preview)
-(add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data)))                           :preview)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :number))                :preview)
+
+
 
 ;; Don't make this the default until we can make its render fast
 ;; (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :byte-array))            :hex-byte-array)
