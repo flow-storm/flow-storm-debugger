@@ -346,6 +346,9 @@
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; The order here matter since they are added on a stack, so the latests ones
+;; have preference.
+
 (add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data)))                           :preview)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable)) :seqable)
 (add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))       :indexed)
