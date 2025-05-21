@@ -89,6 +89,10 @@
 (defn- task-finished-event [_]
   (ui-main/set-task-cancel-btn-enable false))
 
+(defn- task-failed-event [{:keys [message]}]
+  (ui-main/set-task-cancel-btn-enable false)
+  (ui-general/show-message message :error))
+
 (defn- heap-info-update-event [ev-args-map]
   (ui-main/update-heap-indicator ev-args-map))
 
@@ -169,6 +173,7 @@
 
     :task-submitted (task-submitted-event ev-args-map)
     :task-finished (task-finished-event ev-args-map)
+    :task-failed (task-failed-event ev-args-map)
 
     :heap-info-update (heap-info-update-event ev-args-map)
     :goto-location (goto-location-event ev-args-map)

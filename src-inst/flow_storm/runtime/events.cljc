@@ -61,7 +61,11 @@
    (make-task-finished-event task-id nil))
   ([task-id result]
    [:task-finished (cond-> {:task-id task-id}
-                       result (assoc :result result))]))
+                     result (assoc :result result))]))
+
+(defn make-task-failed-event [task-id message]
+  [:task-failed {:task-id task-id
+                 :message message}])
 
 (defn make-heap-info-update-event [heap-info]
   [:heap-info-update heap-info])

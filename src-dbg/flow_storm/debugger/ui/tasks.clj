@@ -16,5 +16,6 @@
                            (when on-finished
                              (on-finished task-info))
                            (events-queue/rm-dispatch-fn func-task-id))
+           :task-failed (events-queue/rm-dispatch-fn func-task-id)
            nil))))
     (runtime-api/start-task rt-api func-task-id)))

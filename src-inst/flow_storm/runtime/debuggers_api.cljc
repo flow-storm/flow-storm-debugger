@@ -38,12 +38,20 @@
   ;; Let's only allow one interruptible task at a time for now
   (interrupt-all-tasks)  
   (swap! interruptible-tasks assoc task-id {:start (fn []
-                                                     #?(:clj (future (start))
-                                                        :cljs (start))
-                                                          #_(println (utils/format "Task %s started" task-id)))
+                                                     #?(:clj (future
+                                                               (try
+                                                                 (start)
+                                                                 (catch Exception e
+                                                                   (rt-events/publish-event! (rt-events/make-task-failed-event task-id (.getMessage e)))
+                                                                   (utils/log-error "Task failed" e))))
+                                                        :cljs (try
+                                                                (start)
+                                                                (catch js/Error e
+                                                                  (rt-events/publish-event! (rt-events/make-task-failed-event task-id (.-message e)))
+                                                                  (utils/log-error "Task failed" e)))))
                                             :interrupt (fn []                                                              
                                                          (interrupt)
-                                                         (println (utils/format "Task %s interrupted" task-id)))})
+                                                         (utils/log (utils/format "Task %s interrupted" task-id)))})
   (rt-events/publish-event! (rt-events/make-task-submitted-event task-id))
   task-id)
 

@@ -3,11 +3,12 @@
 ## master (unreleased)
 	
 ### New Features
-    
+        
 ### Changes
-
+    
 ### Bugs fixed
 
+    - Report interruptible task failed messages
     - Don't swallow the exception on :dbg 
 
 ## 4.4.3 (21-05-2025)
