@@ -8,6 +8,16 @@
 
 ### Bugs fixed
 
+    - Don't swallow the exception on :dbg 
+
+## 4.4.3 (21-05-2025)
+	
+### New Features
+    
+### Changes
+
+### Bugs fixed
+
     - Fix data windows default visualizers system
     
 ## 4.4.2 (13-05-2025)

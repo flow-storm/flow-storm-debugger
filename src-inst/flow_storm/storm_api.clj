@@ -58,15 +58,17 @@
       false)
 
     (catch Exception e
-      (when (or (instance? UnsupportedClassVersionError e)
-                (and (.getCause e) (instance? UnsupportedClassVersionError (.getCause e))))
-        (println "\n\nFlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.")
-        (println "\nIf that is the case add this dependencies to your alias :\n")
-        (println "   org.openjfx/javafx-controls {:mvn/version \"19.0.2\"}")
-        (println "   org.openjfx/javafx-base     {:mvn/version \"19.0.2\"}")
-        (println "   org.openjfx/javafx-graphics {:mvn/version \"19.0.2\"}")
-        (println "   org.openjfx/javafx-web      {:mvn/version \"19.0.2\"}")
-        (println)
-)
+      (if (or (instance? UnsupportedClassVersionError e)
+              (and (.getCause e) (instance? UnsupportedClassVersionError (.getCause e))))
+        (do
+          (println "\n\nFlowStorm UI requires JDK >= 17. If you can't upgrade your JDK you can still use it by downgrading JavaFx.")
+          (println "\nIf that is the case add this dependencies to your alias :\n")
+          (println "   org.openjfx/javafx-controls {:mvn/version \"19.0.2\"}")
+          (println "   org.openjfx/javafx-base     {:mvn/version \"19.0.2\"}")
+          (println "   org.openjfx/javafx-graphics {:mvn/version \"19.0.2\"}")
+          (println "   org.openjfx/javafx-web      {:mvn/version \"19.0.2\"}")
+          (println))
 
+        ;; else
+        (.printStackTrace e))
       false)))
