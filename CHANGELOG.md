@@ -7,6 +7,14 @@
 ### Changes
     
 ### Bugs fixed
+        
+## 4.4.4 (26-05-2025)
+	
+### New Features
+        
+### Changes
+    
+### Bugs fixed
 
     - Report interruptible task failed messages
     - Don't swallow the exception on :dbg 
