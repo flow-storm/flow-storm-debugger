@@ -53,10 +53,10 @@ You can start a repl with FlowStorm with a single command like this :
 [%nowrap,bash]
 ----
 ;; on Linux and OSX
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"} com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}}}}' -A:dev
 
 ;; on Windows
-clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.0-10"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.4.4"""}}}}}' -A:dev
+clj -Sforce -Sdeps '{:deps {} :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} :extra-deps {com.github.flow-storm/clojure {:mvn/version """1.12.1"""} com.github.flow-storm/flow-storm-dbg {:mvn/version """4.4.4"""}}}}}' -A:dev
 ----
 
 Pasting that command on your terminal will bring up a repl with _FlowStorm_ and the compiler swapped by _ClojureStorm_. When the repl comes up
@@ -76,7 +76,7 @@ You can setup your global `~/.clojure/deps.edn` (on linux and macOS) or `%USERPR
 {...
  :aliases
  {:1.12-storm {:classpath-overrides {org.clojure/clojure nil}
-               :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"}
+               :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}
                             com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}}
 
   ;; Optional plugins you find yourself using regularly 
@@ -97,7 +97,7 @@ You can setup your global `~/.lein/profiles.clj` (on linux and macOS) or `%USERP
 [%nowrap,clojure]
 ----
 {:1.12-storm
- {:dependencies [[com.github.flow-storm/clojure "1.12.0-10"]
+ {:dependencies [[com.github.flow-storm/clojure "1.12.1"]
                  [com.github.flow-storm/flow-storm-dbg "4.4.4"]]
   :exclusions [org.clojure/clojure]}
 
@@ -129,7 +129,7 @@ If your project is using deps.edn, you can add an alias that looks like this :
  :aliases {:1.12-storm
            {;; for disabling the official compiler
             :classpath-overrides {org.clojure/clojure nil} 
-            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"}
+            :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}
                          com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}}}}
 ----
 
@@ -148,7 +148,7 @@ If your project uses lein, you can add a profile that looks like this :
 ----
 (defproject my.project "1.0.0"
   :profiles {:1.12-storm
-             {:dependencies [[com.github.flow-storm/clojure "1.12.0-10"]
+             {:dependencies [[com.github.flow-storm/clojure "1.12.1"]
                              [com.github.flow-storm/flow-storm-dbg "4.4.4"]]
               :exclusions [org.clojure/clojure]}}
   ...)
@@ -559,7 +559,7 @@ Then modify the resulting deps.edn to add the FlowStorm alias like this :
 ----
 {...
  :aliases {:dev {:classpath-overrides {org.clojure/clojure nil} ;; for disabling the official compiler
-                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"}
+                 :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}
                               com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}
                  :jvm-opts ["-Dclojure.storm.instrumentOnlyPrefixes=user"]}}}
 ----
@@ -1734,7 +1734,7 @@ A couple of aliases that can help for this :
 {:aliases
  ;; for your system process
  {:runtime-storm {:classpath-overrides {org.clojure/clojure nil}
-                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"}
+                  :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}
                                com.github.flow-storm/flow-storm-inst {:mvn/version "4.4.4"}}}
   ;; for the FlowStorm GUI process
   :ui-storm {:extra-deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}
@@ -2389,7 +2389,7 @@ With the following alias setup in deps.edn:
 
 [source,clojure]
 {:aliases {:flowstorm {:classpath-overrides {org.clojure/clojure nil}
-                       :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.0-10"}
+                       :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}
                                     com.github.flow-storm/flow-storm-dbg {:mvn/version "4.4.4"}}
                        :jvm-opts ["-Dflowstorm.startRecording=true"
                                   "-Dclojure.storm.intrumentEnable=true"
