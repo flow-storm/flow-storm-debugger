@@ -336,7 +336,10 @@
   :pred (fn [x _] (indexed? x))
   :extractor (fn [idx-coll _]
                {:shallow-idx-coll/count (count idx-coll)
-                :shallow-idx-coll/vals-refs (mapv reference-value! idx-coll)
+                :shallow-idx-coll/vals-refs (reduce (fn [acc idx]
+                                                      (conj acc (reference-value! (nth idx-coll idx))))
+                                                    []
+                                                    (range (count idx-coll)))
                 :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
 
 #?(:clj
