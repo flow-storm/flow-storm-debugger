@@ -8,6 +8,14 @@
     
 ### Bugs fixed
 
+## 4.4.5 (06-06-2025)
+	
+### New Features
+        
+### Changes
+    
+### Bugs fixed
+
     - Fix shallow-indexed aspect extractor
         
 ## 4.4.4 (26-05-2025)
