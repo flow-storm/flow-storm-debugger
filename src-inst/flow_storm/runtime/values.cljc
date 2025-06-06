@@ -254,12 +254,12 @@
                 (let [ext (try
                             (extractor dat-o extra)
                             ;; To make breaking change smooth, remove after some time
-                            #?(:clj (catch clojure.lang.ArityException _
-                                      (utils/log (utils/format "WARNING! Your aspect extractor with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
-                                      (extractor dat-o))
-                               :cljs (catch js/Error _
-                                       (utils/log (utils/format "WARNING! Your aspect extractor with id %s has a one arg extractor function which is deprecated. Please upgrade it to (fn [v extra] ...)" id))
-                                       (extractor dat-o)) ))]
+                            #?(:clj (catch Exception e
+                                      (utils/log-error (utils/format "Problem running %s on object of type %s" id (type dat-o)) e)
+                                      {})
+                               :cljs (catch js/Error e
+                                       (utils/log-error (utils/format "Problem running %s on object of type %s" id (type dat-o)) e)
+                                       {}) ))]
                   (-> ext
                       (merge aspects)
                       (update ::kinds conj id)))
@@ -340,7 +340,14 @@
                                                       (conj acc (reference-value! (nth idx-coll idx))))
                                                     []
                                                     (range (count idx-coll)))
-                :shallow-idx-coll/navs-refs (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))})})
+                :shallow-idx-coll/navs-refs (try
+                                              (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))
+                                              #?(:clj (catch Exception e
+                                                        (utils/log-error (utils/format "Warning, couldn't get navigation references for indexed collection of type %s" (type idx-coll)) e)
+                                                        nil)
+                                                 :cljs (catch js/Error e
+                                                         (utils/log-error (utils/format "Warning, couldn't get navigation references for indexed collection of type %s" (type idx-coll)) e)
+                                                         nil)))})})
 
 #?(:clj
    (register-data-aspect-extractor
