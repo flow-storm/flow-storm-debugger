@@ -1686,7 +1686,17 @@ There are other utitities in the api ns that could be useful, some of the most i
 - `fn-call-stats`
 
 Take a look at their docstrings for more info.
-  
+
+= LLM agents
+
+You can teach a LLM how to use FlowStorm's api to help you analyze your recordings.
+
+If you are using the amazing https://github.com/bhauman/clojure-mcp[clojure-mcp] you just need to upload
+(https://github.com/flow-storm/flow-storm-debugger/blob/master/llm-prompt.txt)[one more file] that teaches the LLM FlowStorm's basics from the repl.
+
+https://claude.ai/share/489c9124-b1a8-4a33-b50a-52e4f3d4709f[Here] is a very basic chat asking Claude to look at some recordings of a buggy
+TODO's web application.
+
 = Remote debugging
 
 You can remotely debug any Clojure application that exposes a nrepl server.
