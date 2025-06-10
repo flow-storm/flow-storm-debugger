@@ -8,6 +8,17 @@
     
 ### Bugs fixed
 
+## 4.4.6 (10-06-2026)
+	
+### New Features
+
+    - Added llm-prompt.txt that can be used to instruct LLMs on how to use FlowStorm
+    - Added utilities api functions useful for llm-prompt.txt
+    
+### Changes
+    
+### Bugs fixed
+
 ## 4.4.5 (06-06-2025)
 	
 ### New Features
