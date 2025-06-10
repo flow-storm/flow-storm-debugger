@@ -1,0 +1,84 @@
+You can use the FlowStorm debugger tools via the repl to analyze FlowStorm recordings which records Clojure systems execution, for
+debugging or gathering extra information that can only be known at runtime.
+
+Recordings are grouped into flows. A flow just groups related recordings of some system's execution.
+Each flow contains a group of timelines, which are arrays containig the recorded executions steps for a thread.
+
+On each recorded flow there is one timeline per thread. If the recorded program executed in multiple threads,
+each of the timelines can be accesed by flow-id and thread-id.
+
+Each timeline entry is a Clojure map of one of the following :type : 
+
+- :fn-call A entry representing a function call
+- :fn-return A entry representing a function return
+- :fn-unwind A entry representing a function that throwed and exception instead of returning
+- :expr-exec A entry representing a expression execution.
+
+Next I'll list all the functions you have available for retrieving and exploring the timlines. They allow you to
+write small Clojure programs to inspect the timelines for debugging or understanding anything about a Clojure program's execution.
+
+You can get all the recorded flows with their threads ids by calling :
+
+(flow-storm.runtime.indexes.api/all-flows)
+
+which will return a Clojure map from flow-id to a vector of threads ids.
+
+For each `thread-id` you can retrieve its timeline calling :
+
+(flow-storm.runtime.indexes.api/get-referenced-maps-timeline flow-id thread-id)
+
+You can bound each timeline to a name with `def` once and then work with them.
+
+Since timelines implement most Clojure collections interfaces, you can call get, count, map, take, filter, reduce, etc on them.
+
+For example, assuming you have bound a timeline to `tl`, you can get the entry at position 5 on the timeline by evaluating :
+
+(get tl 5)
+
+If the entry is of `:fn-call` type it will contain the following keys :
+
+- :type Will be :fn-call
+- :fn-name A string containing the name of the function being called
+- :fn-ns A string containing the namespace of the function being called
+- :form-id The id to the Clojure function form
+- :fn-args-ref The value-id of the function arguments vector
+- :parent-idx The timeline index of the parent function, or nil if this is the first funciton being called
+- :ret-idx The timeline index of the fn-return step for this function call
+
+If the entry is of `:expr` type it will contain the following keys :
+
+- :type Will be :expr
+- :result-ref The value-id of this expression value
+- :fn-call-idx The index of the fn-call wrapping this step
+- :form-id The id to the Clojure function form
+- :coord The coordinate of this expression in the form represented by form-id
+
+If the entry is of `:fn-return` type it will contain the following keys :
+
+- :type Will be :fn-return
+- :result-ref The value-id of this expression value
+- :fn-call-idx The index of the fn-call wrapping this step
+- :form-id The id to the Clojure function form
+- :coord The coordinate of this expression in the form represented by form-id
+
+If the entry is of `:fn-unwind` type it will contain the following keys :
+
+- :type Will be :fn-unwind
+- :throwable-ref The value-id of the Throwable/Exception object
+- :form-id The id to the Clojure function form
+- :coord The coordinate of this expression in the form represented by form-id
+
+Using the :fn-call (:parent-idx, :ret-idx), and the :fn-call-idx of the other entries you can also
+navigate the timeline as a graph.
+
+You can call `flow-storm.runtime.indexes.api/get-form-at-coord` with a form-id and a coordinate to retrieve the Clojure form for
+a specific :form-id and :coord. You can use a nil coord to retrieve the outer form.
+
+You can call `flow-storm.runtime.values/deref-val-id` with a value-id to get the Clojure value represented by that value id.
+So for example given a value-id of 1, you can preview it with something like :
+
+(binding [*print-level* 5
+          *print-length* 5]
+  (flow-storm.plugins.mcp.runtime/deref-val-id 1))
+  
+but you coan inspect the value however you need.
