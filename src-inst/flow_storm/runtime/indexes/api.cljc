@@ -118,7 +118,8 @@
 
   "
   (:require [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.runtime.indexes.timeline-index :as timeline-index :refer [ensure-indexes]]            
+            [flow-storm.runtime.indexes.timeline-index :as timeline-index :refer [ensure-indexes]]
+            [flow-storm.runtime.values :as rt-values]
             [flow-storm.runtime.events :as events]            
             [flow-storm.runtime.indexes.thread-registry :as thread-registry]
             [flow-storm.runtime.indexes.form-registry :as form-registry]
@@ -130,6 +131,7 @@
             [hansel.utils :as hansel-utils]
             [clojure.pprint :as pp]
             [clojure.string :as str]
+            [clojure.set :as set]
             #?(:clj [clojure.core.protocols :as cp])))
 
 (declare discard-flow)
@@ -1119,6 +1121,10 @@
       (get-sub-form-at-coord form expr-coord)
       form)))
 
+(defn get-form-at-coord [form-id coord]
+  (let [form (:form/form (get-form form-id))]
+    (hansel-utils/get-form-at-coord form coord)))
+
 (defn find-entry-by-sub-form-pred
   "Find a entry on the timeline that matches a predicate called with
   each entry sub-form."
@@ -1182,110 +1188,136 @@
   [timeline idx]
   (index-protos/thread-name timeline idx))
 
-(defn get-full-maps-timeline
+(defn- get-trasformed-entry-timeline [timeline f]
+  (reify
+    
+    index-protos/TimelineP
+    
+    (flow-id [_] (index-protos/flow-id timeline))
+    (thread-id [_ _] (index-protos/thread-id timeline nil))
+    (thread-name [_ _] (index-protos/thread-name timeline nil))
 
-  "Convenience function for the repl.
-  Returns a timeline proxy for `flow-id` and `thread-id` which automatically converts the timelines
-  entries with `as-immutable` and also adds :sub-forms and :result-preview."
-  ([thread-id]
-   (some (fn [[fid tid]]
-           (when (= thread-id tid)
-             (get-full-maps-timeline fid tid)))
-         (index-protos/all-threads flow-thread-registry)))
-  ([flow-id thread-id]
-   (let [timeline (get-timeline flow-id thread-id)
-         imm-full-entry (fn [entry]
-                          (let [{:keys [form-id type fn-call-idx] :as imm-entry} (as-immutable entry)
-                                form-id (or form-id (get-form-id (get timeline fn-call-idx)))
-                                expr-coord (when (or (expr-trace/expr-trace? entry)
-                                                     (fn-return-trace/fn-end-trace? entry))
-                                             (get-coord-vec entry))
-                                form (:form/form (get-form form-id))
-                                sub-form (if expr-coord
-                                           (get-sub-form-at-coord form expr-coord)
-                                           form)
-                                imm-entry' (assoc imm-entry
-                                                  :sub-form sub-form
-                                                  :form form)
-                                shallow-pr (fn [v]
-                                             (binding [*print-length* 5
-                                                       *print-level* 5]
-                                               (pr-str v)))]
-                            (case type
-                              :fn-call           (assoc imm-entry' :fn-args-preview (mapv shallow-pr (:fn-args imm-entry')))
-                              (:expr :fn-return) (assoc imm-entry' :result-preview (shallow-pr (:result imm-entry')))
-                              :fn-unwind         (assoc imm-entry' :ex-message     (ex-message (:throwable imm-entry'))))))]
-     (reify
-       
-       index-protos/TimelineP
-       
-       (flow-id [_] (index-protos/flow-id timeline))
-       (thread-id [_ _] (index-protos/thread-id timeline nil))
-       (thread-name [_ _] (index-protos/thread-name timeline nil))
+    index-protos/FnCallStatsP
 
-       index-protos/FnCallStatsP
+    (all-stats [_] (index-protos/all-stats timeline))
 
-       (all-stats [_] (index-protos/all-stats timeline))
+    index-protos/TreeP
 
-       index-protos/TreeP
+    (tree-root-index [_] (index-protos/tree-root-index timeline))
+    
+    (tree-childs-indexes [_ fn-call-idx] (index-protos/tree-childs-indexes timeline fn-call-idx))
 
-       (tree-root-index [_] (index-protos/tree-root-index timeline))
-       
-       (tree-childs-indexes [_ fn-call-idx] (index-protos/tree-childs-indexes timeline fn-call-idx))
+    #?@(:clj
+        [clojure.lang.Counted       
+         (count [_] (count timeline))
 
-       #?@(:clj
-           [clojure.lang.Counted       
-            (count [_] (count timeline))
+         clojure.lang.Seqable
+         (seq [_] (map f (seq timeline)))       
 
-            clojure.lang.Seqable
-            (seq [_] (map imm-full-entry (seq timeline)))       
+         cp/CollReduce
+         (coll-reduce [_ f] (cp/coll-reduce timeline (fn [acc e] (f acc (f e)))))
+         
+         (coll-reduce [_ f v] (cp/coll-reduce timeline (fn [acc e] (f acc (f e))) v))
 
-            cp/CollReduce
-            (coll-reduce [_ f] (cp/coll-reduce timeline (fn [acc e] (f acc (imm-full-entry e)))))
-            
-            (coll-reduce [_ f v] (cp/coll-reduce timeline (fn [acc e] (f acc (imm-full-entry e))) v))
+         clojure.lang.ILookup
+         (valAt [_ k] (f (get timeline k)))
+         (valAt [_ k not-found] (if-let [e (get timeline k)]
+                                  (f e)
+                                  not-found))
 
-            clojure.lang.ILookup
-            (valAt [_ k] (imm-full-entry (get timeline k)))
-            (valAt [_ k not-found] (if-let [e (get timeline k)]
-                                     (imm-full-entry e)
-                                     not-found))
+         clojure.lang.Indexed
+         (nth [_ k] (f (get timeline k)))
+         (nth [_ k not-found] (if-let [e (get timeline k)]
+                                (f e)
+                                not-found))]
 
-            clojure.lang.Indexed
-            (nth [_ k] (imm-full-entry (get timeline k)))
-            (nth [_ k not-found] (if-let [e (get timeline k)]
-                                   (imm-full-entry e)
-                                   not-found))]
+        :cljs
+        [ICounted
+         (-count [_] (count timeline))
 
-           :cljs
-           [ICounted
-            (-count [_] (count timeline))
+         ISeqable
+         (-seq [_] (map f (seq timeline)))
+         
+         IReduce
+         (-reduce [_ f]
+                  (reduce (fn [acc e] (f acc (f e))) timeline))
+         (-reduce [_ f start]
+                  (reduce (fn [acc e] (f acc (f e))) start timeline))
 
-            ISeqable
-            (-seq [_] (map imm-full-entry (seq timeline)))
-            
-            IReduce
-            (-reduce [_ f]
-                     (reduce (fn [acc e] (f acc (imm-full-entry e))) timeline))
-            (-reduce [_ f start]
-                     (reduce (fn [acc e] (f acc (imm-full-entry e))) start timeline))
+         ILookup
+         (-lookup [_ k] (f (get timeline k)))
+         (-lookup [_ k not-found] (if-let [e (get timeline k)]
+                                    (f e)
+                                    not-found))
 
-            ILookup
-            (-lookup [_ k] (imm-full-entry (get timeline k)))
-            (-lookup [_ k not-found] (if-let [e (get timeline k)]
-                                       (imm-full-entry e)
-                                       not-found))
+         IIndexed
+         (-nth [_ n] (f (get timeline n)))
+         (-nth [_ n not-found] (if-let [e (get timeline n)]
+                                 (f e)
+                                 not-found))])))
 
-            IIndexed
-            (-nth [_ n] (imm-full-entry (get timeline n)))
-            (-nth [_ n not-found] (if-let [e (get timeline n)]
-                                    (imm-full-entry e)
-                                    not-found))])))))
+(defn get-full-maps-timeline [flow-id thread-id]
+  (let [timeline (get-timeline flow-id thread-id)]
+    (get-trasformed-entry-timeline
+     timeline
+     (fn [entry]
+       (let [{:keys [form-id type fn-call-idx] :as imm-entry} (as-immutable entry)
+             form-id (or form-id (get-form-id (get timeline fn-call-idx)))
+             expr-coord (when (or (expr-trace/expr-trace? entry)
+                                  (fn-return-trace/fn-end-trace? entry))
+                          (get-coord-vec entry))
+             form (:form/form (get-form form-id))
+             sub-form (if expr-coord
+                        (get-sub-form-at-coord form expr-coord)
+                        form)
+             imm-entry' (assoc imm-entry
+                               :sub-form sub-form
+                               :form form)
+             shallow-pr (fn [v]
+                          (binding [*print-length* 5
+                                    *print-level* 5]
+                            (pr-str v)))]
+         (case type
+           :fn-call           (assoc imm-entry'
+                                     :fn-args-preview (mapv shallow-pr (:fn-args imm-entry'))
+                                     :bindings (reduce (fn [bs b]
+                                                         (assoc bs (get-bind-sym-name b) (get-bind-val b)))
+                                                {}
+                                                (get-fn-bindings entry)))
+           (:expr :fn-return) (assoc imm-entry' :result-preview (shallow-pr (:result imm-entry')))
+           :fn-unwind         (assoc imm-entry' :ex-message     (ex-message (:throwable imm-entry')))))))))
+
+(defn get-referenced-maps-timeline [flow-id thread-id]
+  (let [timeline (get-timeline flow-id thread-id)
+        reference-value! (fn [v] (:vid (rt-values/reference-value! v)))
+        reference-entry! (fn [entry]
+                           (case (:type entry)
+                             :fn-call   (-> entry (update :fn-args reference-value!) (set/rename-keys {:fn-args :fn-args-ref}))
+                             :fn-return (-> entry (update :result reference-value!) (set/rename-keys {:result :result-ref}))
+                             :fn-unwind (-> entry (update :throwable reference-value!) (set/rename-keys {:throwable :throwable-ref}))
+                             :expr      (-> entry (update :result reference-value!) (set/rename-keys {:result :result-ref}))))]
+    (get-trasformed-entry-timeline
+     timeline
+     (fn [entry]
+       (let [{:keys [form-id type fn-call-idx] :as imm-entry} (as-immutable entry)
+             form-id (if (= :fn-call type)
+                       form-id
+                       (get-form-id (get timeline fn-call-idx)))]
+         (-> (assoc imm-entry :form-id form-id)           
+             reference-entry!))))))
+
+(defn all-flows []
+  (reduce (fn [acc [fid tid]]
+            (update acc fid (fnil conj []) tid))
+          {}
+          (all-threads)))
 
 (comment 
   
   (def tl (get-full-maps-timeline 0 70))
   (take 10 tl)
   (get tl 10)
+
+  
 
   )
