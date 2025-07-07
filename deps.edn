@@ -39,7 +39,6 @@
                    :jvm-opts ["-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentAutoPrefixes=false"
                               "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
-                              "-Dflowstorm.uiTimeoutMillis=1000"
                               "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
                               "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}
 

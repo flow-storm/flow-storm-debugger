@@ -26,7 +26,8 @@
             [clojure.string :as str]
             [clojure.spec.alpha :as s]
             [flow-storm.runtime.indexes.protocols :as index-protos]
-            [flow-storm.debugger.ui.components :as ui]))
+            [flow-storm.debugger.ui.components :as ui]
+            [flow-storm.runtime.values :as rt-values :refer [ScopeFrameP ScopeFrameSampleP]]))
 
 (set! *warn-on-reflection* true)
 
@@ -188,29 +189,64 @@
 ;; DataWindows testing ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn make-sample-frame [from-x step]
+  (let [[final-x samples] (loop [i 0
+                                 x from-x
+                                 samples (transient [])]
+                            (if (< i 10000)
+                              (let [samp (reify ScopeFrameSampleP
+                                           (sample-chan-1 [_] (+ (Math/sin x) 0))
+                                           (sample-chan-2 [_] (+ (Math/cos x) 0)))]
+                                (recur (inc i)
+                                       (+ x step)
+                                       (conj! samples samp)))
+                              [x (persistent! samples)]))]
+    [final-x (reify ScopeFrameP
+               (frame-samp-rate [_] 200e3)
+               (frame-samples [_] samples))]))
+
+(defn scope-test [& _]
+  (fs-api/local-connect {})
+  (let [dw-id :scope0
+        _ (fs-api/data-window-push-val dw-id (reify ScopeFrameP
+                                               (frame-samp-rate [_] 1)
+                                               (frame-samples [_] [])))
+        x-step 0.001]
+    (def th (doto (Thread.
+                   (fn []
+                     (loop [from-x 0.0]
+                       (when-not (Thread/interrupted)
+                         (let [[new-x frame] (make-sample-frame from-x x-step)]
+                           (fs-api/data-window-val-update dw-id frame)
+                           (Thread/sleep 10)
+                           (recur (double new-x)))))))
+              (.start)))
+    )
+  )
 (comment
+
+  (require '[clj-async-profiler.core :as prof])
+  (prof/serve-ui 8081)
+
+  (def test-frame (second (make-sample-frame 0 0.001)))
+  (def s (first (rt-values/frame-samples test-frame)))
+  (rt-values/sample-chan-1 s)
+  (rt-values/sample-chan-2 s)
+  (tap> test-frame)
   (tap> {:a (range)})
 
   (tap> {:a {:name {:other :hello
                    :bla "world"}}
          :b {:age 10}})
 
-  (def dw-id :scope11)
 
-  (fs-api/data-window-push-val dw-id 0)
 
-  (defn calc [x]
-    (* 100 (Math/sin x)))
+  (-> (rt-values/frame-samples fr)
+      second
+      rt-values/sample-chan-1)
 
-  (def th (Thread.
-           (fn []
-             (loop [x 0]
-               (when-not (Thread/interrupted)
-                 (Thread/sleep 10)
-                 (fs-api/data-window-val-update dw-id (calc x))
-                 (recur (+ x 0.1)))))))
 
-  (.start th)
+
   (.interrupt th)
   )
 

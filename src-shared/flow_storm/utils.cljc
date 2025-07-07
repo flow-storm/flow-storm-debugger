@@ -405,3 +405,16 @@
      (if (int? n)
        (.toString n radix)
        (throw (ex-info "Only integer (as by int?) numbers supported" {})))))
+
+
+#?(:clj
+   (defn transient? [x]
+     (or (instance? clojure.lang.ITransientVector x)
+         (instance? clojure.lang.ATransientMap x)
+         (instance? clojure.lang.ATransientSet x)))
+   :cljs
+   (defn transient? [x]
+     (or (instance? cljs.core/TransientVector x)
+         (instance? cljs.core/TransientArrayMap x)
+         (instance? cljs.core/TransientHashSet x))))
+

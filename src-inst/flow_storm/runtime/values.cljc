@@ -254,7 +254,7 @@
                 (let [ext (try
                             (extractor dat-o extra)
                             ;; To make breaking change smooth, remove after some time
-                            #?(:clj (catch Exception e
+                            #?(:clj (catch Throwable e
                                       (utils/log-error (utils/format "Problem running %s on object of type %s" id (type dat-o)) e)
                                       {})
                                :cljs (catch js/Error e
@@ -333,7 +333,8 @@
 
 (register-data-aspect-extractor
  {:id :shallow-indexed
-  :pred (fn [x _] (indexed? x))
+  :pred (fn [x _] (and (indexed? x)
+                       (not (utils/transient? x))))
   :extractor (fn [idx-coll _]
                {:shallow-idx-coll/count (count idx-coll)
                 :shallow-idx-coll/vals-refs (reduce (fn [acc idx]
@@ -375,6 +376,22 @@
                          :bytes/head-binary (mapv #(format-and-pad % 2)  head)
                          :bytes/tail-hex    (mapv #(format-and-pad % 16) tail)
                          :bytes/tail-binary (mapv #(format-and-pad % 2)  tail)}))))}))
+
+(defprotocol ScopeFrameSampleP
+  (sample-chan-1 [_])
+  (sample-chan-2 [_]))
+
+(defprotocol ScopeFrameP
+  :extend-via-metadata true
+  (frame-samp-rate [_])
+  (frame-samples [_]))
+
+(register-data-aspect-extractor
+ {:id :oscilloscope-samples-frames
+  :pred (fn [x _] (or (satisfies? ScopeFrameP x)
+                      (-> (get (meta x) `frame-samples))))
+  :extractor (fn [frame _]
+               {:frame frame})})
 
 (defn register-eql-query-pprint-extractor []
   ;; Let's leave this disable by default for now since it has some

@@ -761,7 +761,7 @@
   [dw-id depth]
   (let [stack (:stack (data-window dw-id))
         pop-cnt (- (count stack) depth)
-        popped (pop-n stack pop-cnt)]
+        popped (take pop-cnt stack)]
     (swap! state update-in [:data-windows dw-id :stack] pop-n pop-cnt)
     popped))
 

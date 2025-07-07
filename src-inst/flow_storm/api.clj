@@ -373,3 +373,45 @@
 
 (intern 'clojure.core  (with-meta 'bookmark {:macro true}) @#'bookmark)
 (intern 'clojure.core  (with-meta 'debugger {:macro true}) @#'bookmark)
+
+(defn probe-ref
+
+  "Sample a *ref and send it to an oscilloscope data window.
+  ch1-f and ch2-f are functions of one argument, a snapshot of the ref, that will determine the values
+  of the two scope channels."
+
+  [*ref ch1-f ch2-f {:keys [samp-rate dw-key] :or {samp-rate 10e3, dw-key :scope-probe}}]
+  (data-window-push-val dw-key (reify rt-values/ScopeFrameP
+                                 (frame-samp-rate [_] samp-rate)
+                                 (frame-samples [_])))
+  (let [frame-size 4096
+        sample-nanos (/ 1e9 samp-rate)
+        samp-thread (doto (Thread.
+                           (fn []
+                             (try
+                               (while (not (Thread/interrupted))
+                                 (loop [last-sample-nanos (System/nanoTime)
+                                        frame-samples (transient [])]
+                                   (if (= frame-size (count frame-samples))
+                                     (data-window-val-update dw-key (reify rt-values/ScopeFrameP
+                                                                      (frame-samp-rate [_] samp-rate)
+                                                                      (frame-samples [_] (persistent! frame-samples))))
+
+                                     (let [ref-val (deref *ref)
+                                           samp (reify rt-values/ScopeFrameSampleP
+                                                  (sample-chan-1 [_] (ch1-f ref-val))
+                                                  (sample-chan-2 [_] (ch2-f ref-val)))
+                                           now (System/nanoTime)
+                                           delta (- now last-sample-nanos)
+                                           sync-to-samp-rate-nanos (- sample-nanos delta)
+                                           sleep-millis (long (quot sync-to-samp-rate-nanos 1e6))
+                                           sleep-nanos (long (rem sync-to-samp-rate-nanos 1e6))]
+                                       (when (pos? sync-to-samp-rate-nanos)
+                                         (Thread/sleep sleep-millis sleep-nanos))
+                                       (recur now
+                                              (conj! frame-samples samp))))))
+                               (catch Exception e
+                                 (.printStackTrace e)))))
+                      (.start))]
+    (fn []
+      (.interrupt samp-thread))))
