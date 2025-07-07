@@ -3,13 +3,9 @@
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state]
             [flow-storm.debugger.ui.utils :as ui-utils]
-            [clojure.string :as str])
-  (:import [javafx.scene.canvas Canvas GraphicsContext]
-           [javafx.animation AnimationTimer]
-           [javafx.scene.paint Color]
-           [javafx.scene.text Font]
-           [javafx.scene.layout Priority HBox VBox]
-           [java.util.concurrent.locks ReentrantLock]))
+            [clojure.string :as str]
+            [flow-storm.debugger.ui.data-windows.visualizers.oscilloscope :as scope])
+  (:import [javafx.scene.layout Priority HBox VBox]))
 
 (defonce *visualizers (atom {}))
 
@@ -159,92 +155,6 @@
                               :items rows))])}))})
 
 (register-visualizer
- {:id :scope
-  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :number))
-  :on-create (fn [{:keys [number/val]}]
-               (let [top-bottom-margins 25
-                     capture-window-size 1000
-                     ^doubles captured-samples (double-array capture-window-size 0)
-                     ^ReentrantLock samples-lock (ReentrantLock.)
-                     *curr-pos (atom 0)
-                     *h-scale (atom 1)
-                     canvas-width 1000
-                     canvas-height 500
-                     canvas (Canvas. canvas-width canvas-height)
-                     ^GraphicsContext gc (.getGraphicsContext2D canvas)
-                     x-step (long (/ canvas-width capture-window-size))
-                     mid-y (/ canvas-height 2)
-                     _ (.setFont gc (Font. "Arial" 20))
-                     _ (.setFill gc Color/MAGENTA)
-                     anim-timer (proxy [AnimationTimer] []
-                                  (handle [^long now]
-                                    (let [maxs (apply max captured-samples)
-                                          mins (apply min captured-samples)
-                                          sample-range (* 2 (max (Math/abs maxs) (Math/abs mins)))
-                                          v-scale (/ (- canvas-height (* 2 top-bottom-margins))
-                                                   (if (zero? sample-range) 1 sample-range))]
-                                      (.clearRect  gc 0 0 canvas-width canvas-height)
-                                      (.setStroke  gc Color/MAGENTA)
-
-                                      (.strokeLine  gc 0 mid-y canvas-width mid-y)
-                                      (.fillText  gc "0.0" 10 (+ mid-y 22))
-
-                                      (.strokeLine  gc 0 top-bottom-margins canvas-width top-bottom-margins)
-                                      (when-not (zero? maxs) (.fillText  gc (str maxs) 10 22))
-
-                                      (.strokeLine  gc 0 (- canvas-height top-bottom-margins) canvas-width (- canvas-height top-bottom-margins))
-                                      (when-not (zero? mins) (.fillText  gc (str mins) 10 (- canvas-height 5)))
-
-                                      (.setStroke  gc Color/ORANGE)
-
-                                      (.lock samples-lock)
-                                      (let [from-idx @*curr-pos]
-                                        (loop [drawed 0
-                                               i from-idx
-                                               x 0]
-                                          (when (< drawed (dec capture-window-size))
-                                            (let [next-i (if (< i (dec capture-window-size))
-                                                           (inc i)
-                                                           0)
-                                                  s-i      (aget captured-samples i)
-                                                  s-i-next (aget captured-samples next-i)
-                                                  y1 (- mid-y (* v-scale s-i))
-                                                  y2 (- mid-y (* v-scale s-i-next))
-                                                  h-scale @*h-scale
-                                                  x1 (* h-scale x)
-                                                  x2 (* h-scale (+ x x-step))]
-                                              (.strokeLine ^GraphicsContext gc x1 y1 x2 y2)
-                                              (recur (inc drawed)
-                                                     next-i
-                                                     (+ x x-step))))))
-                                      (.unlock samples-lock))))
-                     add-sample (fn add-sample [^double s]
-                                  (.lock samples-lock)
-                                  (aset-double captured-samples @*curr-pos s)
-                                  (.unlock samples-lock)
-                                  (swap! *curr-pos (fn [cp]
-                                                    (if (< cp (dec capture-window-size))
-                                                      (inc cp)
-                                                      0))))
-                     ;; have to do like this because there is a bug on ScrollEvents firing twice
-                     ;; on the current javafx version
-                     tools-box (ui/h-box :childs [(ui/icon-button :icon-name "mdi-magnify-minus"
-                                                                  :on-click (fn [] (swap! *h-scale - 0.1)))
-                                                  (ui/icon-button :icon-name "mdi-magnify-plus"
-                                                                  :on-click (fn [] (swap! *h-scale + 0.1)))]
-                                         :spacing 5)
-                     box (ui/border-pane :top tools-box
-                                         :center canvas)]
-                 (add-sample val)
-                 (.start anim-timer)
-                 {:fx/node box
-                  :add-sample add-sample
-                  :stop-timer (fn [] (.stop anim-timer))}))
-  :on-update (fn [_ {:keys [add-sample]} {:keys [new-val]}]
-               (add-sample new-val))
-  :on-destroy (fn [{:keys [stop-timer]}] (stop-timer))})
-
-(register-visualizer
  {:id :int
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :int))
   :on-create (fn [#:int {:keys [decimal binary hex octal]}]
@@ -342,6 +252,13 @@
   :on-update (fn [_ {:keys [re-render]} {:keys [string/val]}]
                (re-render val))})
 
+(register-visualizer
+ {:id :oscilloscope
+  :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :oscilloscope-samples-frames))
+  :on-create scope/oscilloscope-create
+  :on-update scope/oscilloscope-update
+  :on-destroy scope/oscilloscope-destroy})
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Default visualizers ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -349,13 +266,14 @@
 ;; The order here matter since they are added on a stack, so the latests ones
 ;; have preference.
 
-(add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data)))                           :preview)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable)) :seqable)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))       :indexed)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-map))           :map)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :number))                :preview)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                   :int)
-(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :string))                :preview)
+(add-default-visualizer (fn [val-data] (= "nil" (:flow-storm.runtime.values/type val-data)))                                 :preview)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :paged-shallow-seqable))       :seqable)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-indexed))             :indexed)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :shallow-map))                 :map)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :number))                      :preview)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :int))                         :int)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :string))                      :preview)
+(add-default-visualizer (fn [val-data] (contains? (:flow-storm.runtime.values/kinds val-data) :oscilloscope-samples-frames)) :oscilloscope)
 
 
 
