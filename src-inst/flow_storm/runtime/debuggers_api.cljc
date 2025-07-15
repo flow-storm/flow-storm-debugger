@@ -247,12 +247,13 @@
                (assoc fr :ret-str       (:val-str (rt-values/val-pprint ret print-opts))))
              fr)))))))
 
-(defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward? flow-id]}]
+(defn find-fn-call-task [fq-fn-call-symb from-idx {:keys [backward? flow-id thread-id]}]
   (let [criteria (cond-> {:fn-ns (namespace fq-fn-call-symb)
                           :fn-name (name fq-fn-call-symb)
                           :from-idx from-idx
                           :backward? backward?}
-                   flow-id (assoc :flow-id flow-id))]
+                   flow-id (assoc :flow-id flow-id)
+                   thread-id (assoc :thread-id thread-id))]
     (submit-find-interruptible-task (index-api/build-find-fn-call-entry-predicate criteria)
                                     (index-api/timelines-for criteria)
                                     criteria                                    

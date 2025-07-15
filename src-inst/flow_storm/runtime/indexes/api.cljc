@@ -531,22 +531,31 @@
   (let [thread-ids (if thread-id
                      [thread-id]
                      (all-threads-ids flow-id))
-        timelines-stats (mapcat (fn [tid]
-                                  (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id tid)]
-                                    (index-protos/all-stats timeline))) 
-                                thread-ids)]
-    (into []
-          (keep (fn [[fn-call cnt]]
-                  (when-let [form (get-form (:form-id fn-call))]
-                    (cond-> {:fn-ns (:fn-ns fn-call)
-                             :fn-name (:fn-name fn-call)
-                             :form-id (:form-id fn-call)
-                             :form (:form/form form)
-                             :form-def-kind (:form/def-kind form)
-                             :dispatch-val (:multimethod/dispatch-val form)
-                             :cnt cnt}
-                      (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form))))))
-          timelines-stats)))
+        timelines-stats (mapv (fn [tid]
+                                (let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id tid)
+                                      stats-map (index-protos/all-stats timeline)]
+                                  {:stats-map stats-map
+                                   :thread-id tid})) 
+                              thread-ids)]
+    (persistent!
+     (reduce (fn [stats {:keys [stats-map thread-id]}]
+               (reduce (fn [ss [fn-call cnt]]
+                         (if-let [form (get-form (:form-id fn-call))]
+                           (let [fs (cond-> {:thread-id thread-id
+                                            :fn-ns (:fn-ns fn-call)
+                                            :fn-name (:fn-name fn-call)
+                                            :form-id (:form-id fn-call)
+                                            :form (:form/form form)
+                                            :form-def-kind (:form/def-kind form)
+                                            :dispatch-val (:multimethod/dispatch-val form)
+                                            :cnt cnt}
+                                      (:multimethod/dispatch-val form) (assoc :dispatch-val (:multimethod/dispatch-val form)))]
+                             (conj! ss fs))
+                           ss))
+                       stats
+                       stats-map))
+             (transient [])
+             timelines-stats))))
 
 
 (defn make-frame-keeper [flow-id thread-id fn-ns fn-name form-id]

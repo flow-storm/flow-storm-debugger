@@ -192,16 +192,18 @@
                                  :get-completions
                                  (fn []
                                    (into []
-                                         (keep (fn [{:keys [fn-ns fn-name cnt]}]
+                                         (keep (fn [{:keys [thread-id fn-ns fn-name cnt] :as all}]
                                                  (when-not (re-find #"fn--[\d]+$" fn-name)
-                                                   {:text (format "%s/%s (%d)" fn-ns fn-name cnt)
-                                                    :on-select (fn []
-                                                                 (tasks/submit-task runtime-api/find-fn-call-task
-                                                                                    [(symbol fn-ns fn-name) 0 {:flow-id flow-id}]
-                                                                                    {:on-finished (fn [{:keys [result]}]
-                                                                                                    (when result
-                                                                                                      (goto-location (assoc result
-                                                                                                                            :flow-id flow-id))))}))})))
+                                                   (let [th-info (dbg-state/get-thread-info thread-id)]
+                                                     {:text (format "%s/%s [%d] %s" fn-ns fn-name cnt (ui/thread-label (:thread/id th-info)  (:thread/name th-info)))
+                                                      :on-select (fn []
+                                                                   (tasks/submit-task runtime-api/find-fn-call-task
+                                                                                      [(symbol fn-ns fn-name) 0 {:flow-id flow-id :thread-id thread-id}]
+                                                                                      {:on-finished (fn [{:keys [result]}]
+                                                                                                      (when result
+                                                                                                        (goto-location (assoc result
+                                                                                                                              :thread-id thread-id
+                                                                                                                              :flow-id flow-id))))}))}))))
                                          (runtime-api/fn-call-stats rt-api flow-id nil))))
         quick-jump-textfield (ui/h-box
                               :childs [(ui/label :text "Quick jump:")
