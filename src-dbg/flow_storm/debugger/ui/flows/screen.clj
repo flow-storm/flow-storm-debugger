@@ -192,7 +192,7 @@
                                  :get-completions
                                  (fn []
                                    (into []
-                                         (keep (fn [{:keys [thread-id fn-ns fn-name cnt] :as all}]
+                                         (keep (fn [{:keys [thread-id fn-ns fn-name cnt]}]
                                                  (when-not (re-find #"fn--[\d]+$" fn-name)
                                                    (let [th-info (dbg-state/get-thread-info thread-id)]
                                                      {:text (format "%s/%s [%d] %s" fn-ns fn-name cnt (ui/thread-label (:thread/id th-info)  (:thread/name th-info)))
