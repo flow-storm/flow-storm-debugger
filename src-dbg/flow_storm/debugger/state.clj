@@ -74,6 +74,7 @@
                                           :thread.exception/ex-message
                                           :thread.exception/ex-hash]))
 (s/def :flow/exceptions (s/map-of :thread.exception/ex-hash :thread/exception))
+(s/def :flow/exceptions-limit-reached? boolean?)
 
 (s/def :flow/thread (s/keys :req [:thread/id
                                   :thread/curr-timeline-entry
@@ -87,7 +88,8 @@
 (s/def :flow/id int?)
 (s/def :flow/flow (s/keys :req [:flow/id
                                 :flow/threads
-                                :flow/exceptions]
+                                :flow/exceptions
+                                :flow/exceptions-limit-reached?]
                           :req-un [::timestamp]))
 
 (s/def :flow/flows (s/map-of :flow/id :flow/flow))
@@ -386,6 +388,7 @@
   (swap! state assoc-in [:flows flow-id] {:flow/id flow-id
                                           :flow/threads {}
                                           :flow/exceptions {}
+                                          :flow/exceptions-limit-reached? false
                                           :timestamp timestamp}))
 
 (defn flow-threads-ids [flow-id]
@@ -653,13 +656,29 @@
 
 (defn maybe-add-exception
 
-  "Add exception ex-data only if it doesn't already exist.
-  Returns true if added, false otherwise."
+  "Track a limited amount of exceptions ex-data only if they doesn't already exist."
 
   [{:keys [flow-id ex-hash] :as ex-data}]
-  (boolean
-   (when-not (get-in @state [:flows flow-id :flow/exceptions ex-hash])
-     (swap! state assoc-in [:flows flow-id :flow/exceptions ex-hash] ex-data))))
+  (let [ex-ui-limit 100
+        exceptions (get-in @state [:flows flow-id :flow/exceptions])
+        exceptions-limit-reached? (get-in @state [:flows flow-id :flow/exceptions-limit-reached?])
+        ex-cnt (count exceptions)]
+    (cond
+      exceptions-limit-reached?
+      :ex-limit-passed
+
+      (= ex-cnt ex-ui-limit)
+      (do
+        (swap! state assoc-in [:flows flow-id :flow/exceptions-limit-reached?] true)
+        :ex-limit-reached)
+
+      (get exceptions ex-hash)
+      :ex-skipped
+
+      :else
+      (do
+        (swap! state assoc-in [:flows flow-id :flow/exceptions ex-hash] ex-data)
+        :ex-added))))
 
 (defn flow-exceptions [flow-id]
   (vals (get-in @state [:flows flow-id :flow/exceptions])))

@@ -19,7 +19,7 @@
 
 
 (declare create-or-focus-thread-tab)
-(declare update-exceptions-combo)
+(declare clear-and-hide-exception-menu)
 
 (defn clear-debugger-flow [flow-id]
   (let [[flows-tabs-pane] (obj-lookup "flows_tabs_pane")
@@ -33,7 +33,7 @@
     (multi-thread-timeline/clear-timeline-ui flow-id)
     (printer/clear-prints-ui flow-id)
 
-    (update-exceptions-combo flow-id)
+    (clear-and-hide-exception-menu flow-id)
 
     (dbg-state/remove-flow flow-id)
 
@@ -363,22 +363,24 @@
 
         (ui-utils/selection-select-obj sel-model thread-tab)))))
 
-(defn update-exceptions-combo [flow-id]
-  (let [exceptions (dbg-state/flow-exceptions flow-id)
-        [{:keys [set-items]}] (obj-lookup flow-id "exceptions-menu-data")
+(defn clear-and-hide-exception-menu [flow-id]
+  (let [[{:keys [clear-items]}] (obj-lookup flow-id "exceptions-menu-data")
         [ex-box] (obj-lookup flow-id "exceptions-box")]
     (when ex-box
       (ui-utils/clear-classes ex-box)
-      (when (zero? (count exceptions))
-        (ui-utils/add-class ex-box "hidden-node"))
+      (ui-utils/add-class ex-box "hidden-node")
+      (clear-items))))
 
-      (set-items (mapv (fn [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
-                         {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
-                          :tooltip ex-message
-                          :flow-id flow-id
-                          :thread-id thread-id
-                          :idx idx})
-                       exceptions)))))
+(defn add-exception-to-menu [{:keys [flow-id thread-id idx fn-ns fn-name ex-type ex-message]}]
+  (let [[{:keys [add-item]}] (obj-lookup flow-id "exceptions-menu-data")
+        [ex-box] (obj-lookup flow-id "exceptions-box")]
+    (when ex-box
+      (ui-utils/clear-classes ex-box)
+      (add-item {:text (format "%d - %s/%s %s" idx fn-ns fn-name ex-type)
+                 :tooltip ex-message
+                 :flow-id flow-id
+                 :thread-id thread-id
+                 :idx idx}))))
 
 (defn set-recording-btn [recording?]
   (ui-utils/run-later

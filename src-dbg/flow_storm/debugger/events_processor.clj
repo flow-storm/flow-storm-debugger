@@ -8,7 +8,7 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
-            [flow-storm.debugger.ui.flows.general :as ui-general]
+            [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
             [flow-storm.utils :refer [log]]
@@ -120,13 +120,15 @@
   (flows-screen/set-multi-timeline-recording-btn recording?))
 
 (defn- function-unwinded-event [{:keys [flow-id] :as unwind-data}]
-  (when (dbg-state/maybe-add-exception unwind-data)
-    (ui-utils/run-later
-      (flows-screen/update-exceptions-combo flow-id)
-      ;; the first time we encounter an exception, navigate to that location
-      (when (and (:auto-jump-on-exception? (dbg-state/debugger-config))
-                 (= 1 (count (dbg-state/flow-exceptions flow-id))))
-        (flows-screen/goto-location unwind-data)))))
+  (case (dbg-state/maybe-add-exception unwind-data)
+    :ex-limit-reached (show-message "Too many exceptions throwed, showing only the first ones" :warning)
+    (:ex-skipped :ex-limit-passed)  nil
+    :ex-added (ui-utils/run-later
+               (flows-screen/add-exception-to-menu unwind-data)
+               ;; the first time we encounter an exception, navigate to that location
+               (when (and (:auto-jump-on-exception? (dbg-state/debugger-config))
+                          (= 1 (count (dbg-state/flow-exceptions flow-id))))
+                 (flows-screen/goto-location unwind-data)))))
 
 (defn expression-bookmark-event [{:keys [flow-id thread-id idx note source] :as bookmark-location}]
   (ui-utils/run-later

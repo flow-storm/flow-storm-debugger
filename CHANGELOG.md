@@ -6,8 +6,9 @@
         
 ### Changes
     
+    - Limit the exceptions we are tracking on the UI to 100 so we don't make the UI super slow when too many exceptions are fired
 ### Bugs fixed
-
+    
 ## 4.4.6 (10-06-2026)
 	
 ### New Features
