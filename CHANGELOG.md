@@ -3,8 +3,16 @@
 ## master (unreleased)
 	
 ### New Features
+        
+### Changes
+         
+### Bugs fixed
 
-    - A better oscilloscope 
+## 4.5.0 (05-08-2025)
+	
+### New Features
+
+    - A better oscilloscope data window
         
 ### Changes
     
