@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - A better oscilloscope 
         
 ### Changes
     
@@ -10,6 +12,8 @@
     - Improve quick jump box for same function fired on many threads
     
 ### Bugs fixed
+
+    - Fixed transients inspection
 
     
 ## 4.4.6 (10-06-2026)
