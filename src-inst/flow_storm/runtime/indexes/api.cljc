@@ -633,15 +633,17 @@
            batch-res (transient [])]
       (if (< i to)
         (let [tl-entry (get timeline i)
-              [tl-idx tl-entry] (if (total-order-timeline/total-order-timeline-entry? tl-entry)
-                                  (let [th-timeline (index-protos/tote-thread-timeline tl-entry)
-                                        th-tl-idx (index-protos/tote-thread-timeline-idx tl-entry)
-                                        th-tl-entry (get th-timeline th-tl-idx)]
-                                    [th-tl-idx th-tl-entry])
-                                  [i tl-entry])
               ;; we get the thread-id for each entry to support multi-thread-timelines
               tl-thread-id (index-protos/thread-id timeline i)]
-          (if-let [e (f tl-thread-id tl-idx tl-entry)]             
+          (if-let [e (f tl-thread-id
+                        (if (total-order-timeline/total-order-timeline-entry? tl-entry)
+                          (index-protos/tote-thread-timeline-idx tl-entry)
+                          i)
+                        (if (total-order-timeline/total-order-timeline-entry? tl-entry)
+                          (let [th-timeline (index-protos/tote-thread-timeline tl-entry)
+                                th-tl-idx (index-protos/tote-thread-timeline-idx tl-entry)]
+                            (get th-timeline th-tl-idx))
+                          tl-entry))]             
             (recur (inc i) (conj! batch-res e))
             (recur (inc i) batch-res)))
         (persistent! batch-res)))))

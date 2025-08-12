@@ -5,6 +5,8 @@
 ### New Features
         
 ### Changes
+
+    - Perf improvment: reduce garbage created by keep-timeline-sub-range
          
 ### Bugs fixed
 
