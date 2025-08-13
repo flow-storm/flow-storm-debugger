@@ -81,20 +81,19 @@
   (let [nanos-per-sample (/ 1e9 frames-samp-rate)]
     (* (/ nanos-per-div nanos-per-sample)  divisions)))
 
-(def margins 25)
-(def canvas-width 1000)
-(def canvas-height 700)
-(def draw-origin margins)
-(def draw-width (- canvas-width (* 2 margins)))
-(def draw-height (- canvas-height (* 2 margins)))
-(def mid-y (+ margins (/ draw-height 2)))
 (def grid-vert-divs 10)
 (def grid-horiz-divs 7)
-(def grid-div-height (/ draw-height grid-horiz-divs))
-
-(defn draw-anim-frame [^GraphicsContext gc samples-ring nanos-per-sample *nanos-per-div-idx *amp-per-div-idx *v-offset]
+(defn draw-anim-frame [^GraphicsContext gc margins canvas-width canvas-height
+                       samples-ring nanos-per-sample *nanos-per-div-idx *amp-per-div-idx *v-offset]
   (try
-    (let [{:keys [sample-objects]} (get-samples samples-ring)
+    (let [draw-origin margins
+          draw-width (- canvas-width (* 2 margins))
+          draw-height (- canvas-height (* 2 margins))
+          mid-y (+ margins (/ draw-height 2))
+          grid-div-height (/ draw-height grid-horiz-divs)
+
+
+          {:keys [sample-objects]} (get-samples samples-ring)
           grid-div-width (/ draw-width grid-vert-divs)
           samples-per-div (/ (get nanos-per-div @*nanos-per-div-idx)
                              nanos-per-sample)
@@ -161,8 +160,13 @@
     (catch Exception e
       (.printStackTrace e))))
 
-(defn oscilloscope-create [{first-frame :frame}]
-  (let [*capturing (atom true)
+(defn oscilloscope-create [data]
+  (let [first-frame (:frame data)
+        preferred-size (:flow-storm.debugger.ui.data-windows.data-windows/preferred-size data)
+        [canvas-width canvas-height margins] (if (= :small preferred-size)
+                                               [400 280 25]
+                                               [1000 700 25])
+        *capturing (atom true)
         *nanos-per-div-idx (atom 17)
         *amp-per-div-idx (atom 6)
         *v-offset (atom 0)
@@ -178,7 +182,8 @@
         anim-timer (proxy [AnimationTimer] []
                      (handle [^long now]
                        (let [nanos-per-sample (/ 1e9 @*curr-samp-rate)]
-                         (draw-anim-frame gc samples-ring nanos-per-sample *nanos-per-div-idx *amp-per-div-idx *v-offset))))
+                         (draw-anim-frame gc margins canvas-width canvas-height
+                                          samples-ring nanos-per-sample *nanos-per-div-idx *amp-per-div-idx *v-offset))))
 
         samp-rate-lbl (ui/label :text "")
         nanos-per-div-lbl (ui/label :text "")

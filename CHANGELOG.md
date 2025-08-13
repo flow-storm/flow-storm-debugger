@@ -5,6 +5,7 @@
 ### New Features
 
     - Data Windows on-create can be called with :preferred-size :small
+    - Adds oscilloscope support for DW :preferred-size :small
         
 ### Changes
 
