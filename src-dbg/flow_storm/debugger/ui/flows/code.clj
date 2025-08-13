@@ -555,8 +555,9 @@
                                                dw-id
                                                val-ref
                                                {:root? true
-                                                :flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                :flow-storm.debugger.ui.data-windows.data-windows/stack-key "expr-result"}))
+                                                :dw-id dw-id
+                                                :stack-key "expr-result"
+                                                :preferred-size :small}))
 
       ;; update locals panel
       (update-locals-pane flow-id thread-id (runtime-api/bindings rt-api flow-id thread-id next-idx {}))

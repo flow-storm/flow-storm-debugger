@@ -96,11 +96,11 @@
 (defn create-data-window-for-vref [vref]
   (let [dw-id (keyword (str "value-" (:vid vref)))]
     (create-data-window dw-id)
-    (runtime-api/data-window-push-val-data rt-api dw-id vref {::stack-key "/" ::dw-id dw-id})))
+    (runtime-api/data-window-push-val-data rt-api dw-id vref {:stack-key "/" :dw-id dw-id})))
 
 (defn push-val
   ([dw-id val-data] (push-val dw-id val-data {}))
-  ([dw-id val-data {:keys [root? visualizer]}]
+  ([dw-id val-data {:keys [root? visualizer preferred-size stack-key]}]
    (ui-utils/run-now
 
      ;; this is to allow a data-window to be created by a push from the runtime
@@ -127,8 +127,8 @@
                                 meta-ref (into [(ui/label :text (format "Meta: %s" meta-preview)
                                                           :class "link-lbl"
                                                           :on-click (fn [_]
-                                                                      (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                                                    :flow-storm.debugger.ui.data-windows.data-windows/stack-key "META"}]
+                                                                      (let [extras {:dw-id dw-id
+                                                                                    :stack-key "META"}]
                                                                         (runtime-api/data-window-push-val-data rt-api dw-id meta-ref extras))))])))))
 
            reset-viz-combo (fn []
@@ -142,7 +142,9 @@
 
            create-viz (fn [{:keys [on-create]}]
                         (try
-                          (on-create val-data)
+                          (on-create (cond-> val-data
+                                       true     (assoc ::dw-id dw-id)
+                                       preferred-size (assoc ::preferred-size preferred-size)))
                           (catch Exception e
                             {:fx/node (ui/text-area
                                        :text (pr-str e)
@@ -166,7 +168,7 @@
                                 (let [btns (->> stack
                                                 (map-indexed (fn [idx frame]
                                                                (let [depth (- (count stack) idx)]
-                                                                 (doto (ui/button :label (or (-> frame :val-data ::stack-key) (format "unnamed-frame-<%d>" depth))
+                                                                 (doto (ui/button :label (or (:stack-key frame) (format "unnamed-frame-<%d>" depth))
                                                                                   :on-click (fn []
                                                                                               (let [popped-frames (dbg-state/data-window-pop-stack-to-depth dw-id depth)]
                                                                                                 (destroy-visualizers-for-frames popped-frames)
@@ -185,6 +187,7 @@
            (destroy-visualizers-for-frames popped-frames)))
 
        (dbg-state/data-window-push-frame dw-id {:val-data val-data
+                                                :stack-key stack-key
                                                 :visualizer-combo viz-combo
                                                 :visualizer default-viz
                                                 :visualizer-val-ctx default-viz-val-ctx})
@@ -216,7 +219,7 @@
 
   (push-val :data-1
             {:flow-storm.runtime.values/kind :vec
-             ::stack-key ":hello"
+             :stack-key ":hello"
              :preview-str "[1 2 3 4]"
              :vals-previews ["1" "2" "3" "4"]
              :vals-refs [20 21 22 23]})

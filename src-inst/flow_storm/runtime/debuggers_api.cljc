@@ -152,14 +152,13 @@
 (defn val-pprint [vref opts]
   (rt-values/val-pprint-ref vref opts))
 
-(defn data-window-push-val-data [dw-id vref {:keys [update?] :as extra}]
+(defn data-window-push-val-data [dw-id vref {:keys [update?] :as extras}]
   (let [v (rt-values/deref-value vref)
-        vdata (-> (rt-values/extract-data-aspects v extra)
-                  (merge extra))]
+        vdata (rt-values/extract-data-aspects v extras)]
     (rt-events/publish-event!
      (if update?
        (rt-events/make-data-window-update-event dw-id vdata)
-       (rt-events/make-data-window-push-val-data-event dw-id vdata extra)))))
+       (rt-events/make-data-window-push-val-data-event dw-id vdata extras)))))
 
 #?(:clj (def def-value rt-values/def-value))
 

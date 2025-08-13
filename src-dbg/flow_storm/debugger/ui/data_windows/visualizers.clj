@@ -80,8 +80,8 @@
                    (ui/table-view
                     :columns ["Key" "Val" "Nav"]
                     :cell-factory (fn [_ {:keys [cell-type k-prev k-ref v-prev v-ref nav-ref stack-key]}]
-                                    (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                  :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
+                                    (let [extras {:dw-id dw-id
+                                                  :stack-key stack-key}]
                                       (case cell-type
                                         :key (ui/label :text k-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id k-ref extras)))
                                         :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))
@@ -105,8 +105,8 @@
                                                        (ui-utils/set-graphic (ui/label :class "link-lbl" :text prev))))
                                    :on-click (fn [_ sel-items _]
                                                (let [{:keys [prev ref]} (first sel-items)
-                                                     extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                             :flow-storm.debugger.ui.data-windows.data-windows/stack-key prev}]
+                                                     extras {:dw-id dw-id
+                                                             :stack-key prev}]
                                                  (runtime-api/data-window-push-val-data rt-api dw-id ref extras))))
 
                      more-btn (ui/button :label "More")
@@ -145,8 +145,8 @@
                               :columns-width-percs [0.2 0.7 0.1]
                               :resize-policy :constrained
                               :cell-factory (fn [_ {:keys [cell-type idx v-prev v-ref nav-ref stack-key]}]
-                                              (let [extras {:flow-storm.debugger.ui.data-windows.data-windows/dw-id dw-id
-                                                            :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key}]
+                                              (let [extras {:dw-id dw-id
+                                                            :stack-key stack-key}]
                                                 (case cell-type
                                                   :key (ui/label :text (str idx))
                                                   :val (ui/label :text v-prev :class "link-lbl" :on-click (fn [_] (runtime-api/data-window-push-val-data rt-api dw-id v-ref extras)))

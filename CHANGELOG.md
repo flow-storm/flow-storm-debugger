@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - Data Windows on-create can be called with :preferred-size :small
         
 ### Changes
 

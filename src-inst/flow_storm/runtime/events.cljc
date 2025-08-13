@@ -94,11 +94,10 @@
 (defn show-doc-event [vsymb]
   [:show-doc {:var-symbol vsymb}])
 
-(defn make-data-window-push-val-data-event [dw-id vdata {:keys [root? visualizer]}]
+(defn make-data-window-push-val-data-event [dw-id vdata extras]
   [:data-window-push-val-data {:dw-id dw-id
                                :val-data vdata
-                               :root? root?
-                               :visualizer visualizer}])
+                               :extras extras}])
 
 (defn make-data-window-update-event [dw-id data]
   [:data-window-update {:dw-id dw-id :data data}])

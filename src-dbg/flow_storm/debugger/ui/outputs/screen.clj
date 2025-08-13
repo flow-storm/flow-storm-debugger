@@ -15,8 +15,8 @@
   (runtime-api/data-window-push-val-data rt-api
                                          :outputs
                                          val-ref
-                                         {:flow-storm.debugger.ui.data-windows.data-windows/dw-id :outputs
-                                          :flow-storm.debugger.ui.data-windows.data-windows/stack-key stack-key
+                                         {:dw-id :outputs
+                                          :stack-key stack-key
                                           :root? true}))
 
 (defn update-last-evals [last-evals-refs]

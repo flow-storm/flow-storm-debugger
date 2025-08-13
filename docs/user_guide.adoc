@@ -1356,6 +1356,10 @@ with the same id will replace the previous one.
 can handle the value.
 
 And `:on-create` will be a function that receives this value and renders a java fx node.
+The val passed to on-create will also contain two special keywords :
+
+- :flow-storm.debugger.ui.data-windows.data-windows/dw-id The id of the data windows it's being draw on
+- :flow-storm.debugger.ui.data-windows.data-windows/preferred-size (could be :small)
 
 Optionally you can provide `:on-update` and `:on-destroy`.
 

@@ -3029,7 +3029,18 @@ with the same id will replace the previous one.</p>
 can handle the value.</p>
 </div>
 <div class="paragraph">
-<p>And <code>:on-create</code> will be a function that receives this value and renders a java fx node.</p>
+<p>And <code>:on-create</code> will be a function that receives this value and renders a java fx node.
+The val passed to on-create will also contain two special keywords :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>:flow-storm.debugger.ui.data-windows.data-windows/dw-id The id of the data windows it&#8217;s being draw on</p>
+</li>
+<li>
+<p>:flow-storm.debugger.ui.data-windows.data-windows/preferred-size (could be :small)</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Optionally you can provide <code>:on-update</code> and <code>:on-destroy</code>.</p>
@@ -4850,7 +4861,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-08-05 12:27:52 -0300
+Last updated 2025-08-13 11:46:17 -0300
 </div>
 </div>
 </body>
