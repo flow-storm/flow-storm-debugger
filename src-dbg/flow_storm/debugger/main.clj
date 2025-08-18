@@ -93,10 +93,13 @@
 
    When `:local?` is false you can also provide `:runtime-host` `:debugger-host` and `:port` for the nrepl server.
   `:runtime-host` should be the ip of the debuggee (defaults to localhost)
-  `:debugger-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)"
+  `:debugger-host` shoud be the ip where the debugger is running, since the debuggee needs to connect back to it (defaults to localhost)
+  `:pre-require` can be used with a symbol for requiring a ns before starting"
 
 
-  [{:keys [local?] :as config}]
+  [{:keys [local? pre-require] :as config}]
+
+  (when pre-require (require pre-require))
 
   ;; Ensure a task bar icon is shown on MacOS.
   (System/setProperty "apple.awt.UIElement" "false")

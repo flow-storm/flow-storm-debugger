@@ -1439,6 +1439,24 @@ Now we can register a visualizer that will show only on values which contains a 
                                gp)}))})
 ----
 
+=== ClojureScript
+
+Using custom visualizers with ClojureScript (or other remote environments) is a little bit more involved.
+
+Registering aspect extractors is exaclty the same, since they run on the runtime (browswer, node, etc), but
+custom visualizers should be registered on the debugger process. For this you need to create your visualizers in some
+namespace, let's say on `/dev/visualizers.clj`, add the `dev` folder to your classpath and then running the debugger UI
+with something like :
+
+[,bash]
+----
+clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.0"}}}' -X flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :pre-require visualizers
+----
+
+Notice the last option `:pre-require visualizers`. This will allow you to load the just defined `visualizers` namespace before
+starting the UI.
+
+
 == Default visualizers
 
 You can make any visualizer the default by calling `add-default-visualizer` which takes a predicate on the val-data (the same received by :on-create) and

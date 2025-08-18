@@ -736,6 +736,7 @@ pre.rouge {
 <ul class="sectlevel3">
 <li><a href="#_data_aspect_extraction">6.9.1. Data aspect extraction</a></li>
 <li><a href="#_visualizers">6.9.2. Visualizers</a></li>
+<li><a href="#_clojurescript_2">6.9.3. ClojureScript</a></li>
 </ul>
 </li>
 <li><a href="#_default_visualizers">6.10. Default visualizers</a></li>
@@ -3131,6 +3132,27 @@ as you will see next.</p>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_clojurescript_2"><a class="anchor" href="#_clojurescript_2"></a><a class="link" href="#_clojurescript_2">6.9.3. ClojureScript</a></h4>
+<div class="paragraph">
+<p>Using custom visualizers with ClojureScript (or other remote environments) is a little bit more involved.</p>
+</div>
+<div class="paragraph">
+<p>Registering aspect extractors is exaclty the same, since they run on the runtime (browswer, node, etc), but
+custom visualizers should be registered on the debugger process. For this you need to create your visualizers in some
+namespace, let&#8217;s say on <code>/dev/visualizers.clj</code>, add the <code>dev</code> folder to your classpath and then running the debugger UI
+with something like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.5.0"}}}'</span> <span class="nt">-X</span> flow-storm.debugger.main/start-debugger :port 9000 :repl-type :shadow :build-id :my-app :pre-require visualizers</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the last option <code>:pre-require visualizers</code>. This will allow you to load the just defined <code>visualizers</code> namespace before
+starting the UI.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_default_visualizers"><a class="anchor" href="#_default_visualizers"></a><a class="link" href="#_default_visualizers">6.10. Default visualizers</a></h3>
@@ -4861,7 +4883,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-08-13 11:46:17 -0300
+Last updated 2025-08-18 12:01:03 -0300
 </div>
 </div>
 </body>

@@ -6,6 +6,7 @@
 
     - Data Windows on-create can be called with :preferred-size :small
     - Adds oscilloscope support for DW :preferred-size :small
+    - Add :pre-require to flow-storm.debugger.main/start-debugger for easier data window visualizers in ClojureScript
         
 ### Changes
 
