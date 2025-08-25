@@ -252,8 +252,9 @@ If you are not sure you can ask in :
 
 ## Acknowledgements
 
-Big thanks to [Roam Research](https://roamresearch.com/) for sponsoring this and other of my projects!
+Big thanks to [Roam Research](https://roamresearch.com/), [Nubank](https://nubank.com.br/) and all previous and current sponsors.
 
 ![demo](./docs/images/roam_research_logo.jpg)
+![demo](./docs/images/nubank_logo.png)
 
 Thanks to [Cider](https://github.com/clojure-emacs/cider/) debugger for inspiration and some clever ideas for code instrumentation.
