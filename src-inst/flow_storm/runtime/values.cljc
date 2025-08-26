@@ -231,12 +231,18 @@
 (defn unregister-data-aspect-extractor [id]
   (swap! values-datafiers-registry dissoc id))
 
-(defn interesting-nav-reference [coll k]
-  (let [v (get coll k)
-        n (nav coll k v)]    
-    (when (or (not= n v)
-               (not= (meta n) (meta v)))
-      (reference-value! n))))
+(defn interesting-nav-references [coll ks map-coll?]
+  (reduce (fn [nfs k]
+            (let [v (get coll k)
+                  n (nav coll k v)]    
+              (if (or (not= n v)
+                      (not= (meta n) (meta v)))
+                (assoc nfs
+                       (if map-coll? (reference-value! k) k)
+                       (reference-value! n))
+                nfs)))
+          {}
+          ks))
 
 (defn extract-data-aspects [o extra]
   (let [dat-o (datafy o)
@@ -314,9 +320,9 @@
   :extractor (fn [m _]
                (let [m-keys (keys m)
                      m-vals (vals m)]
-                 {:shallow-map/keys-refs     (mapv reference-value! m-keys)
-                  :shallow-map/navs-refs     (mapv (partial interesting-nav-reference m) m-keys)
-                  :shallow-map/vals-refs     (mapv reference-value! m-vals)}))})
+                 {:shallow-map/keys-refs (mapv reference-value! m-keys)
+                  :shallow-map/navs-refs (interesting-nav-references m m-keys true) 
+                  :shallow-map/vals-refs (mapv reference-value! m-vals)}))})
 
 (register-data-aspect-extractor
  {:id :paged-shallow-seqable
@@ -342,7 +348,7 @@
                                                     []
                                                     (range (count idx-coll)))
                 :shallow-idx-coll/navs-refs (try
-                                              (mapv (partial interesting-nav-reference idx-coll) (range (count idx-coll)))
+                                              (interesting-nav-references idx-coll (range (count idx-coll)) false)
                                               #?(:clj (catch Exception e
                                                         (utils/log-error (utils/format "Warning, couldn't get navigation references for indexed collection of type %s" (type idx-coll)) e)
                                                         nil)
@@ -414,4 +420,6 @@
     
   (extract-data-aspects 120 nil)
   (extract-data-aspects {:a 20 :b 40} nil)
+  (extract-data-aspects [1 2 3] nil)
+  (extract-data-aspects (range 100) nil)
   )

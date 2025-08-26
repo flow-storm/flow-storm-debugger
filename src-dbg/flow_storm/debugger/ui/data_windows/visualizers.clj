@@ -66,15 +66,14 @@
                           shallow-map/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id]}]
                (let [keys-previews (mapv (comp :val-preview meta) keys-refs)
                      vals-previews (mapv (comp :val-preview meta) vals-refs)
-                     rows (mapv (fn [k-prev k-ref v-prev v-ref nav-ref]
+                     rows (mapv (fn [k-prev k-ref v-prev v-ref]
                                   [{:cell-type :key :k-prev k-prev :k-ref k-ref :stack-key (str k-prev "-KEY")}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key k-prev}
-                                   {:cell-type :nav :nav-ref nav-ref :stack-key (str k-prev "-NAV")}])
+                                   {:cell-type :nav :nav-ref (get navs-refs k-ref) :stack-key (str k-prev "-NAV")}])
                                 keys-previews
                                 keys-refs
                                 vals-previews
-                                vals-refs
-                                navs-refs)]
+                                vals-refs)]
                  {:fx/node
                   (:table-view
                    (ui/table-view
@@ -128,14 +127,13 @@
   :pred (fn [val] (contains? (:flow-storm.runtime.values/kinds val) :shallow-indexed))
   :on-create (fn [{:keys [shallow-idx-coll/vals-refs shallow-idx-coll/navs-refs flow-storm.debugger.ui.data-windows.data-windows/dw-id] :as idx-coll}]
                (let [vals-previews (mapv (comp :val-preview meta) vals-refs)
-                     rows (mapv (fn [idx v-prev v-ref nav-ref]
+                     rows (mapv (fn [idx v-prev v-ref]
                                   [{:cell-type :key :idx idx}
                                    {:cell-type :val :v-prev v-prev :v-ref v-ref :stack-key (str idx)}
-                                   {:cell-type :nav :nav-ref nav-ref :stack-key (str idx "-NAV")}])
+                                   {:cell-type :nav :nav-ref (get navs-refs idx) :stack-key (str idx "-NAV")}])
                                 (range)
                                 vals-previews
-                                vals-refs
-                                navs-refs)]
+                                vals-refs)]
                  {:fx/node
                   (ui/v-box
                    :childs [(ui/label (format "Count: %d" (:shallow-idx-coll/count idx-coll)))

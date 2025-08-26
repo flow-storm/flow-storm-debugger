@@ -10,7 +10,8 @@
         
 ### Changes
 
-    - Perf improvment: reduce garbage created by keep-timeline-sub-range
+    - Perf improvement: reduce garbage created by keep-timeline-sub-range
+    - Perf improvement: improve how we send navs-refs for datawindows which are nil most of the time
          
 ### Bugs fixed
 
