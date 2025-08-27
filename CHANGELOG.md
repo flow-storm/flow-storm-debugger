@@ -4,6 +4,17 @@
 	
 ### New Features
 
+    - Added JVM option flowstorm.heapLimit which can be set also from the UI to automatically stop recording when
+      the heap reaches the set size in megabytes
+        
+### Changes
+
+    - JVM option flowstorm.throwOnTraceLimit has been renamed to flowstorm.throwOnLimit
+    
+## 4.5.1 (26-08-2025)
+	
+### New Features
+
     - Data Windows on-create can be called with :preferred-size :small
     - Adds oscilloscope support for DW :preferred-size :small
     - Add :pre-require to flow-storm.debugger.main/start-debugger for easier data window visualizers in ClojureScript

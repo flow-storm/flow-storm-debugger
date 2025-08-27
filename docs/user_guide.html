@@ -759,7 +759,17 @@ pre.rouge {
 <li><a href="#_docker">10.3. Docker</a></li>
 </ul>
 </li>
-<li><a href="#_dealing_with_too_many_traces">11. Dealing with too many traces</a></li>
+<li><a href="#_dealing_with_too_many_traces">11. Dealing with too many traces</a>
+<ul class="sectlevel2">
+<li><a href="#_fn_call_limits">11.1. Fn call limits</a></li>
+<li><a href="#_trace_and_heap_limits">11.2. Trace and heap limits</a>
+<ul class="sectlevel3">
+<li><a href="#_trace_limits">11.2.1. Trace limits</a></li>
+<li><a href="#_heap_limits">11.2.2. Heap limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a href="#_dealing_with_mutable_values">12. Dealing with mutable values</a></li>
 <li><a href="#_controlling_instrumentation">13. Controlling instrumentation</a>
 <ul class="sectlevel2">
@@ -3652,6 +3662,8 @@ that your process starts running out of heap. This section documents some tools 
 <p>Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
 when it isn&#8217;t, here are some other options.</p>
 </div>
+<div class="sect2">
+<h3 id="_fn_call_limits"><a class="anchor" href="#_fn_call_limits"></a><a class="link" href="#_fn_call_limits">11.1. Fn call limits</a></h3>
 <div class="paragraph">
 <p>A common situation is to see some high frequency functions adding a lot of noise to your recordings. For example a MouseMove event processing
 will generate a lot of recordings while you use your app. There are a couple of ways to limit your functions calls by thread. You can identify
@@ -3670,34 +3682,32 @@ to it and all the functions down its callstack.</p>
 In ClojureScript you need to call them via your cljs repl api.</p>
 </div>
 <div class="paragraph">
-<p>All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
+<p>These limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
 the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.</p>
 </div>
 <div class="paragraph">
 <p>When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
 global limits definitions.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_trace_and_heap_limits"><a class="anchor" href="#_trace_and_heap_limits"></a><a class="link" href="#_trace_and_heap_limits">11.2. Trace and heap limits</a></h3>
 <div class="paragraph">
 <p>If you are tracing some code that ends up in a infinite loop the debugger will choke on
 too many traces, making everything slow and your only option is probably to restart it.</p>
 </div>
 <div class="paragraph">
-<p>For preventing this, <em>FlowStorm</em> provides a fuse/breaker, called thread trace limit.
-It is off by default but you can enable it from the Config menu.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/thread_trace_limit_menu.png" alt="thread trace limit menu">
-</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="user_guide_images/thread_trace_limit_dialog.png" alt="thread trace limit dialog">
-</div>
+<p>For preventing this, <em>FlowStorm</em> provides a couple of fuse/breakers, on threads trace count and on heap limits.</p>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
-record those first 1000 traces per thread and discard the rest as if recording is off.</p>
+<p>They are off by default but you can enable it from the Config menu.</p>
+</div>
+<div class="sect3">
+<h4 id="_trace_limits"><a class="anchor" href="#_trace_limits"></a><a class="link" href="#_trace_limits">11.2.1. Trace limits</a></h4>
+<div class="paragraph">
+<p>Let&#8217;s say you added a thread trace limit of 1000. If you now run any code where a thread generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and then discard the rest as if recording is off for that thread, while it will keep recording threads that haven&#8217;t
+reached the limit.</p>
 </div>
 <div class="paragraph">
 <p>Your code will continue execution as normal, which you can break using
@@ -3708,10 +3718,19 @@ your normal editor breaking commands if its an infinite loop, but now you have r
 </div>
 <div class="paragraph">
 <p>You can set this limits at startup via the JVM options <code>"-Dflowstorm.threadTraceLimit=1000"</code> and
-<code>"-Dflowstorm.throwOnThreadLimit=true"</code>.</p>
+<code>"-Dflowstorm.throwOnLimit=true"</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_heap_limits"><a class="anchor" href="#_heap_limits"></a><a class="link" href="#_heap_limits">11.2.2. Heap limits</a></h4>
+<div class="paragraph">
+<p>Another option is to automatically stop recording when a certain heap limit in megabytes is reached.</p>
 </div>
 <div class="paragraph">
-<p>This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.</p>
+<p>This can also be set at startup via the JVM option <code>"-Dflowstorm.heapLimit=1000"</code>, which means stop recording
+as soon as we used 1000Mb of heap space.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -4388,7 +4407,7 @@ and possible values.</p>
 <p><code>-Dflowstorm.threadTraceLimit=1000</code></p>
 </li>
 <li>
-<p><code>-Dflowstorm.throwOnThreadLimit=true</code></p>
+<p><code>-Dflowstorm.throwOnLimit=true</code></p>
 </li>
 <li>
 <p><code>-Dflowstorm.autoUpdateUI=false</code></p>
@@ -4420,6 +4439,9 @@ and possible values.</p>
 </li>
 <li>
 <p><code>-Dclojure.storm.instrumentSkipRegex=.*test.*</code></p>
+</li>
+<li>
+<p><code>-Dflowstorm.heapLimit=1000</code></p>
 </li>
 </ul>
 </div>
@@ -4883,7 +4905,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-08-26 12:06:08 -0300
+Last updated 2025-08-27 10:55:35 -0300
 </div>
 </div>
 </body>

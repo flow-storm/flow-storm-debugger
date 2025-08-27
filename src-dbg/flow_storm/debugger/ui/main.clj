@@ -189,6 +189,18 @@
     (when-not (str/blank? text)
       (runtime-api/set-thread-trace-limit rt-api {:limit (Integer/parseInt text) :break? bool}))))
 
+(defn- ask-and-set-heap-limit []
+  (let [{:keys [text bool]} (ui/ask-text-and-bool-dialog
+                             :header "Set heap limit. FlowStorm will stop recording when this heap limit in MBs is reached."
+                             :body "Limit :"
+                             :width  500
+                             :height 100
+                             :center-on-stage (dbg-state/main-jfx-stage)
+                             :bool-msg "Throw on limit?")]
+
+    (when-not (str/blank? text)
+      (runtime-api/set-heap-limit rt-api {:limit (Integer/parseInt text) :break? bool}))))
+
 (defn- goto-file-line []
   (let [file-and-line (ui/ask-text-dialog :header "Goto file and line"
                                           :body   "<classpath-file-path>:<line>"
@@ -263,6 +275,8 @@
         config-menu (ui/menu :label "_Config"
                              :items [{:text "Set threads limit"
                                       :on-click (fn [] (ask-and-set-threads-limit))}
+                                     {:text "Set heap limit"
+                                      :on-click (fn [] (ask-and-set-heap-limit))}
                                      {:text "Auto jump to exceptions"
                                       :check-item? true
                                       :checked? (:auto-jump-on-exception? (dbg-state/debugger-config))

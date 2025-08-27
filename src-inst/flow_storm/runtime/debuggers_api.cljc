@@ -385,21 +385,18 @@
   (index-api/stack-for-frame flow-id thread-id fn-call-idx))
 
 (defn set-recording [enable?]
-  (tracer/set-recording enable?)
-  (rt-events/publish-event! (rt-events/make-recording-updated-event enable?)))
+  (tracer/set-recording enable?))
 
 (defn set-multi-timeline-recording [enable?]
-  (tracer/set-multi-timeline-recording enable?)
-  (rt-events/publish-event! (rt-events/make-multi-timeline-recording-updated-event enable?)))
+  (tracer/set-multi-timeline-recording enable?))
 
 (def set-thread-trace-limit tracer/set-thread-trace-limit)
+(def set-heap-limit tracer/set-heap-limit)
 
 (defn toggle-recording []
   (if (tracer/recording?)
-    (do
-      (set-recording false)
-      (set-multi-timeline-recording false))
-    (set-recording true)))
+    (tracer/stop-recording)
+    (tracer/set-recording true)))
 
 (defn toggle-multi-timeline-recording []
   (if (tracer/multi-timeline-recording?)
@@ -613,6 +610,7 @@
          :toggle-multi-timeline-recording toggle-multi-timeline-recording
          :switch-record-to-flow switch-record-to-flow
          :set-thread-trace-limit set-thread-trace-limit
+         :set-heap-limit set-heap-limit
          :ping ping
          #?@(:clj
              [:def-value def-value
@@ -667,13 +665,20 @@
        (let [_ (log "Starting up runtime")
              fn-call-limits (utils/parse-thread-fn-call-limits (System/getProperty "flowstorm.threadFnCallLimits"))
              thread-trace-limit (when-let [limit-prop (System/getProperty "flowstorm.threadTraceLimit")]
-                                  (utils/parse-int limit-prop))]
+                                  (utils/parse-int limit-prop))
+             heap-limit (when-let [limit-prop (System/getProperty "flowstorm.heapLimit")]
+                          (utils/parse-int limit-prop))
+             break-on-limit? (boolean (System/getProperty "flowstorm.throwOnLimit"))]
 
          (when thread-trace-limit
-           (let [break? (boolean (System/getProperty "flowstorm.throwOnThreadLimit"))]
-             (log (utils/format "Limiting threads trace count to %d. Throw on limit %s?" thread-trace-limit break?))
-             (set-thread-trace-limit {:limit thread-trace-limit
-                                      :break? break?})))
+           (log (utils/format "Limiting threads trace count to %d. Throw on limit %s?" thread-trace-limit break-on-limit?))
+           (set-thread-trace-limit {:limit thread-trace-limit
+                                    :break? break-on-limit?}))
+
+         (when heap-limit
+           (log (utils/format "Setting a heap limit of %d MBs" heap-limit))
+           (set-heap-limit {:limit heap-limit
+                            :break? break-on-limit?}))
          
          (tracer/set-recording (if (= (System/getProperty "flowstorm.startRecording") "true") true false))
 
@@ -716,7 +721,7 @@
 
          (when-let [limit-prop (env-prop "flowstorm.threadTraceLimit")]
            (let [thread-trace-limit (utils/parse-int limit-prop)
-                 break? (boolean (env-prop "flowstorm.throwOnThreadLimit"))]
+                 break? (boolean (env-prop "flowstorm.throwOnLimit"))]
              (when thread-trace-limit
                (log (utils/format "Limiting threads trace count to %d. Throw on limit %s?" thread-trace-limit break?))           
                (set-thread-trace-limit {:limit thread-trace-limit

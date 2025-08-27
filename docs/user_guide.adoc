@@ -1792,6 +1792,7 @@ that your process starts running out of heap. This section documents some tools 
 Most of the time, having the recording paused and just enabling it right before executing the action you are interested in is enough, but
 when it isn't, here are some other options.
 
+== Fn call limits
 A common situation is to see some high frequency functions adding a lot of noise to your recordings. For example a MouseMove event processing
 will generate a lot of recordings while you use your app. There are a couple of ways to limit your functions calls by thread. You can identify
 this kind of functions with the <<#_functions_tool,functions tool>>.
@@ -1805,24 +1806,26 @@ to it and all the functions down its callstack.
 You can also modify the limits from your repl, by calling `flow-storm.runtime.indexes.api/[add-fn-call-limit|rm-fn-call-limit|get-fn-call-limits]`.
 In ClojureScript you need to call them via your cljs repl api.
 
-All limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
+These limits are per thread, so when a thread recording is created it will start with the current defined counters, and each time a function gets called
 the counter will decrement. When it reaches zero the function and all functions calls under it will stop being recorded.
 
 When you clear your threads you are also clearing its limit counters, so next time you record something new counters will be initialized from your
 global limits definitions.
 
+== Trace and heap limits
+
 If you are tracing some code that ends up in a infinite loop the debugger will choke on
 too many traces, making everything slow and your only option is probably to restart it.
 
-For preventing this, _FlowStorm_ provides a fuse/breaker, called thread trace limit.
-It is off by default but you can enable it from the Config menu.
+For preventing this, _FlowStorm_ provides a couple of fuse/breakers, on threads trace count and on heap limits.
 
-image::user_guide_images/thread_trace_limit_menu.png[]
+They are off by default but you can enable it from the Config menu.
 
-image::user_guide_images/thread_trace_limit_dialog.png[]
+=== Trace limits
 
-Let's say you added a limit of 1000. If you now run any code that generates more than a 1000 traces FlowStorm will only
-record those first 1000 traces per thread and discard the rest as if recording is off.
+Let's say you added a thread trace limit of 1000. If you now run any code where a thread generates more than a 1000 traces FlowStorm will only
+record those first 1000 traces and then discard the rest as if recording is off for that thread, while it will keep recording threads that haven't
+reached the limit.
 
 Your code will continue execution as normal, which you can break using
 your normal editor breaking commands if its an infinite loop, but now you have recordings to look at what is going on.
@@ -1830,9 +1833,14 @@ your normal editor breaking commands if its an infinite loop, but now you have r
 You can set a limit of 0 to disable it again.
 
 You can set this limits at startup via the JVM options `"-Dflowstorm.threadTraceLimit=1000"` and
-`"-Dflowstorm.throwOnThreadLimit=true"`.
+`"-Dflowstorm.throwOnLimit=true"`.
 
-This is not only useful for infinite loops. It can be used to limit your recordings if you think you can blow up your heap.
+=== Heap limits
+
+Another option is to automatically stop recording when a certain heap limit in megabytes is reached.
+
+This can also be set at startup via the JVM option `"-Dflowstorm.heapLimit=1000"`, which means stop recording
+as soon as we used 1000Mb of heap space.
 
 = Dealing with mutable values
 
@@ -2248,7 +2256,7 @@ and possible values.
 - `-Dflowstorm.fileEditorCommand=emacsclient -n +\<<LINE>>:0 \<<FILE>>`
 - `-Dflowstorm.jarEditorCommand=emacsclient -n +\<<LINE>>:0 \<<JAR>>/\<<FILE>>`
 - `-Dflowstorm.threadTraceLimit=1000`
-- `-Dflowstorm.throwOnThreadLimit=true`
+- `-Dflowstorm.throwOnLimit=true`
 - `-Dflowstorm.autoUpdateUI=false`
 - `-Dflowstorm.callTreeUpdate=false`
 - `-Dflowstorm.uiTimeoutMillis=4000`
@@ -2260,6 +2268,7 @@ and possible values.
 - `-Dclojure.storm.instrumentAutoPrefixes=false`
 - `-Dclojure.storm.instrumentSkipPrefixes[.*]=my-app.too-heavy,my-lib.uninteresting`
 - `-Dclojure.storm.instrumentSkipRegex=.\*test.*`
+- `-Dflowstorm.heapLimit=1000`
 
 == Only ClojureScript 
 

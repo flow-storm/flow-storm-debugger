@@ -107,6 +107,7 @@
   (switch-record-to-flow [_ flow-id])
   (find-fn-call-task [_ fq-fn-call-symb from-idx opts])
   (set-thread-trace-limit [_ limit])
+  (set-heap-limit [_ limit])
 
   (call-by-fn-key [_ fn-key args-vec]))
 
@@ -310,6 +311,9 @@
   (set-thread-trace-limit [_ limit]
     (api-call :local :set-thread-trace-limit [limit]))
 
+  (set-heap-limit [_ limit]
+    (api-call :local :set-heap-limit [limit]))
+
   (call-by-fn-key [_ fn-key args-vec]
     (api-call :local fn-key args-vec)))
 
@@ -492,6 +496,9 @@
 
   (set-thread-trace-limit [_ limit]
     (api-call :remote :set-thread-trace-limit [limit]))
+
+  (set-heap-limit [_ limit]
+    (api-call :remote :set-heap-limit [limit]))
 
   (call-by-fn-key [_ fn-key args-vec]
     (api-call :remote fn-key args-vec))
