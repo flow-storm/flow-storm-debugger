@@ -269,5 +269,4 @@
   (add-frame new-val))
 
 (defn oscilloscope-destroy [{:keys [stop-threads]}]
-  (stop-threads)
-  (println "Scope stopped"))
+  (stop-threads))
