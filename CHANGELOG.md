@@ -6,6 +6,8 @@
         
 ### Changes
 
+    - Update hansel to 0.1.87
+
 ### Bugs fixed
 
 ## 4.5.2 (01-09-2025)
