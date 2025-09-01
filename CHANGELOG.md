@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+        
+### Changes
+
+### Bugs fixed
+
+## 4.5.2 (01-09-2025)
+	
+### New Features
 
     - Added JVM option flowstorm.heapLimit which can be set also from the UI to automatically stop recording when
       the heap reaches the set size in megabytes
