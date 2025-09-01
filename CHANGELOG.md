@@ -10,7 +10,12 @@
 ### Changes
 
     - JVM option flowstorm.throwOnTraceLimit has been renamed to flowstorm.throwOnLimit
+    - Update hansel to 0.1.85
     
+### Bugs fixed
+
+    - Fix exceptions instrumentation in vanilla for non #trace ones
+
 ## 4.5.1 (26-08-2025)
 	
 ### New Features

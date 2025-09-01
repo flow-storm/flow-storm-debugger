@@ -85,7 +85,7 @@
                                :extra {:deps {'org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
                                               'com.cognitect/transit-clj {:mvn/version "1.0.333"}
                                               'com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-                                              'com.github.flow-storm/hansel {:mvn/version "0.1.84"}
+                                              'com.github.flow-storm/hansel {:mvn/version "0.1.85"}
                                               'org.clojure/data.int-map {:mvn/version "1.2.1"}
                                               'amalloy/ring-buffer {:mvn/version "1.3.1"}}
 
