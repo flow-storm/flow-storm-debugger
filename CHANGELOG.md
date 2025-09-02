@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+        
+### Changes
+    
+### Bugs fixed
+
+## 4.5.3 (02-09-2025)
+	
+### New Features
 
     - When starting the ui for remote debugging, when port not provided check .nrepl-port
         
