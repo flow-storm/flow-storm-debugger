@@ -107,7 +107,9 @@
   ;; Initialize the JavaFX toolkit
   (ui-utils/init-toolkit)
 
-  (let [config (merge config (debugger-config))]
+  (let [config (-> config
+                   (update :port #(or % (some-> (slurp ".nrepl-port") Integer/parseInt)))
+                   (merge (debugger-config)))]
 
     (plugins/load-plugins-namespaces config)
 

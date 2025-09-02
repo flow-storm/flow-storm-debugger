@@ -3,6 +3,8 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - When starting the ui for remote debugging, when port not provided check .nrepl-port
         
 ### Changes
 
