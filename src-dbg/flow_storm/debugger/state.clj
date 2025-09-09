@@ -117,7 +117,7 @@
 
 (s/def :ui/selected-font-size-style-idx int?)
 (s/def :ui/selected-theme #{:light :dark})
-(s/def :ui/selected-tool #{:tool-flows :tool-browser :tool-outputs :tool-docs})
+(s/def :ui/selected-tool keyword?)
 (s/def :ui/extra-styles (s/nilable string?))
 (s/def ::ws-ready? boolean?)
 (s/def ::repl-ready? boolean?)

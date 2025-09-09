@@ -35,7 +35,7 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.1"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.2"}}
                    :jvm-opts ["-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentAutoPrefixes=false"
                               "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
