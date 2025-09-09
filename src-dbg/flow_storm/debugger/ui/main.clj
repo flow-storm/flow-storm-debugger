@@ -89,7 +89,7 @@
     box))
 
 (defn update-heap-indicator [{:keys [max-heap-bytes heap-size-bytes heap-free-bytes]}]
-  (when max-heap-bytes
+  (when (pos? max-heap-bytes)
     (ui-utils/run-later
      (let [[^ProgressBar heap-bar] (obj-lookup "heap-bar")
            [heap-max-lbl] (obj-lookup "heap-max-lbl")
