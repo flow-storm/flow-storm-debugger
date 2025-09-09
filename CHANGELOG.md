@@ -8,6 +8,14 @@
     
 ### Bugs fixed
 
+## 4.5.4 (9-09-2025)
+	
+### New Features
+        
+### Changes
+    
+### Bugs fixed
+
     - Fix heap reporting for ClojureScript (where heap data is currently missing)
 
 ## 4.5.3 (02-09-2025)
