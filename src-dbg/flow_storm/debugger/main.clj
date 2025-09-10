@@ -108,71 +108,74 @@
   (ui-utils/init-toolkit)
 
   (let [config (-> config
-                   (update :port #(or % (some-> (slurp ".nrepl-port") Integer/parseInt)))
+                   (update :port (fn [port]
+                                   (or port
+                                       (some-> (try (slurp ".nrepl-port") (catch Exception _))
+                                               Integer/parseInt))))
                    (merge (debugger-config)))]
 
     (plugins/load-plugins-namespaces config)
 
     (if local?
 
-     ;; start components for local debugging
-     (do
-       (state-management/start {:only local-debugger-state-vars
-                                :config config})
-       (ui-main/setup-ui-from-runtime-config)
-       (ui-main/setup-instrumentation-ui))
+      ;; start components for local debugging
+      (do
+        (state-management/start {:only local-debugger-state-vars
+                                 :config config})
+        (ui-main/setup-ui-from-runtime-config)
+        (ui-main/setup-instrumentation-ui))
 
-     ;; else, start components for remote debugging
-     (let [ws-connected? (promise)
-           repl-connected? (promise)
-           fully-started (atom false)
-           signal-ws-connected (fn [conn?]
-                                 (ui-main/set-conn-status-lbl :ws conn?)
-                                 (dbg-state/set-connection-status :ws conn?))
-           signal-repl-connected (fn [conn?]
-                                   (dbg-state/set-connection-status :repl conn?)
-                                   (ui-main/set-conn-status-lbl :repl conn?))]
-       (state-management/start {:only remote-debugger-state-vars
-                                :config (assoc config
-                                               :on-ws-event events-queue/enqueue-event!
-                                               :on-ws-down (fn []
-                                                             (utils/log "WebSocket connection went away")
-                                                             (signal-ws-connected false)
-                                                             (ui-main/clear-ui))
-                                               :on-ws-up (fn [_]
-                                                           (signal-ws-connected true)
-                                                           (deliver ws-connected? true)
+      ;; else, start components for remote debugging
+      (let [ws-connected? (promise)
+            repl-connected? (promise)
+            fully-started (atom false)
+            signal-ws-connected (fn [conn?]
+                                  (ui-main/set-conn-status-lbl :ws conn?)
+                                  (dbg-state/set-connection-status :ws conn?))
+            signal-repl-connected (fn [conn?]
+                                    (dbg-state/set-connection-status :repl conn?)
+                                    (ui-main/set-conn-status-lbl :repl conn?))]
+        (state-management/start {:only remote-debugger-state-vars
+                                 :config (assoc config
+                                                :on-ws-event events-queue/enqueue-event!
+                                                :on-ws-down (fn []
+                                                              (utils/log "WebSocket connection went away")
+                                                              (signal-ws-connected false)
+                                                              (ui-main/clear-ui))
+                                                :on-ws-up (fn [_]
+                                                            (signal-ws-connected true)
+                                                            (deliver ws-connected? true)
 
-                                                           ;; This is kind of hacky but will handle the ClojureScript page reload situation.
-                                                           ;; After a page reload all the runtime part has been restarted, so
-                                                           ;; we can re-init it through the repl and also re-setup the ui with whatever the
-                                                           ;; runtime contains in terms of settings.
-                                                           ;; But we need to skip this the first time the ws connection comes up
-                                                           ;; since maybe the system ins't fully started yet, we maybe don't even have a UI
-                                                           (when @fully-started
-                                                             (when (dbg-state/repl-config)
-                                                               (repl-core/init-repl (dbg-state/env-kind)))
-                                                             (ui-main/setup-ui-from-runtime-config)))
+                                                            ;; This is kind of hacky but will handle the ClojureScript page reload situation.
+                                                            ;; After a page reload all the runtime part has been restarted, so
+                                                            ;; we can re-init it through the repl and also re-setup the ui with whatever the
+                                                            ;; runtime contains in terms of settings.
+                                                            ;; But we need to skip this the first time the ws connection comes up
+                                                            ;; since maybe the system ins't fully started yet, we maybe don't even have a UI
+                                                            (when @fully-started
+                                                              (when (dbg-state/repl-config)
+                                                                (repl-core/init-repl (dbg-state/env-kind)))
+                                                              (ui-main/setup-ui-from-runtime-config)))
 
-                                               :on-repl-down (fn []
-                                                               (signal-repl-connected false))
-                                               :on-repl-up (fn []
-                                                             (deliver repl-connected? true)
-                                                             (signal-repl-connected true)))})
+                                                :on-repl-down (fn []
+                                                                (signal-repl-connected false))
+                                                :on-repl-up (fn []
+                                                              (deliver repl-connected? true)
+                                                              (signal-repl-connected true)))})
 
-       (reset! fully-started true)
+        (reset! fully-started true)
 
-       ;; if there is a repl config wait for the connection before moving on
-       (when (and (dbg-state/repl-config)
-                  @repl-connected?)
-         (signal-repl-connected true))
+        ;; if there is a repl config wait for the connection before moving on
+        (when (and (dbg-state/repl-config)
+                   @repl-connected?)
+          (signal-repl-connected true))
 
-       ;; once we have both the UI started and the runtime-connected
-       ;; initialize the UI with the info retrieved from the runtime
-       (when @ws-connected?
-         (signal-ws-connected true)
-         (ui-main/setup-ui-from-runtime-config)
-         (ui-main/setup-instrumentation-ui)))))
+        ;; once we have both the UI started and the runtime-connected
+        ;; initialize the UI with the info retrieved from the runtime
+        (when @ws-connected?
+          (signal-ws-connected true)
+          (ui-main/setup-ui-from-runtime-config)
+          (ui-main/setup-instrumentation-ui)))))
 
   ;; for both, local and remote
 

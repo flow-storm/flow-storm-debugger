@@ -8,6 +8,8 @@
     
 ### Bugs fixed
 
+    - Fix .nrepl-port not found exception
+
 ## 4.5.4 (9-09-2025)
 	
 ### New Features
