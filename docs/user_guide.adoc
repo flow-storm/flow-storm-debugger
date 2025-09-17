@@ -2458,7 +2458,7 @@ Jack-in using the `flowstorm` sequence from the menu.
 
 https://github.com/flow-storm/flow-storm-debugger?tab=readme-ov-file#some-demo-videos-newers-at-the-top
 
-= Known limitations
+= Known limitations and issues
 
 == Code with macros that don't preserve meta
 
@@ -2508,6 +2508,25 @@ When you have code like :
 because `l` is a primitive long, the compiler can replace the (zero? l) with intrinsics (LCONST_0, LCMP, IFNE) so the
 (zero? l) isn't a expression anymore, just a statement. In these cases you will see the if test return un-highlighted, but
 you can still tell which branch the code went thru because the chosen branch will be the highlighted one.
+
+== Loading an entire file while recording records some weird code
+
+This is because most editors, (specially via nrepl) eval some other code on your namespace in order to load the
+contents of your file. If that namespace is instrumented this will be also recorded, even when it is probably not
+of your interest.
+This is harmless, just clear your recordings before running and recording anything else.
+
+If you follow the best practice of start recording right before running the stuff you are interested in recording you
+should never see this.
+
+== Macro calls tracing code you don't see on your code
+
+When you are evaluating some code that macroexpands to a (do form-1 ... form-n) the compiler recursively calls eval on the
+sub forms. Because it is tricky in the compiler to tell apart your original source form from the ones the macroexpansion returned
+those form-1 to form-n get instrumented and then traced as if they were on your code.
+
+The tricky part is related to tooling like IDEs sometimes wrapping your forms in some macros that expand to a (do form-1 ... form-n)
+so we can't simply stop instrumenting after that situation.
 
 = Troubleshooting
 

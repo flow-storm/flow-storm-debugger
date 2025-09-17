@@ -832,13 +832,15 @@ pre.rouge {
 </ul>
 </li>
 <li><a href="#_tutorials_and_demos">22. Tutorials and demos</a></li>
-<li><a href="#_known_limitations">23. Known limitations</a>
+<li><a href="#_known_limitations_and_issues">23. Known limitations and issues</a>
 <ul class="sectlevel2">
 <li><a href="#_code_with_macros_that_dont_preserve_meta">23.1. Code with macros that don&#8217;t preserve meta</a></li>
 <li><a href="#_locals_pane_and_mutable_values">23.2. Locals pane and mutable values</a></li>
 <li><a href="#_closed_over_bindings_arent_displayed_in_locals">23.3. Closed over bindings aren&#8217;t displayed in Locals</a></li>
 <li><a href="#_dont_instrument_clojure_core_or_flowstorm_itself">23.4. Don&#8217;t instrument clojure.core or FlowStorm itself</a></li>
 <li><a href="#_if_test_expressions_tracing_with_intrinsics">23.5. IF test expressions tracing with intrinsics</a></li>
+<li><a href="#_loading_an_entire_file_while_recording_records_some_weird_code">23.6. Loading an entire file while recording records some weird code</a></li>
+<li><a href="#_macro_calls_tracing_code_you_dont_see_on_your_code">23.7. Macro calls tracing code you don&#8217;t see on your code</a></li>
 </ul>
 </li>
 <li><a href="#_troubleshooting">24. Troubleshooting</a>
@@ -4776,7 +4778,7 @@ which should open the file at that specific line (useful for long forms).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_known_limitations"><a class="anchor" href="#_known_limitations"></a><a class="link" href="#_known_limitations">23. Known limitations</a></h2>
+<h2 id="_known_limitations_and_issues"><a class="anchor" href="#_known_limitations_and_issues"></a><a class="link" href="#_known_limitations_and_issues">23. Known limitations and issues</a></h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_code_with_macros_that_dont_preserve_meta"><a class="anchor" href="#_code_with_macros_that_dont_preserve_meta"></a><a class="link" href="#_code_with_macros_that_dont_preserve_meta">23.1. Code with macros that don&#8217;t preserve meta</a></h3>
@@ -4843,6 +4845,31 @@ This can be solved, but it is currently a limitation.</p>
 you can still tell which branch the code went thru because the chosen branch will be the highlighted one.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_loading_an_entire_file_while_recording_records_some_weird_code"><a class="anchor" href="#_loading_an_entire_file_while_recording_records_some_weird_code"></a><a class="link" href="#_loading_an_entire_file_while_recording_records_some_weird_code">23.6. Loading an entire file while recording records some weird code</a></h3>
+<div class="paragraph">
+<p>This is because most editors, (specially via nrepl) eval some other code on your namespace in order to load the
+contents of your file. If that namespace is instrumented this will be also recorded, even when it is probably not
+of your interest.
+This is harmless, just clear your recordings before running and recording anything else.</p>
+</div>
+<div class="paragraph">
+<p>If you follow the best practice of start recording right before running the stuff you are interested in recording you
+should never see this.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_macro_calls_tracing_code_you_dont_see_on_your_code"><a class="anchor" href="#_macro_calls_tracing_code_you_dont_see_on_your_code"></a><a class="link" href="#_macro_calls_tracing_code_you_dont_see_on_your_code">23.7. Macro calls tracing code you don&#8217;t see on your code</a></h3>
+<div class="paragraph">
+<p>When you are evaluating some code that macroexpands to a (do form-1 &#8230;&#8203; form-n) the compiler recursively calls eval on the
+sub forms. Because it is tricky in the compiler to tell apart your original source form from the ones the macroexpansion returned
+those form-1 to form-n get instrumented and then traced as if they were on your code.</p>
+</div>
+<div class="paragraph">
+<p>The tricky part is related to tooling like IDEs sometimes wrapping your forms in some macros that expand to a (do form-1 &#8230;&#8203; form-n)
+so we can&#8217;t simply stop instrumenting after that situation.</p>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -4905,7 +4932,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-09-10 11:47:44 -0300
+Last updated 2025-09-17 10:24:23 -0300
 </div>
 </div>
 </body>
