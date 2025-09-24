@@ -6,6 +6,8 @@
         
 ### Changes
     
+    - Upgrading hansel to 0.1.90 to improve objects methods names tracing 
+    
 ### Bugs fixed
     
 ## 4.5.5 (10-09-2025)

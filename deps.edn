@@ -5,7 +5,7 @@
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-        com.github.flow-storm/hansel {:mvn/version "0.1.87"}
+        com.github.flow-storm/hansel {:mvn/version "0.1.90"}
 
         org.openjfx/javafx-controls {:mvn/version "21.0.4-ea+1"}
         org.openjfx/javafx-base {:mvn/version "21.0.4-ea+1"}
@@ -54,7 +54,6 @@
                  :jvm-opts ["-Dvisualvm.display.name=FlowStorm"
                             ;; for the profilers
                             "-Djdk.attach.allowAttachSelf" "-XX:+UnlockDiagnosticVMOptions" "-XX:+DebugNonSafepoints"]}
-           :jvm-debugger {:jvm-opts ["-Xdebug" "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"]}
 
            :build {:extra-deps {io.github.clojure/tools.build {:git/tag "v0.9.6" :git/sha "8e78bcc"}}
                    :ns-default build
