@@ -282,7 +282,7 @@ Then, modify your `deps.edn` dev profile to look like this :
         :extra-deps {thheller/shadow-cljs {:mvn/version "3.1.1" 
                                            :exclusions [org.clojure/clojurescript]}
                      ;; bring ClojureScriptStorm
-                     com.github.flow-storm/clojurescript {:mvn/version "1.12.42-0"}
+                     com.github.flow-storm/clojurescript {:mvn/version "1.12-42-1"}
                      ;; add FlowStorm runtime dep
                      com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.6"}}
        :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"
