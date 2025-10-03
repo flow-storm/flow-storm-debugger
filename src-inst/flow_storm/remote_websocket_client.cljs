@@ -51,7 +51,7 @@
     (let [debugger-host (or debugger-host "localhost")
           debugger-ws-port (or debugger-ws-port 7722)
           uri-str (utils/format "ws://%s:%s/ws" debugger-host debugger-ws-port)
-          _ (println "About to connect to " uri-str)
+          _ (log (str "About to connect to " uri-str))
           ws-client (try
                       (web-socket-client-object uri-str)
                       (catch js/Error e

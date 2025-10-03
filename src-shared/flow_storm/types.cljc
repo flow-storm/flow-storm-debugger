@@ -1,5 +1,5 @@
 (ns flow-storm.types
-  (:require [flow-storm.utils :as utils]))
+  (:require [flow-storm.utils :as utils :refer [log-error]]))
 
 (defrecord ValueRef [vid])
 
@@ -18,10 +18,10 @@
                               *print-meta* false]
                       (pr-str v))
                     #?(:clj (catch Exception e
-                              (println (utils/format "Couldn't build preview for type %s because of %s" (type v) (.getMessage e)))
+                              (log-error (utils/format "Couldn't build preview for type %s because of %s" (type v) (.getMessage e)) e)
                               (str (type v)))
                        :cljs (catch js/Error e
-                               (println (utils/format "Couldn't build preview for type %s because of %s" (type v) (.-message e)))
+                               (log-error (utils/format "Couldn't build preview for type %s because of %s" (type v) (.-message e)) e)
                                (str (type v)))))}))
 
 (defn vref-preview [vref]

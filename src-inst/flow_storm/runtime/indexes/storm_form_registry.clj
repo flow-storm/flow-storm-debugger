@@ -1,5 +1,6 @@
 (ns flow-storm.runtime.indexes.storm-form-registry
-  (:require [flow-storm.runtime.indexes.protocols :as index-protos])
+  (:require [flow-storm.runtime.indexes.protocols :as index-protos]
+            [flow-storm.utils :refer [log-error]])
   (:import [clojure.storm FormRegistry]))
 
 (defrecord StormFormRegistry []
@@ -11,7 +12,7 @@
   (get-form [_ form-id]
     (if form-id
       (FormRegistry/getForm form-id)
-      (println "ERROR : can't get form for id null")))
+      (log-error "ERROR : can't get form for id null")))
 
   (start-form-registry [this] this)
   (stop-form-registry [_]))

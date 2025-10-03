@@ -30,7 +30,7 @@
   (let [debugger-host (or debugger-host "localhost")
         debugger-ws-port (or debugger-ws-port 7722)
         uri-str (format "ws://%s:%s/ws" debugger-host debugger-ws-port)
-        _ (println "About to connect to " uri-str)
+        _ (log (str "About to connect to " uri-str))
         ^WebSocketClient ws-client (proxy
                                        [WebSocketClient]
                                        [(URI. uri-str)]

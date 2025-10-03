@@ -2299,6 +2299,22 @@ If you are using _ClojureStorm_ you can also provide them with :
    
 You can overwrite all the styles defined here https://github.com/flow-storm/flow-storm-debugger/blob/master/resources/flowstorm/styles/styles.css
 
+= Controlling logging
+
+FlowStorm uses JUL (java.util.logging) as the loggging library.
+
+You can configure JUL logging by starting your repl with `-Djava.util.logging.config.file=./logging.properties`
+
+If you need to disable logging you can put this in your `logging.properties` file :
+
+[,text]
+----
+handlers = java.util.logging.ConsoleHandler
+
+flow_storm.level = SEVERE
+clojure.storm.level = SEVERE
+----
+
 = Key bindings
 
 == General

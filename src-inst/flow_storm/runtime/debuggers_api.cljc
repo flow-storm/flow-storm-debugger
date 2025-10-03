@@ -713,7 +713,7 @@
 
          (let [recording? (if (= (env-prop "flowstorm.startRecording") "true") true false)]
            (tracer/set-recording recording?)
-           (println "Recording set to " recording?))
+           (log "Recording set to " recording?))
 
          (let [fn-call-limits (utils/parse-thread-fn-call-limits (env-prop "flowstorm.threadFnCallLimits"))]
            (doseq [[fn-ns fn-name l] fn-call-limits]
@@ -797,7 +797,7 @@
                                       serializer/serialize
                                       remote-websocket-client/send)))
 
-                               (println "Debugger connection ready. Events dispatch function set and pending events pushed."))))
+                               (log "Debugger connection ready. Events dispatch function set and pending events pushed."))))
        (catch :default e (utils/log-error "Couldn't connect to the debugger" e))))
    
 )

@@ -9,7 +9,8 @@
                     [clojure.string :as str]))
   (:refer-clojure :exclude [format update-values update-keys])
   #?(:clj (:import [java.io File LineNumberReader InputStreamReader PushbackReader]
-                   [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap])))
+                   [clojure.lang RT IEditableCollection PersistentArrayMap PersistentHashMap]
+                   [java.util.logging Logger Level])))
 
 (defn disable-from-profile [profile]
   (case profile
@@ -93,24 +94,21 @@
                                     :max-uuid)]
                    (aset o flow-storm-uuid-prop next-uid))))))
 
-#?(:clj (def out-print-writer *out*))
+#?(:clj
+   (def logger (Logger/getLogger "flow_storm")))
 
 #?(:clj
    (defn log [& msgs]
-     (binding [*out* out-print-writer]
-       (apply println msgs)))
+     (.log logger Level/INFO (apply str msgs)))
    :cljs
    (defn log [& msgs]
      (apply js/console.log msgs)))
 
 #?(:clj
    (defn log-error
-     ([msg] (binding [*out* *err*]
-              (println msg)))
+     ([msg] (.log logger Level/WARNING msg))
      ([msg ^Exception e]
-      (binding [*out* *err*]
-        (println msg)
-        (.printStackTrace e))))
+      (.log logger Level/WARNING msg e)))
    :cljs
    (defn log-error
      ([msg] (js/console.error msg))

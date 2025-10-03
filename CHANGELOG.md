@@ -5,6 +5,8 @@
 ### New Features
         
 ### Changes
+
+    - Use java.util.logging to log, so it can be disabled with logging.properties
             
 ### Bugs fixed
 
