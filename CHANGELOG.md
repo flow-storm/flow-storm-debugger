@@ -5,6 +5,14 @@
 ### New Features
         
 ### Changes
+            
+### Bugs fixed
+
+## 4.5.7 (03-10-2025)
+	
+### New Features
+        
+### Changes
 
     - Use java.util.logging to log, so it can be disabled with logging.properties
             
