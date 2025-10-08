@@ -1,7 +1,7 @@
 (ns user
   (:import [javafx.application Platform]
            [com.sun.javafx.logging PlatformLogger$Level]
-           [flow-storm.utils :refer [log]]
-           [com.sun.javafx.util Logging]))
+           [com.sun.javafx.util Logging])
+  (:require [flow-storm.utils :refer [log]]))
 
 (Platform/startup (fn [] (log "JavaFX toolkit initialized")))

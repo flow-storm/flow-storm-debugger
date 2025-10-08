@@ -67,7 +67,6 @@
       (log "System is running, stopping it first ...")
       (fs-api/stop))
     (reload/reload)
-    (alter-var-root #'utils/out-print-writer (constantly *out*))
     (log "Reload done")))
 
 (defn run-tester-1 []
