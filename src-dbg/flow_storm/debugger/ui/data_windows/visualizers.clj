@@ -103,10 +103,10 @@
                                                        (ui-utils/set-text  nil)
                                                        (ui-utils/set-graphic (ui/label :class "link-lbl" :text prev))))
                                    :on-click (fn [_ sel-items _]
-                                               (let [{:keys [prev ref]} (first sel-items)
-                                                     extras {:dw-id dw-id
-                                                             :stack-key prev}]
-                                                 (runtime-api/data-window-push-val-data rt-api dw-id ref extras))))
+                                               (when-let [{:keys [prev ref]} (first sel-items)]
+                                                 (runtime-api/data-window-push-val-data rt-api dw-id ref
+                                                                                        {:dw-id dw-id
+                                                                                         :stack-key prev}))))
 
                      more-btn (ui/button :label "More")
                      build-and-add-page (fn [{:keys [paged-seq/page-refs paged-seq/next-ref]}]
