@@ -7,6 +7,14 @@
 ### Changes
             
 ### Bugs fixed
+    
+## 4.5.8 (13-10-2025)
+	
+### New Features
+        
+### Changes
+            
+### Bugs fixed
 
     - Fix seqable visualizer when clicking on empty rows
 
