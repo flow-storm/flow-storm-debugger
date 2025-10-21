@@ -259,7 +259,7 @@ First, make your shadow-cljs.edn looks something like this :
 
 [%nowrap,clojure]
 ----
-{:deps {:aliases [:dev]}
+{:deps {:aliases [:1.12-cljs-storm]}
  :nrepl {:port 9000}
  ... 
  :builds
@@ -268,7 +268,7 @@ First, make your shadow-cljs.edn looks something like this :
                       :http-port 8021}}}}
 ----
 
-So, the important parts are: you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+So, the important parts are: you need to tell shadow to apply your deps.edn :1.12-cljs-storm alias, set up a nrepl port,
 and also add `flow-storm.storm-preload` to your preloads. If you have other preloads make sure `flow-storm.storm-preload`
 is the first one.
 
@@ -278,24 +278,26 @@ Then, modify your `deps.edn` dev profile to look like this :
 ----
 {...
  :aliases
- {:dev {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
-        :extra-deps {thheller/shadow-cljs {:mvn/version "3.1.1" 
-                                           :exclusions [org.clojure/clojurescript]}
-                     ;; bring ClojureScriptStorm
-                     com.github.flow-storm/clojurescript {:mvn/version "1.12-42-1"}
-                     ;; add FlowStorm runtime dep
-                     com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.8"}}
-       :jvm-opts ["-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"
-                   "-Dcljs.storm.instrumentEnable=true"
-                   "-Dflowstorm.startRecording=false"]}}}
+ ;; this alias can be defined globally in your ~/.clojure/deps.edn so you don't have to modify this file in your project
+ {:1.12-cljs-storm
+    {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
+     :extra-deps {thheller/shadow-cljs {:mvn/version "3.1.1" 
+                                        :exclusions [org.clojure/clojurescript]}
+                  ;; bring ClojureScriptStorm
+                  com.github.flow-storm/clojurescript {:mvn/version "1.12-42-2"}
+                  ;; add FlowStorm runtime dep
+                  com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.8"}}}}}
 ----
 
 There are lots of things going on there, but the main ones are: disabling the official compiler, adding
 _ClojureScriptStorm_ and _FlowStorm_ dependencies, and then configuring what you want _ClojureScriptStorm_ to automatically
 instrument.
 
-It is important to configure what namespaces you want to instrument, and you do this by setting the
-`cljs.storm.instrumentOnlyPrefixes` jvm property.
+By default the JVM property `cljs.storm.instrumentAutoPrefixes` is true so all your project top level namespaces
+will be instrumented automatically.
+
+If you need to set that property to false it is important to configure what namespaces you want to instrument,
+and you do this by setting the `cljs.storm.instrumentOnlyPrefixes` jvm property.
 
 This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
 `cljs.storm.instrumentOnlyPrefixes=org.my-app,org.my-lib,hiccup`
@@ -2274,6 +2276,7 @@ and possible values.
 
 - `-Dcljs.storm.instrumentEnable=true`
 - `-Dcljs.storm.instrumentOnlyPrefixes=ns-prefix1,ns-prefix2`
+- `-Dcljs.storm.instrumentAutoPrefixes=false`
 - `-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib`
 - `-Dcljs.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting`
 

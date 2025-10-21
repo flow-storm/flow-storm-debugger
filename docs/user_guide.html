@@ -1235,7 +1235,7 @@ This is because there is currently no way to swap the ClojureScript compiler in 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:deps</span><span class="w"> </span><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">[</span><span class="no">:dev</span><span class="p">]}</span><span class="w">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="no">:deps</span><span class="w"> </span><span class="p">{</span><span class="no">:aliases</span><span class="w"> </span><span class="p">[</span><span class="no">:1.12-cljs-storm</span><span class="p">]}</span><span class="w">
  </span><span class="no">:nrepl</span><span class="w"> </span><span class="p">{</span><span class="no">:port</span><span class="w"> </span><span class="mi">9000</span><span class="p">}</span><span class="w">
  </span><span class="n">...</span><span class="w">
  </span><span class="no">:builds</span><span class="w">
@@ -1245,7 +1245,7 @@ This is because there is currently no way to swap the ClojureScript compiler in 
 </div>
 </div>
 <div class="paragraph">
-<p>So, the important parts are: you need to tell shadow to apply your deps.edn dev alias, set up a nrepl port,
+<p>So, the important parts are: you need to tell shadow to apply your deps.edn :1.12-cljs-storm alias, set up a nrepl port,
 and also add <code>flow-storm.storm-preload</code> to your preloads. If you have other preloads make sure <code>flow-storm.storm-preload</code>
 is the first one.</p>
 </div>
@@ -1256,16 +1256,15 @@ is the first one.</p>
 <div class="content">
 <pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">{</span><span class="n">...</span><span class="w">
  </span><span class="no">:aliases</span><span class="w">
- </span><span class="p">{</span><span class="no">:dev</span><span class="w"> </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojurescript</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; disable the official compiler</span><span class="w">
-        </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.1.1"</span><span class="w">
-                                           </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
-                     </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
-                     </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12-42-1"</span><span class="p">}</span><span class="w">
-                     </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
-                     </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.5.8"</span><span class="p">}}</span><span class="w">
-       </span><span class="no">:jvm-opts</span><span class="w"> </span><span class="p">[</span><span class="s">"-Dcljs.storm.instrumentOnlyPrefixes=your-app-base-ns"</span><span class="w">
-                   </span><span class="s">"-Dcljs.storm.instrumentEnable=true"</span><span class="w">
-                   </span><span class="s">"-Dflowstorm.startRecording=false"</span><span class="p">]}}}</span></code></pre>
+ </span><span class="c1">;; this alias can be defined globally in your ~/.clojure/deps.edn so you don't have to modify this file in your project</span><span class="w">
+ </span><span class="p">{</span><span class="no">:1.12-cljs-storm</span><span class="w">
+    </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojurescript</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; disable the official compiler</span><span class="w">
+     </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.1.1"</span><span class="w">
+                                        </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
+                  </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
+                  </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12-42-2"</span><span class="p">}</span><span class="w">
+                  </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
+                  </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.5.8"</span><span class="p">}}}}}</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1274,8 +1273,12 @@ is the first one.</p>
 instrument.</p>
 </div>
 <div class="paragraph">
-<p>It is important to configure what namespaces you want to instrument, and you do this by setting the
-<code>cljs.storm.instrumentOnlyPrefixes</code> jvm property.</p>
+<p>By default the JVM property <code>cljs.storm.instrumentAutoPrefixes</code> is true so all your project top level namespaces
+will be instrumented automatically.</p>
+</div>
+<div class="paragraph">
+<p>If you need to set that property to false it is important to configure what namespaces you want to instrument,
+and you do this by setting the <code>cljs.storm.instrumentOnlyPrefixes</code> jvm property.</p>
 </div>
 <div class="paragraph">
 <p>This is a comma separated list of namespaces prefixes, you normally want your app namespaces plus some libraries, like :
@@ -4460,6 +4463,9 @@ and possible values.</p>
 <p><code>-Dcljs.storm.instrumentOnlyPrefixes=ns-prefix1,ns-prefix2</code></p>
 </li>
 <li>
+<p><code>-Dcljs.storm.instrumentAutoPrefixes=false</code></p>
+</li>
+<li>
 <p><code>-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib</code></p>
 </li>
 <li>
@@ -4955,7 +4961,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-10-13 11:35:50 -0300
+Last updated 2025-10-21 10:19:19 -0300
 </div>
 </div>
 </body>
