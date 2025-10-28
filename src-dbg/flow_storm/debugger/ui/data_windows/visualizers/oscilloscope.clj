@@ -26,11 +26,12 @@
 
   (put-sample [_ obj]
     (.lock ^ReentrantLock lock)
-    (when (>= write-head limit) (set! write-head 0))
     (aset ^objects arr write-head obj)
     (set! min-mag (min min-mag (sample-chan-1 obj) (sample-chan-2 obj)))
     (set! max-mag (max max-mag (sample-chan-1 obj) (sample-chan-2 obj)))
-    (set! write-head (inc write-head))
+    (set! write-head (if (< write-head limit)
+                       (inc write-head)
+                       0))
     (.unlock ^ReentrantLock lock))
 
   (get-samples [_]
@@ -45,10 +46,9 @@
 
   (reset-limit [_ l]
     (.lock ^ReentrantLock lock)
-    (set! limit (max (/ (count arr) 1000) (min l (count arr))))
+    (set! limit (min l (count arr)))
     (set! write-head 0)
-    (.unlock ^ReentrantLock lock)
-    )
+    (.unlock ^ReentrantLock lock))
 
   (get-limit [_] limit))
 
@@ -79,7 +79,8 @@
 
 (defn needed-window-size [frames-samp-rate nanos-per-div divisions]
   (let [nanos-per-sample (/ 1e9 frames-samp-rate)]
-    (* (/ nanos-per-div nanos-per-sample)  divisions)))
+    (int (* (/ nanos-per-div nanos-per-sample)  divisions))))
+
 
 (def grid-vert-divs 10)
 (def grid-horiz-divs 7)
@@ -197,7 +198,6 @@
                                             selected-nanos
                                             grid-vert-divs)
                                  capture-samples (max (min needed-ws max-capture-size) 0)]
-
                              (reset-limit samples-ring capture-samples)
                              (ui-utils/set-text samp-rate-lbl (str curr-samp-rate " samps/sec"))
                              (ui-utils/set-text capture-samples-lbl (str "Samples:" capture-samples))
@@ -205,7 +205,13 @@
                              (ui-utils/set-text units-per-vert-div-lbl (str "V: " (get amp-per-div @*amp-per-div-idx)))))
         add-frame (fn add-frame [frame]
                     (when @*capturing
-                      (reset! *curr-samp-rate (frame-samp-rate frame))
+                      ;; allow for sample rates to change between frames
+                      (let [frame-rate (frame-samp-rate frame)
+                            curr-rate @*curr-samp-rate]
+                        (when-not (= curr-rate frame-rate)
+                          (reset! *curr-samp-rate (frame-samp-rate frame))
+                          (refresh-settings)))
+
                       (let [samples (frame-samples frame)
                             samples-cnt (count samples)]
                         (loop [i 0]

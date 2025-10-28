@@ -7,6 +7,8 @@
 ### Changes
             
 ### Bugs fixed
+
+    - Fixing oscilloscope
     
 ## 4.5.8 (13-10-2025)
 	
