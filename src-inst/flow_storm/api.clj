@@ -381,11 +381,11 @@
   ch1-f and ch2-f are functions of one argument, a snapshot of the ref, that will determine the values
   of the two scope channels."
 
-  [*ref ch1-f ch2-f {:keys [samp-rate dw-key] :or {samp-rate 10e3, dw-key :scope-probe}}]
+  [*ref ch1-f ch2-f {:keys [samp-rate dw-key] :or {samp-rate 200, dw-key :scope-probe}}]
   (data-window-push-val dw-key (reify rt-values/ScopeFrameP
                                  (frame-samp-rate [_] samp-rate)
                                  (frame-samples [_])))
-  (let [frame-size 4096
+  (let [frame-size 32
         sample-nanos (/ 1e9 samp-rate)
         samp-thread (doto (Thread.
                            (fn []
@@ -405,10 +405,9 @@
                                            now (System/nanoTime)
                                            delta (- now last-sample-nanos)
                                            sync-to-samp-rate-nanos (- sample-nanos delta)
-                                           sleep-millis (long (quot sync-to-samp-rate-nanos 1e6))
-                                           sleep-nanos (long (rem sync-to-samp-rate-nanos 1e6))]
-                                       (when (pos? sync-to-samp-rate-nanos)
-                                         (Thread/sleep sleep-millis sleep-nanos))
+                                           sleep-millis (long (quot sync-to-samp-rate-nanos 1e6))]
+                                       (when (pos? sleep-millis)
+                                         (Thread/sleep sleep-millis))
                                        (recur now
                                               (conj! frame-samples samp))))))
                                (catch Exception e
