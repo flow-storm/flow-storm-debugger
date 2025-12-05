@@ -281,10 +281,10 @@ Then, modify your `deps.edn` dev profile to look like this :
  ;; this alias can be defined globally in your ~/.clojure/deps.edn so you don't have to modify this file in your project
  {:1.12-cljs-storm
     {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
-     :extra-deps {thheller/shadow-cljs {:mvn/version "3.1.1" 
+     :extra-deps {thheller/shadow-cljs {:mvn/version "3.3.2" 
                                         :exclusions [org.clojure/clojurescript]}
                   ;; bring ClojureScriptStorm
-                  com.github.flow-storm/clojurescript {:mvn/version "1.12-42-2"}
+                  com.github.flow-storm/clojurescript {:mvn/version "1.12.116-2"}
                   ;; add FlowStorm runtime dep
                   com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}}}
 ----
