@@ -29,7 +29,7 @@ FlowStorm latest stable releases :
 ClojureStorm latest stable releases : 
 
 - Clojure 1.12
-  - `[com.github.flow-storm/clojure "1.12.3-4"]`
+  - `[com.github.flow-storm/clojure "1.12.4"]`
 - Clojure 1.11
   - `[com.github.flow-storm/clojure "1.11.4-10"]`
 
