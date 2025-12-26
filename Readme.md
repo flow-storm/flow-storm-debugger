@@ -36,7 +36,7 @@ ClojureStorm latest stable releases :
 ClojureScriptStorm latest stable releases : 
 
 - ClojureScript 1.12.116
-  - `[com.github.flow-storm/clojurescript "1.12.134-1"]`
+  - `[com.github.flow-storm/clojurescript "1.12.134-2"]`
 - ClojureScript 1.11.132
   - `[com.github.flow-storm/clojurescript "1.11.132-9"]`
 

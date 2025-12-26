@@ -284,7 +284,7 @@ Then, modify your `deps.edn` dev profile to look like this :
      :extra-deps {thheller/shadow-cljs {:mvn/version "3.3.4" 
                                         :exclusions [org.clojure/clojurescript]}
                   ;; bring ClojureScriptStorm
-                  com.github.flow-storm/clojurescript {:mvn/version "1.12.134-1"}
+                  com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"}
                   ;; add FlowStorm runtime dep
                   com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}}}
 ----
@@ -334,14 +334,14 @@ To compile instrumented files :
 
 [%nowrap,bash]
 ----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
 ----
 
 To run a repl that instrument everything under org.foo :
 
 [%nowrap,bash]
 ----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
+clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
 ----
 
 Then run the _FlowStorm_ UI :
