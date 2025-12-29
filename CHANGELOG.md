@@ -8,6 +8,8 @@
 
 ### Bugs fixed
 
+    - Fix multi thread timeline viewer running out of colors
+
 ## 4.5.9 (28-10-2025)
 	
 ### New Features

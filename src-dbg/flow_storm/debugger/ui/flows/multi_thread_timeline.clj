@@ -70,7 +70,9 @@
                                          color
                                          (let [new-color (first (set/difference thread-possible-colors
                                                                                 (into #{} (vals @thread-selected-colors))))]
-                                           (swap! thread-selected-colors assoc thread-id new-color)
+                                           (swap! thread-selected-colors assoc thread-id (or new-color
+                                                                                             ;; in case we run out of colors
+                                                                                             (first thread-possible-colors)))
                                            new-color)))]
                     (events-queue/add-dispatch-fn
                      :tote-timeline
