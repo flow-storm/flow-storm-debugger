@@ -1262,7 +1262,7 @@ is the first one.</p>
      </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.3.4"</span><span class="w">
                                         </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
                   </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
-                  </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.134-2"</span><span class="p">}</span><span class="w">
+                  </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.134-3"</span><span class="p">}</span><span class="w">
                   </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
                   </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.5.9"</span><span class="p">}}}}}</span></code></pre>
 </div>
@@ -1328,23 +1328,20 @@ still make that work by wrapping the expression on a fn and immediately calling 
 <p>You can use <em>FlowStorm</em> and <em>ClojureScriptStorm</em> with cljs.main.</p>
 </div>
 <div class="paragraph">
-<p>To compile instrumented files :</p>
+<p>The easiest way to try it is just by starting a repl, like this :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--compile</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>cljs.user <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload]}'</span> <span class="nt">--repl</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To run a repl that instrument everything under org.foo :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>org.foo <span class="nt">-J-Dcljs</span>.storm.instrumentEnable<span class="o">=</span><span class="nb">true</span> <span class="nt">-Sdeps</span> <span class="s1">'{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload] :main org.foo.core}'</span> <span class="nt">--repl</span></code></pre>
-</div>
+<p>If you run the command above you are running cljs.main --repl which will start a ClojureScript repl on
+your terminal and open a browser connected to it. You runtime will also start with FlowStorm preloaded and everything under <code>cljs.user</code>
+is going to be instrumented.</p>
 </div>
 <div class="paragraph">
-<p>Then run the <em>FlowStorm</em> UI :</p>
+<p>Then on a different terminal run the <em>FlowStorm</em> UI :</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1353,6 +1350,23 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="paragraph">
 <p>And now refresh your browser page so your browser app connects to the UI.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Limitations</div>
+<div class="paragraph">
+<p>There are some small limitations like not being able to modify instrumentation from the UI without restarting the repl.
+This is because the <em>FlowStorm</em> UI needs to also connect via nrepl to JVM process running the compiler, which isn&#8217;t available
+when running cljs.main.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -4961,7 +4975,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-12-26 10:22:23 -0300
+Last updated 2025-12-31 10:43:53 -0300
 </div>
 </div>
 </body>

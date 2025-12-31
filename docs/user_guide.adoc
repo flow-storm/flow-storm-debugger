@@ -284,7 +284,7 @@ Then, modify your `deps.edn` dev profile to look like this :
      :extra-deps {thheller/shadow-cljs {:mvn/version "3.3.4" 
                                         :exclusions [org.clojure/clojurescript]}
                   ;; bring ClojureScriptStorm
-                  com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"}
+                  com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"}
                   ;; add FlowStorm runtime dep
                   com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}}}
 ----
@@ -330,21 +330,18 @@ still make that work by wrapping the expression on a fn and immediately calling 
 
 You can use _FlowStorm_ and _ClojureScriptStorm_ with cljs.main.
 
-To compile instrumented files :
+The easiest way to try it is just by starting a repl, like this :
 
 [%nowrap,bash]
 ----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --compile
+clj -Sforce -J-Dcljs.storm.instrumentOnlyPrefixes=cljs.user -Sdeps '{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload]}' --repl
 ----
 
-To run a repl that instrument everything under org.foo :
+If you run the command above you are running cljs.main --repl which will start a ClojureScript repl on
+your terminal and open a browser connected to it. You runtime will also start with FlowStorm preloaded and everything under `cljs.user`
+is going to be instrumented.
 
-[%nowrap,bash]
-----
-clj -J-Dcljs.storm.instrumentOnlyPrefixes=org.foo -J-Dcljs.storm.instrumentEnable=true -Sdeps '{:paths ["src"] :deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-2"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.5.9"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload] :main org.foo.core}' --repl
-----
-
-Then run the _FlowStorm_ UI :
+Then on a different terminal run the _FlowStorm_ UI :
 
 [%nowrap,bash]
 ----
@@ -352,6 +349,14 @@ clj -Sforce -Sdeps '{:deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "
 ----
 
 And now refresh your browser page so your browser app connects to the UI.
+
+[NOTE]
+.Limitations
+====
+There are some small limitations like not being able to modify instrumentation from the UI without restarting the repl.
+This is because the _FlowStorm_ UI needs to also connect via nrepl to JVM process running the compiler, which isn't available
+when running cljs.main.
+====
 
 === ClojureScript vanilla FlowStorm
 
