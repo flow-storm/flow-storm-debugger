@@ -9,6 +9,7 @@
 ### Bugs fixed
 
     - Fix multi thread timeline viewer running out of colors
+    - Fix flow-storm.runtime.indexes/detailed-total-order-timeline
 
 ## 4.5.9 (28-10-2025)
 	

@@ -914,9 +914,17 @@
   (index-protos/total-order-timeline flow-thread-registry flow-id))
 
 (defn detailed-total-order-timeline [flow-id]
-  (let [timeline (total-order-timeline flow-id)]
+  (let [timeline (total-order-timeline flow-id)
+        details-mapper (total-order-timeline/make-detailed-timeline-mapper forms-registry)]
     (into []
-          (keep (total-order-timeline/make-detailed-timeline-mapper forms-registry))
+          (map (fn [tote]
+                 (let [th-tl (index-protos/tote-thread-timeline tote)
+                       th-tl-idx (index-protos/tote-thread-timeline-idx tote)
+                       th-id (index-protos/thread-id th-tl th-tl-idx)
+                       th-entry (get th-tl th-tl-idx)]
+                   (details-mapper th-id
+                                   th-tl-idx
+                                   th-entry))))
           timeline)))
 
 (defn make-thread-prints-keeper [printers]
