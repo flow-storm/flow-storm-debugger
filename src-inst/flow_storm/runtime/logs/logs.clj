@@ -13,9 +13,9 @@
 ;; TODOs
 ;;
 ;; - [X] Detect facades, backends and bridges presence
-;; - [ ] Complete backends levels
-;; - [ ] Complete backends config files
-;; - [ ] Add backends config files detection
+;; - [X] Complete backends and facades levels
+;; - [X] Complete backends config files
+;; - [X] Add backends config files detection
 ;; - [ ] Make printer fns for all supported facades
 ;; - [ ] Create UI tab
 ;; - [ ] Display graph
@@ -27,16 +27,30 @@
 
 (defn detect-systems []
   (let [detect (fn [m]
-                 (filter
-                  (fn [{:keys [present?]}] (present?))
+                 (keep
+                  (fn [{:keys [id present?]}]
+                    (when (present?)
+                      id))
                   (vals m)))]
     {:facades  (detect facades/facades)
      :bridges  (detect bridges/bridges)
      :backends (detect backends/backends)}))
 
+(defn add-config-resources [systems]
+  (let [configs-found (reduce (fn [acc back-key]
+                                (let [back-res (->> (get-in backends/backends [back-key :config-resources])
+                                                    (keep log-utils/resource))]
+                                  (if (seq back-res)
+                                    (assoc acc back-key back-res)
+                                    acc)))
+                              {}
+                              (:backends systems))]
+    (assoc systems :backends-configs-found configs-found)))
+
 (comment
 
-  (detect-systems)
+  (->> (detect-systems)
+       add-config-resources)
   )
 (defn- first-resource [& names]
   (some resource names))
