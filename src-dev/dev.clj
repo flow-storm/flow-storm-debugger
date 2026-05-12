@@ -27,7 +27,8 @@
             [clojure.spec.alpha :as s]
             [flow-storm.runtime.indexes.protocols :as index-protos]
             [flow-storm.debugger.ui.components :as ui]
-            [flow-storm.runtime.values :as rt-values :refer [ScopeFrameP ScopeFrameSampleP]]))
+            [flow-storm.runtime.values :as rt-values :refer [ScopeFrameP ScopeFrameSampleP]]
+            [flow-storm.runtime.logs.logs :as logs]))
 
 (set! *warn-on-reflection* true)
 

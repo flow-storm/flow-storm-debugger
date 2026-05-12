@@ -9,19 +9,30 @@
           (.getResource name)
           str))
 
-(defn call-static [class-name method-name & args]
-  (let [cls (Class/forName class-name)
-        methods (filter #(= method-name (.getName %)) (.getMethods cls))
-        m (first (filter #(= (count args) (count (.getParameterTypes %))) methods))]
-    (when-not m
+(defn find-method [clazz method-name args]
+  (let [methods (filter #(and (= method-name (.getName %))
+                              (= (count args) (count (.getParameterTypes %))))
+                        (.getMethods clazz))
+        m (if (= (count methods) 1)
+            (first methods)
+            (if-let [args-types (-> args meta :args-types)]
+              (some (fn [mm]
+                      (when (= args-types (mapv #(.getName %) (.getParameterTypes mm)))
+                        mm))
+                    methods)
+              (throw (ex-info "More than one method for that arity count, provide :args-types meta on the args vector, like ^{:args-types [\"java.lang.String\"]} [\"hello\"]" {:methods methods}))))]
+    (if-not m
       (throw (ex-info "No matching static method"
-                      {:class class-name :method method-name :argc (count args)})))
-    (.invoke m nil (to-array args))))
+                      {:class clazz :method method-name :argc (count args)}))
+      m)))
 
-(defn call [obj method-name & args]
-  (let [methods (filter #(= method-name (.getName %)) (.getMethods (class obj)))
-        m (first (filter #(= (count args) (count (.getParameterTypes %))) methods))]
-    (when-not m
-      (throw (ex-info "No matching method"
-                      {:class (class obj) :method method-name :argc (count args)})))
-    (.invoke m obj (to-array args))))
+(defn call-static [class-name method-name args]
+  (let [cls (Class/forName class-name)]
+    (.invoke (find-method (Class/forName class-name) method-name args)
+             nil
+             (to-array args))))
+
+(defn call [obj method-name args]
+  (.invoke (find-method (class obj) method-name args)
+           obj
+           (to-array args)))

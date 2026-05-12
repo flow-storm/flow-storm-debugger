@@ -7,7 +7,7 @@
     :present?  (fn [] (class-exists? "ch.qos.logback.classic.LoggerContext"))
     :root-logger "ch.qos.logback.classic.Logger/ROOT_LOGGER_NAME"
     :levels [:trace :debug :info :warn :error :off]
-    :config-resources ["logback-test.xml" "logback.xml"]}
+    :config-resources ["logback-test.xml" "logback.xml" "logback.configurationFile"]}
 
    :log4j2 ;; :maven "org.apache.logging.log4j/log4j-core"
    {:id :log4j2
@@ -16,7 +16,8 @@
     :config-resources ["log4j2-test.properties" "log4j2-test.yaml"
                        "log4j2-test.yml" "log4j2-test.json" "log4j2-test.jsn"
                        "log4j2-test.xml" "log4j2.properties" "log4j2.yaml"
-                       "log4j2.yml" "log4j2.json" "log4j2.jsn" "log4j2.xml"]}
+                       "log4j2.yml" "log4j2.json" "log4j2.jsn" "log4j2.xml"
+                       "log4j.configurationFile"]}
 
    :jul
    {:id :jul
@@ -28,7 +29,7 @@
    {:id :reload4j
     :present?  (fn [] (class-exists? "org.apache.log4j.Logger"))
     :levels [:all :trace :debug :info :warn :error :fatal :off]
-    :config-resources ["log4j.properties" "log4j.xml"]}
+    :config-resources ["log4j.properties" "log4j.xml" "log4j.configuration"]}
 
    :slf4j ;; :maven "org.slf4j/slf4j-simple"
    {:id :slf4j
@@ -40,4 +41,4 @@
    {:id :tinylog
     :present?  (fn [] (class-exists? "org.tinylog.provider.ProviderRegistry"))
     :levels [:trace :debug :info :warn :error :off]
-    :config-resources ["tinylog.properties"]}})
+    :config-resources ["tinylog.properties" "tinylog.configuration"]}})
