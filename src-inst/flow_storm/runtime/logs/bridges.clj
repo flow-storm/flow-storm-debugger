@@ -11,6 +11,12 @@
     :from :jul
     :to :slf4j}
 
+   :jul->jul
+   {:id :jul->jul
+    :present?  (constantly true)
+    :from :jul
+    :to :jul}
+
    :commons-logging->slf4j ;; :maven "org.slf4j/jcl-over-slf4j"
    {:id :commons-logging->slf4j
     :desc "Replaces Commons Logging so JCL calls route to SLF4J."
@@ -18,7 +24,7 @@
     :from :commons-logging
     :to :slf4j}
 
-   :log4j1->slf4j ;; :maven "org.slf4j/log4j-over-slf4j"
+   :reload4j->slf4j ;; :maven "org.slf4j/log4j-over-slf4j"
    {:id :log4j1->slf4j
     :desc "Implements the Log4j 1.x API and routes calls to SLF4J."
     :present?  (fn [] (class-exists? "org.apache.log4j.Category"))
@@ -38,6 +44,13 @@
     :present?  (fn [] (class-exists? "org.slf4j.jul.JDK14LoggerFactory"))
     :from :slf4j
     :to :jul}
+
+   :slf4j->logback
+   {:id :slf4j->logback
+    :desc "SLF4J provider that routes SLF4J calls to java.util.logging."
+    :present?  (fn [] (class-exists? "ch.qos.logback.classic.spi.LogbackServiceProvider"))
+    :from :slf4j
+    :to :logback}
 
    :slf4j->reload4j ;; :maven "org.slf4j/slf4j-reload4j"
    {:id :slf4j->reload4j

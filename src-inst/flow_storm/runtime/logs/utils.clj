@@ -36,3 +36,12 @@
   (.invoke (find-method (class obj) method-name args)
            obj
            (to-array args)))
+
+(defn class-origin [class-name]
+  (try
+    (some-> (Class/forName class-name)
+            .getProtectionDomain
+            .getCodeSource
+            .getLocation
+            str)
+    (catch Throwable _ nil)))
