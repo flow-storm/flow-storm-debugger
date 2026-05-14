@@ -3,7 +3,8 @@
             [flow-storm.runtime.logs.utils :as log-utils :refer [class-exists?]]
             [flow-storm.runtime.logs.facades :as facades]
             [flow-storm.runtime.logs.backends :as backends]
-            [flow-storm.runtime.logs.bridges :as bridges]))
+            [flow-storm.runtime.logs.bridges :as bridges]
+            [clojure.pprint :as pp]))
 
 ;; Objective
 ;;
@@ -24,6 +25,7 @@
 ;; - [ ] Display found config files content
 ;; - [ ] Figure out how to treat backends like :slf4j-nop
 ;; - [ ] Figure out a way of testing all this, including multi-hops
+;; - [ ] There are backends like reload4j that doesn't have appenders by default, do something about it?
 
 
 (defn- config-resources [systems]
@@ -44,41 +46,77 @@
                       id))
                   (vals m)))
         found-systems {:facades  (detect facades/facades)
-                 :bridges  (detect bridges/bridges)
-                 :backends (detect backends/backends)}
+                       ;; :bridges  (detect bridges/bridges)
+                       :backends (detect backends/backends)}
         backends-configs (config-resources found-systems)]
     (assoc found-systems :backends-configs-found backends-configs)))
 
+(defn log-test [facade-key]
+  (when-let [log-test-fn (-> facades/facades facade-key :log-test-fn)]
+    (log-test-fn "Test mesage")))
 
+
+
+(defn look [fac-k]
+  (println "Systems : ")
+  (pp/pprint (detect-systems))
+  (println)
+  (if-let [back-key ((-> facades/facades fac-k :current-backend-fn))]
+    (let [path (if (= back-key :slf4j)
+                 [fac-k :slf4j ((-> facades/facades :slf4j :current-backend-fn))]
+                 [fac-k back-key])
+          final-back-key (last path)
+          back-root-lvl ((-> backends/backends final-back-key :get-root-level-fn))]
+      (println "Logging path" path)
+      (println "Backend root level :"  back-root-lvl))
+    (println "NO BACKEND DETECTED!!!"))
+  ((-> facades/facades fac-k :log-test-fn) "Hello world"))
 
 
 (comment
 
   (detect-systems)
 
+  (doseq [fk (keys facades/facades)]
+    (let [fac-art (get-in facades/facades [fk :artifact])]
+      (doseq [[bk {:keys [desc needs-artifacts]}] (get-in facades/facades [fk :possible-backends])]
+        (println ";;" fk "->" bk)
+        (when (or fac-art (seq needs-artifacts)) (print ";; "))
+        (when fac-art (print (format "%s {:mvn/version \"RELEASE\"}" fac-art)))
+        (when (seq needs-artifacts)
+          (doseq [a needs-artifacts]
+            (if (symbol? a)
+              (print (format " %s {:mvn/version \"RELEASE\"}" a))
+              (let [[f-or-b k] a]
+                (let [art-symb (case f-or-b
+                                 :facade  (get-in facades/facades [k :artifact])
+                                 :backend (get-in backends/backends [k :artifact]))]
+                  (print (format " %s {:mvn/version \"RELEASE\"}" art-symb)))))))
+        (println)
+        (println))))
 
   (import '[org.apache.commons.logging Log])
 
 
-  ((-> facades/facades  :slf4j :print-test-fn) "Hello world")
+  ((-> facades/facades  :slf4j :log-test-fn) "Hello world")
   ((-> facades/facades  :slf4j :current-backend-fn))
 
-  ((-> facades/facades  :jul :print-test-fn) "Hello world")
+  ((-> facades/facades  :jul :log-test-fn) "Hello world")
   ((-> facades/facades  :jul :current-backend-fn))
 
-  ((-> facades/facades  :commons-logging :print-test-fn) "Hello world")
+  ((-> facades/facades  :commons-logging :log-test-fn) "Hello world")
   ((-> facades/facades  :commons-logging :current-backend-fn))
 
-  ((-> facades/facades  :log4j2 :print-test-fn) "Hello world")
+  ((-> facades/facades  :log4j2 :log-test-fn) "Hello world")
   ((-> facades/facades  :log4j2 :current-backend-fn))
 
-  ((-> facades/facades  :log4j1 :print-test-fn) "Hello world") ;; add appender here
+  ((-> facades/facades  :log4j1 :log-test-fn) "Hello world") ;; add appender here
   ((-> facades/facades  :log4j1 :current-backend-fn))
 
-  ((-> facades/facades  :jboss-logging :print-test-fn) "Hello world")
+  ((-> facades/facades  :jboss-logging :log-test-fn) "Hello world")
   ((-> facades/facades  :jboss-logging :current-backend-fn))
 
-  ((-> facades/facades  :system-logger :print-test-fn) "Hello world")
+  ((-> facades/facades  :system-logger :log-test-fn) "Hello world")
   ((-> facades/facades  :system-logger :current-backend-fn))
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -104,11 +142,3 @@
 
 
   )
-
-;; (require '[clojure.java.io :as io])
-
-;; (println org.slf4j.LoggerFactory/REQUESTED_API_VERSION)
-;; (println (.getProtectionDomain org.slf4j.LoggerFactory))
-;; (println (io/resource "org/slf4j/LoggerFactory.class"))
-
-;; (System/getProperty "java.class.path")

@@ -60,22 +60,130 @@
                    :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"] }
 
            :test {:extra-paths ["test"]
-                  :extra-deps {;; facades
-                               org.slf4j/slf4j-api   {:mvn/version "2.0.17"}
-                               org.apache.logging.log4j/log4j-api  {:mvn/version "2.25.4"};; log4j 2
-                               org.tinylog/tinylog-api {:mvn/version "2.8.0-M1"}
-                               ch.qos.reload4j/reload4j {:mvn/version "1.2.26"};; log4j 1
+                  :extra-deps {
+                               ;; :slf4j -> :logback
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
 
-                               ;; backends
-                               ch.qos.logback/logback-classic {:mvn/version "1.5.32"}
-                               org.apache.logging.log4j/log4j-core {:mvn/version "2.25.4"}
+                               ;; :slf4j -> :log4j2
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-slf4j2-impl {:mvn/version "RELEASE"}
 
-                               ;; bridges
-                               commons-logging/commons-logging {:mvn/version "1.3.6"} ;; apache commons logging
+                               ;; :slf4j -> :jul
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/slf4j-jdk14 {:mvn/version "RELEASE"}
+
+                               ;; :slf4j -> :reload4j
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/slf4j-reload4j {:mvn/version "RELEASE"}
+
+                               ;; :slf4j -> :slf4j
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/slf4j-simple {:mvn/version "RELEASE"}
+
+                               ;; :slf4j -> :tinylog
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.tinylog/slf4j-tinylog {:mvn/version "RELEASE"}
+
+                               ;; :jul -> :logback
+                               ;; org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :jul -> :log4j2
+                               ;;  org.apache.logging.log4j/log4j-jul {:mvn/version "RELEASE"}
+
+                               ;; :jul -> :jul
+
+                               ;; :jul -> :reload4j
+                               ;;  org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"} ch.qos.reload4j/reload4j {:mvn/version "RELEASE"}
+
+                               ;; :jul -> :slf4j
+                               ;;  org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"}
+
+                               ;; :jul -> :tinylog
+                               ;; org.tinylog/jul-tinylog {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :logback
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/jcl-over-slf4j {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :log4j2
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-jcl {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :jul
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :reload4j
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :slf4j
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"} org.slf4j/jcl-over-slf4j {:mvn/version "RELEASE"}
+
+                               ;; :commons-logging -> :tinylog
+                               ;; commons-logging/commons-logging {:mvn/version "RELEASE"} org.tinylog/jcl-tinylog {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :logback
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-to-slf4j {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :log4j2
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-core {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :jul
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-to-jul {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :reload4j
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :slf4j
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-to-slf4j {:mvn/version "RELEASE"}
+
+                               ;; :log4j2 -> :tinylog
+                               ;; org.apache.logging.log4j/log4j-api {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.tinylog/tinylog-impl {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :logback
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/log4j-over-slf4j {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :log4j2
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} org.apache.logging.log4j/log4j-1.2-api {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :jul
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/log4j-over-slf4j {:mvn/version "RELEASE"} org.slf4j/slf4j-jdk14 {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :reload4j
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} ch.qos.reload4j/reload4j {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :slf4j
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} org.slf4j/log4j-over-slf4j {:mvn/version "RELEASE"}
+
+                               ;; :reload4j -> :tinylog
+                               ;; ch.qos.reload4j/reload4j {:mvn/version "RELEASE"} org.tinylog/log4j1.2-api {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :logback
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"} org.slf4j/slf4j-api {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :log4j2
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :jul
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :reload4j
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :slf4j
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"}
+
+                               ;; :jboss-logging -> :tinylog
+                               ;; org.jboss.logging/jboss-logging {:mvn/version "RELEASE"} org.tinylog/jboss-tinylog {:mvn/version "RELEASE"}
+
+                               ;; :system-logger -> :logback
+                               ;;  org.slf4j/slf4j-api {:mvn/version "RELEASE"} ch.qos.logback/logback-classic {:mvn/version "RELEASE"}
+
+                               ;; :system-logger -> :log4j2
+                               ;;  org.apache.logging.log4j/log4j-jpl {:mvn/version "RELEASE"}
+
+                               ;; :system-logger -> :jul
 
 
-                               org.jboss.logging/jboss-logging {:mvn/version "3.6.3.Final"} ;; JBoss logging
+                               ;; :system-logger -> :reload4j
+                               ;;  org.slf4j/slf4j-api {:mvn/version "RELEASE"} ch.qos.reload4j/reload4j {:mvn/version "RELEASE"}
 
-                               org.slf4j/slf4j-jdk14 {:mvn/version "2.0.17"}
+                               ;; :system-logger -> :slf4j
+                               ;;  org.slf4j/slf4j-jdk-platform-logging {:mvn/version "RELEASE"}
+
+                               ;; :system-logger -> :tinylog
+                               ;;  org.tinylog/jsl-tinylog {:mvn/version "RELEASE"}
 
                                }}}}
