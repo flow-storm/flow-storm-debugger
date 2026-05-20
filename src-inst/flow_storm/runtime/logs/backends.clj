@@ -141,4 +141,9 @@
                            (throw (ex-info "Not possible to set tinylog levels at runtime. Restart the JVM with tinylog.level set to one of the levels, or put one of the config resources on the classpath"
                                            :levels levels
                                            :resources config-resources)))
-      :config-resources config-resources})})
+      :config-resources config-resources})
+
+   :slf4j-nop
+   {:id :slf4j-nop
+    :present? (fn [] )
+    :levels []}})

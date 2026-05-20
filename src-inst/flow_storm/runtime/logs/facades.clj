@@ -27,27 +27,10 @@
                                 "org.apache.logging.slf4j.Log4jLoggerFactory"  :log4j2
                                 "org.slf4j.reload4j.Reload4jLoggerFactory"     :reload4j
                                 "org.slf4j.simple.SimpleLoggerFactory"         :slf4j
-                                "org.slf4j.nop.NOPLoggerFactory"               :nop
+                                "org.slf4j.nop.NOPLoggerFactory"               :slf4j-nop
+                                "org.slf4j.helpers.NOPLoggerFactory"           :slf4j-nop
                                 "org.tinylog.slf4j.ModernTinylogLoggerFactory" :tinylog
-                                (throw (ex-info "Unhandled backend detection case for :slf4j facade" {:class clazz})))))
-      :possible-backends {:logback  {:desc "Add dependency"
-                                     :needs-artifacts ['ch.qos.logback/logback-classic]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-slf4j2-impl]
-                                     :init (fn [])}
-                          :jul      {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/slf4j-jdk14]
-                                     :init (fn [])}
-                          :reload4j {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/slf4j-reload4j]
-                                     :init (fn [])}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/slf4j-simple]
-                                     :init (fn [])}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/slf4j-tinylog]
-                                     :init (fn [])}}})
+                                (throw (ex-info "Unhandled backend detection case for :slf4j facade" {:class clazz})))))})
 
    :jul
    (let [levels [Level/FINEST Level/FINER Level/FINE Level/CONFIG Level/INFO Level/WARNING Level/SEVERE]]
@@ -77,26 +60,7 @@
 
                                 :else
                                 (throw (ex-info "Unhandled backend detection case for :jul facade" {:first-handler-class-name first-handler-class-name
-                                                                                                    :log-manager-class-name log-manager-class-name})))))
-      :possible-backends {:logback  {:desc "Use jul -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] 'org.slf4j/jul-to-slf4j [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-jul]
-                                     :init (fn [])}
-                          :jul      {:desc "Built in"
-                                     :init (fn [])}
-                          :reload4j {:desc "jul -> slf4j -> reload4j"
-                                     :needs-artifacts [[:facade :slf4j] 'org.slf4j/jul-to-slf4j [:backend :reload4j]]
-                                     :init (fn [])}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/jul-to-slf4j]
-                                     :init (fn []
-                                             (call-static "org.slf4j.bridge.SLF4JBridgeHandler" "removeHandlersForRootLogger" [])
-                                             (call-static "org.slf4j.bridge.SLF4JBridgeHandler" "install" []))}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/jul-tinylog]
-                                     :init (fn [])}}})
+                                                                                                    :log-manager-class-name log-manager-class-name})))))})
 
    :commons-logging
    (let [levels [:trace :debug :info :warn :error :fatal]]
@@ -124,23 +88,7 @@
                                 "org.apache.commons.logging.impl.Log4JLogger" :reload4j
                                 "org.apache.commons.logging.impl.SLF4JLog" :slf4j
                                 "org.tinylog.jcl.TinylogLog" :tinylog
-                                (throw (ex-info "Unhandled backend detection case for :commons-logging facade" {:class clazz})))))
-      :possible-backends {:logback  {:desc "Use commons-logging -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] 'org.slf4j/jcl-over-slf4j [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-jcl]
-                                     :init (fn [])}
-                          :jul      {:desc "Built in commons logging"
-                                     :init (fn [])}
-                          :reload4j {:desc "Built in commons logging"
-                                     :init (fn [])}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/jcl-over-slf4j]
-                                     :init (fn [])}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/jcl-tinylog]
-                                     :init (fn [])}}})
+                                (throw (ex-info "Unhandled backend detection case for :commons-logging facade" {:class clazz})))))})
 
    :log4j2
    (let [levels [:trace :debug :info :warn :error :fatal]]
@@ -161,23 +109,7 @@
                                 "org.apache.logging.slf4j.SLF4JLoggerContextFactory" :slf4j
                                 ;;"" :jul
                                 ;; "" :reload4j
-                                (throw (ex-info "Unhandled backend detection case for :log4j2 facade" {:class clazz})))))
-      :possible-backends {:logback  {:desc "Use log4j2 -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] 'org.apache.logging.log4j/log4j-to-slf4j [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-core]
-                                     :init (fn [])}
-                          :jul      {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-to-jul]
-                                     :init (fn [])}
-                          :reload4j {:desc "Not sure it is possible..."}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-to-slf4j]
-                                     :init (fn [])}
-                          :tinylog  {:desc "Use log4j2 -> slf4j -> tinylog"
-                                     :needs-artifacts [[:facade :slf4j] [:backend :tinylog]]
-                                     :init (fn [])}}})
+                                (throw (ex-info "Unhandled backend detection case for :log4j2 facade" {:class clazz})))))})
 
    :reload4j
    (let [levels [:trace :debug :info :warn :error :fatal]]
@@ -200,25 +132,7 @@
                                 (= origin "org.slf4j/log4j-over-slf4j")             :slf4j
                                 (= origin "org.tinylog/log4j1.2-api")               :tinylog
                                 (str/includes? origin "reload4j")                   :reload4j
-                                :else (throw (ex-info "Unhandled backend detection case for :log4j1 facade" {:origin origin})))))
-      :possible-backends {:logback  {:desc "Use reload4j(log4j1) -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] 'org.slf4j/log4j-over-slf4j [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-1.2-api]
-                                     :init (fn [])}
-                          :jul      {:desc "Use reload4j(log4j1) -> slf4j -> jul"
-                                     :needs-artifacts [[:facade :slf4j] 'org.slf4j/log4j-over-slf4j 'org.slf4j/slf4j-jdk14]
-                                     :init (fn [])}
-                          :reload4j {:desc "Add dependency"
-                                     :needs-artifacts ['ch.qos.reload4j/reload4j]
-                                     :init (fn [])}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/log4j-over-slf4j]
-                                     :init (fn [])}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/log4j1.2-api]
-                                     :init (fn [])}}})
+                                :else (throw (ex-info "Unhandled backend detection case for :log4j1 facade" {:origin origin})))))})
 
    :jboss-logging
    (let [levels [:trace :debug :info :warn :error :fatal]]
@@ -241,21 +155,7 @@
                                 "org.jboss.logging.Slf4jLoggerProvider" :slf4j
                                 "org.jboss.logging.TinylogLoggerProvider" :tinylog
 
-                                (throw (ex-info "Unhandled backend detection case for :jboss-logging facade" {:provider-name provider-name})))))
-      :possible-backends {:logback  {:desc "Use jboss -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Built into jboss logging"
-                                     :init (fn [])}
-                          :jul      {:desc "Built into jboss logging"
-                                     :init (fn [])}
-                          :reload4j {:desc "Built into jboss logging"
-                                     :init (fn [])}
-                          :slf4j    {:desc "Built into jboss logging"
-                                     :init (fn [])}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/jboss-tinylog]
-                                     :init (fn [])}}})
+                                (throw (ex-info "Unhandled backend detection case for :jboss-logging facade" {:provider-name provider-name})))))})
 
    :system-logger
    (let [levels [System$Logger$Level/TRACE System$Logger$Level/DEBUG System$Logger$Level/INFO System$Logger$Level/WARNING System$Logger$Level/ERROR]]
@@ -273,21 +173,4 @@
                                 (contains? class-name "org.apache.logging.log4j.jpl") :log4j2
                                 (contains? class-name "org.slf4j.jdk.platform.logging") :slf4j
                                 (contains? class-name "org.tinylog.jsl") :tinylog
-                                :else (throw (ex-info "Unhandled backend detection case for :jboss-logging facade" {:class-name class-name})))))
-      :possible-backends {:logback  {:desc "Use system logger -> slf4j -> logback"
-                                     :needs-artifacts [[:facade :slf4j] [:backend :logback]]
-                                     :init (fn [])}
-                          :log4j2   {:desc "Add dependency"
-                                     :needs-artifacts ['org.apache.logging.log4j/log4j-jpl]
-                                     :init (fn [])}
-                          :jul      {:desc "Built in"
-                                     :init (fn [])}
-                          :reload4j {:desc "Use system logger -> slf4j -> reload4j"
-                                     :needs-artifacts [[:facade :slf4j] [:backend :reload4j]]
-                                     :init (fn [])}
-                          :slf4j    {:desc "Add dependency"
-                                     :needs-artifacts ['org.slf4j/slf4j-jdk-platform-logging]
-                                     :init (fn [])}
-                          :tinylog  {:desc "Add dependency"
-                                     :needs-artifacts ['org.tinylog/jsl-tinylog]
-                                     :init (fn [])}}})})
+                                :else (throw (ex-info "Unhandled backend detection case for :jboss-logging facade" {:class-name class-name})))))})})

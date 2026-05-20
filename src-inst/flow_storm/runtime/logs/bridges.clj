@@ -1,68 +1,204 @@
 (ns flow-storm.runtime.logs.bridges
-  (:require [flow-storm.runtime.logs.utils :refer [class-exists?]]))
+  (:require [flow-storm.runtime.logs.utils :refer [class-exists? call-static]]))
 
 (def bridges
 
 
-  {:jul->slf4j ;; :maven "org.slf4j/jul-to-slf4j"
-   {:id :jul->slf4j
-    :desc "Routes java.util.logging events to SLF4J when SLF4JBridgeHandler is installed."
-    :present?  (fn [] (class-exists? "org.slf4j.bridge.SLF4JBridgeHandler"))
-    :from :jul
-    :to :slf4j}
+  {
 
-   :jul->jul
-   {:id :jul->jul
-    :present?  (constantly true)
-    :from :jul
-    :to :jul}
+   ;;;;;;;;;;;;;;;;;;;
+   ;; SLF4J bridges ;;
+   ;;;;;;;;;;;;;;;;;;;
 
-   :commons-logging->slf4j ;; :maven "org.slf4j/jcl-over-slf4j"
-   {:id :commons-logging->slf4j
-    :desc "Replaces Commons Logging so JCL calls route to SLF4J."
-    :present?  (fn [] (class-exists? "org.apache.commons.logging.impl.SLF4JLogFactory"))
-    :from :commons-logging
-    :to :slf4j}
+   [:slf4j :logback]
+   {:artifact :included-in-backend
+    :present? (fn [] (class-exists? "ch.qos.logback.classic.spi.LogbackServiceProvider"))}
 
-   :reload4j->slf4j ;; :maven "org.slf4j/log4j-over-slf4j"
-   {:id :log4j1->slf4j
-    :desc "Implements the Log4j 1.x API and routes calls to SLF4J."
-    :present?  (fn [] (class-exists? "org.apache.log4j.Category"))
-    :from :log4j1
-    :to :slf4j}
+   [:slf4j :log4j2]
+   {:artifact 'org.apache.logging.log4j/log4j-slf4j2-impl
+    :present? (fn [])}
 
-   :log4j2->slf4j ;; :maven "org.apache.logging.log4j/log4j-to-slf4j"
-   {:id :log4j2->slf4j
-    :desc "Routes Log4j 2 API calls to SLF4J."
-    :present?  (fn [] (class-exists? "org.apache.logging.slf4j.Log4jLoggerFactory"))
-    :from :log4j2
-    :to :slf4j}
 
-   :slf4j->jul ;; :maven "org.slf4j/slf4j-jdk14"
-   {:id :slf4j->jul
-    :desc "SLF4J provider that routes SLF4J calls to java.util.logging."
-    :present?  (fn [] (class-exists? "org.slf4j.jul.JDK14LoggerFactory"))
-    :from :slf4j
-    :to :jul}
+   [:slf4j :jul]
+   {:artifact 'org.slf4j/slf4j-jdk14
+    :present? (fn [] (class-exists? "org.slf4j.jul.JDK14LoggerFactory"))}
 
-   :slf4j->logback
-   {:id :slf4j->logback
-    :desc "SLF4J provider that routes SLF4J calls to java.util.logging."
-    :present?  (fn [] (class-exists? "ch.qos.logback.classic.spi.LogbackServiceProvider"))
-    :from :slf4j
-    :to :logback}
+   [:slf4j :reload4j]
+   {:artifact 'org.slf4j/slf4j-reload4j
+    :present? (fn [] (class-exists? "org.slf4j.reload4j.Reload4jLoggerFactory"))}
 
-   :slf4j->reload4j ;; :maven "org.slf4j/slf4j-reload4j"
-   {:id :slf4j->reload4j
-    :desc "SLF4J provider that routes SLF4J calls to reload4j / Log4j 1-style backend."
-    :present?  (fn [] (class-exists? "org.slf4j.reload4j.Reload4jLoggerFactory"))
-    :from :slf4j
-    :to :reload4j}
+   [:slf4j :slf4j]
+   {:artifact :included-in-backend
+    :present? (fn [])}
 
-   :log4j2->jul ;; :maven "org.apache.logging.log4j/log4j-jul"
-   {:id :log4j2->jul
-    :desc "Routes java.util.logging to Log4j 2 when configured as the JUL LogManager."
-    :present?  (fn [] (class-exists? "org.apache.logging.log4j.jul.LogManager"))
-    :from :jul
-    :to :log4j2}
+   [:slf4j :tinylog]
+   {:artifact 'org.tinylog/slf4j-tinylog
+    :present? (fn [])}
+
+
+   ;;;;;;;;;;;;;;;;;
+   ;; JUL bridges ;;
+   ;;;;;;;;;;;;;;;;;
+
+   [:jul :logback]
+   {:via-slf4j? true
+    :present?  (fn [] )}
+
+   [:jul :log4j2]
+   {:artifact 'org.apache.logging.log4j/log4j-jul
+    :present?  (fn [] )}
+
+   [:jul :jul]
+   {:present?  (constantly true)}
+
+   [:jul :reload4j]
+   {:via-slf4j? true
+    :present?  (fn [] )}
+
+   [:jul :slf4j]
+   {:artifact 'org.slf4j/jul-to-slf4j
+    :present?  (fn [] )
+    :init (fn []
+            (call-static "org.slf4j.bridge.SLF4JBridgeHandler" "removeHandlersForRootLogger" [])
+            (call-static "org.slf4j.bridge.SLF4JBridgeHandler" "install" []))}
+
+   [:jul :tinylog]
+   {:artifact 'org.tinylog/jul-tinylog
+    :present?  (fn [] )}
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; Commons logging bridges ;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   [:commons-logging :logback]
+   {:via-slf4j? true
+    :present?  (fn [] )}
+
+   [:commons-logging :log4j2]
+   {:artifact 'org.apache.logging.log4j/log4j-jcl
+    :present?  (fn [] )}
+
+   [:commons-logging :jul]
+   {:present?  (fn [] )
+    :built-in-backend? true}
+
+   [:commons-logging :reload4j]
+   {:present?  (fn [] )
+    :built-in-backend? true}
+
+   [:commons-logging :slf4j]
+   {:present?  (fn [] )
+    :artifact 'org.slf4j/jcl-over-slf4j}
+
+   [:commons-logging :tinylog]
+   {:present?  (fn [] )
+    :artifact 'org.tinylog/jcl-tinylog}
+
+   ;;;;;;;;;;;;;;;;;;;;
+   ;; Log4j2 bridges ;;
+   ;;;;;;;;;;;;;;;;;;;;
+
+   [:log4j2 :logback]
+   {:via-slf4j? true
+    :present? (fn [])}
+
+   [:log4j2 :log4j2]
+   {:present? (fn [])
+    :built-in-backend? true}
+
+   [:log4j2 :jul]
+   {:present? (fn [])
+    :artifact 'org.apache.logging.log4j/log4j-to-jul}
+
+   [:log4j2 :slf4j]
+   {:present? (fn [])
+    :artifact 'org.apache.logging.log4j/log4j-to-slf4j}
+
+   [:log4j2 :tinylog]
+   {:via-slf4j? true
+    :present? (fn [])}
+
+   ;;;;;;;;;;;;;;;;;;;;;;
+   ;; Reload4j bridges ;;
+   ;;;;;;;;;;;;;;;;;;;;;;
+
+   [:reload4j :logback]
+   {:via-slf4j? true
+    :present? (fn [])}
+
+   [:reload4j :log4j2]
+   {:present? (fn [])
+    :artifact 'org.apache.logging.log4j/log4j-1.2-api}
+
+   [:reload4j :jul]
+   {:via-slf4j? true
+    :present? (fn [])}
+
+   [:reload4j :reload4j]
+   {:present? (fn [])
+    :artifact 'ch.qos.reload4j/reload4j}
+
+   [:reload4j :slf4j]
+   {:present? (fn [])
+    :artifact 'org.slf4j/log4j-over-slf4j}
+
+   [:reload4j :tinylog]
+   {:present? (fn [])
+    :artifact 'org.tinylog/log4j1.2-api}
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; JBoss logging bridges ;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   [:jboss-logging :logback]
+   {:present? (fn [])
+    :via-slf4j? true}
+
+   [:jboss-logging :log4j2]
+   {:present? (fn [])
+    :built-in-backend? true}
+
+   [:jboss-logging :jul]
+   {:present? (fn [])
+    :built-in-backend? true}
+
+   [:jboss-logging :reload4j]
+   {:present? (fn [])
+    :built-in-backend? true}
+
+   [:jboss-logging :slf4j]
+   {:present? (fn [])
+    :built-in-backend? true}
+
+   [:jboss-logging :tinylog]
+   {:present? (fn [])
+    :artifact 'org.tinylog/jboss-tinylog}
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;; System logger bridges ;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+   [:system-logger :logback]
+   {:present? (fn [])
+    :via-slf4j? true}
+
+   [:system-logger :log4j2]
+   {:present? (fn [])
+    :artifact 'org.apache.logging.log4j/log4j-jpl}
+
+   [:system-logger :jul]
+   {:present? (fn [])}
+
+   [:system-logger :reload4j]
+   {:present? (fn [])
+    :via-slf4j? true}
+
+   [:system-logger :slf4j]
+   {:present? (fn [])
+    :artifact 'org.slf4j/slf4j-jdk-platform-logging}
+
+   [:system-logger :tinylog]
+   {:present? (fn [])
+    :artifact 'org.tinylog/jsl-tinylog}
+
    })

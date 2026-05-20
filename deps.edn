@@ -91,7 +91,7 @@
                                ;;  org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"} ch.qos.reload4j/reload4j {:mvn/version "RELEASE"}
 
                                ;; :jul -> :slf4j
-                               ;;  org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"}
+                                 org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"}
 
                                ;; :jul -> :tinylog
                                ;; org.tinylog/jul-tinylog {:mvn/version "RELEASE"}
