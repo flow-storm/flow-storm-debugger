@@ -102,7 +102,7 @@
       :config-resources ["log4j.properties" "log4j.xml" "log4j.configuration"]})
 
    :slf4j
-   (let [levels [:trace :debug :info :warn :error :off]
+   (let [levels [:trace :debug :info :warn :error]
          key->lvl-fn (fn [lvl-k] (name lvl-k))
          lvl->key-fn (fn [lvl] (keyword lvl))
          config-resources ["simplelogger.properties"]]

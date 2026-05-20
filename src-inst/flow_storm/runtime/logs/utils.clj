@@ -45,3 +45,10 @@
             .getLocation
             str)
     (catch Throwable _ nil)))
+
+(defn install-artifact-latest [art-symbol]
+  (try
+    (let [add-lib (requiring-resolve 'clojure.repl.deps/add-lib)]
+      (add-lib art-symbol))
+    (catch Exception e
+      (throw (ex-info "clojure.repl.deps/add-lib not found. Need tools-deps on the classpath to install dependecies" {:ex e})))))

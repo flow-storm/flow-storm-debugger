@@ -58,8 +58,40 @@
     (log-test-fn "Test mesage")))
 
 (defn bridge-to-backend [facade-key backend-key]
-  ()
-  )
+  ;; log-utils/install-artifact-latest
+
+  ;; - grab backend, install it if not present and installable
+  ;; - grab bridge
+  ;;   - if :built-in-backend? do nothing
+  ;;   - if :artifact is symbol install latest version
+  ;;   - if :via-slf4j?
+  ;;     - grab :slf4j facade, install if not present
+  ;;     - grab [facade :slf4j] bridge
+  ;;         - install if not present
+  ;;         - run init
+  ;;     - grab [:slf4j backend] bridge
+  ;;         - install if not present
+  ;;         - run init
+  (let [back (get backends/backends backend-key)
+        bridge (get bridges/bridges [facade-key backend-key])
+        try-install-and-setup (fn try-install-and-setup [{:keys [present? artifact init]}]
+                                (when (not (present?))
+                                  (when (symbol? artifact) (log-utils/install-artifact-latest artifact))
+                                  (when init (init))))]
+
+    (try-install-and-setup back)
+
+    (if (not (:via-slf4j? bridge))
+      (try-install-and-setup bridge)
+
+      ;; else, do it through slf4j
+      (let [slf4j-facade (get facades/facades :slf4j)
+            facade->slf4j (get bridges/bridges [facade-key :slf4j])
+            slf4j->backend (get bridges/bridges [:slf4j backend-key])]
+
+        (try-install-and-setup slf4j-facade)
+        (try-install-and-setup facade->slf4j)
+        (try-install-and-setup slf4j->backend)))))
 
 (defn set-backend-level [backend-key new-lvl]
   (when-let [set-backend-lvl-fn (-> backends/backends backend-key :set-root-level-fn)]
@@ -82,7 +114,17 @@
     (println "NO BACKEND DETECTED!!!"))
   ((-> facades/facades fac-k :log-test-fn) "Hello world"))
 
-
+;; Possible test
+;;
+;; - Generate some random facades and backends combinations
+;; - For each
+;;   - Start a process
+;;   - Install them
+;;   - Choose one backend
+;;   - Set the backend to max logging
+;;   - Bridge all facades to that backend
+;;   - Fire log-test-fn on each facade with a facade specific message
+;;   - Check the messages showed up in the process
 
 (comment
 
@@ -150,6 +192,9 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  (log-utils/install-artifact-latest 'org.slf4j/slf4j-jdk14)
 
+  (bridge-to-backend :jul :logback)
 
+  ((-> backends/backends :slf4j :get-root-level-fn))
   )
