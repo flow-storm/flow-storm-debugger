@@ -6,6 +6,8 @@
         
 ### Changes
 
+    - Goto file:line now searches files with ends-withs? for improved UX
+
 ### Bugs fixed
 
     - Fix multi thread timeline viewer running out of colors

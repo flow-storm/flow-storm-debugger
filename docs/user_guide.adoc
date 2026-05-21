@@ -904,10 +904,14 @@ You can use / to provide a namespace, otherwise will be defined under [cljs.]use
 Clicking on the `Actions->Goto file:line` menu allows you to search and jump to the first recording of a expression
 with a file and line, given that one exists.
 
-It will ask you for a file and line in the format of `<class-path-file-path>:<line>`.
+It will ask you for a file and line in the format of `<file-path>:<line>`.
 
-If you have a file like `src/org/my_app/core.clj` and you are interested in expressions evaluating on like 42
-you should search like `org/my_app/core.clj:42`.
+It will search the file paths by `str/ends-with?` so if you have files like `src/org/my_app/core.clj` then
+providing `my_app/core.clj:42` should jump to that line, even if you didn't provide the entire path.
+
+This is useful because this functionality works by searching captured forms meta, and depending on your environment
+sometimes these paths contains the full path, sometimes just the classpath. What is important is that you use
+file names (with underscores) and not namespaces names.
 
 == Call Stack tree tool
 

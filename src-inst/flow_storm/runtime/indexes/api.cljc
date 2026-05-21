@@ -849,7 +849,8 @@
 
 (defn- entry-matches-file-and-line? [entry-form-id entry file line]
   (let [form (get-form entry-form-id)]
-    (when (= file (:form/file form))
+    (when (and (string? (:form/file form))
+               (str/ends-with? (:form/file form) file))
       (let [coord (index-protos/get-coord-vec entry)
             sub-form (hansel-utils/get-form-at-coord (:form/form form) coord)]
         (-> sub-form meta :line (= line))))))

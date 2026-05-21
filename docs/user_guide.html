@@ -2279,11 +2279,16 @@ visualizations.</p>
 with a file and line, given that one exists.</p>
 </div>
 <div class="paragraph">
-<p>It will ask you for a file and line in the format of <code>&lt;class-path-file-path&gt;:&lt;line&gt;</code>.</p>
+<p>It will ask you for a file and line in the format of <code>&lt;file-path&gt;:&lt;line&gt;</code>.</p>
 </div>
 <div class="paragraph">
-<p>If you have a file like <code>src/org/my_app/core.clj</code> and you are interested in expressions evaluating on like 42
-you should search like <code>org/my_app/core.clj:42</code>.</p>
+<p>It will search the file paths by <code>str/ends-with?</code> so if you have files like <code>src/org/my_app/core.clj</code> then
+providing <code>my_app/core.clj:42</code> should jump to that line, even if you didn&#8217;t provide the entire path.</p>
+</div>
+<div class="paragraph">
+<p>This is useful because this functionality works by searching captured forms meta, and depending on your environment
+sometimes these paths contains the full path, sometimes just the classpath. What is important is that you use
+file names (with underscores) and not namespaces names.</p>
 </div>
 </div>
 </div>
@@ -4975,7 +4980,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-13 14:21:24 -0300
+Last updated 2026-05-21 09:37:49 -0300
 </div>
 </div>
 </body>
