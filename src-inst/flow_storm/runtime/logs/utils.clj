@@ -1,13 +1,39 @@
-(ns flow-storm.runtime.logs.utils)
+(ns flow-storm.runtime.logs.utils
+  (:require [clojure.string :as str]))
+
+(defn get-class [class-name]
+  (Class/forName class-name true (.getContextClassLoader (Thread/currentThread))))
 
 (defn class-exists? [s]
-  (try (Class/forName s) true (catch Throwable _ false)))
+  (try (get-class s) true (catch Throwable _ false)))
+
+(defn class-origin [class-name]
+  (some-> (get-class class-name)
+          .getProtectionDomain
+          .getCodeSource
+          .getLocation
+          str))
 
 (defn resource [name]
   (some-> (Thread/currentThread)
           .getContextClassLoader
           (.getResource name)
           str))
+
+(defn any-class-exists? [& classes]
+  (some class-exists? classes))
+
+(defn origin-version [class-name group-path artifact]
+  (when-let [vers-str (some->> (class-origin class-name)
+                               (re-find (re-pattern (str ".+?/" group-path "/" artifact "/(.+?)/.*")))
+                               second)]
+    {:major (-> vers-str (str/split #"\.") first)
+     :version-str vers-str}))
+
+(defn class-origin-matches? [class-name pattern]
+  (some-> (class-origin class-name)
+          (re-find pattern)
+          boolean))
 
 (defn find-method [clazz method-name args]
   (let [methods (filter #(and (= method-name (.getName %))
@@ -27,28 +53,18 @@
       m)))
 
 (defn call-static [class-name method-name args]
-  (let [cls (Class/forName class-name)]
-    (.invoke (find-method (Class/forName class-name) method-name args)
-             nil
-             (to-array args))))
+  (.invoke (find-method (get-class class-name) method-name args)
+           nil
+           (to-array args)))
 
 (defn call [obj method-name args]
   (.invoke (find-method (class obj) method-name args)
            obj
            (to-array args)))
 
-(defn class-origin [class-name]
-  (try
-    (some-> (Class/forName class-name)
-            .getProtectionDomain
-            .getCodeSource
-            .getLocation
-            str)
-    (catch Throwable _ nil)))
-
-(defn install-artifact-latest [art-symbol]
+(defn install-artifact-release [art-symbol]
   (try
     (let [add-lib (requiring-resolve 'clojure.repl.deps/add-lib)]
-      (add-lib art-symbol))
+      (add-lib art-symbol {:mvn/version "RELEASE"}))
     (catch Exception e
       (throw (ex-info "clojure.repl.deps/add-lib not found. Need tools-deps on the classpath to install dependecies" {:ex e})))))

@@ -58,7 +58,7 @@
     (log-test-fn "Test mesage")))
 
 (defn bridge-to-backend [facade-key backend-key]
-  ;; log-utils/install-artifact-latest
+  ;; log-utils/install-artifact-release
 
   ;; - grab backend, install it if not present and installable
   ;; - grab bridge
@@ -76,7 +76,7 @@
         bridge (get bridges/bridges [facade-key backend-key])
         try-install-and-setup (fn try-install-and-setup [{:keys [present? artifact init]}]
                                 (when (not (present?))
-                                  (when (symbol? artifact) (log-utils/install-artifact-latest artifact))
+                                  (when (symbol? artifact) (log-utils/install-artifact-release artifact))
                                   (when init (init))))]
 
     (try-install-and-setup back)
@@ -192,9 +192,17 @@
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (log-utils/install-artifact-latest 'org.slf4j/slf4j-jdk14)
+  (log-utils/install-artifact-release 'ch.qos.logback/logback-classic)
 
   (bridge-to-backend :jul :logback)
+  (bridge-to-backend :slf4j :logback)
+
+  (log-utils/get-class "ch.qos.logback.classic.LoggerContext")
+  (log-utils/get-class "org.slf4j.spi.SLF4JServiceProvider")
+  (Class/forName "org.slf4j.spi.SLF4JServiceProvider")
+
+  (import '[java.util ServiceLoader])
+  (into [] (ServiceLoader/load (log-utils/get-class "org.slf4j.spi.SLF4JServiceProvider")))
 
   ((-> backends/backends :slf4j :get-root-level-fn))
   )

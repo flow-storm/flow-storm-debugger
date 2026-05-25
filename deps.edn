@@ -38,7 +38,7 @@
                    :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.5"}}
                    :jvm-opts ["-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentAutoPrefixes=false"
-                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester,flow-storm.runtime.logs"
                               "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
                               "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}
 
@@ -91,7 +91,7 @@
                                ;;  org.slf4j/slf4j-api {:mvn/version "RELEASE"} org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"} ch.qos.reload4j/reload4j {:mvn/version "RELEASE"}
 
                                ;; :jul -> :slf4j
-                                 org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"}
+                               ;; org.slf4j/jul-to-slf4j {:mvn/version "RELEASE"}
 
                                ;; :jul -> :tinylog
                                ;; org.tinylog/jul-tinylog {:mvn/version "RELEASE"}

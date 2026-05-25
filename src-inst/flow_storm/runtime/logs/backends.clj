@@ -1,5 +1,5 @@
 (ns flow-storm.runtime.logs.backends
-  (:require [flow-storm.runtime.logs.utils :refer [class-exists? class-origin call call-static]]
+  (:require [flow-storm.runtime.logs.utils :refer [class-exists? class-origin call call-static origin-version]]
             [clojure.string :as str]
             [clojure.set :as set])
   (:import
@@ -7,13 +7,35 @@
    [java.lang System$Logger$Level]))
 
 (def backends
-  {:logback
+  {:jul
+   (let [levels [:finest :finer :fine :config :info :warning :severe]
+         key->lvl-fn (fn [lvl-k] (Level/parse (str/upper-case (name lvl-k))))
+         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))]
+     {:id :jul
+      :present?  (fn [] (class-exists? "java.util.logging.LogManager"))
+      :version-fn (fn [])
+      :levels levels
+      :can-set-at-runtime? true
+      :key->lvl-fn key->lvl-fn
+      :lvl->key-fn lvl->key-fn
+      :get-root-level-fn (fn []
+                           (-> (Logger/getLogger "")
+                               .getLevel
+                               lvl->key-fn))
+      :set-root-level-fn (fn [lvl]
+                           (-> (Logger/getLogger "")
+                               (.setLevel (key->lvl-fn lvl))))
+      :config-resources ["logging.properties"]})
+
+   :logback
    (let [levels [:trace :debug :info :warn :error]
          key->lvl-fn (fn [lvl-k] (call-static "ch.qos.logback.classic.Level" "toLevel" ^{:args-types ["java.lang.String"]} [(name lvl-k)]))
-         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))]
+         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))
+         presence-class "ch.qos.logback.classic.LoggerContext"]
      {:id :logback
-      :present? (fn [] (class-exists? "ch.qos.logback.classic.LoggerContext"))
       :artifact 'ch.qos.logback/logback-classic
+      :present? (fn [] (class-exists? presence-class))
+      :version-fn (fn [] (origin-version presence-class "ch/qos/logback" "logback-classic"))
       :levels levels
       :can-set-at-runtime? true
       :key->lvl-fn key->lvl-fn
@@ -33,10 +55,12 @@
    :log4j2
    (let [levels [:trace :debug :info :warn :error :fatal]
          key->lvl-fn (fn [lvl-k] (call-static "org.apache.logging.log4j.Level" "toLevel" ^{:args-types ["java.lang.String"]} [(name lvl-k)]))
-         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))]
+         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))
+         presence-class "org.apache.logging.log4j.core.LoggerContext"]
      {:id :log4j2
       :artifact 'org.apache.logging.log4j/log4j-core
-      :present?  (fn [] (class-exists? "org.apache.logging.log4j.core.LoggerContext"))
+      :present?  (fn [] (class-exists? presence-class))
+      :version-fn (fn [] (origin-version presence-class "org/apache/logging/log4j" "log4j-core"))
       :levels levels
       :can-set-at-runtime? true
       :key->lvl-fn key->lvl-fn
@@ -58,36 +82,18 @@
                          "log4j2.yml" "log4j2.json" "log4j2.jsn" "log4j2.xml"
                          "log4j.configurationFile"]})
 
-
-   :jul
-   (let [levels [:finest :finer :fine :config :info :warning :severe]
-         key->lvl-fn (fn [lvl-k] (Level/parse (str/upper-case (name lvl-k))))
-         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))]
-     {:id :jul
-      :present?  (fn [] (class-exists? "java.util.logging.LogManager"))
-      :levels levels
-      :can-set-at-runtime? true
-      :key->lvl-fn key->lvl-fn
-      :lvl->key-fn lvl->key-fn
-      :get-root-level-fn (fn []
-                           (-> (Logger/getLogger "")
-                               .getLevel
-                               lvl->key-fn))
-      :set-root-level-fn (fn [lvl]
-                           (-> (Logger/getLogger "")
-                               (.setLevel (key->lvl-fn lvl))))
-      :config-resources ["logging.properties"]})
-
    :reload4j
    (let [levels [:trace :debug :info :warn :error :fatal]
          key->lvl-fn (fn [lvl-k] (call-static  "org.apache.log4j.Level" "toLevel" ^{:args-types ["java.lang.String"]} [(name lvl-k)]))
-         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))]
+         lvl->key-fn (fn [lvl] (-> lvl str/lower-case keyword))
+         presence-class "org.apache.log4j.Logger"]
      {:id :reload4j
       :artifact 'ch.qos.reload4j/reload4j
       :present?  (fn []
                    (and
-                    (class-exists? "org.apache.log4j.Logger")
-                    (str/includes? (class-origin "org.apache.log4j.Logger") "reload4j")))
+                    (class-exists? presence-class)
+                    (str/includes? (class-origin presence-class) "reload4j")))
+      :version-fn (fn [] (origin-version presence-class "ch/qos/reload4j" "reload4j"))
       :levels levels
       :can-set-at-runtime? true
       :key->lvl-fn key->lvl-fn
@@ -105,10 +111,12 @@
    (let [levels [:trace :debug :info :warn :error]
          key->lvl-fn (fn [lvl-k] (name lvl-k))
          lvl->key-fn (fn [lvl] (keyword lvl))
-         config-resources ["simplelogger.properties"]]
+         config-resources ["simplelogger.properties"]
+         presence-class "org.slf4j.simple.SimpleLoggerFactory"]
      {:id :slf4j
       :artifact 'org.slf4j/slf4j-simple
-      :present?  (fn [] (class-exists? "org.slf4j.simple.SimpleLoggerFactory"))
+      :present?  (fn [] (class-exists? presence-class))
+      :version-fn (fn [] (origin-version presence-class "org/slf4j" "slf4j-simple"))
       :levels levels
       :can-set-at-runtime? false
       :key->lvl-fn key->lvl-fn
@@ -126,10 +134,12 @@
    (let [levels [:trace :debug :info :warn :error]
          key->lvl-fn (fn [lvl-k] (name lvl-k))
          lvl->key-fn (fn [lvl] (keyword lvl))
-         config-resources ["tinylog.properties" "tinylog.configuration"]]
+         config-resources ["tinylog.properties" "tinylog.configuration"]
+         presence-class "org.tinylog.provider.ProviderRegistry"]
      {:id :tinylog
       :artifact 'org.tinylog/tinylog-impl
-      :present?  (fn [] (class-exists? "org.tinylog.provider.ProviderRegistry"))
+      :present?  (fn [] (class-exists? presence-class))
+      :version-fn (fn [] (origin-version presence-class "org/tinylog" "tinylog-impl"))
       :levels levels
       :can-set-at-runtime? false
       :key->lvl-fn key->lvl-fn
