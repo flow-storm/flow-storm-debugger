@@ -281,10 +281,10 @@ Then, modify your `deps.edn` dev profile to look like this :
  ;; this alias can be defined globally in your ~/.clojure/deps.edn so you don't have to modify this file in your project
  {:1.12-cljs-storm
     {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
-     :extra-deps {thheller/shadow-cljs {:mvn/version "3.3.4" 
+     :extra-deps {thheller/shadow-cljs {:mvn/version "3.4.11" 
                                         :exclusions [org.clojure/clojurescript]}
                   ;; bring ClojureScriptStorm
-                  com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"}
+                  com.github.flow-storm/clojurescript {:mvn/version "1.12.145-1"}
                   ;; add FlowStorm runtime dep
                   com.github.flow-storm/flow-storm-inst {:mvn/version "4.6.0"}}}}}
 ----
@@ -334,7 +334,7 @@ The easiest way to try it is just by starting a repl, like this :
 
 [%nowrap,bash]
 ----
-clj -Sforce -J-Dcljs.storm.instrumentOnlyPrefixes=cljs.user -Sdeps '{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.6.0"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload]}' --repl
+clj -Sforce -J-Dcljs.storm.instrumentOnlyPrefixes=cljs.user -Sdeps '{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.145-1"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.6.0"}}}' -M -m cljs.main -co '{:preloads [flow-storm.storm-preload]}' --repl
 ----
 
 If you run the command above you are running cljs.main --repl which will start a ClojureScript repl on

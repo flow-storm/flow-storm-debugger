@@ -1259,10 +1259,10 @@ is the first one.</p>
  </span><span class="c1">;; this alias can be defined globally in your ~/.clojure/deps.edn so you don't have to modify this file in your project</span><span class="w">
  </span><span class="p">{</span><span class="no">:1.12-cljs-storm</span><span class="w">
     </span><span class="p">{</span><span class="no">:classpath-overrides</span><span class="w"> </span><span class="p">{</span><span class="n">org.clojure/clojurescript</span><span class="w"> </span><span class="n">nil</span><span class="p">}</span><span class="w"> </span><span class="c1">;; disable the official compiler</span><span class="w">
-     </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.3.4"</span><span class="w">
+     </span><span class="no">:extra-deps</span><span class="w"> </span><span class="p">{</span><span class="n">thheller/shadow-cljs</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"3.4.11"</span><span class="w">
                                         </span><span class="no">:exclusions</span><span class="w"> </span><span class="p">[</span><span class="n">org.clojure/clojurescript</span><span class="p">]}</span><span class="w">
                   </span><span class="c1">;; bring ClojureScriptStorm</span><span class="w">
-                  </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.134-3"</span><span class="p">}</span><span class="w">
+                  </span><span class="n">com.github.flow-storm/clojurescript</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"1.12.145-1"</span><span class="p">}</span><span class="w">
                   </span><span class="c1">;; add FlowStorm runtime dep</span><span class="w">
                   </span><span class="n">com.github.flow-storm/flow-storm-inst</span><span class="w"> </span><span class="p">{</span><span class="no">:mvn/version</span><span class="w"> </span><span class="s">"4.6.0"</span><span class="p">}}}}}</span></code></pre>
 </div>
@@ -1332,7 +1332,7 @@ still make that work by wrapping the expression on a fn and immediately calling 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>cljs.user <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.134-3"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.6.0"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload]}'</span> <span class="nt">--repl</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="bash">clj <span class="nt">-Sforce</span> <span class="nt">-J-Dcljs</span>.storm.instrumentOnlyPrefixes<span class="o">=</span>cljs.user <span class="nt">-Sdeps</span> <span class="s1">'{:deps {com.github.flow-storm/clojurescript {:mvn/version "1.12.145-1"} com.github.flow-storm/flow-storm-inst {:mvn/version "4.6.0"}}}'</span> <span class="nt">-M</span> <span class="nt">-m</span> cljs.main <span class="nt">-co</span> <span class="s1">'{:preloads [flow-storm.storm-preload]}'</span> <span class="nt">--repl</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4997,7 +4997,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-06-12 11:12:01 -0300
+Last updated 2026-06-12 11:16:17 -0300
 </div>
 </div>
 </body>
