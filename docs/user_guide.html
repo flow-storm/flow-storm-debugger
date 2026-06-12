@@ -2336,6 +2336,23 @@ You can disable it from the Config menu or via the <code>flowstorm.callTreeUpdat
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">ClojureScript async programming</div>
+<div class="paragraph">
+<p>Currently if you are using async/await in ClojureScript this tool could be inaccurate.
+This is because of the way the tree is being lazily built as you explore it and the structure the timelines
+end up on async environments.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_functions_tool"><a class="anchor" href="#_functions_tool"></a><a class="link" href="#_functions_tool">3.3. Functions tool</a></h3>
@@ -4485,9 +4502,6 @@ and possible values.</p>
 <p><code>-Dcljs.storm.instrumentAutoPrefixes=false</code></p>
 </li>
 <li>
-<p><code>-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib</code></p>
-</li>
-<li>
 <p><code>-Dcljs.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting</code></p>
 </li>
 </ul>
@@ -4980,7 +4994,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-21 09:37:49 -0300
+Last updated 2026-06-12 09:58:59 -0300
 </div>
 </div>
 </body>

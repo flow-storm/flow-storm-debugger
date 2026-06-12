@@ -5,19 +5,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defprotocol ThreadTimelineRecorderP
-  (add-fn-call [_ fn-ns fn-name form-id args])
-  (add-fn-return [_ coord ret-val])
-  (add-fn-unwind [_ coord throwable])
-  (add-expr-exec [_ coord expr-val])  
-  (add-bind [_ coord symb-name symb-val]))
+  (add-fn-call [_ fn-ns fn-name form-id args frame-id])
+  (add-fn-return [_ coord ret-val frame-id])
+  (add-fn-unwind [_ coord throwable frame-id])
+  (add-expr-exec [_ coord expr-val frame-id])  
+  (add-bind [_ coord symb-name symb-val frame-id]))
 
 (defprotocol TreeBuilderP
-  (reset-build-stack [_]))
+  (reset-fn-call-stack [_]))
 
 (defprotocol TimelineP
   (flow-id [_])
   (thread-id [_ idx])
-  (thread-name [_ idx]))
+  (thread-name [_ idx])
+  (async-timeline? [_]))
 
 (defprotocol TimelineEntryP
   (entry-type [_]))

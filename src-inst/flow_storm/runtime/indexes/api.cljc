@@ -238,8 +238,8 @@
           (when flow-thread-registry
             (index-protos/flow-threads-info flow-thread-registry flow-id))))
 
-(defn create-thread-tracker! [flow-id thread-id thread-name]
-  (let [timeline (timeline-index/make-index flow-id thread-id thread-name)
+(defn create-thread-tracker! [flow-id thread-id thread-name async-timeline?]
+  (let [timeline (timeline-index/make-index flow-id thread-id thread-name async-timeline?)
         thread-tracker (index-protos/register-thread flow-thread-registry
                                                      flow-id
                                                      thread-id
@@ -261,14 +261,14 @@
              (get-timeline fid tid)))
          (index-protos/all-threads flow-thread-registry))))
 
-(defn get-or-create-thread-tracker [flow-id thread-id thread-name]
+(defn get-or-create-thread-tracker [flow-id thread-id thread-name async-timeline?]
 
   (when-not (flow-exists? flow-id)
     (create-flow {:flow-id flow-id}))
   
   (if-let [th-tracker (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     th-tracker
-    (create-thread-tracker! flow-id thread-id thread-name)))
+    (create-thread-tracker! flow-id thread-id thread-name async-timeline?)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indexes build api ;;
@@ -277,13 +277,13 @@
 (defn add-form-init-trace [trace]  
   (register-form trace))
 
-(defn add-fn-call-trace [flow-id thread-id thread-name fn-ns fn-name form-id args total-order-recording?]
-  (let [{:thread/keys [timeline *fn-call-limits *thread-limited]} (get-or-create-thread-tracker flow-id thread-id thread-name)]
+(defn add-fn-call-trace [flow-id thread-id thread-name fn-ns fn-name form-id args total-order-recording? frame-id]
+  (let [{:thread/keys [timeline *fn-call-limits *thread-limited]} (get-or-create-thread-tracker flow-id thread-id thread-name (boolean frame-id))]
     (if-not @*thread-limited
       
       (if-not (check-fn-limit! *fn-call-limits fn-ns fn-name)
         ;; if we are not limited, go ahead and record fn-call
-        (let [tl-idx (index-protos/add-fn-call timeline fn-ns fn-name form-id args)]
+        (let [tl-idx (index-protos/add-fn-call timeline fn-ns fn-name form-id args frame-id)]
           (when (and tl-idx total-order-recording?)
             (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
           tl-idx)
@@ -294,11 +294,11 @@
       ;; if this thread is already limited, just increment the depth
       (swap! *thread-limited inc))))
 
-(defn add-fn-return-trace [flow-id thread-id coord ret-val total-order-recording?]
+(defn add-fn-return-trace [flow-id thread-id coord ret-val total-order-recording? frame-id]
   (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (if-not @*thread-limited
       ;; when not limited, go ahead
-      (let [tl-idx (index-protos/add-fn-return timeline coord ret-val)]
+      (let [tl-idx (index-protos/add-fn-return timeline coord ret-val frame-id)]
         (when (and tl-idx total-order-recording?)
           (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
         tl-idx)
@@ -310,11 +310,11 @@
                                    (dec l))))
         nil))))
 
-(defn add-fn-unwind-trace [flow-id thread-id coord throwable total-order-recording?]
+(defn add-fn-unwind-trace [flow-id thread-id coord throwable total-order-recording? frame-id]
   (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (if-not @*thread-limited
       ;; when not limited, go ahead
-      (when-let [tl-idx (index-protos/add-fn-unwind timeline coord throwable)]
+      (when-let [tl-idx (index-protos/add-fn-unwind timeline coord throwable frame-id)]
         (let [unwind-trace (get timeline tl-idx)
               fn-idx (index-protos/fn-call-idx unwind-trace)
               {:keys [fn-ns fn-name]} (-> (get timeline fn-idx)
@@ -341,10 +341,10 @@
                                    (dec l))))
         nil))))
 
-(defn add-expr-exec-trace [flow-id thread-id coord expr-val total-order-recording?]
+(defn add-expr-exec-trace [flow-id thread-id coord expr-val total-order-recording? frame-id]
   (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (when (not @*thread-limited)
-      (let [tl-idx (index-protos/add-expr-exec timeline coord expr-val)]
+      (let [tl-idx (index-protos/add-expr-exec timeline coord expr-val frame-id)]
         (when (and tl-idx total-order-recording?)
           (index-protos/record-total-order-entry flow-thread-registry flow-id timeline tl-idx))
         (when (and (symbol? expr-val)
@@ -356,10 +356,10 @@
             (events/publish-event! ev)))
         tl-idx))))
 
-(defn add-bind-trace [flow-id thread-id coord symb-name symb-val]
+(defn add-bind-trace [flow-id thread-id coord symb-name symb-val frame-id]
   (when-let [{:thread/keys [timeline *thread-limited]} (index-protos/get-thread-tracker flow-thread-registry flow-id thread-id)]
     (when (not @*thread-limited)
-      (index-protos/add-bind timeline coord symb-name symb-val))))
+      (index-protos/add-bind timeline coord symb-name symb-val frame-id))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indexes API. This are functions meant to be called by            ;;
@@ -515,12 +515,12 @@
             []
             fn-call-idx-path)))
 
-(defn reset-all-threads-trees-build-stack [flow-id]
+(defn reset-all-threads-trees-fn-call-stack [flow-id]
   (when flow-thread-registry
     (let [flow-threads (index-protos/flow-threads-info flow-thread-registry flow-id)]
       (doseq [{:keys [thread/id]} flow-threads]
         (when-let [{:thread/keys [timeline]} (index-protos/get-thread-tracker flow-thread-registry flow-id id)]
-          (index-protos/reset-build-stack timeline))))))
+          (index-protos/reset-fn-call-stack timeline))))))
 
 (defn fn-call-stats
 
@@ -1216,6 +1216,7 @@
     (flow-id [_] (index-protos/flow-id timeline))
     (thread-id [_ _] (index-protos/thread-id timeline nil))
     (thread-name [_ _] (index-protos/thread-name timeline nil))
+    (async-timeline? [_] (index-protos/async-timeline? timeline))
 
     index-protos/FnCallStatsP
 

@@ -20,7 +20,7 @@
   (if enable?
     (do
       (reset! recording true)
-      (indexes-api/reset-all-threads-trees-build-stack @current-flow-id))
+      (indexes-api/reset-all-threads-trees-fn-call-stack @current-flow-id))
 
     (reset! recording false))
   (rt-events/publish-event! (rt-events/make-recording-updated-event enable?)))
@@ -144,11 +144,14 @@
 
   "Send function call traces"
   
-  ([{:keys [form-id ns fn-name fn-args]}] ;; for using with hansel
+  ([{:keys [form-id ns fn-name fn-args]}] ;; for Hansel compat
    
    (trace-fn-call nil ns fn-name fn-args form-id))
   
-  ([_ fn-ns fn-name fn-args form-id]  ;; for using with storm
+  ([_ fn-ns fn-name fn-args form-id]  ;; for ClojureStorm compat
+   (trace-fn-call nil fn-ns fn-name fn-args form-id nil))
+  
+  ([_ fn-ns fn-name fn-args form-id frame-id] ;; for ClojureScriptStorm compat
    (let [flow-id @current-flow-id
          thread-id (utils/get-current-thread-id)
          thread-name (utils/get-current-thread-name)]
@@ -173,19 +176,22 @@
               fn-name
               form-id
               args
-              @total-order-recording))))))))
+              @total-order-recording
+              frame-id))))))))
 
 (defn trace-fn-return
 
   "Send function return traces"
   
-  ([{:keys [return coor form-id]}]  ;; for using with hansel
+  ([{:keys [return coor form-id]}]  ;; for Hansel compat
    
    (trace-fn-return nil return (stringify-coord coor) form-id)
    return)
   
-  ([_ return coord _] ;; for using with storm
-
+  ([_ return coord form-id] ;; for ClojureStorm compat
+   (trace-fn-return nil return coord form-id nil))
+  
+  ([_ return coord _ frame-id] ;; for ClojureScriptStorm compat
    (when @recording     
      (let [flow-id @current-flow-id
            thread-id (utils/get-current-thread-id)
@@ -197,14 +203,17 @@
           thread-id
           coord
           (snapshot-reference return)
-          @total-order-recording))))))
+          @total-order-recording
+          frame-id))))))
 
 (defn trace-fn-unwind
-  ([{:keys [throwable coor form-id]}]  ;; for using with hansel   
+  ([{:keys [throwable coor form-id]}]  ;; for Hansel compat
    (trace-fn-unwind nil throwable (stringify-coord coor) form-id))
   
-  ([_ throwable coord _] ;; for using with storm
-
+  ([_ throwable coord form-id] ;; for ClojureStorm compat
+   (trace-fn-unwind nil throwable coord form-id nil))
+  
+  ([_ throwable coord _ frame-id] ;; for ClojureScriptStorm compat
    (when @recording
      (let [flow-id @current-flow-id
            thread-id (utils/get-current-thread-id)
@@ -216,20 +225,23 @@
           thread-id      
           coord
           (snapshot-reference throwable)
-          @total-order-recording))))))
+          @total-order-recording
+          frame-id))))))
 
 (defn trace-expr-exec
   
   "Send expression execution trace."
   
-  ([{:keys [result coor form-id]}]  ;; for using with hansel   
+  ([{:keys [result coor form-id]}]  ;; for Hansel compat
 
    (trace-expr-exec nil result (stringify-coord coor) form-id)
    
    result)
 
-  ([_ result coord _]  ;; for using with storm
+  ([_ result coord form-id]  ;; for ClojureStorm compat
+   (trace-expr-exec nil result coord form-id nil))
 
+  ([_ result coord _ frame-id] ;; for ClojureScriptStorm compat
    (when @recording          
      (let [flow-id @current-flow-id
            thread-id (utils/get-current-thread-id)
@@ -237,23 +249,25 @@
 
        (when-not limit-hit?
          (indexes-api/add-expr-exec-trace      
-         flow-id
-         thread-id      
-         coord
-         (snapshot-reference result)
-         @total-order-recording))))))
+          flow-id
+          thread-id      
+          coord
+          (snapshot-reference result)
+          @total-order-recording
+          frame-id))))))
 
 (defn trace-bind
   
   "Send bind trace."
   
-  ([{:keys [symb val coor]}] ;; for using with hansel
+  ([{:keys [symb val coor]}] ;; for Hansel compat
 
    (trace-bind nil (stringify-coord coor) (name symb) val))
 
-  ([_ coord sym-name val]  ;; for using with storm
-
-   
+  ([_ coord sym-name val] ;; for ClojureStorm compat
+   (trace-bind nil coord sym-name val nil))
+  
+  ([_ coord sym-name val frame-id] ;; for ClojureScriptStorm compat
    (when @recording
      
      (let [flow-id @current-flow-id
@@ -266,7 +280,8 @@
          thread-id
          coord
          sym-name
-         (snapshot-reference val)))))))
+         (snapshot-reference val)
+         frame-id))))))
 
 (defn hansel-config
 

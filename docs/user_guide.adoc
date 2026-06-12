@@ -937,6 +937,14 @@ since keeping it updated can be expensive.
 You can disable it from the Config menu or via the `flowstorm.callTreeUpdate=false` JVM prop.
 ====
 
+[NOTE]
+.ClojureScript async programming
+====
+Currently if you are using async/await in ClojureScript this tool could be inaccurate.
+This is because of the way the tree is being lazily built as you explore it and the structure the timelines
+end up on async environments.
+====
+
 == Functions tool
 
 The functions tool is the third one of the `Flows` tab.
@@ -2286,7 +2294,6 @@ and possible values.
 - `-Dcljs.storm.instrumentEnable=true`
 - `-Dcljs.storm.instrumentOnlyPrefixes=ns-prefix1,ns-prefix2`
 - `-Dcljs.storm.instrumentAutoPrefixes=false`
-- `-Dcljs.storm.instrumentOnlyPrefixes=my-app,my-lib`
 - `-Dcljs.storm.instrumentSkipPrefixes=my-app.too-heavy,my-lib.uninteresting`
 
 = Styling and theming

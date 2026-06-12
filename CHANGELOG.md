@@ -3,9 +3,11 @@
 ## master (unreleased)
 	
 ### New Features
-        
-### Changes
 
+    - Add support for ClojureScript async/await timelines
+    
+### Changes
+    
     - Goto file:line now searches files with ends-withs? for improved UX
 
 ### Bugs fixed
