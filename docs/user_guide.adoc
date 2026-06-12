@@ -360,6 +360,13 @@ when running cljs.main.
 
 === ClojureScript vanilla FlowStorm
 
+[NOTE]
+.Async/await limitations
+====
+ClojureScript with vanilla FlowStorm doesn't currently support async/await introduced in ClojureScript 1.12.145
+If you need async/await support you can use it with ClojureScriptStorm as described above or otherwise open an issue.
+====
+
 Let's say you are using https://github.com/thheller/shadow-cljs[shadow-cljs] to start a ClojureScript repl.
 
 First you need to add _FlowStorm_ dependency to your project dependencies, like this :
