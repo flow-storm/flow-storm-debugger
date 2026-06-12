@@ -858,7 +858,7 @@
 (defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id file line fn-call-idx] :as criteria}]
   (let [coord (when coord (utils/stringify-coord coord))
         custom-pred-fn #?(:clj (when custom-pred-form (eval (read-string custom-pred-form)))
-                          :cljs (do
+                          :cljs (when custom-pred-form
                                   (utils/log (str "Custom stepping is not supported in ClojureScript yet " custom-pred-form))
                                   (constantly true)))]
     (fn [entry-form-id _ tl-entry]

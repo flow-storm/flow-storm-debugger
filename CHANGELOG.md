@@ -4,6 +4,14 @@
 	
 ### New Features
 
+### Changes
+    
+### Bugs fixed
+        
+## 4.6.0 (12-06-2026)
+	
+### New Features
+
     - Add support for ClojureScript async/await timelines
     - Add same-fn-frame power stepper
     
