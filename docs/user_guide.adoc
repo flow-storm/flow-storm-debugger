@@ -747,6 +747,7 @@ There are currently six power stepping tools :
 - `same-coord` will step to the prev/next value for the same coordinate. This means it will move to the next recording in
   the timeline for this exact place in the code you are currently in. You can also see it as take me to all the situations
   when the current expression executed doesn't matter how we got to it.
+- `same-fn-frame` will step to the prev/next expression on the same function call frame (keep me on this function)  
 - `custom`, allows you to provide a predicate, which will be used to find the next step.
   If you define it like `(fn [v] (map? v))` will make the power stepper step over all map values.
 - `custom-same-coord`, the same as `custom` but fixed on the current coordinate like `same-coord`.

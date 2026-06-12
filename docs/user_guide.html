@@ -2006,6 +2006,9 @@ the timeline for this exact place in the code you are currently in. You can also
 when the current expression executed doesn&#8217;t matter how we got to it.</p>
 </li>
 <li>
+<p><code>same-fn-frame</code> will step to the prev/next expression on the same function call frame (keep me on this function)</p>
+</li>
+<li>
 <p><code>custom</code>, allows you to provide a predicate, which will be used to find the next step.
 If you define it like <code>(fn [v] (map? v))</code> will make the power stepper step over all map values.</p>
 </li>
@@ -4994,7 +4997,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-06-12 09:58:59 -0300
+Last updated 2026-06-12 10:27:34 -0300
 </div>
 </div>
 </body>

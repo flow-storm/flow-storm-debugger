@@ -649,13 +649,21 @@
                               :fn-selector (doto fn-selector (.setVisible true) (.setPrefWidth 200))
                               nil))
         _ (show-custom-field nil)
-        step-type-combo (ui/combo-box :items ["identity" "identity-other-thread" "equality" "same-coord" "custom" "custom-same-coord" "fn-call"]
+        step-type-combo (ui/combo-box :items ["identity"
+                                              "identity-other-thread"
+                                              "equality"
+                                              "same-coord"
+                                              "same-fn-frame"
+                                              "custom"
+                                              "custom-same-coord"
+                                              "fn-call"]
                                       :on-change (fn [_ new-val]
                                                    (case new-val
                                                      "identity"              (show-custom-field nil)
                                                      "identity-other-thread" (show-custom-field nil)
                                                      "equality"              (show-custom-field nil)
                                                      "same-coord"            (show-custom-field nil)
+                                                     "same-fn-frame"         (show-custom-field nil)
                                                      "custom"                (show-custom-field :custom-txt)
                                                      "custom-same-coord"     (show-custom-field :custom-txt)
                                                      "fn-call"               (show-custom-field :fn-selector))))
@@ -666,8 +674,7 @@
                               [idx target-val coord] (if (= :fn-unwind (:type tentry))
                                                        [(:idx tentry) (:throwable tentry) (:coord tentry)]
                                                        [(:idx tentry) (:result tentry) (:coord tentry)])
-
-                              {:keys [form-id]} (dbg-state/current-frame flow-id thread-id)
+                              {:keys [form-id fn-call-idx]} (dbg-state/current-frame flow-id thread-id)
                               from-idx (if backward? (dec idx) (inc idx))
                               sel-fn-call-symb @*selected-fn
                               params (case step-type-val
@@ -685,6 +692,10 @@
                                                                 :from-idx from-idx}
                                        "same-coord"            {:coord coord
                                                                 :form-id form-id
+                                                                :thread-id thread-id
+                                                                :backward? backward?
+                                                                :from-idx from-idx}
+                                       "same-fn-frame"         {:fn-call-idx fn-call-idx
                                                                 :thread-id thread-id
                                                                 :backward? backward?
                                                                 :from-idx from-idx}

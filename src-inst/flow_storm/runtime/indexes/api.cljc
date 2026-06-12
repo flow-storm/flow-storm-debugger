@@ -855,7 +855,7 @@
             sub-form (hansel-utils/get-form-at-coord (:form/form form) coord)]
         (-> sub-form meta :line (= line))))))
 
-(defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id file line] :as criteria}]
+(defn build-find-expr-entry-predicate [{:keys [identity-val equality-val custom-pred-form coord form-id file line fn-call-idx] :as criteria}]
   (let [coord (when coord (utils/stringify-coord coord))
         custom-pred-fn #?(:clj (when custom-pred-form (eval (read-string custom-pred-form)))
                           :cljs (do
@@ -868,6 +868,7 @@
                  (if (contains? criteria :identity-val) (identical? (index-protos/get-expr-val tl-entry) identity-val)  true)
                  (if (contains? criteria :equality-val) (= (index-protos/get-expr-val tl-entry) equality-val)           true)
                  (if coord           (= coord (index-protos/get-coord-raw tl-entry))                 true)
+                 (if fn-call-idx     (= fn-call-idx (index-protos/fn-call-idx tl-entry))             true)
                  (if form-id         (= form-id entry-form-id)                                       true)
                  (if (and file line) (entry-matches-file-and-line? entry-form-id tl-entry file line) true)
                  (if custom-pred-fn  (custom-pred-fn (index-protos/get-expr-val tl-entry))           true))

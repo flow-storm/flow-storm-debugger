@@ -5,6 +5,7 @@
 ### New Features
 
     - Add support for ClojureScript async/await timelines
+    - Add same-fn-frame power stepper
     
 ### Changes
     
