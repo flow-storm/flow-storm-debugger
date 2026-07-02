@@ -206,8 +206,14 @@
   will repaint and arm the form-code-area with the interesting and currently executing tokens.
   All interesting tokens will be clickable."
 
-  [flow-id thread-id form ^CodeArea form-code-area print-tokens]
-  (let [[thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")]
+  [scroll-pane form ^CodeArea form-code-area {:keys [interesting-expr-click-handler uninteresting-hl-expr-click-handler background-click-handler]}]
+  (let [print-tokens (binding [pp/*print-right-margin* 80]
+                       (-> (form-pprinter/pprint-tokens (:form/form form))
+                           ;; if it is a wrapped repl expression discard some tokens that the user
+                           ;; isn't interested in
+                           maybe-unwrap-runi-tokens))
+        code-text (form-pprinter/to-string print-tokens)]
+    (.appendText form-code-area code-text)
     (fn [expr-executions curr-coord]
       (let [interesting-coords (group-by :coord expr-executions)
             spans (->> print-tokens
@@ -231,7 +237,7 @@
                 caret-line (.getMajor caret-pos-2d)
                 area-lines (-> form-code-area .getParagraphs .size)
                 caret-area-perc (if (pos? area-lines) (float (/ caret-line area-lines)) 0)]
-            (ui-utils/ensure-node-visible-in-scroll-pane thread-scroll-pane form-code-area caret-area-perc)))
+            (ui-utils/ensure-node-visible-in-scroll-pane scroll-pane form-code-area caret-area-perc)))
 
         (.setStyleSpans form-code-area 0 0 style-spans)
 
@@ -239,26 +245,7 @@
                             (event-handler
                                 [^MouseEvent mev]
                               (let [char-hit (.hit form-code-area (.getX mev) (.getY mev))
-                                    opt-char-idx (.getCharacterIndex char-hit)
-                                    ctx-menu-options (cond-> [{:text "Copy qualified function symbol"
-                                                               :on-click (fn [] (copy-current-frame-symbol flow-id thread-id false))}
-                                                              {:text "Copy function calling form"
-                                                               :on-click (fn [] (copy-current-frame-symbol flow-id thread-id true))}]
-
-                                                       (not (dbg-state/clojure-storm-env?))
-                                                       (into [{:text "Fully instrument this form"
-                                                               :on-click (fn []
-                                                                           (runtime-api/eval-form rt-api
-                                                                                                  (pr-str (:form/form form))
-                                                                                                  {:instrument? true
-                                                                                                   :ns (:form/ns form)}))}
-                                                              {:text "Instrument this form without bindings"
-                                                               :on-click (fn []
-                                                                           (runtime-api/eval-form rt-api
-                                                                                                  (pr-str (:form/form form))
-                                                                                                  {:instrument? true
-                                                                                                   :instrument-options {:disable #{:bind}}
-                                                                                                   :ns (:form/ns form)}))}]))]
+                                    opt-char-idx (.getCharacterIndex char-hit)]
 
                                 (if (.isPresent opt-char-idx)
                                   (let [char-idx (.getAsInt opt-char-idx)
@@ -266,113 +253,143 @@
                                                           (some (fn [{:keys [idx-from len] :as span}]
                                                                   (when (and (>= char-idx idx-from)
                                                                              (< char-idx (+ idx-from len)))
-                                                                    span))))
-                                        ctx-menu-options (cond-> ctx-menu-options
-                                                           (:line clicked-span)
-                                                           (into [{:text "Open in editor"
-                                                                   :on-click (fn [] (open-form-in-editor form (:line clicked-span)))}]))
-                                        curr-idx (dbg-state/current-idx flow-id thread-id)]
+                                                                    span))))]
                                     (when-let [coord (:coord clicked-span)]
                                       (if (:interesting? clicked-span)
                                         (let [clicked-coord-exprs (get interesting-coords coord)]
+                                          (interesting-expr-click-handler mev clicked-coord-exprs (:line clicked-span)))
+                                        (uninteresting-hl-expr-click-handler mev coord))))
 
-                                          (if (ui-utils/mouse-secondary? mev)
-                                            (ui-utils/show-context-menu :menu (ui/context-menu
-                                                                               :items (into ctx-menu-options
-                                                                                            [{:text "Add to prints"
-                                                                                              :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]))
-                                                                        :parent form-code-area
-                                                                        :mouse-ev mev)
-                                            ;; else
-                                            (if (= 1 (count clicked-coord-exprs))
-
-                                              (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
-
-                                              (ui-utils/show-context-menu
-                                               :menu (make-coord-expressions-menu flow-id thread-id clicked-coord-exprs curr-idx)
-                                               :parent form-code-area
-                                               :mouse-ev mev))))
-
-                                        ;; else if it is not interesting? we don't want to jump there
-                                        ;; but provide a way of search and jump to it by coord and form
-                                        (let [form-id (:form/id form)]
-
-                                          (when (ui-utils/mouse-secondary? mev)
-                                            (ui-utils/show-context-menu
-                                             :menu (ui/context-menu
-                                                    :items (into [{:text "Jump to first record here"
-                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
-                                                                  {:text "Jump forward here"
-                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
-                                                                  {:text "Jump backwards here"
-                                                                   :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}]
-                                                                 ctx-menu-options))
-                                             :parent form-code-area
-                                             :mouse-ev mev))))))
-
-                                  ;; else clicked on the form background
-                                  (when (ui-utils/mouse-secondary? mev)
-                                    (ui-utils/show-context-menu
-                                     :menu (ui/context-menu :items ctx-menu-options)
-                                     :parent form-code-area
-                                     :mouse-ev mev))))))))))
+                                  (background-click-handler mev)))))))))
 (defn- add-form
 
   "Pprints and adds a form to the flow and thread forms_box container."
 
   [form flow-id thread-id form-id]
-  (let [print-tokens (binding [pp/*print-right-margin* 80]
-                       (-> (form-pprinter/pprint-tokens (:form/form form))
-                           ;; if it is a wrapped repl expression discard some tokens that the user
-                           ;; isn't interested in
-                           maybe-unwrap-runi-tokens))
-        [^VBox forms-box] (obj-lookup flow-id thread-id "forms_box")
-        code-text (form-pprinter/to-string print-tokens)
-        ns-label (let [form-line (some-> form :form/form meta :line)
-                       ^Label ns-lbl (ui/label :text (if form-line
-                                                       (format "%s:%d" (:form/ns form) form-line)
-                                                       (:form/ns form))
-                                               :class "link-lbl-no-color")]
-                   (doto ns-lbl
-                     (.setOnMouseClicked (event-handler [_] (open-form-in-editor form)))
-                     (.setFont (Font. 10))))
+  (try
+    (let [[^VBox forms-box] (obj-lookup flow-id thread-id "forms_box")
+          ns-label (let [form-line (some-> form :form/form meta :line)
+                         ^Label ns-lbl (ui/label :text (if form-line
+                                                         (format "%s:%d" (:form/ns form) form-line)
+                                                         (:form/ns form))
+                                                 :class "link-lbl-no-color")]
+                     (doto ns-lbl
+                       (.setOnMouseClicked (event-handler [_] (open-form-in-editor form)))
+                       (.setFont (Font. 10))))
 
-        form-header (ui/h-box :childs [ns-label]
-                              :align :top-right)
+          form-header (ui/h-box :childs [ns-label]
+                                :align :top-right)
 
-        ^CodeArea form-code-area (ui/code-area :editable? false
-                                               :text code-text)
+          ^CodeArea form-code-area (ui/code-area :editable? false
+                                                 :text "")
 
-        form-pane (ui/v-box
-                   :childs [form-header form-code-area]
-                   :class "form-pane")
+          form-pane (ui/v-box
+                     :childs [form-header form-code-area]
+                     :class "form-pane")
 
-        form-paint-fn (build-form-paint-and-arm-fn flow-id thread-id form form-code-area print-tokens)]
+          ctx-menu-options (cond-> [{:text "Copy qualified function symbol"
+                                     :on-click (fn [] (copy-current-frame-symbol flow-id thread-id false))}
+                                    {:text "Copy function calling form"
+                                     :on-click (fn [] (copy-current-frame-symbol flow-id thread-id true))}]
 
-    ;; The code area when focused will capture all keyboard events, so we
-    ;; re-fire them so they can be handled up in the chain
-    (.addEventFilter form-code-area
-                     KeyEvent/ANY
-                     (event-handler
-                         [^KeyEvent kev]
-                       (.fireEvent ^Node forms-box (.copyFor kev form-code-area ^Node forms-box))))
+                             (not (dbg-state/clojure-storm-env?))
+                             (into [{:text "Fully instrument this form"
+                                     :on-click (fn []
+                                                 (runtime-api/eval-form rt-api
+                                                                        (pr-str (:form/form form))
+                                                                        {:instrument? true
+                                                                         :ns (:form/ns form)}))}
+                                    {:text "Instrument this form without bindings"
+                                     :on-click (fn []
+                                                 (runtime-api/eval-form rt-api
+                                                                        (pr-str (:form/form form))
+                                                                        {:instrument? true
+                                                                         :instrument-options {:disable #{:bind}}
+                                                                         :ns (:form/ns form)}))}]))
+          curr-idx (dbg-state/current-idx flow-id thread-id)
+          [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
-    (.addEventFilter form-code-area
-                     ScrollEvent/ANY
-                     (event-handler
-                         [^ScrollEvent sev]
-                       (.fireEvent ^Node forms-box (.copyFor sev form-code-area ^Node forms-box))))
+          form-paint-fn (build-form-paint-and-arm-fn
+                         thread-scroll-pane
+                         form
+                         form-code-area
+                         {:interesting-expr-click-handler
+                          (fn interesting-expr-handler [mev clicked-coord-exprs line]
+                            (let [ctx-menu-options (cond-> ctx-menu-options
+                                                     line
+                                                     (into [{:text "Open in editor"
+                                                             :on-click (fn [] (open-form-in-editor form line))}]))]
+                              (if (ui-utils/mouse-secondary? mev)
+                                (ui-utils/show-context-menu :menu (ui/context-menu
+                                                                   :items (into ctx-menu-options
+                                                                                [{:text "Add to prints"
+                                                                                  :on-click #(add-to-printer flow-id thread-id (first clicked-coord-exprs))}]))
+                                                            :parent form-code-area
+                                                            :mouse-ev mev)
+                                ;; else
+                                (if (= 1 (count clicked-coord-exprs))
 
-    (ui-utils/add-class form-code-area "form-pane")
+                                  (jump-to-coord flow-id thread-id (first clicked-coord-exprs))
 
-    (store-obj flow-id thread-id (ui-utils/thread-form-box-id form-id) form-pane)
-    (store-obj flow-id thread-id (ui-utils/thread-form-paint-fn form-id) form-paint-fn)
+                                  (ui-utils/show-context-menu
+                                   :menu (make-coord-expressions-menu flow-id thread-id clicked-coord-exprs curr-idx)
+                                   :parent form-code-area
+                                   :mouse-ev mev)))))
 
-    (-> forms-box
-        .getChildren
-        (.add 0 form-pane))
+                          :uninteresting-hl-expr-click-handler
+                          (fn uninteresting-hl-expr-handler [mev coord]
+                            (let [form-id (:form/id form)]
+                              ;; else if it is not interesting? we don't want to jump there
+                              ;; but provide a way of search and jump to it by coord and form
 
-    form-pane))
+                              (when (ui-utils/mouse-secondary? mev)
+                                (ui-utils/show-context-menu
+                                 :menu (ui/context-menu
+                                        :items (into [{:text "Jump to first record here"
+                                                       :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx 0}))}
+                                                      {:text "Jump forward here"
+                                                       :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? false :from-idx curr-idx}))}
+                                                      {:text "Jump backwards here"
+                                                       :on-click (fn [] (jump-to-record-here flow-id thread-id form-id coord {:backward? true :from-idx curr-idx}))}]
+                                                     ctx-menu-options))
+                                 :parent form-code-area
+                                 :mouse-ev mev))))
+
+                          :background-click-handler
+                          (fn background-click-handler [mev]
+                            (when (ui-utils/mouse-secondary? mev)
+                                    (ui-utils/show-context-menu
+                                     :menu (ui/context-menu :items ctx-menu-options)
+                                     :parent form-code-area
+                                     :mouse-ev mev)))})]
+
+      ;; The code area when focused will capture all keyboard events, so we
+      ;; re-fire them so they can be handled up in the chain
+      (.addEventFilter form-code-area
+                       KeyEvent/ANY
+                       (event-handler
+                           [^KeyEvent kev]
+                         (.fireEvent ^Node forms-box (.copyFor kev form-code-area ^Node forms-box))))
+
+      (.addEventFilter form-code-area
+                       ScrollEvent/ANY
+                       (event-handler
+                           [^ScrollEvent sev]
+                         (.fireEvent ^Node forms-box (.copyFor sev form-code-area ^Node forms-box))))
+
+      (ui-utils/add-class form-code-area "form-pane")
+
+      (store-obj flow-id thread-id (ui-utils/thread-form-box-id form-id) form-pane)
+      (store-obj flow-id thread-id (ui-utils/thread-form-paint-fn form-id) form-paint-fn)
+
+      (-> forms-box
+          .getChildren
+          (.add 0 form-pane))
+
+      form-pane)
+    (catch Exception e
+      (println "@@@@@@@2 HEREEEEEEEEEEEEE" e)
+      (.printStackTrace e))))
 
 (defn- locals-cell-factory [_ {:keys [cell-type symb-name val-ref]}]
   (case cell-type
