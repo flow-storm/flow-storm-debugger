@@ -139,6 +139,10 @@
        :clj  (utils/call-jvm-method "clojure.storm.Emitter" "setInstrumentationEnable" [on?])
        :cljs ((requiring-resolve 'cljs.storm.api/set-instrumentation) on?))))
 
+#?(:clj
+   (defn set-boolean-compiler-option [_ opt-key on?]
+     (alter-var-root #'clojure.core/*compiler-options* (fn [co] (assoc co opt-key on?)))))
+
 (defn runtime-config []
   (let [storm? (utils/storm-env?)
         env-kind #?(:clj :clj :cljs :cljs)]
@@ -630,6 +634,7 @@
               ;; these are about turning on/off 
               :storm-instrumentation-enable? storm-instrumentation-enable?
               :turn-storm-instrumentation turn-storm-instrumentation
+              :set-boolean-compiler-option set-boolean-compiler-option
               
               :unblock-thread unblock-thread
               :unblock-all-threads unblock-all-threads

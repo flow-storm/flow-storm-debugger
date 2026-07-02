@@ -111,6 +111,9 @@
 (defn make-last-evals-update-event [last-evals-refs]
   [:last-evals-update {:last-evals-refs last-evals-refs}])
 
+(defn make-form-bytecode-emitted-event [form-classes]
+  [:form-bytecode-emitted-event form-classes])
+
 (defn publish-event! [[ev-key :as ev]]
   (if-let [dispatch @*dispatch]
 

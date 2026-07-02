@@ -20,6 +20,9 @@
 (defmacro dummy-sum-macro [a b]
   `(+ ~a ~b))
 
+(defn with-required-keys [{:keys! [a b]}]
+  (+ a b))
+
 (defn factorial [n]
   (if (zero? n)
     1
@@ -127,7 +130,9 @@
          (reduce + )
          add
          sub
-         (+ c d j e (hinted a c d j)))))
+         (+ c d j e
+            (hinted a c d j)
+            (with-required-keys {:a 10 :b 20})))))
 
 (defn run []
   (boo [1 "hello" 4]))

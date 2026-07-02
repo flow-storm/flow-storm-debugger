@@ -2,7 +2,8 @@
   (:require [flow-storm.utils :as utils :refer [stringify-coord]]            
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
-            [flow-storm.runtime.events :as rt-events]))
+            [flow-storm.runtime.events :as rt-events]
+            #?(:clj [flow-storm.runtime.forms-bytecode-emission :refer [handle-form-bytecode-emitted]])))
 
 (declare start-tracer)
 (declare stop-tracer)
@@ -300,12 +301,20 @@
     (disable :anonymous-fn) (assoc :disable #{:anonymous-fn})))
 
 #?(:clj
-   (defn- set-clojure-storm [callbacks]
+   (defn- set-clojure-storm [{:keys [trace-fn-call-fn] :as callbacks}]
      ;; Set ClojureStorm callbacks by reflection so FlowStorm can be used
      ;; without ClojureStorm on the classpath.
-     (let [tracer-class (Class/forName "clojure.storm.Tracer")
-           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))]       
-       (.invoke setTraceFnsCallbacks nil (into-array [callbacks])))))
+     (let [unhook? (nil? trace-fn-call-fn)
+           tracer-class (Class/forName "clojure.storm.Tracer")
+           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))
+           setOnFormBytecodeEmitted (.getMethod tracer-class "setOnFormBytecodeEmitted" (into-array java.lang.Class [clojure.lang.IFn]))]       
+       (.invoke setTraceFnsCallbacks nil (into-array [callbacks]))
+       (try
+         (.invoke setOnFormBytecodeEmitted
+                  nil
+                  (into-array [(when-not unhook? #'handle-form-bytecode-emitted)]))
+         (catch Exception _
+           (utils/log "This version of ClojureStorm doesn't support form bytecode emission tracing. Please upgrade."))))))
 
 #?(:clj
    (defn hook-clojure-storm []  

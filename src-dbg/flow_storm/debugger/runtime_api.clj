@@ -85,6 +85,7 @@
 
   (storm-instrumentation-enable? [_])
   (turn-storm-instrumentation [_ on?])
+  (set-boolean-compiler-option [_ opt-key on?])
 
   (reload-namespace [_ ns-info])
 
@@ -229,6 +230,9 @@
 
   (turn-storm-instrumentation [_ on?]
     (api-call :local :turn-storm-instrumentation [:clj on?]))
+
+  (set-boolean-compiler-option [_ opt-key on?]
+    (api-call :local :set-boolean-compiler-option [:clj opt-key on?]))
 
   (reload-namespace [_ ns-info]
     (require (symbol (:namespace-name ns-info)) :reload))
@@ -429,6 +433,13 @@
 
       ;; for Clojure just call the api
       :clj (api-call :remote :turn-storm-instrumentation [:clj on?])))
+
+  (set-boolean-compiler-option [_ opt-key on?]
+    (case (dbg-state/env-kind)
+      :cljs (show-message "Only available for Clojure" :warning)
+
+      ;; for Clojure just call the api
+      :clj (api-call :remote :set-boolean-compiler-option [:clj opt-key on?])))
 
   (reload-namespace [_ ns-info]
     (let [reload-code (format "(require '%s :reload)" (:namespace-name ns-info))]

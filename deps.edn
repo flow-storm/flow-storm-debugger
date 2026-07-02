@@ -5,7 +5,7 @@
         org.java-websocket/Java-WebSocket {:mvn/version "1.5.3"}
         com.cognitect/transit-clj {:mvn/version "1.0.333"}
         com.cognitect/transit-cljs {:mvn/version "0.8.280"}
-        com.github.flow-storm/hansel {:mvn/version "0.1.90"}
+        com.github.flow-storm/hansel {:mvn/version "0.1.92"}
 
         org.openjfx/javafx-controls {:mvn/version "21.0.4-ea+1"}
         org.openjfx/javafx-base {:mvn/version "21.0.4-ea+1"}
@@ -35,10 +35,10 @@
                                    "-Dcljs.storm.instrumentEnable=true"]}
 
            :storm {:classpath-overrides {org.clojure/clojure nil}
-                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.12.4"}}
+                   :extra-deps {com.github.flow-storm/clojure {:mvn/version "1.13.0-alpha4"}}
                    :jvm-opts ["-Dflowstorm.theme=dark"
                               "-Dclojure.storm.instrumentAutoPrefixes=false"
-                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester"
+                              "-Dclojure.storm.instrumentOnlyPrefixes=dev-tester,flow-storm.debugger.ui.decompiler.screen,flow-storm.runtime.forms-bytecode-emission"
                               "-Dflowstorm.jarEditorCommand=emacsclient -n +<<LINE>>:0 <<JAR>>/<<FILE>>"
                               "-Dflowstorm.fileEditorCommand=emacsclient -n +<<LINE>>:0 <<FILE>>"]}
 

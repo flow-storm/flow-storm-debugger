@@ -57,6 +57,11 @@
                         :build-id build-id})
   (spec-instrument-state))
 
+(comment
+
+  (start-shadow-remote 7123 :dev-test)
+
+  )
 (defn stop []
   (fs-api/stop))
 

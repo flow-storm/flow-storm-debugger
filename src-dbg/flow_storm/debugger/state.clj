@@ -23,7 +23,8 @@
 (s/def :flow-storm/fn-name        string?)
 (s/def :flow-storm/fn-ns          string?)
 (s/def :flow-storm/form-id        int?)
-(s/def :flow-storm/coord          (s/coll-of int?))
+(s/def :flow-storm/coord          (s/coll-of (s/or :int int?
+                                                   :str string?)))
 
 (s/def :flow-storm.frame/ret                :flow-storm/val-ref)
 (s/def :flow-storm.frame/fn-call-idx        int?)
@@ -127,7 +128,7 @@
 (s/def :ui.object/node any?)
 
 (s/def :ui.jfx-nodes-index/flow-id (s/nilable (s/or :flow-id :flow/id
-                                                    :no-flow #{:no-flow})))
+                                                    :keyworkd keyword?)))
 
 (s/def :ui/jfx-nodes-index (s/map-of (s/tuple :ui.jfx-nodes-index/flow-id
                                               (s/nilable :thread/id)
@@ -234,6 +235,14 @@
 (s/def :data-window/id any?)
 (s/def ::data-windows (s/map-of :data-window/id :data-windows/data-window))
 
+(s/def :form-bytecode/line map?) ;; TODO make this more specific
+(s/def :decompiler/form-bytecode-lines (s/coll-of :form-bytecode/line))
+(s/def :decompiler/form-coord-idx (s/map-of :flow-storm/coord (s/coll-of int?)))
+
+(s/def :decompiler/form-bytecode-data (s/keys :req-un [:decompiler/form-bytecode-lines
+                                                       :decompiler/form-coord-idx]))
+(s/def ::decompiler (s/map-of :flow-storm/form-id :decompiler/form-bytecode-data))
+
 (s/def ::state (s/keys :req-un [:flow/flows
                                 :flow/threads-info
                                 :printer/printers
@@ -249,7 +258,8 @@
                                 ::runtime-config
                                 ::debugger-config
                                 ::bookmarks
-                                ::data-windows]))
+                                ::data-windows
+                                ::decompiler]))
 
 (defn initial-state [{:keys [theme styles local? port repl-type debugger-host ws-port runtime-host auto-update-ui? ui-timeout-millis call-tree-update?] :as config}]
   {:flows {}
@@ -287,7 +297,8 @@
                      :pprint-previews? false}
    :bookmarks {}
    :visualizers {}
-   :data-windows {}})
+   :data-windows {}
+   :decompiler {}})
 
 ;; so linter doesn't complain
 (declare state)
@@ -765,6 +776,32 @@
     (swap! state update-in [:data-windows dw-id :stack] pop-n pop-cnt)
     popped))
 
+;;;;;;;;;;;;;;;;
+;; Decompiler ;;
+;;;;;;;;;;;;;;;;
+
+(defn decompiler-add-form-emissions [form-id form-bytecode-lines form-coord-idx]
+  (swap! state assoc-in [:decompiler form-id] {:form-bytecode-lines form-bytecode-lines
+                                               :form-coord-idx form-coord-idx}))
+
+(defn decompiler-form-highlighted-decomp-lines [form-id coord-or-line]
+  (let [{:keys [form-bytecode-lines form-coord-idx]} (get-in @state [:decompiler form-id])
+        coord (if (vector? coord-or-line)
+                coord-or-line
+                (let [line coord-or-line]
+                  (get-in form-bytecode-lines [line :coord] [])))
+        coored-hl-indices (get form-coord-idx coord)
+        highlighted-decomp-lines (->> form-bytecode-lines
+                                  (map (fn [{:keys [idx] :as b}]
+                                         (assoc b :highlighted? (contains? coored-hl-indices idx)))))]
+    {:form-coord coord
+     :highlighted-decomp-lines highlighted-decomp-lines}))
+
+(defn decompiler-remove-form [form-id]
+  (swap! state update :decompiler dissoc form-id))
+
+(defn decompiler-clear []
+  (swap! state assoc :decompiler {}))
 
 ;;;;;;;;;;;
 ;; Other ;;

@@ -28,6 +28,7 @@
             [flow-storm.debugger.ui.tasks :as tasks]
             [flow-storm.debugger.ui.outputs.screen :as outputs-screen]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
+            [flow-storm.debugger.ui.decompiler.screen :as decompiler-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
@@ -145,6 +146,11 @@
                          :content (docs-screen/main-pane)
                          :on-selection-changed (event-handler [_])
                          :id "tool-docs")
+        decompiler-tab (ui/tab :text "Decompiler"
+                               :class "vertical-tab"
+                               :content (decompiler-screen/main-pane)
+                               :on-selection-changed (event-handler [_])
+                               :id "tool-decompiler")
         plugins-tabs (->> (plugins/plugins)
                           (mapv (fn [p]
                                   (ui/tab :text (:plugin/label p)
@@ -154,7 +160,7 @@
                                                     :class (name (:plugin/key p))
                                                     :paddings [10 10 10 10])
                                           :id (:plugin/key p)))))
-        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab] plugins-tabs)
+        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab decompiler-tab] plugins-tabs)
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
@@ -262,6 +268,7 @@
                                                      :tool-browser nil
                                                      :tool-outputs (outputs-screen/clear-outputs)
                                                      :tool-docs    nil
+                                                     :tool-decompiler (decompiler-screen/clear-forms)
                                                      ;; TODO: execute clear on the selected plugin ??
                                                      nil))
                                        :accel {:mods [:ctrl]
