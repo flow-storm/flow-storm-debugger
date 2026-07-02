@@ -57,6 +57,11 @@
                         :build-id build-id})
   (spec-instrument-state))
 
+(comment
+
+  (start-shadow-remote 7123 :dev-test)
+
+  )
 (defn stop []
   (fs-api/stop))
 
@@ -264,3 +269,43 @@
        (tap> throwable)
        (log-error "Unhandled exception" throwable))))
   )
+
+
+
+;; - ClojureStorm
+;;   - [X] Add on new form emitted handler with form-id
+;; - Backend
+;;   - [X] Register on tracer (clojure.storm.Tracer/setOnFormBytecodeEmitted (fn [_ _]))
+;;   - [X] What happens with remote and serialization, maybe just select-keys on event
+;; - API
+;;   - [X] New EVENT on-new-form-emission-collected
+;;   - [X] New api like the instrument one but for toggling clojure.storm.Emitter/setCollectFormsEmissionsEnable
+;; - UI
+;;   - [X] New UI tab
+;;   - [X] Add event handler
+;;   - [X] Toggle emission collection, which calls API
+;;   - [ ] Clear forms (Ctrl-l) (clears dbg state, no state on runtime)
+;;   - [ ] Interactive form display
+;;   - [ ] Interactive bytecode display
+
+
+;; - On Hansel
+;; - What do we do here?
+
+;; After all this
+;; - [ ] Can we do a SCIStorm to try to pull Brokdude into all this stuff?
+;;       Since it is interpreted should be much easier to add tracing
+;; - [ ] Can nbb and babashka runtimes use the index stuff and remote_websocket_client?
+
+(defn sum [a b] (let [m {:x 100}] (+ a b (:x m))))
+
+;; (comment
+;;   (clojure.storm.Emitter/setCollectFormsEmissionsEnable true)
+
+
+
+;;   (clojure.storm.Emitter/setCollectFormsEmissionsEnable false)
+
+
+
+;;   )

@@ -8,6 +8,7 @@
             [flow-storm.debugger.ui.flows.screen :as flows-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
+            [flow-storm.debugger.ui.decompiler.screen :as decompiler-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
@@ -155,6 +156,9 @@
 (defn data-window-update-event [{:keys [dw-id data]}]
   (data-windows/update-val dw-id data))
 
+(defn form-bytecode-emitted-event [{:keys [form-id form-bytecode form-coord-idx]}]
+  (decompiler-screen/add-form-decompilation form-id form-bytecode form-coord-idx))
+
 (defn process-event [[ev-type ev-args-map]]
 
   (case ev-type
@@ -190,5 +194,8 @@
 
     :data-window-push-val-data (data-window-push-val-data-event ev-args-map)
     :data-window-update (data-window-update-event ev-args-map)
+
+    :form-bytecode-emitted-event (form-bytecode-emitted-event ev-args-map)
+
     nil ;; events-processor doesn't handle every event, specially tasks processing
     ))

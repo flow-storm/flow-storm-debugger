@@ -134,6 +134,10 @@
        :cljs (deref (requiring-resolve 'cljs.storm.emitter/instrument-enable)))))
 
 #?(:clj
+   (defn turn-collect-forms-emissions [env-kind enable?]
+     (utils/call-jvm-method "clojure.storm.Emitter" "setCollectFormsEmissionsEnable" [enable?])))
+
+#?(:clj
    (defn turn-storm-instrumentation [env-kind on?]
      (case env-kind
        :clj  (utils/call-jvm-method "clojure.storm.Emitter" "setInstrumentationEnable" [on?])
@@ -630,6 +634,7 @@
               ;; these are about turning on/off 
               :storm-instrumentation-enable? storm-instrumentation-enable?
               :turn-storm-instrumentation turn-storm-instrumentation
+              :turn-collect-forms-emissions turn-collect-forms-emissions
               
               :unblock-thread unblock-thread
               :unblock-all-threads unblock-all-threads
