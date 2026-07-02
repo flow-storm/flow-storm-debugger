@@ -299,13 +299,105 @@
 
 (defn sum [a b] (let [m {:x 100}] (+ a b (:x m))))
 
-;; (comment
-;;   (clojure.storm.Emitter/setCollectFormsEmissionsEnable true)
 
+;; class dev$sum
+;;     Minor version: 0
+;;     Major version: 52
+;;     Flags: PUBLIC, FINAL, SUPER
 
+;;     public static final clojure.lang.AFn const__2;
+;;         Flags: PUBLIC, STATIC, FINAL
 
-;;   (clojure.storm.Emitter/setCollectFormsEmissionsEnable false)
+;;     static final clojure.lang.KeywordLookupSite __site__0__;
+;;         Flags: STATIC, FINAL
 
+;;     static clojure.lang.ILookupThunk __thunk__0__;
+;;         Flags: STATIC
 
+;;     public void <init>();
+;;         Flags: PUBLIC
+;;         Code:
+;;                   linenumber      1
+;;                0: aload_0
+;;                1: invokespecial   clojure/lang/AFunction.<init>:()V
+;;                4: return
 
-;;   )
+;;     public static java.lang.Object invokeStatic(java.lang.Object a, java.lang.Object b);
+;;         Flags: PUBLIC, STATIC
+;;         Code:
+;;                   linenumber      1
+;;                0: getstatic       dev$sum.const__2:Lclojure/lang/AFn;
+;;                3: astore_2        /* m */
+;;                4: aload_0         /* a */
+;;                5: aload_1         /* b */
+;;                   linenumber      1
+;;                6: invokestatic    clojure/lang/Numbers.add:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Number;
+;;                   linenumber      1
+;;                9: getstatic       dev$sum.__thunk__0__:Lclojure/lang/ILookupThunk;
+;;               12: dup
+;;               13: aload_2         /* m */
+;;                   linenumber      1
+;;               14: dup_x2
+;;               15: invokeinterface clojure/lang/ILookupThunk.get:(Ljava/lang/Object;)Ljava/lang/Object;
+;;               20: dup_x2
+;;               21: if_acmpeq       28
+;;               24: pop
+;;               25: goto            50
+;;               28: swap
+;;               29: pop
+;;               30: dup
+;;               31: getstatic       dev$sum.__site__0__:Lclojure/lang/KeywordLookupSite;
+;;               34: swap
+;;               35: invokeinterface clojure/lang/ILookupSite.fault:(Ljava/lang/Object;)Lclojure/lang/ILookupThunk;
+;;               40: dup
+;;               41: putstatic       dev$sum.__thunk__0__:Lclojure/lang/ILookupThunk;
+;;               44: swap
+;;               45: invokeinterface clojure/lang/ILookupThunk.get:(Ljava/lang/Object;)Ljava/lang/Object;
+;;                   linenumber      1
+;;               50: invokestatic    clojure/lang/Numbers.add:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Number;
+;;               53: areturn
+;;         StackMapTable: 00 02 FF 00 1C 00 03 07 00 2F 07 00 2F 07 00 31 00 03 07 00 33 07 00 2F 07 00 31 FF 00 15 00 03 07 00 2F 07 00 2F 07 00 31 00 02 07 00 33 07 00 2F
+
+;;     public java.lang.Object invoke(java.lang.Object p0, java.lang.Object p1);
+;;         Flags: PUBLIC
+;;         Code:
+;;                0: aload_1
+;;                1: aconst_null
+;;                2: astore_1
+;;                3: aload_2
+;;                4: aconst_null
+;;                5: astore_2
+;;                   linenumber      1
+;;                6: invokestatic    dev$sum.invokeStatic:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+;;                9: areturn
+
+;;     static {};
+;;         Flags: PUBLIC, STATIC
+;;         Code:
+;;                   linenumber      1
+;;                0: iconst_2
+;;                1: anewarray       Ljava/lang/Object;
+;;                4: dup
+;;                5: iconst_0
+;;                6: aconst_null
+;;                7: ldc             "x"
+;;                9: invokestatic    clojure/lang/RT.keyword:(Ljava/lang/String;Ljava/lang/String;)Lclojure/lang/Keyword;
+;;               12: aastore
+;;               13: dup
+;;               14: iconst_1
+;;               15: ldc2_w          100
+;;               18: invokestatic    java/lang/Long.valueOf:(J)Ljava/lang/Long;
+;;               21: aastore
+;;               22: invokestatic    clojure/lang/RT.map:([Ljava/lang/Object;)Lclojure/lang/IPersistentMap;
+;;               25: checkcast       Lclojure/lang/AFn;
+;;               28: putstatic       dev$sum.const__2:Lclojure/lang/AFn;
+;;               31: new             Lclojure/lang/KeywordLookupSite;
+;;               34: dup
+;;               35: aconst_null
+;;               36: ldc             "x"
+;;               38: invokestatic    clojure/lang/RT.keyword:(Ljava/lang/String;Ljava/lang/String;)Lclojure/lang/Keyword;
+;;               41: invokespecial   clojure/lang/KeywordLookupSite.<init>:(Lclojure/lang/Keyword;)V
+;;               44: dup
+;;               45: putstatic       dev$sum.__site__0__:Lclojure/lang/KeywordLookupSite;
+;;               48: putstatic       dev$sum.__thunk__0__:Lclojure/lang/ILookupThunk;
+;;               51: return

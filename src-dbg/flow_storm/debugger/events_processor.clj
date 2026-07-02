@@ -156,8 +156,8 @@
 (defn data-window-update-event [{:keys [dw-id data]}]
   (data-windows/update-val dw-id data))
 
-(defn form-bytecode-emitted-event [{:keys [form-id form-bytecode form-coord-idx]}]
-  (decompiler-screen/add-form-decompilation form-id form-bytecode form-coord-idx))
+(defn form-bytecode-emitted-event [form-classes]
+  (decompiler-screen/add-form-decompilation form-classes))
 
 (defn process-event [[ev-type ev-args-map]]
 

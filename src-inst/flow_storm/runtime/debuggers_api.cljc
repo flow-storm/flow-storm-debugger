@@ -134,7 +134,7 @@
        :cljs (deref (requiring-resolve 'cljs.storm.emitter/instrument-enable)))))
 
 #?(:clj
-   (defn turn-collect-forms-emissions [env-kind enable?]
+   (defn turn-collect-forms-emissions [_ enable?]
      (utils/call-jvm-method "clojure.storm.Emitter" "setCollectFormsEmissionsEnable" [enable?])))
 
 #?(:clj
