@@ -284,20 +284,41 @@
 ;;   - [X] New UI tab
 ;;   - [X] Add event handler
 ;;   - [X] Toggle emission collection, which calls API
-;;   - [ ] Clear forms (Ctrl-l) (clears dbg state, no state on runtime)
-;;   - [ ] Interactive form display
-;;   - [ ] Interactive bytecode display
+;;   - [X] Interactive form display
+;;   - [X] Interactive bytecode display
+;;   - [X] Clear forms (Ctrl-l) (clears dbg state, no state on runtime)
 
+;;   - [X] Better control emission collection
+;;   - [ ] Improve/fix bytecode coordinates
+
+;; - Other
+;;   - [ ] Test a bunch of forms decompilation.
+;;         - Makes sense?
+;;         - Same as decompiler?
+;;   - [ ] Improve naming all over
 
 ;; - On Hansel
 ;; - What do we do here?
 
 ;; After all this
-;; - [ ] Can we do a SCIStorm to try to pull Brokdude into all this stuff?
+;; - [ ] Can we do a SCIStorm?
 ;;       Since it is interpreted should be much easier to add tracing
 ;; - [ ] Can nbb and babashka runtimes use the index stuff and remote_websocket_client?
 
-(defn sum [a b] (let [m {:x 100}] (+ a b (:x m))))
+(comment
+
+  ^:clojure.storm/collect-emitted
+  (defn sum [a b] (let [m {:x 100}] (+ a b (:x m))))
+
+  ^:clojure.storm/collect-emitted
+  (defn calcs [a b]
+    (let [x (+ a b)
+          y (* a b)]
+      (* x y)))
+
+
+  (defn sum [a b] (let [m {:x 100}] (+ a b (:x m))))
+  )
 
 
 ;; class dev$sum

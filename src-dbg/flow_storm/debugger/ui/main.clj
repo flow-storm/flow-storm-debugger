@@ -268,6 +268,7 @@
                                                      :tool-browser nil
                                                      :tool-outputs (outputs-screen/clear-outputs)
                                                      :tool-docs    nil
+                                                     :tool-decompiler (decompiler-screen/clear-forms)
                                                      ;; TODO: execute clear on the selected plugin ??
                                                      nil))
                                        :accel {:mods [:ctrl]

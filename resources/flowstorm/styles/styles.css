@@ -372,13 +372,13 @@
 
 .decompiled-inst {
     -fx-font-family: 'monospaced';
-    -fx-fill: -fx-theme-flow-code-text;
+    -fx-text-fill: -fx-theme-flow-code-text; 
 }
 
 .decompiled-inst-hl {
     -fx-font-family: 'monospaced';
     -fx-background-color: -fx-theme-flow-code-executing-background;
-    -fx-fill: -fx-theme-flow-code-executing-text;
+    -fx-text-fill: -fx-theme-flow-code-executing-text;
 }
 
 

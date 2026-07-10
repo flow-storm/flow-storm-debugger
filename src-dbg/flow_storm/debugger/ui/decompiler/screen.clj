@@ -3,7 +3,7 @@
             [flow-storm.debugger.ui.components :as ui]
             [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message build-form-paint-and-arm-fn]]
+            [flow-storm.debugger.ui.flows.general :as ui-general :refer [build-form-paint-and-arm-fn]]
             [clojure.string :as str])
   (:import [javafx.scene.control ScrollPane]
            [javafx.scene.layout VBox Priority HBox]))
@@ -24,12 +24,17 @@
    :text (cond-> (str "class " (:class/name bytecode-map))
            (:class/super-name bytecode-map) (str " extends " (:class/super-name bytecode-map)))})
 
+(defn- render-field-line [form-id bytecode-map]
+  {:form-id form-id
+   :coord (:coord bytecode-map)
+   :text (str (tab-spaces 2) (:field/descriptor bytecode-map) " " (:field/name bytecode-map))})
+
 (defn- render-method-line [form-id vars bytecode-map]
   (let [[_ args-desc ret-type] (re-find #"\((.*)\)(.*);"  (:method/descriptor bytecode-map))
         args-types (if args-desc (str/split args-desc #";") [])]
     {:form-id form-id
      :coord (:coord bytecode-map)
-     :text (str (tab-spaces 4)
+     :text (str (tab-spaces 2)
                 (or ret-type "void")
                 " "
                 (:method/name bytecode-map)
@@ -38,34 +43,29 @@
                 ") "
                 (str/join "," (:method/exceptions bytecode-map)))})) ;; TODO: render exceptions properly
 
+(defn- render-label-line [form-id bytecode-map]
+  {:form-id form-id
+   :coord (:coord bytecode-map)
+   :text (str (tab-spaces 4) (:label/name bytecode-map) ":")})
+
 (defn- render-instruction-line [form-id vars {:keys [instruction/op instruction/kind] :as bytecode-map}]
   (let [inst-text
         (cond
           (= kind :inst) (str/lower-case (name op))
-          (= kind :var) (format "%s_%d /* %s */" (name op) (:var bytecode-map) (get-in vars [(:var bytecode-map) :name]))
+          (= kind :var) (str (name op) "_" (:var bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) ""))
           (= kind :field) (format "%s %s.%s:%s" (name op) (:owner bytecode-map) (:name bytecode-map) (:descriptor bytecode-map))
           (= kind :method) (format "%s %s.%s:%s" (name op) (:owner bytecode-map) (:name bytecode-map) (:descriptor bytecode-map))
           (= kind :jump) (format "%s %s" (name op) (:label bytecode-map))
           (= op :invoke-dynamic) (format "%s %s" (name op) (:descriptor bytecode-map))
           (= op :ldc) (format "%s %s" (name op) (:value bytecode-map))
-          (= op :iinc) (format "%s_%d %s /* %s */" (name op) (:var bytecode-map) (:increment bytecode-map) (get-in vars [(:var bytecode-map) :name]))
+          (= op :iinc) (str "%s_%d %s /* %s */" (name op) "_" (:var bytecode-map) " " (:increment bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) "" ))
           (= op :table-switch) (format "%s" (name op))
           (= op :lookup-switch) (format "%s" (name op))
           (= op :try-catch-block) (format "%s" (name op))
           :else (str "UNHANDLED " bytecode-map))]
     {:form-id form-id
      :coord (:coord bytecode-map)
-     :text (str (tab-spaces 12) inst-text)}))
-
-(defn- render-label-line [form-id bytecode-map]
-  {:form-id form-id
-   :coord (:coord bytecode-map)
-   :text (str (tab-spaces 8) (:label/name bytecode-map) ":")})
-
-(defn- render-field-line [form-id bytecode-map]
-  {:form-id form-id
-   :coord (:coord bytecode-map)
-   :text (str (tab-spaces 4) (:field/descriptor bytecode-map) " " (:field/name bytecode-map))})
+     :text (str (tab-spaces 6) inst-text)}))
 
 (defn- wrapping-coord? [coord-a coord-b]
   (if (empty? coord-a)
@@ -101,7 +101,6 @@
      :form-coord-idx form-coord-index}))
 
 (defn add-form-decompilation [{:keys [form-id] :as decomp-data}]
-
   (let [form (runtime-api/get-form rt-api form-id)
         {:keys [form-bytecode-lines form-coord-idx]} (build-form-bytecode-lines decomp-data)
         _ (dbg-state/decompiler-add-form-emissions form-id form-bytecode-lines form-coord-idx)
@@ -118,7 +117,7 @@
                           forms-scroll-pane
                           form
                           form-code-area
-                          {:interesting-coord-click-handler (fn [mev clicked-coord-exprs line]
+                          {:interesting-coord-click-handler (fn [_ clicked-coord-exprs _]
                                                               (update-code-panes form-id (-> clicked-coord-exprs first :coord)))})
                          form-clickable-coords)]
     (store-obj (str "decompiled-form-repaint-fn-" form-id) form-repaint-fn)
@@ -131,11 +130,20 @@
       (update-code-panes form-id []) ;; use [] as default coord
       )))
 
+(defn clear-forms []
+  (dbg-state/decompiler-clear)
+  (let [[forms-box] (obj-lookup "decompilation-forms-box")
+        [{:keys [clear]}] (obj-lookup "decompiled-list-view-data")]
+    (ui-utils/clear-pane-childrens forms-box)
+    (clear))
+  ;; TODO: clear decompiled-form-repaint-fn- objs, needs obj system refactor
+  )
+
 (defn main-pane []
   (let [^ScrollPane forms-scroll-pane (ui/scroll-pane :class "forms-scroll-container")
         decompiled-lv-data
         (ui/list-view :editable? false
-                      :cell-factory (fn [list-cell {:keys [text highlighted?] :as bytecode-map}]
+                      :cell-factory (fn [list-cell {:keys [text highlighted?]}]
                                       (-> list-cell
                                           (ui-utils/set-text nil)
                                           (ui-utils/set-graphic (ui/label :text text
@@ -143,18 +151,16 @@
                                                                                    "decompiled-inst-hl"
                                                                                    "decompiled-inst")))))
                       :on-click (fn [mev sel-items _]
-                                  (let [{:keys [form-id idx] :as bytecode-map} (first sel-items)]
+                                  (let [{:keys [form-id idx]} (first sel-items)]
                                     (when (ui-utils/mouse-primary? mev)
                                       (update-code-panes form-id idx))))
                       :selection-mode :single)
         decomp-lv-pane (:list-view-pane decompiled-lv-data)
-        dec-enable-toggle (ui/toggle-button
-                           {:label "Decompilation Enable"
-                            :on-change (fn [on?]
-                                         (if (dbg-state/clojure-storm-env?)
-                                           (runtime-api/turn-collect-forms-emissions rt-api on?)
-                                           (show-message "This functionality is only available in Storm modes" :warning)))})
-        tools-pane (ui/h-box :childs [dec-enable-toggle])
+        clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
+                                  :tooltip "Clean all outputs (Ctrl-l)"
+                                  :on-click (fn [] (clear-forms)))
+        tools-pane (ui/h-box :childs [clear-btn]
+                             :paddings [10 10 10 10])
         code-pane (ui/split :orientation :horizontal
                             :childs [forms-scroll-pane decomp-lv-pane]
                             :sizes [0.5])

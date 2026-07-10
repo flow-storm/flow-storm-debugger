@@ -226,6 +226,9 @@
 (defn add-childrens-to-pane [^Pane pane childs]
   (observable-add-all (.getChildren pane) childs))
 
+(defn clear-pane-childrens [^Pane pane]
+  (observable-clear (.getChildren pane)))
+
 (defn set-button-action [^ButtonBase button f]
   (.setOnAction button (event-handler [_] (f))))
 

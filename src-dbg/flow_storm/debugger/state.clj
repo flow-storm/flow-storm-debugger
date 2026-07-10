@@ -235,7 +235,7 @@
 (s/def :data-window/id any?)
 (s/def ::data-windows (s/map-of :data-window/id :data-windows/data-window))
 
-(s/def :form-bytecode/emission map?) ;; TODO make this more specific
+(s/def :form-bytecode/line map?) ;; TODO make this more specific
 (s/def :decompiler/form-bytecode-lines (s/coll-of :form-bytecode/line))
 (s/def :decompiler/form-coord-idx (s/map-of :flow-storm/coord (s/coll-of int?)))
 
@@ -797,7 +797,8 @@
     {:form-coord coord
      :highlighted-decomp-lines highlighted-decomp-lines}))
 
-
+(defn decompiler-clear []
+  (swap! state assoc :decompiler {}))
 
 ;;;;;;;;;;;
 ;; Other ;;

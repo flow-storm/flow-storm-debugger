@@ -85,7 +85,6 @@
 
   (storm-instrumentation-enable? [_])
   (turn-storm-instrumentation [_ on?])
-  (turn-collect-forms-emissions [_ on?])
 
   (reload-namespace [_ ns-info])
 
@@ -230,9 +229,6 @@
 
   (turn-storm-instrumentation [_ on?]
     (api-call :local :turn-storm-instrumentation [:clj on?]))
-
-  (turn-collect-forms-emissions [_ enable?]
-    (api-call :local :turn-collect-forms-emissions [:clj enable?]))
 
   (reload-namespace [_ ns-info]
     (require (symbol (:namespace-name ns-info)) :reload))
@@ -433,13 +429,6 @@
 
       ;; for Clojure just call the api
       :clj (api-call :remote :turn-storm-instrumentation [:clj on?])))
-
-  (turn-collect-forms-emissions [_ enable?]
-    (case (dbg-state/env-kind)
-      :cljs (show-message "FlowStorm currently only supports decompilation with ClojureStorm" :warning)
-
-      ;; for Clojure just call the api
-      :clj (api-call :remote :turn-collect-forms-emissions [:clj enable?])))
 
   (reload-namespace [_ ns-info]
     (let [reload-code (format "(require '%s :reload)" (:namespace-name ns-info))]
