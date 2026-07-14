@@ -226,6 +226,9 @@
 (defn add-childrens-to-pane [^Pane pane childs]
   (observable-add-all (.getChildren pane) childs))
 
+(defn remove-children-from-pane [^Pane pane child-obj]
+  (.removeAll ^ObservableList (.getChildren pane) (into-array [child-obj])))
+
 (defn clear-pane-childrens [^Pane pane]
   (observable-clear (.getChildren pane)))
 

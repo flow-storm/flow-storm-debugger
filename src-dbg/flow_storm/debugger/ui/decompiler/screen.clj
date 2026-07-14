@@ -8,13 +8,32 @@
   (:import [javafx.scene.control ScrollPane]
            [javafx.scene.layout VBox Priority HBox]))
 
+;; This is a hacky way of using the store-obj/obj-lookup made for flows
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn- dec-store-obj [obj-id obj-ref]
+  (store-obj :decompiler obj-id obj-ref))
+
+(defn- dec-obj-lookup [obj-id]
+  (first (obj-lookup :decompiler obj-id)))
+
+(defn- dec-clean-objects []
+  (dbg-state/clean-objs :decompiler))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn- update-code-panes [form-id coord-or-bytecode-idx]
   (let [{:keys [form-coord highlighted-decomp-lines]} (dbg-state/decompiler-form-highlighted-decomp-lines form-id coord-or-bytecode-idx)
-        [decompiled-form-repaint-fn] (obj-lookup (str "decompiled-form-repaint-fn-" form-id))
-        [{:keys [clear add-all]}] (obj-lookup "decompiled-list-view-data")]
+        {:keys [form-repaint-fn]} (dec-obj-lookup (str "decompiled-form-data-" form-id))
+        {:keys [clear add-all]} (dec-obj-lookup "decompiled-list-view-data")]
     (clear)
     (add-all highlighted-decomp-lines)
-    (decompiled-form-repaint-fn form-coord)))
+    (form-repaint-fn form-coord)))
+
+(defn- remove-form [form-id]
+  (let [{:keys [form-box-obj]} (dec-obj-lookup (str "decompiled-form-data-" form-id))
+        forms-box (dec-obj-lookup "decompilation-forms-box")]
+    (dbg-state/decompiler-remove-form form-id)
+    (when (and forms-box form-box-obj)
+      (ui-utils/remove-children-from-pane forms-box form-box-obj))))
 
 (defn- tab-spaces [n] (apply str (repeat n " ")))
 
@@ -51,13 +70,14 @@
 (defn- render-instruction-line [form-id vars {:keys [instruction/op instruction/kind] :as bytecode-map}]
   (let [inst-text
         (cond
-          (= kind :inst) (str/lower-case (name op))
+          (= kind :inst) (format "%s %s" (str/lower-case (name op)) (if-let [io (:instruction/operand bytecode-map)] io ""))
           (= kind :var) (str (name op) "_" (:var bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) ""))
+          (= kind :type) (str (name op) " " (:type bytecode-map))
           (= kind :field) (format "%s %s.%s:%s" (name op) (:owner bytecode-map) (:name bytecode-map) (:descriptor bytecode-map))
           (= kind :method) (format "%s %s.%s:%s" (name op) (:owner bytecode-map) (:name bytecode-map) (:descriptor bytecode-map))
           (= kind :jump) (format "%s %s" (name op) (:label bytecode-map))
           (= op :invoke-dynamic) (format "%s %s" (name op) (:descriptor bytecode-map))
-          (= op :ldc) (format "%s %s" (name op) (:value bytecode-map))
+          (= op :ldc) (format "%s %s" (name op) (pr-str (:value bytecode-map)))
           (= op :iinc) (str "%s_%d %s /* %s */" (name op) "_" (:var bytecode-map) " " (:increment bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) "" ))
           (= op :table-switch) (format "%s" (name op))
           (= op :lookup-switch) (format "%s" (name op))
@@ -101,11 +121,14 @@
      :form-coord-idx form-coord-index}))
 
 (defn add-form-decompilation [{:keys [form-id] :as decomp-data}]
+  ;; make sure we don't have a form already for the form-id
+  (ui-utils/run-now (remove-form form-id))
+
   (let [form (runtime-api/get-form rt-api form-id)
         {:keys [form-bytecode-lines form-coord-idx]} (build-form-bytecode-lines decomp-data)
         _ (dbg-state/decompiler-add-form-emissions form-id form-bytecode-lines form-coord-idx)
-        [forms-box] (obj-lookup "decompilation-forms-box")
-        [forms-scroll-pane] (obj-lookup "decompilation-forms-scroll-pane")
+        forms-box (dec-obj-lookup "decompilation-forms-box")
+        forms-scroll-pane (dec-obj-lookup "decompilation-forms-scroll-pane")
         form-code-area (ui/code-area :editable? false :text "")
         _ (ui-utils/add-class form-code-area "form-pane")
         form-box (ui/v-box :childs [form-code-area]
@@ -120,8 +143,8 @@
                           {:interesting-coord-click-handler (fn [_ clicked-coord-exprs _]
                                                               (update-code-panes form-id (-> clicked-coord-exprs first :coord)))})
                          form-clickable-coords)]
-    (store-obj (str "decompiled-form-repaint-fn-" form-id) form-repaint-fn)
 
+    (dec-store-obj (str "decompiled-form-data-" form-id) {:form-repaint-fn form-repaint-fn :form-box-obj form-box})
     (ui-utils/run-later
       (VBox/setVgrow form-box Priority/ALWAYS)
       (HBox/setHgrow form-box Priority/ALWAYS)
@@ -132,12 +155,11 @@
 
 (defn clear-forms []
   (dbg-state/decompiler-clear)
-  (let [[forms-box] (obj-lookup "decompilation-forms-box")
-        [{:keys [clear]}] (obj-lookup "decompiled-list-view-data")]
+  (let [forms-box (dec-obj-lookup "decompilation-forms-box")
+        {:keys [clear]} (dec-obj-lookup "decompiled-list-view-data")]
     (ui-utils/clear-pane-childrens forms-box)
-    (clear))
-  ;; TODO: clear decompiled-form-repaint-fn- objs, needs obj system refactor
-  )
+    (clear)
+    (dec-clean-objects)))
 
 (defn main-pane []
   (let [^ScrollPane forms-scroll-pane (ui/scroll-pane :class "forms-scroll-container")
@@ -178,9 +200,9 @@
         .prefWidthProperty
         (.bind (.widthProperty forms-scroll-pane)))
 
-    (store-obj "decompiled-list-view-data" decompiled-lv-data)
-    (store-obj "decompilation-forms-box" forms-box)
-    (store-obj "decompilation-forms-scroll-pane" forms-scroll-pane)
+    (dec-store-obj "decompiled-list-view-data" decompiled-lv-data)
+    (dec-store-obj "decompilation-forms-box" forms-box)
+    (dec-store-obj "decompilation-forms-scroll-pane" forms-scroll-pane)
     (.setContent forms-scroll-pane forms-box)
 
     mp))

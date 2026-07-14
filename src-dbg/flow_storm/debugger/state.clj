@@ -128,7 +128,7 @@
 (s/def :ui.object/node any?)
 
 (s/def :ui.jfx-nodes-index/flow-id (s/nilable (s/or :flow-id :flow/id
-                                                    :no-flow #{:no-flow})))
+                                                    :keyworkd keyword?)))
 
 (s/def :ui/jfx-nodes-index (s/map-of (s/tuple :ui.jfx-nodes-index/flow-id
                                               (s/nilable :thread/id)
@@ -796,6 +796,9 @@
                                          (assoc b :highlighted? (contains? coored-hl-indices idx)))))]
     {:form-coord coord
      :highlighted-decomp-lines highlighted-decomp-lines}))
+
+(defn decompiler-remove-form [form-id]
+  (swap! state update :decompiler dissoc form-id))
 
 (defn decompiler-clear []
   (swap! state assoc :decompiler {}))
