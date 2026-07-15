@@ -23,14 +23,14 @@
 (defn- update-code-panes [form-id coord-or-bytecode-idx]
   (let [{:keys [form-coord highlighted-decomp-lines]} (dbg-state/decompiler-form-highlighted-decomp-lines form-id coord-or-bytecode-idx)
         {:keys [form-repaint-fn]} (dec-obj-lookup (str "decompiled-form-data-" form-id))
-        {:keys [clear add-all]} (dec-obj-lookup "decompiled-list-view-data")]
+        [{:keys [clear add-all]}] (obj-lookup "decompiled-list-view-data")]
     (clear)
     (add-all highlighted-decomp-lines)
     (form-repaint-fn form-coord)))
 
 (defn- remove-form [form-id]
   (let [{:keys [form-box-obj]} (dec-obj-lookup (str "decompiled-form-data-" form-id))
-        forms-box (dec-obj-lookup "decompilation-forms-box")]
+        [forms-box] (obj-lookup "decompilation-forms-box")]
     (dbg-state/decompiler-remove-form form-id)
     (when (and forms-box form-box-obj)
       (ui-utils/remove-children-from-pane forms-box form-box-obj))))
@@ -53,7 +53,8 @@
         args-types (if args-desc (str/split args-desc #";") [])]
     {:form-id form-id
      :coord (:coord bytecode-map)
-     :text (str (tab-spaces 2)
+     :text (str "\n\n"
+                (tab-spaces 2)
                 (or ret-type "void")
                 " "
                 (:method/name bytecode-map)
@@ -79,13 +80,18 @@
           (= op :invoke-dynamic) (format "%s %s" (name op) (:descriptor bytecode-map))
           (= op :ldc) (format "%s %s" (name op) (pr-str (:value bytecode-map)))
           (= op :iinc) (str "%s_%d %s /* %s */" (name op) "_" (:var bytecode-map) " " (:increment bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) "" ))
-          (= op :table-switch) (format "%s" (name op))
-          (= op :lookup-switch) (format "%s" (name op))
+          (= op :table-switch) (format "%s Low: %d High: %d Default: %s Labels: %s" (name op) (:min bytecode-map) (:max bytecode-map) (:default-label bytecode-map) (into [] (:labels bytecode-map)))
+          (= op :lookup-switch) (format "%s Default: %s Keys: %s Labels: %s" (name op) (:default-label bytecode-map) (:keys bytecode-map) (:labels bytecode-map))
           (= op :try-catch-block) (format "%s" (name op))
           :else (str "UNHANDLED " bytecode-map))]
     {:form-id form-id
      :coord (:coord bytecode-map)
      :text (str (tab-spaces 6) inst-text)}))
+
+(defn- render-try-catch-block [form-id coord {:keys [start-label end-label handler-label type]}]
+  {:form-id form-id
+   :coord coord
+   :text (format "%stype: %s, from:%s, to:%s, handler: %s" (tab-spaces 4) type start-label end-label handler-label)})
 
 (defn- wrapping-coord? [coord-a coord-b]
   (if (empty? coord-a)
@@ -99,13 +105,14 @@
                                   (fn [c]
                                     (-> [(render-class-line form-id (:class c))]
                                         (into (map (partial render-field-line form-id) (:fields c)))
-                                        (into (mapcat (fn [{:keys [method vars instructions]}]
-                                                        (-> [(render-method-line form-id vars method)]
-                                                            (into (map (fn [inst-or-lbl]
-                                                                         (case (:emitted/type inst-or-lbl)
-                                                                           :instruction (render-instruction-line form-id vars inst-or-lbl)
-                                                                           :label (render-label-line form-id inst-or-lbl)))
-                                                                       instructions))))
+                                        (into (mapcat (fn [{:keys [method try-catch-blocks vars instructions]}]
+                                                        (cond-> [(render-method-line form-id vars method)]
+                                                          true (into (map (fn [inst-or-lbl]
+                                                                            (case (:emitted/type inst-or-lbl)
+                                                                              :instruction (render-instruction-line form-id vars inst-or-lbl)
+                                                                              :label (render-label-line form-id inst-or-lbl)))
+                                                                          instructions))
+                                                          (seq try-catch-blocks) (into (map (fn [tcb] (render-try-catch-block form-id (:coord method) tcb)) try-catch-blocks))))
                                                       (:methods c))))))
                                  (mapv (fn [idx l] (assoc l :idx idx)) (range)))
         form-coord-index (reduce (fn [coords-idx next-coord]
@@ -127,8 +134,8 @@
   (let [form (runtime-api/get-form rt-api form-id)
         {:keys [form-bytecode-lines form-coord-idx]} (build-form-bytecode-lines decomp-data)
         _ (dbg-state/decompiler-add-form-emissions form-id form-bytecode-lines form-coord-idx)
-        forms-box (dec-obj-lookup "decompilation-forms-box")
-        forms-scroll-pane (dec-obj-lookup "decompilation-forms-scroll-pane")
+        [forms-box] (obj-lookup "decompilation-forms-box")
+        [forms-scroll-pane] (obj-lookup "decompilation-forms-scroll-pane")
         form-code-area (ui/code-area :editable? false :text "")
         _ (ui-utils/add-class form-code-area "form-pane")
         form-box (ui/v-box :childs [form-code-area]
@@ -155,8 +162,8 @@
 
 (defn clear-forms []
   (dbg-state/decompiler-clear)
-  (let [forms-box (dec-obj-lookup "decompilation-forms-box")
-        {:keys [clear]} (dec-obj-lookup "decompiled-list-view-data")]
+  (let [[forms-box] (obj-lookup "decompilation-forms-box")
+        [{:keys [clear]}] (obj-lookup "decompiled-list-view-data")]
     (ui-utils/clear-pane-childrens forms-box)
     (clear)
     (dec-clean-objects)))
@@ -181,7 +188,16 @@
         clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"
                                   :tooltip "Clean all outputs (Ctrl-l)"
                                   :on-click (fn [] (clear-forms)))
-        tools-pane (ui/h-box :childs [clear-btn]
+        disable-locals-clearing-chk (ui/check-box :selected? false
+                                                  :on-change (fn [on?]
+                                                               (runtime-api/set-boolean-compiler-option rt-api :disable-locals-clearing on?)))
+        direct-linking-chk (ui/check-box :selected? false
+                                         :on-change (fn [on?]
+                                                      (runtime-api/set-boolean-compiler-option rt-api :direct-linking on?)))
+        tools-pane (ui/h-box :childs [clear-btn
+                                      (ui/label :text ":disable-locals-clearing") disable-locals-clearing-chk
+                                      (ui/label :text ":direct-linking") direct-linking-chk]
+                             :spacing 5
                              :paddings [10 10 10 10])
         code-pane (ui/split :orientation :horizontal
                             :childs [forms-scroll-pane decomp-lv-pane]
@@ -200,9 +216,9 @@
         .prefWidthProperty
         (.bind (.widthProperty forms-scroll-pane)))
 
-    (dec-store-obj "decompiled-list-view-data" decompiled-lv-data)
-    (dec-store-obj "decompilation-forms-box" forms-box)
-    (dec-store-obj "decompilation-forms-scroll-pane" forms-scroll-pane)
+    (store-obj "decompiled-list-view-data" decompiled-lv-data)
+    (store-obj "decompilation-forms-box" forms-box)
+    (store-obj "decompilation-forms-scroll-pane" forms-scroll-pane)
     (.setContent forms-scroll-pane forms-box)
 
     mp))

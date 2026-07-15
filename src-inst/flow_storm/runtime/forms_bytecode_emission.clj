@@ -13,22 +13,41 @@
                                  (into {}))
                        inst-without-vars (->> method-emissions
                                               (remove #(= :var (:emitted/type %))))
-                       labels-refs (reduce (fn [lbls {:keys [label start-label end-label labels default-label handler-label]}]
-                                             (cond-> lbls
-                                               label         (conj label)
-                                               start-label   (conj start-label)
-                                               end-label     (conj end-label)
-                                               default-label (conj default-label)
-                                               handler-label (conj handler-label)
-                                               (seq labels)  (into labels)))
-                                           #{}
-                                           inst-without-vars)]
+
+                       labels-renames (->> inst-without-vars
+                                           (reduce (fn [labels-ref {:keys [label start-label end-label labels default-label handler-label]}]
+                                                     (cond-> labels-ref
+                                                       label         (conj label)
+                                                       start-label   (conj start-label)
+                                                       end-label     (conj end-label)
+                                                       default-label (conj default-label)
+                                                       handler-label (conj handler-label)
+                                                       (seq labels)  (into labels)))
+                                                   #{})
+                                           (map-indexed (fn [i lbl] [lbl (str "L" i)]))
+                                           (into {}))
+                       renamed-insts (reduce (fn [insts {:keys [label start-label end-label labels default-label handler-label] :as inst}]
+                                               (conj insts
+                                                     (cond-> inst
+                                                       (:label/name inst) (assoc :label/name (labels-renames (:label/name inst)))
+                                                       label              (assoc :label (labels-renames label))
+                                                       start-label        (assoc :start-label (labels-renames start-label))
+                                                       end-label          (assoc :end-label (labels-renames end-label))
+                                                       default-label      (assoc :default-label (labels-renames default-label))
+                                                       handler-label      (assoc :handler-label (labels-renames handler-label))
+                                                       (seq labels)       (assoc :labels (mapv labels-renames labels)))))
+                                             []
+                                             inst-without-vars)
+                       try-catch-blocks (filterv #(= :try-catch-block (:emitted/type %)) renamed-insts)
+                       clean-inst (->> renamed-insts
+                                       (remove #(= :try-catch-block (:emitted/type %)))
+                                       (remove #(and (= :label (:emitted/type %))
+                                                     (nil? (:label/name %))))
+                                       (into []))]
                    (conj methods {:method method-def
                                   :vars vars
-                                  :instructions (->> inst-without-vars
-                                                     (remove #(and (= :label (:emitted/type %))
-                                                                   (not (contains? labels-refs (:label/name %)))))
-                                                     (into []))})))
+                                  :try-catch-blocks try-catch-blocks
+                                  :instructions clean-inst})))
                [])))
 
 (defn- parse-emissions-classes [form-id emissions]
