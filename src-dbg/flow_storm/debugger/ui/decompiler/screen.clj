@@ -4,7 +4,8 @@
             [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [build-form-paint-and-arm-fn]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.set :as set])
   (:import [javafx.scene.control ScrollPane]
            [javafx.scene.layout VBox Priority HBox]))
 
@@ -37,25 +38,40 @@
 
 (defn- tab-spaces [n] (apply str (repeat n " ")))
 
+(defn- render-access [access]
+  (->> [(when-let [vis (first (set/intersection #{:public :protected :private} access))] (name vis))
+        (when (access :final) "final")
+        (when (access :static) "static")]
+       (remove nil?)
+       (str/join " ")))
+
+(defn- render-type [type-str]
+  (when type-str
+    (if (str/starts-with? type-str "L")
+      (str/replace (subs type-str 1) "/" ".")
+      type-str)))
+
 (defn- render-class-line [form-id bytecode-map]
   {:form-id form-id
    :coord (:coord bytecode-map)
-   :text (cond-> (str "class " (:class/name bytecode-map))
-           (:class/super-name bytecode-map) (str " extends " (:class/super-name bytecode-map)))})
+   :text (cond-> (str (render-access (:class/access bytecode-map)) " class " (:class/name bytecode-map))
+           (:class/super-name bytecode-map) (str " extends " (render-type (:class/super-name bytecode-map))))})
 
 (defn- render-field-line [form-id bytecode-map]
   {:form-id form-id
    :coord (:coord bytecode-map)
-   :text (str (tab-spaces 2) (:field/descriptor bytecode-map) " " (:field/name bytecode-map))})
+   :text (str (tab-spaces 2) (render-access (:field/access bytecode-map)) " " (render-type (:field/descriptor bytecode-map)) " " (:field/name bytecode-map))})
 
 (defn- render-method-line [form-id vars bytecode-map]
   (let [[_ args-desc ret-type] (re-find #"\((.*)\)(.*);"  (:method/descriptor bytecode-map))
-        args-types (if args-desc (str/split args-desc #";") [])]
+        args-types (if args-desc (map render-type (str/split args-desc #";")) [])]
     {:form-id form-id
      :coord (:coord bytecode-map)
      :text (str "\n\n"
                 (tab-spaces 2)
-                (or ret-type "void")
+                (render-access (:method/access bytecode-map))
+                " "
+                (or (render-type ret-type) "void")
                 " "
                 (:method/name bytecode-map)
                 "("
@@ -71,7 +87,7 @@
 (defn- render-instruction-line [form-id vars {:keys [instruction/op instruction/kind] :as bytecode-map}]
   (let [inst-text
         (cond
-          (= kind :inst) (format "%s %s" (str/lower-case (name op)) (if-let [io (:instruction/operand bytecode-map)] io ""))
+          (= kind :inst) (format "%s %s" (str/lower-case (name op)) (if-let [io (:operand bytecode-map)] io ""))
           (= kind :var) (str (name op) "_" (:var bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) ""))
           (= kind :type) (str (name op) " " (:type bytecode-map))
           (= kind :field) (format "%s %s.%s:%s" (name op) (:owner bytecode-map) (:name bytecode-map) (:descriptor bytecode-map))
@@ -82,7 +98,6 @@
           (= op :iinc) (str "%s_%d %s /* %s */" (name op) "_" (:var bytecode-map) " " (:increment bytecode-map) (if-let [v (get-in vars [(:var bytecode-map) :name])] (format " /* %s */" v) "" ))
           (= op :table-switch) (format "%s Low: %d High: %d Default: %s Labels: %s" (name op) (:min bytecode-map) (:max bytecode-map) (:default-label bytecode-map) (into [] (:labels bytecode-map)))
           (= op :lookup-switch) (format "%s Default: %s Keys: %s Labels: %s" (name op) (:default-label bytecode-map) (:keys bytecode-map) (:labels bytecode-map))
-          (= op :try-catch-block) (format "%s" (name op))
           :else (str "UNHANDLED " bytecode-map))]
     {:form-id form-id
      :coord (:coord bytecode-map)
