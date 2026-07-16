@@ -173,7 +173,7 @@
                                                                       {:instrument? true
                                                                        :instrument-options {:disable #{:bind}}
                                                                        :ns (:form/ns form)}))}]))
-        curr-idx (dbg-state/current-idx flow-id thread-id)
+
         [thread-scroll-pane] (obj-lookup flow-id thread-id "forms_scroll")
 
         form-paint-fn (build-form-paint-and-arm-fn
@@ -182,7 +182,8 @@
                        form-code-area
                        {:interesting-coord-click-handler
                         (fn interesting-coord-click-handler [mev clicked-coord-exprs line]
-                          (let [ctx-menu-options (cond-> ctx-menu-options
+                          (let [curr-idx (dbg-state/current-idx flow-id thread-id)
+                                ctx-menu-options (cond-> ctx-menu-options
                                                    line
                                                    (into [{:text "Open in editor"
                                                            :on-click (fn [] (open-form-in-editor form line))}]))]
@@ -205,7 +206,8 @@
 
                         :uninteresting-coord-click-handler
                         (fn uninteresting-coord-click-handler [mev coord]
-                          (let [form-id (:form/id form)]
+                          (let [form-id (:form/id form)
+                                curr-idx (dbg-state/current-idx flow-id thread-id)]
                             ;; else if it is not interesting? we don't want to jump there
                             ;; but provide a way of search and jump to it by coord and form
 
