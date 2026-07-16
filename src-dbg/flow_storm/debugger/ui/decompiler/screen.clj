@@ -197,7 +197,8 @@
                       :on-click (fn [mev sel-items _]
                                   (let [{:keys [form-id idx]} (first sel-items)]
                                     (when (ui-utils/mouse-primary? mev)
-                                      (update-code-panes form-id idx))))
+                                      (when (and form-id idx)
+                                        (update-code-panes form-id idx)))))
                       :selection-mode :single)
         decomp-lv-pane (:list-view-pane decompiled-lv-data)
         clear-btn (ui/icon-button :icon-name  "mdi-delete-forever"

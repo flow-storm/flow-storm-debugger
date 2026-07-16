@@ -306,13 +306,13 @@
      ;; without ClojureStorm on the classpath.
      (let [unhook? (nil? trace-fn-call-fn)
            tracer-class (Class/forName "clojure.storm.Tracer")
-           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))
-           setOnFormBytecodeEmitted (.getMethod tracer-class "setOnFormBytecodeEmitted" (into-array java.lang.Class [clojure.lang.IFn]))]       
+           setTraceFnsCallbacks (.getMethod tracer-class "setTraceFnsCallbacks" (into-array java.lang.Class [clojure.lang.IPersistentMap]))]       
        (.invoke setTraceFnsCallbacks nil (into-array [callbacks]))
        (try
-         (.invoke setOnFormBytecodeEmitted
-                  nil
-                  (into-array [(when-not unhook? #'handle-form-bytecode-emitted)]))
+         (let [setOnFormBytecodeEmitted (.getMethod tracer-class "setOnFormBytecodeEmitted" (into-array java.lang.Class [clojure.lang.IFn]))]
+           (.invoke setOnFormBytecodeEmitted
+                    nil
+                    (into-array [(when-not unhook? #'handle-form-bytecode-emitted)])))
          (catch Exception _
            (utils/log "This version of ClojureStorm doesn't support form bytecode emission tracing. Please upgrade."))))))
 

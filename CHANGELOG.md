@@ -4,6 +4,8 @@
 	
 ### New Features
 
+    - Decompiler tool!
+
 ### Changes
     
 ### Bugs fixed
