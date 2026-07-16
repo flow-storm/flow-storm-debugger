@@ -54,7 +54,7 @@
 (defn- render-class-line [form-id bytecode-map]
   {:form-id form-id
    :coord (:coord bytecode-map)
-   :text (cond-> (str (render-access (:class/access bytecode-map)) " class " (:class/name bytecode-map))
+   :text (cond-> (str "\n\n" (render-access (:class/access bytecode-map)) " class " (:class/name bytecode-map))
            (:class/super-name bytecode-map) (str " extends " (render-type (:class/super-name bytecode-map))))})
 
 (defn- render-field-line [form-id bytecode-map]
@@ -67,7 +67,7 @@
         args-types (if args-desc (map render-type (str/split args-desc #";")) [])]
     {:form-id form-id
      :coord (:coord bytecode-map)
-     :text (str "\n\n"
+     :text (str "\n"
                 (tab-spaces 2)
                 (render-access (:method/access bytecode-map))
                 " "
