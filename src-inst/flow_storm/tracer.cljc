@@ -3,7 +3,7 @@
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.events :as rt-events]
-            [flow-storm.runtime.forms-bytecode-emission :refer [handle-form-bytecode-emitted]]))
+            #?(:clj [flow-storm.runtime.forms-bytecode-emission :refer [handle-form-bytecode-emitted]])))
 
 (declare start-tracer)
 (declare stop-tracer)
