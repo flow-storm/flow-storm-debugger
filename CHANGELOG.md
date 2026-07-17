@@ -3,6 +3,14 @@
 ## master (unreleased)
 	
 ### New Features
+    
+### Changes
+    
+### Bugs fixed
+
+## 4.7.0 (17-07-2026)
+	
+### New Features
 
     - Decompiler tool!
 

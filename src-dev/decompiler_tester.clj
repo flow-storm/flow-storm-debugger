@@ -7,14 +7,14 @@
 ^:clojure.storm/collect-emitted
 (defn choose [x]
   (if (< x 10)
-    "Less than 10"
-    "Higher or equal than 10"))
+    (inc x)
+    (dec x)))
 
 ^:clojure.storm/collect-emitted
 (defn a-bunch-of-sums [a b]
   (let [m {:y 20}
         x (+ a b)
-        y (:y m)
+        y (:y m)  #_(get m :y) #_(.get m :y)
         z (+ x a b)]
     (+ x y z)))
 
@@ -28,20 +28,22 @@
 
 ^:clojure.storm/collect-emitted
 (defn multi-arity
-  ([] "empty args")
-  ([a] "one arg")
-  ([a b] "two args"))
+  ([] 0)
+  ([a] a)
+  ([a b] (+ a b)))
 
 (defn a-fn [] 5)
 
 ^:clojure.storm/collect-emitted
-(defn a-caller []
+(defn a-caller [] ;; could be direct linked
   (a-fn))
 
 ^:clojure.storm/collect-emitted
 (defn exceptional []
   (try
-    (println "Great")
+    (+ 1 2)
+    (catch ArithmeticException ae
+      (println "Wrong arithmetic"))
     (catch Exception e
       (println "Wrong"))))
 
