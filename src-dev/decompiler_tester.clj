@@ -14,15 +14,7 @@
 (defn a-bunch-of-sums [a b]
   (let [m {:y 20}
         x (+ a b)
-        y (:y m)  #_(get m :y) #_(.get m :y)
-        z (+ x a b)]
-    (+ x y z)))
-
-^:clojure.storm/collect-emitted
-(defn a-bunch-of-sums-map-get [a b]
-  (let [m {:y 20}
-        x (+ a b)
-        y (get m :y)
+        y #_(:y m) #_(get m :y) (.get m :y)
         z (+ x a b)]
     (+ x y z)))
 
