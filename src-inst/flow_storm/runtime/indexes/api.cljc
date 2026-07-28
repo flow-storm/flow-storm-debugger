@@ -837,6 +837,10 @@
   Absent criteria that doesn't have a default value will always match."
      
      [criteria]
+
+     (when (and (:from-idx criteria) (not (:thread-id criteria)))
+       (throw (ex-info "find-fn-call-entry should be called with thread-id when from-idx is provided." {:criteria criteria})))
+     
      (let [result-prom (promise)
            {:keys [start]} (timelines-async-interruptible-find-entry
                             (build-find-fn-call-entry-predicate criteria)
