@@ -8,6 +8,7 @@
             [flow-storm.runtime.events :as rt-events]            
             [flow-storm.runtime.values :as rt-values :refer [reference-value! deref-value]]
             [flow-storm.runtime.outputs :as rt-outputs]
+            [flow-storm.runtime.objects-registry :as objects-registry]
             [flow-storm.remote-websocket-client :as remote-websocket-client]
             [flow-storm.runtime.indexes.total-order-timeline :as total-order-timeline]
             [flow-storm.jobs :as jobs]
@@ -151,7 +152,8 @@
              :flow-storm-nrepl-middleware? (utils/flow-storm-nrepl-middleware?)
              :recording? (tracer/recording?)
              :total-order-recording? (tracer/multi-timeline-recording?)
-             :breakpoints (tracer/all-breakpoints)})))
+             :breakpoints (tracer/all-breakpoints)
+             :objects-registry-enable? (objects-registry/objects-registry-enable?)})))
 
 (defn val-pprint [vref opts]
   (rt-values/val-pprint-ref vref opts))
@@ -607,6 +609,8 @@
          :start-task start-task
          :clear-runtime-state clear-runtime-state
          :clear-outputs clear-outputs
+         :turn-objects-registry objects-registry/turn-objects-registry
+         :clear-objects-registry objects-registry/clear-registry
          :flow-threads-info flow-threads-info
          :all-flows-threads all-flows-threads
          :stack-for-frame stack-for-frame

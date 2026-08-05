@@ -94,6 +94,10 @@
   (clear-runtime-state [_])
   (clear-api-cache [_])
   (clear-outputs [_])
+
+  (turn-objects-registry [_ on?])
+  (clear-objects-registry [_])
+
   (all-flows-threads [_])
   (flow-threads-info [_ flow-id])
   (unblock-thread [_ thread-id])
@@ -278,6 +282,12 @@
 
   (clear-outputs [_]
     (api-call :local :clear-outputs []))
+
+  (turn-objects-registry [_ on?]
+    (api-call :local :turn-objects-registry [on?]))
+
+  (clear-objects-registry [_]
+    (api-call :local :clear-objects-registry []))
 
   (flow-threads-info [_ flow-id]
     (api-call :local :flow-threads-info [flow-id]))
@@ -469,6 +479,12 @@
 
   (clear-outputs [_]
     (api-call :remote :clear-outputs []))
+
+  (turn-objects-registry [_ on?]
+    (api-call :remote :turn-objects-registry [on?]))
+
+  (clear-objects-registry [_]
+    (api-call :remote :clear-objects-registry []))
 
   (flow-threads-info [_ flow-id]
     (api-call :remote :flow-threads-info [flow-id]))

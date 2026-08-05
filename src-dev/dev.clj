@@ -269,3 +269,11 @@
        (tap> throwable)
        (log-error "Unhandled exception" throwable))))
   )
+
+
+(comment
+
+  (flow-storm.runtime.objects-registry/set-objects-registry-pred
+   (fn [o] (instance? java.io.Closeable o)))
+
+  )

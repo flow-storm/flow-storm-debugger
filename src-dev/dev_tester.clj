@@ -1,4 +1,5 @@
-(ns dev-tester)
+(ns dev-tester
+  (:import [java.io FileInputStream]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some testing code ;;
@@ -118,7 +119,9 @@
         z (catcher)
         li (generate-lorem-ipsum)
         w (make-a-case :type-a)
-        ww (true? (instance? String "hello"))]
+        ww (true? (instance? String "hello"))
+        fi (FileInputStream. "/home/jmonetta/latest-screenshot.png")
+        fi-str (str fi)]
     (+ 1 2 3)
     (debugger [1 2 3 4])
     (debugger (+ 1 2))

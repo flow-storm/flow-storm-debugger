@@ -68,9 +68,7 @@
 (defprotocol FormRegistryP
   (register-form [_ form-id form])
   (all-forms [_])
-  (get-form [_ form-id])
-  (start-form-registry [_])
-  (stop-form-registry [_]))
+  (get-form [_ form-id]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Thread registry protocols ;;

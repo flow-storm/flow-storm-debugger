@@ -111,6 +111,12 @@
 (defn make-last-evals-update-event [last-evals-refs]
   [:last-evals-update {:last-evals-refs last-evals-refs}])
 
+(defn make-objects-registry-update-event [registry]
+  [:objects-registry-update {:objects-registry registry}])
+
+(defn make-objects-registry-enable-update-event [enable?]
+  [:objects-registry-enable-update {:enable? enable?}])
+
 (defn make-form-bytecode-emitted-event [form-classes]
   [:form-bytecode-emitted-event form-classes])
 

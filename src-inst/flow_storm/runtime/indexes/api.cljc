@@ -184,20 +184,18 @@
                                                 ((requiring-resolve 'flow-storm.tracer/hook-clojure-storm))
                                                 (utils/log "Storm functions plugged in"))
                                               (let [registry (thread-registry/make-flows-threads-registry)]                                                
-                                                registry)))
+                                                registry)))     
      
      (alter-var-root #'forms-registry (fn [_]                                       
-                                        (index-protos/start-form-registry
-                                         (if (utils/storm-env?)
-                                           ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
-                                           (form-registry/make-form-registry)))))
+                                        (if (utils/storm-env?)
+                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
+                                          (form-registry/make-form-registry))))
      (utils/log "Runtime index system started"))
    :cljs
    (defn start []
      (when-not flow-thread-registry
        (set! flow-thread-registry (thread-registry/make-flows-threads-registry))     
-       (set! forms-registry (index-protos/start-form-registry
-                             (form-registry/make-form-registry)))
+       (set! forms-registry (form-registry/make-form-registry))
        (utils/log (str "Runtime index system started")))))
 
 #?(:clj
@@ -206,13 +204,13 @@
        ((requiring-resolve 'flow-storm.tracer/unhook-clojure-storm))
        (utils/log "Storm functions unplugged"))     
      (alter-var-root #'flow-thread-registry (constantly nil))
-     (alter-var-root #'forms-registry index-protos/stop-form-registry)
+     (alter-var-root #'forms-registry (constantly nil))
      (utils/log "Runtime index system stopped"))
    
    :cljs
    (defn stop []
      (set! flow-thread-registry (constantly nil))
-     (set! forms-registry index-protos/stop-form-registry)
+     (set! forms-registry (constantly nil))
      (utils/log "Runtime index system stopped")))
 
 (defn flow-exists? [flow-id]  

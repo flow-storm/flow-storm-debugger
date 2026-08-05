@@ -3,6 +3,7 @@
             [flow-storm.runtime.values :refer [snapshot-reference]]
             [flow-storm.runtime.indexes.api :as indexes-api]
             [flow-storm.runtime.events :as rt-events]
+            [flow-storm.runtime.objects-registry :as objects-registry]
             #?(:clj [flow-storm.runtime.forms-bytecode-emission :refer [handle-form-bytecode-emitted]])))
 
 (declare start-tracer)
@@ -193,6 +194,11 @@
    (trace-fn-return nil return coord form-id nil))
   
   ([_ return coord _ frame-id] ;; for ClojureScriptStorm compat
+
+   (when (and (objects-registry/objects-registry-enable?)
+              (objects-registry/pred-matches? return))
+     (objects-registry/store-object return))
+   
    (when @recording     
      (let [flow-id @current-flow-id
            thread-id (utils/get-current-thread-id)
@@ -243,6 +249,11 @@
    (trace-expr-exec nil result coord form-id nil))
 
   ([_ result coord _ frame-id] ;; for ClojureScriptStorm compat
+
+   (when (and (objects-registry/objects-registry-enable?)
+              (objects-registry/pred-matches? result))
+     (objects-registry/store-object result))
+   
    (when @recording          
      (let [flow-id @current-flow-id
            thread-id (utils/get-current-thread-id)

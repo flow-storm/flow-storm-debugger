@@ -30,6 +30,7 @@
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.decompiler.screen :as decompiler-screen]
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
+            [flow-storm.debugger.ui.objects-registry.screen :as objects-registry-screen]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
             [flow-storm.debugger.state :as dbg-state :refer [obj-lookup store-obj]]
             [flow-storm.utils :as utils :refer [log log-error]]
@@ -151,6 +152,11 @@
                                :content (decompiler-screen/main-pane)
                                :on-selection-changed (event-handler [_])
                                :id "tool-decompiler")
+        obj-registry-tab (ui/tab :text "Objects"
+                               :class "vertical-tab"
+                               :content (objects-registry-screen/main-pane)
+                               :on-selection-changed (event-handler [_])
+                               :id "tool-objects-registry")
         plugins-tabs (->> (plugins/plugins)
                           (mapv (fn [p]
                                   (ui/tab :text (:plugin/label p)
@@ -160,7 +166,7 @@
                                                     :class (name (:plugin/key p))
                                                     :paddings [10 10 10 10])
                                           :id (:plugin/key p)))))
-        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab decompiler-tab] plugins-tabs)
+        tabs-p (ui/tab-pane :tabs (into [flows-tab browser-tab outputs-tab docs-tab decompiler-tab obj-registry-tab] plugins-tabs)
                             :rotate? true
                             :closing-policy :unavailable
                             :side :left
@@ -260,7 +266,8 @@
                                                    ;; that will get rid of the flows UI side of things
                                                    (runtime-api/clear-runtime-state rt-api)
                                                    (runtime-api/clear-api-cache rt-api)
-                                                   (outputs-screen/clear-outputs-ui))}
+                                                   (outputs-screen/clear-outputs-ui)
+                                                   (objects-registry-screen/clear-registry))}
                                       {:text "Clear current tool"
                                        :on-click (fn []
                                                    (case (dbg-state/selected-tool)
@@ -269,6 +276,7 @@
                                                      :tool-outputs (outputs-screen/clear-outputs)
                                                      :tool-docs    nil
                                                      :tool-decompiler (decompiler-screen/clear-forms)
+                                                     :tool-objects-registry (objects-registry-screen/clear-registry)
                                                      ;; TODO: execute clear on the selected plugin ??
                                                      nil))
                                        :accel {:mods [:ctrl]
@@ -403,7 +411,9 @@
   to configure the part of UI that depends on runtime state."
   []
   (ui-utils/run-later
-   (when-let [{:keys [storm? recording? total-order-recording? flow-storm-nrepl-middleware?] :as runtime-config} (runtime-api/runtime-config rt-api)]
+    (when-let [{:keys [storm? recording? total-order-recording?
+                       flow-storm-nrepl-middleware? objects-registry-enable?]
+                :as runtime-config} (runtime-api/runtime-config rt-api)]
      (log (str "Runtime config retrieved :" runtime-config))
      (let [all-flows-ids (->> (runtime-api/all-flows-threads rt-api)
                               (map first)
@@ -419,6 +429,8 @@
 
        (when-not flow-storm-nrepl-middleware?
          (outputs-screen/set-middleware-not-available))
+
+       (objects-registry-screen/set-register-enable objects-registry-enable?)
 
        (doseq [fid all-flows-ids]
          (create-flow {:flow-id fid}))))))

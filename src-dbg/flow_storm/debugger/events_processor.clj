@@ -9,6 +9,7 @@
             [flow-storm.debugger.ui.flows.bookmarks :as bookmarks]
             [flow-storm.debugger.ui.docs.screen :as docs-screen]
             [flow-storm.debugger.ui.decompiler.screen :as decompiler-screen]
+            [flow-storm.debugger.ui.objects-registry.screen :as objects-registry-screen]
             [flow-storm.debugger.ui.flows.general :as ui-general :refer [show-message]]
             [flow-storm.debugger.ui.utils :as ui-utils]
             [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
@@ -156,6 +157,12 @@
 (defn data-window-update-event [{:keys [dw-id data]}]
   (data-windows/update-val dw-id data))
 
+(defn objects-registry-update-event [{:keys [objects-registry]}]
+  (objects-registry-screen/update-registry objects-registry))
+
+(defn objects-registry-enable-update-event [{:keys [enable?]}]
+  (objects-registry-screen/set-register-enable enable?))
+
 (defn form-bytecode-emitted-event [form-classes]
   (decompiler-screen/add-form-decompilation form-classes))
 
@@ -194,6 +201,9 @@
 
     :data-window-push-val-data (data-window-push-val-data-event ev-args-map)
     :data-window-update (data-window-update-event ev-args-map)
+
+    :objects-registry-update (objects-registry-update-event ev-args-map)
+    :objects-registry-enable-update (objects-registry-enable-update-event ev-args-map)
 
     :form-bytecode-emitted-event (form-bytecode-emitted-event ev-args-map)
 
