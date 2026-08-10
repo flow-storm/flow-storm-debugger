@@ -12,7 +12,7 @@
 (defonce *registry (atom empty-registry))
 (defonce *objects-registry-enable (atom false))
 (defonce *objects-registry-pred (atom #?(:clj (fn [o] (instance? java.io.Closeable o))
-                                        :cljs (constantly false))))
+                                         :cljs (constantly false))))
 
 (defn objects-registry-enable? []
   @*objects-registry-enable)

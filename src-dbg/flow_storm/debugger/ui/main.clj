@@ -152,7 +152,7 @@
                                :content (decompiler-screen/main-pane)
                                :on-selection-changed (event-handler [_])
                                :id "tool-decompiler")
-        obj-registry-tab (ui/tab :text "Objects"
+        obj-registry-tab (ui/tab :text "Obj Registry"
                                :class "vertical-tab"
                                :content (objects-registry-screen/main-pane)
                                :on-selection-changed (event-handler [_])
