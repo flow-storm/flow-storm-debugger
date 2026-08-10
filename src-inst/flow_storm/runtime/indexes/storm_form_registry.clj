@@ -12,10 +12,7 @@
   (get-form [_ form-id]
     (if form-id
       (FormRegistry/getForm form-id)
-      (log-error "ERROR : can't get form for id null")))
-
-  (start-form-registry [this] this)
-  (stop-form-registry [_]))
+      (log-error "ERROR : can't get form for id null"))))
 
 (defn make-storm-form-registry []
   (->StormFormRegistry))

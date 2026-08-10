@@ -185,11 +185,12 @@
                                                 (utils/log "Storm functions plugged in"))
                                               (let [registry (thread-registry/make-flows-threads-registry)]                                                
                                                 registry)))     
-     
-     (alter-var-root #'forms-registry (fn [_]                                       
-                                        (if (utils/storm-env?)
-                                          ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
-                                          (form-registry/make-form-registry))))
+     (try
+       (alter-var-root #'forms-registry (fn [_]                                       
+                                          (if (utils/storm-env?)
+                                            ((requiring-resolve 'flow-storm.runtime.indexes.storm-form-registry/make-storm-form-registry))
+                                            (form-registry/make-form-registry))))
+       (catch Exception e (.printStackTrace e)))
      (utils/log "Runtime index system started"))
    :cljs
    (defn start []

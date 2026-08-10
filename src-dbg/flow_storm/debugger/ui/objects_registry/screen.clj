@@ -4,7 +4,8 @@
             [flow-storm.debugger.state :refer [store-obj obj-lookup] :as dbg-state]
             [flow-storm.utils :as utils]
             [flow-storm.debugger.runtime-api :as runtime-api :refer [rt-api]]
-            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows])
+            [flow-storm.debugger.ui.data-windows.data-windows :as data-windows]
+            [clojure.string :as str])
   (:import [javafx.scene.layout Priority VBox HBox]))
 
 (defn- update-registry-data-window [val-ref]
@@ -22,45 +23,60 @@
 
 (defn update-registry [registry]
   (ui-utils/run-later
-    (let [[{:keys [add-all clear]}] (obj-lookup "registry-list-view-data")
-          last-ref (last registry)]
+    (let [[{:keys [add-all clear]}] (obj-lookup "registry-table-view-data")
+          {:keys [obj-ref]} (last registry)
+          rows (mapv (fn [obj-data]
+                       [(assoc obj-data :cell-type :object)
+                        (assoc obj-data :cell-type :form)
+                        (assoc obj-data :cell-type :file)
+                        (assoc obj-data :cell-type :line)])
+                     registry)]
       (clear)
-      (update-registry-data-window last-ref)
-      (add-all registry))))
+      (update-registry-data-window obj-ref)
+      (add-all rows))))
 
 (defn clear-registry []
   (ui-utils/run-later
     (runtime-api/clear-objects-registry rt-api)
-    (let [[{:keys [clear]}] (obj-lookup "registry-list-view-data")]
+    (let [[{:keys [clear]}] (obj-lookup "registry-table-view-data")]
       (clear))))
 
 (defn main-pane []
   (let [registry-toggle (ui/toggle-button {:label "Registry Enable"
                                            :on-change (fn [on?]
                                                         (runtime-api/turn-objects-registry rt-api on?))})
-        registry-lv-data
-        (ui/list-view :editable? false
-                      :cell-factory (fn [list-cell val-ref]
-                                      (let [val-list-text (-> val-ref meta :val-preview utils/remove-newlines)]
-                                        (-> list-cell
-                                            (ui-utils/set-text nil)
-                                            (ui-utils/set-graphic (ui/label :text val-list-text)))))
-                      :on-click (fn [mev sel-items _]
-                                  (let [val-ref (first sel-items)]
-                                    (cond
-                                      (ui-utils/mouse-primary? mev)
-                                      (update-registry-data-window val-ref))))
-                      :selection-mode :single)
+        registry-tv-data
+        (ui/table-view
+         :columns ["Object" "Form" "File" "Line"]
+         :cell-factory (fn [_ {:keys [cell-type obj-ref obj-sub-form file line]}]
+                         (let [obj-str (some-> obj-ref meta :val-preview utils/remove-newlines)
+                               cell-obj (case cell-type
+                                          :object (ui/label :text obj-str :class "link-lbl")
+                                          :form (ui/label :text (str obj-sub-form) :class "link-lbl")
+                                          :file (ui/label :text file :class "link-lbl")
+                                          :line (ui/label :text (str line) :class "link-lbl"))]
+                           cell-obj))
+         :on-click (fn [mev sel-items _]
+                     (when (ui-utils/mouse-primary? mev)
+                       (let [{:keys [obj-ref]} (-> sel-items ffirst)]
+                         (update-registry-data-window obj-ref))))
+         :selection-mode :single
+         :columns-width-percs [0.4 0.3 0.2 0.1]
+         :resize-policy :constrained
+         :items []
+         :search-predicate (fn [{:keys [obj-ref obj-sub-form]} search-str]
+                             (let [obj-str (-> obj-ref meta :val-preview utils/remove-newlines)]
+                               (or (str/includes? obj-str search-str)
+                                   (str/includes? obj-sub-form search-str)))))
 
-        registry-lv (:list-view registry-lv-data)
+        registry-tv (:table-view registry-tv-data)
 
         val-dw-pane (ui/v-box :childs [(data-windows/data-window-pane {:data-window-id :objects-registry})]
                               :paddings [10 10 10 10]
                               :class "objects-registry-dw")
 
-        registry-box (ui/v-box :childs [(ui/label :text "Objects registry") registry-lv]
-
-                                :spacing 5)
+        registry-box (ui/v-box :childs [(ui/label :text "Objects registry") registry-tv]
+                               :spacing 5)
         split-pane (ui/split :orientation :vertical
                              :childs [val-dw-pane
                                       registry-box]
@@ -74,13 +90,13 @@
         main-p (ui/border-pane :top controls
                                :center split-pane)]
 
-    (VBox/setVgrow registry-lv  Priority/ALWAYS)
-    (HBox/setHgrow registry-lv  Priority/ALWAYS)
+    (VBox/setVgrow registry-tv  Priority/ALWAYS)
+    (HBox/setHgrow registry-tv  Priority/ALWAYS)
 
     (VBox/setVgrow split-pane Priority/ALWAYS)
     (VBox/setVgrow main-p Priority/ALWAYS)
 
-    (store-obj "registry-list-view-data" registry-lv-data)
+    (store-obj "registry-table-view-data" registry-tv-data)
     (store-obj "registry-toggle-btn" registry-toggle)
 
     main-p))

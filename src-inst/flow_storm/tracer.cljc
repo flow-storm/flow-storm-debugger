@@ -193,11 +193,11 @@
   ([_ return coord form-id] ;; for ClojureStorm compat
    (trace-fn-return nil return coord form-id nil))
   
-  ([_ return coord _ frame-id] ;; for ClojureScriptStorm compat
+  ([_ return coord form-id frame-id] ;; for ClojureScriptStorm compat
 
    (when (and (objects-registry/objects-registry-enable?)
               (objects-registry/pred-matches? return))
-     (objects-registry/store-object return))
+     (objects-registry/store-object return form-id coord))
    
    (when @recording     
      (let [flow-id @current-flow-id
@@ -248,11 +248,11 @@
   ([_ result coord form-id]  ;; for ClojureStorm compat
    (trace-expr-exec nil result coord form-id nil))
 
-  ([_ result coord _ frame-id] ;; for ClojureScriptStorm compat
+  ([_ result coord form-id frame-id] ;; for ClojureScriptStorm compat
 
    (when (and (objects-registry/objects-registry-enable?)
               (objects-registry/pred-matches? result))
-     (objects-registry/store-object result))
+     (objects-registry/store-object result form-id coord))
    
    (when @recording          
      (let [flow-id @current-flow-id
