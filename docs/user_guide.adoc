@@ -1221,6 +1221,49 @@ other way around, which is you can click any bytecode instruction and see which 
 
 You can add multiple forms or hit `Ctrl+l` to clear them.
 
+= Objects Registry tool
+
+image::user_guide_images/objects_registry.png[]
+
+The `Objects Registry tool` allows you to capture references to objects that matches a predicate.
+
+It can be used in many ways, but mainly it can help you reduce the chances you lose references to some objects (like the ones wrapping resources)
+while interactively growing your programs, which sometimes force you to restart the repl.
+
+Let's say you just evaluated a form like :
+
+[%nowrap,clojure]
+----
+(let [fis (java.io.FileInputStream. "mi_file.txt")]
+  42)
+----
+
+Now you created a FileInputStream but don't stored any references that allows you to close it.
+
+The objects registry, when enable (top right button), keeps a registry of all the objects "it sees"
+that matches a predicate independently if you are recording or not, although the running code should be instrumented.
+
+The default predicate for Clojure is:
+
+[%nowrap,clojure]
+----
+(flow-storm.runtime.objects-registry/set-objects-registry-pred
+   (fn [o] (instance? java.io.Closeable o)))
+----
+
+but it can be changed to whatever you want.
+
+Whenever your program runs it will catch references that matches the defined predicate and keep them so you can inspect them or
+bind them to names, and then work with at the repl.
+
+They are added as hard references to a ring buffer of 100, so you can keep that turned on forever and it should be ok.
+
+The buffer stores the reference only if it isn't stored already, so you won't see duplicates.
+
+As in most other tools you can clear these references by clicking on the trash can icon or by hitting Ctrl-l.
+
+The registry shows the captured object string representation, the form that generated it and file and line when available.
+
 = Data Windows
 
 image::user_guide_images/data_window.png[]
