@@ -5,9 +5,10 @@
 (def nil-idx -1)
 
 (defn- print-ret [ret-trace]
-  (utils/format "#flow-storm/return-trace [Coord: %s, Type: %s]"
-                (index-protos/get-coord-raw ret-trace)
-                (pr-str (type (index-protos/get-expr-val ret-trace)))))
+  (utils/format "#flow-storm/return-trace {:coord %s, :result %s, :fn-call-idx %s}"
+                (index-protos/get-coord-vec ret-trace)
+                (pr-str (type (index-protos/get-expr-val ret-trace)))
+                (index-protos/fn-call-idx ret-trace)))
 
 (deftype FnReturnTrace
     [     coord
@@ -39,8 +40,26 @@
      :result (index-protos/get-expr-val this)
      :fn-call-idx (index-protos/fn-call-idx this)})
 
-  #?@(:cljs
-      [IPrintWithWriter
+  #?@(:clj
+      [clojure.lang.ILookup
+       (valAt [this k] (.valAt this k nil))
+       (valAt [this k not-found]
+              (case k
+                :coord (index-protos/get-coord-vec this)
+                :result (index-protos/get-expr-val this)
+                :fn-call-idx (index-protos/fn-call-idx this)
+                not-found))]
+      
+      :cljs
+      [ILookup
+       (-lookup [this k] (-lookup this k nil))
+       (-lookup [this k not-found]
+                (case k
+                  :coord (index-protos/get-coord-vec this)
+                  :result (index-protos/get-expr-val this)
+                  :fn-call-idx (index-protos/fn-call-idx this)
+                  not-found))
+       IPrintWithWriter
        (-pr-writer [this writer _]
                    (write-all writer (print-ret this)))]))
 
@@ -56,9 +75,10 @@
   (and x (instance? FnReturnTrace x)))
 
 (defn- print-unw [unwind-trace]
-  (utils/format "#flow-storm/unwind-trace [Coord: %s, ExType: %s]"
-                (index-protos/get-coord-raw unwind-trace)
-                (pr-str (type (index-protos/get-throwable unwind-trace)))))
+  (utils/format "#flow-storm/unwind-trace {:coord %s, :throwable %s, :fn-call-idx %s}"
+                (index-protos/get-coord-vec unwind-trace)
+                (pr-str (type (index-protos/get-throwable unwind-trace)))
+                (index-protos/fn-call-idx unwind-trace)))
 
 (deftype FnUnwindTrace
     [     coord
@@ -91,8 +111,26 @@
      :throwable (index-protos/get-throwable this)
      :fn-call-idx (index-protos/fn-call-idx this)})
 
-  #?@(:cljs
-      [IPrintWithWriter
+  #?@(:clj
+      [clojure.lang.ILookup
+       (valAt [this k] (.valAt this k nil))
+       (valAt [this k not-found]
+              (case k
+                :coord (index-protos/get-coord-vec this)
+                :throwable (index-protos/get-throwable this)
+                :fn-call-idx (index-protos/fn-call-idx this)
+                not-found))]
+      
+      :cljs
+      [ILookup
+       (-lookup [this k] (-lookup this k nil))
+       (-lookup [this k not-found]
+                (case k
+                  :coord (index-protos/get-coord-vec this)
+                  :throwable (index-protos/get-throwable this)
+                  :fn-call-idx (index-protos/fn-call-idx this)
+                  not-found))
+       IPrintWithWriter
        (-pr-writer [this writer _]
                    (write-all writer (print-unw this)))]))
 

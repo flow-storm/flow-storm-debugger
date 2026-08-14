@@ -5,9 +5,10 @@
 (def nil-idx -1)
 
 (defn- print-it [expr]
-  (utils/format "#flow-storm/expr-trace [Coord: %s, Type: %s]"
-                (index-protos/get-coord-raw expr)
-                (pr-str (type (index-protos/get-expr-val expr)))))
+  (utils/format "#flow-storm/expr-trace {:coord %s, :result %s, :fn-call-idx %s}"
+                (index-protos/get-coord-vec expr)
+                (pr-str (type (index-protos/get-expr-val expr)))
+                (index-protos/fn-call-idx expr)))
 
 (deftype ExprTrace
     [coord
@@ -37,11 +38,31 @@
      :coord (index-protos/get-coord-vec this)
      :result (index-protos/get-expr-val this)
      :fn-call-idx (index-protos/fn-call-idx this)})
+  
+  #?@(:clj
+      [clojure.lang.ILookup
+       (valAt [this k] (.valAt this k nil))
+       (valAt [this k not-found]
+              (case k
+                :coord (index-protos/get-coord-vec this)
+                :result (index-protos/get-expr-val this)
+                :fn-call-idx (index-protos/fn-call-idx this)
+                not-found))]
+      
+      :cljs
+      [ILookup
+       (-lookup [this k] (-lookup this k nil))
+       (-lookup [this k not-found]
+                (case k
+                  :coord (index-protos/get-coord-vec this)
+                  :result (index-protos/get-expr-val this)
+                  :fn-call-idx (index-protos/fn-call-idx this)
+                  not-found))
 
-  #?@(:cljs
-      [IPrintWithWriter
+       IPrintWithWriter
        (-pr-writer [this writer _]
-                   (write-all writer (print-it this)))]))
+                   (write-all writer (print-it this)))]
+      ))
 
 #?(:clj
    (defmethod print-method ExprTrace [expr ^java.io.Writer w]

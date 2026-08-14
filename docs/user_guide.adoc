@@ -1647,73 +1647,55 @@ Once you have the timeline you can start exploring it.
 
 The timeline implements many of the Clojure basic interfaces, so you can :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 user> (count timeline)
-798
+68
 
-user> (take 3 timeline)
-; (#flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]
-;  #flow-storm/fn-call-trace [Idx: 1 org.my-app/read-config]
-;  #flow-storm/fn-call-trace [Idx: 2 org.my-app/check-config])
+user> (take 3 timeline) ;; Maybe the easiest way to look at a thread timeline is to explore it like a sequence
+
+;; (#flow-storm/fn-call-trace {:fn-ns org.httpkit.server,:fn-name wrap-ring-websocket/ring-handler*--11513, :form-id 743222080, :fn-args [clojure.lang.PersistentHashMap], :parent-idx null, :ret-idx 67}
+;;  #flow-storm/expr-trace {:coord [3 2 1 1], :result clojure.lang.PersistentHashMap, :fn-call-idx 0}
+;;  #flow-storm/expr-trace {:coord [3 2 1 2 0], :result todos.web_app$_main$handle__17176, :fn-call-idx 0})
  
-user> (get timeline 0)
-; #flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]
+user> (get timeline 1)
+;; #flow-storm/expr-trace {:coord [3 2 1 1], :result clojure.lang.PersistentHashMap, :fn-call-idx 0}
 ----
 
-The easiest way to take a look at a thread timeline is with some code like this :
+All timeline entries implement ILookup, so you can access its fields like a map :
 
-[,clojure]
+[%nowrap,clojure]
 ----
-(->> timeline
-     (take 3)
-     (map ia/as-immutable))
-
-; ({:type :fn-call,
-;   :fn-ns "org.my-app",
-;   :fn-name "run-server",
-;   :ret-idx 797,
-;   :fn-call-idx 0,
-;   :parent-idx nil,
-;   :fn-args [],
-;   :form-id -798068730,
-;   :idx 0}
-;  ...
-;  ...)
+user> (:coord (get timeline 1))
+;; [3 2 1 1]
 ----
 
-In most cases converting all entries into maps with `ia/as-immutable` is enough, but if you want a little bit more
-performance you can access entries information without creating a immutable map first.
+You can also make evey timeline entry an immutable clojure map, like :
+
+[%nowrap,clojure]
+----
+user> (->> timeline
+         (take 3)
+         (map ia/as-immutable))
+
+;;({:type :fn-call,
+;;  :fn-name "wrap-ring-websocket/ring-handler*--11513",
+;;  :fn-ns "org.httpkit.server",
+;;  :form-id 743222080,
+;;  :fn-args [...],
+;;  :parent-idx nil,
+;;  :ret-idx 67}
+;; {:type :expr,
+;;  :coord [3 2 1 1],
+;;  :result {...},
+;;  :fn-call-idx 0}
+;; {:type :expr,
+;;  :coord [3 2 1 2 0],
+;;  :result #function[todos.web-app/-main/handle--17176],
+;;  :fn-call-idx 0})
+----
 
 Timelines entries are of 4 different kinds: `FnCallTrace`, `FnReturnTrace`, `FnUnwindTrace` and `ExprTrace`.
-
-You can access their data by using the following functions depending on the entry :
-  
-All kinds :
-
-  - `as-immutable`
-  - `fn-call-idx`
-
-`ExprTrace`, `FnReturnTrace` and `FnUnwindTrace` :
-
-  - `get-coord-vec`
-
-`ExprTrace`, `FnReturnTrace` :
-
-  - `get-expr-val`
-
-`FnUnwindTrace` :
-
-  - `get-throwable`
-  
-`FnCallTrace` :
-
-  - `get-fn-name`
-  - `get-fn-ns`
-  - `get-fn-args`
-  - `get-fn-parent-idx`
-  - `get-fn-ret-idx`
-  - `get-fn-bindings`
 
 You can also access the timeline as a tree by calling :
 
@@ -1767,7 +1749,7 @@ a
   
 If you have recorded a multi-thread timeline, you can retrieve it with `total-order-timeline` like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----
 (def mt-timeline (ia/total-order-timeline))
 ----
@@ -1776,7 +1758,7 @@ which you can then iterate using normal Clojure functions (map, filter, reduce, 
 
 The easiest way to explore it is again with some code like this :
 
-[,clojure]
+[%nowrap,clojure]
 ----  
 user> (->> mt-timeline
            (take 3)

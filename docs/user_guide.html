@@ -3486,117 +3486,56 @@ which you will need for accessing them from the repl.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">count</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
-</span><span class="mi">798</span><span class="w">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">count</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
+</span><span class="mi">68</span><span class="w">
 
-</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w">
-</span><span class="c1">; (#flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]</span><span class="w">
-</span><span class="c1">;  #flow-storm/fn-call-trace [Idx: 1 org.my-app/read-config]</span><span class="w">
-</span><span class="c1">;  #flow-storm/fn-call-trace [Idx: 2 org.my-app/check-config])</span><span class="w">
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">timeline</span><span class="p">)</span><span class="w"> </span><span class="c1">;; Maybe the easiest way to look at a thread timeline is to explore it like a sequence</span><span class="w">
 
-</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w">
-</span><span class="c1">; #flow-storm/fn-call-trace [Idx: 0 org.my-app/run-server]</span></code></pre>
+</span><span class="c1">;; (#flow-storm/fn-call-trace {:fn-ns org.httpkit.server,:fn-name wrap-ring-websocket/ring-handler*--11513, :form-id 743222080, :fn-args [clojure.lang.PersistentHashMap], :parent-idx null, :ret-idx 67}</span><span class="w">
+</span><span class="c1">;;  #flow-storm/expr-trace {:coord [3 2 1 1], :result clojure.lang.PersistentHashMap, :fn-call-idx 0}</span><span class="w">
+</span><span class="c1">;;  #flow-storm/expr-trace {:coord [3 2 1 2 0], :result todos.web_app$_main$handle__17176, :fn-call-idx 0})</span><span class="w">
+
+</span><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w">
+</span><span class="c1">;; #flow-storm/expr-trace {:coord [3 2 1 1], :result clojure.lang.PersistentHashMap, :fn-call-idx 0}</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The easiest way to take a look at a thread timeline is with some code like this :</p>
+<p>All timeline entries implement ILookup, so you can access its fields like a map :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">timeline</span><span class="w">
-     </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
-     </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
-
-</span><span class="c1">; ({:type :fn-call,</span><span class="w">
-</span><span class="c1">;   :fn-ns "org.my-app",</span><span class="w">
-</span><span class="c1">;   :fn-name "run-server",</span><span class="w">
-</span><span class="c1">;   :ret-idx 797,</span><span class="w">
-</span><span class="c1">;   :fn-call-idx 0,</span><span class="w">
-</span><span class="c1">;   :parent-idx nil,</span><span class="w">
-</span><span class="c1">;   :fn-args [],</span><span class="w">
-</span><span class="c1">;   :form-id -798068730,</span><span class="w">
-</span><span class="c1">;   :idx 0}</span><span class="w">
-</span><span class="c1">;  ...</span><span class="w">
-</span><span class="c1">;  ...)</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="no">:coord</span><span class="w"> </span><span class="p">(</span><span class="nb">get</span><span class="w"> </span><span class="n">timeline</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w">
+</span><span class="c1">;; [3 2 1 1]</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In most cases converting all entries into maps with <code>ia/as-immutable</code> is enough, but if you want a little bit more
-performance you can access entries information without creating a immutable map first.</p>
+<p>You can also make evey timeline entry an immutable clojure map, like :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">timeline</span><span class="w">
+         </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
+         </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
+
+</span><span class="c1">;;({:type :fn-call,</span><span class="w">
+</span><span class="c1">;;  :fn-name "wrap-ring-websocket/ring-handler*--11513",</span><span class="w">
+</span><span class="c1">;;  :fn-ns "org.httpkit.server",</span><span class="w">
+</span><span class="c1">;;  :form-id 743222080,</span><span class="w">
+</span><span class="c1">;;  :fn-args [...],</span><span class="w">
+</span><span class="c1">;;  :parent-idx nil,</span><span class="w">
+</span><span class="c1">;;  :ret-idx 67}</span><span class="w">
+</span><span class="c1">;; {:type :expr,</span><span class="w">
+</span><span class="c1">;;  :coord [3 2 1 1],</span><span class="w">
+</span><span class="c1">;;  :result {...},</span><span class="w">
+</span><span class="c1">;;  :fn-call-idx 0}</span><span class="w">
+</span><span class="c1">;; {:type :expr,</span><span class="w">
+</span><span class="c1">;;  :coord [3 2 1 2 0],</span><span class="w">
+</span><span class="c1">;;  :result #function[todos.web-app/-main/handle--17176],</span><span class="w">
+</span><span class="c1">;;  :fn-call-idx 0})</span></code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Timelines entries are of 4 different kinds: <code>FnCallTrace</code>, <code>FnReturnTrace</code>, <code>FnUnwindTrace</code> and <code>ExprTrace</code>.</p>
-</div>
-<div class="paragraph">
-<p>You can access their data by using the following functions depending on the entry :</p>
-</div>
-<div class="paragraph">
-<p>All kinds :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>as-immutable</code></p>
-</li>
-<li>
-<p><code>fn-call-idx</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>ExprTrace</code>, <code>FnReturnTrace</code> and <code>FnUnwindTrace</code> :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>get-coord-vec</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>ExprTrace</code>, <code>FnReturnTrace</code> :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>get-expr-val</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>FnUnwindTrace</code> :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>get-throwable</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>FnCallTrace</code> :</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>get-fn-name</code></p>
-</li>
-<li>
-<p><code>get-fn-ns</code></p>
-</li>
-<li>
-<p><code>get-fn-args</code></p>
-</li>
-<li>
-<p><code>get-fn-parent-idx</code></p>
-</li>
-<li>
-<p><code>get-fn-ret-idx</code></p>
-</li>
-<li>
-<p><code>get-fn-bindings</code></p>
-</li>
-</ul>
 </div>
 <div class="paragraph">
 <p>You can also access the timeline as a tree by calling :</p>
@@ -3668,7 +3607,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/total-order-timeline</span><span class="p">))</span></code></pre>
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="p">(</span><span class="k">def</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w"> </span><span class="p">(</span><span class="nf">ia/total-order-timeline</span><span class="p">))</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3679,7 +3618,7 @@ performance you can access entries information without creating a immutable map 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w">
+<pre class="rouge highlight nowrap"><code data-lang="clojure"><span class="n">user&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">-&gt;&gt;</span><span class="w"> </span><span class="n">mt-timeline</span><span class="w">
            </span><span class="p">(</span><span class="nb">take</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w">
            </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">ia/as-immutable</span><span class="p">))</span><span class="w">
 
@@ -5127,7 +5066,7 @@ isn&#8217;t supported yet.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-08-10 15:13:46 -0300
+Last updated 2026-08-14 11:25:44 -0300
 </div>
 </div>
 </body>

@@ -3,6 +3,9 @@
 ## master (unreleased)
 	
 ### New Features
+
+    - New objects registry tool
+    - Implement ILookup and improve printer on timeline entries
     
 ### Changes
     

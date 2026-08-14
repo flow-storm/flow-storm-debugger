@@ -5,10 +5,10 @@
 (def nil-idx -1)
 
 (defn- print-it [bind]
-  (utils/format "#flow-storm/bind-trace [Symbol: %s, ValType: %s, Coord: %s]"
+  (utils/format "#flow-storm/bind-trace {:symbol %s, :value %s, :coord %s}"
                 (index-protos/get-bind-sym-name bind)
                 (pr-str (type (index-protos/get-bind-val bind)))
-                (index-protos/get-coord-raw bind)))
+                (index-protos/get-coord-vec bind)))
 
 (deftype BindTrace
     [symName
@@ -32,10 +32,30 @@
      :symbol (index-protos/get-bind-sym-name this)
      :value (index-protos/get-bind-val this)
      :coord (index-protos/get-coord-vec this)
-     :visible-after visibleAfterIdx})
+     :visible-after visibleAfterIdx
+     })
   
-  #?@(:cljs
-      [IPrintWithWriter
+  #?@(:clj
+      [clojure.lang.ILookup
+       (valAt [this k] (.valAt this k nil))
+       (valAt [this k not-found]
+              (case k
+                :symbol (index-protos/get-bind-sym-name this)
+                :value (index-protos/get-bind-val this)
+                :coord (index-protos/get-coord-vec this)
+                :visible-after visibleAfterIdx
+                not-found))]
+      :cljs
+      [ILookup
+       (-lookup [this k] (-lookup this k nil))
+       (-lookup [this k not-found]
+                (case k
+                  :symbol (index-protos/get-bind-sym-name this)
+                  :value (index-protos/get-bind-val this)
+                  :coord (index-protos/get-coord-vec this)
+                  :visible-after visibleAfterIdx
+                  not-found))
+       IPrintWithWriter
        (-pr-writer [this writer _]
                    (write-all writer (print-it this)))]))
 

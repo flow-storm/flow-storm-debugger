@@ -6,9 +6,13 @@
 (def nil-idx -1)
 
 (defn- print-it [fn-call]
-  (utils/format "#flow-storm/fn-call-trace [%s/%s]"
+  (utils/format "#flow-storm/fn-call-trace {:fn-ns %s,:fn-name %s, :form-id %s, :fn-args %s, :parent-idx %s, :ret-idx %s}"
                 (index-protos/get-fn-ns fn-call)
-                (index-protos/get-fn-name fn-call)))
+                (index-protos/get-fn-name fn-call)
+                (index-protos/get-form-id fn-call)
+                (mapv type (index-protos/get-fn-args fn-call))
+                (index-protos/get-parent-idx fn-call)
+                (index-protos/get-ret-idx fn-call)))
 
 (deftype FnCallTrace
     [                         fnName
@@ -53,10 +57,36 @@
      :form-id formId
      :fn-args fnArgs
      :parent-idx (index-protos/get-parent-idx this)
-     :ret-idx (index-protos/get-ret-idx this)})
+     :ret-idx (index-protos/get-ret-idx this)
+     })
 
-  #?@(:cljs
-      [IPrintWithWriter
+  #?@(:clj
+      [clojure.lang.ILookup
+       (valAt [this k] (.valAt this k nil))
+       (valAt [this k not-found]
+              (case k
+                :fn-name fnName
+                :fn-ns fnNs
+                :form-id formId
+                :fn-args fnArgs
+                :parent-idx (index-protos/get-parent-idx this)
+                :ret-idx (index-protos/get-ret-idx this)
+                not-found))]
+      
+      :cljs
+      [ILookup
+       (-lookup [this k] (-lookup this k nil))
+       (-lookup [this k not-found]
+                (case k
+                  :fn-name fnName
+                  :fn-ns fnNs
+                  :form-id formId
+                  :fn-args fnArgs
+                  :parent-idx (index-protos/get-parent-idx this)
+                  :ret-idx (index-protos/get-ret-idx this)
+                  not-found))
+       
+       IPrintWithWriter
        (-pr-writer [this writer _]
                    (write-all writer (print-it this)))]))
 
