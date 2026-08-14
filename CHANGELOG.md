@@ -4,8 +4,23 @@
 	
 ### New Features
 
-    - New objects registry tool
+### Changes
+
+## 4.8.1 (14-08-2026)
+	
+### New Features
+
     - Implement ILookup and improve printer on timeline entries
+    
+### Changes
+    
+### Bugs fixed
+
+## 4.8.0 (10-08-2026)
+	
+### New Features
+
+    - New objects registry tool
     
 ### Changes
     
