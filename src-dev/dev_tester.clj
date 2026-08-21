@@ -120,7 +120,7 @@
         li (generate-lorem-ipsum)
         w (make-a-case :type-a)
         ww (true? (instance? String "hello"))
-        fi (FileInputStream. "/home/jmonetta/latest-screenshot.png")
+        fi (FileInputStream. "/home/jmonetta/experiment.org")
         fi-str (str fi)]
     (+ 1 2 3)
     (debugger [1 2 3 4])
